@@ -1,9 +1,9 @@
 = SG Collect Info
 
-With this release comes a new command line utility called `sgcollect_info` that provides us with detailed statistics for a specific node.
-Run `sgcollect_info` on each node individually, not on all simultaneously. 
+`sgcollect_info` is command line utility that provides detailed statistics for a specific Sync Gateway node.
+This tool must be run on each node individually, not on all simultaneously. 
 
-Outputs: 
+`sgcollect_info` outputs the following statistics in a zip file: 
 
 . Logs 
 . Configuration 
@@ -12,42 +12,44 @@ Outputs:
 . Golang profile output (runtime memory and cpu profiling info) 
 
 
-[[_installing_optional_dependencies]]
-== Installing Optional Dependencies
+[[_cli_command_and_parameters]]
+== CLI command and parameters
 
-`sgcollect_info` will be able to collect more information if the following tools are installed: 
+To see the CLI command line parameters, run: 
 
-* https://golang.org/doc/install[Golang] -- this should be the same version that Sync Gateway was built with. 
+[source,bash]
+----
 
+./sgcollect_info --help
+----
 
-[cols="1,1", options="header"]
-|===
-| 
-            SG Version
-          
-| 
-            Go build version
-          
+== Examples
 
+Collect Sync Gateway diagnostics and save locally: 
 
-|
+[source,bash]
+----
 
-            1.3.0 
-|
-            1.5.3 
+./sgcollect_info /tmp/sgcollect_info.zip
+----
 
-|
-            1.3.1 
-|
-            1.6.3 
-|===
+Collect Sync Gateway diagnostics and upload them to the Couchbase Support AWS S3 bucket: 
 
-If go is not installed, sgcollect_info will print the following error message, you can ignore this message and there is no need to report it. 
+[source,bash]
+----
 
-`Exception during compression: [Error 2] The system cannot find the file specified IMPORTANT:   Compression using gozip failed.   Falling back to python implementation.   Please let us know about this and provide console output.`
+./sgcollect_info \
+  --sync-gateway-config=/path/to/config.json \
+  --sync-gateway-executable=/usr/bin/sync_gateway \
+  --upload-host=s3.amazonaws.com/cb-customers \
+  --customer=Acme \
+  --ticket=123
+  /tmp/sgcollect_info.zip
+----
 
-* http://www.graphviz.org/Download..php[Graphviz] -- this is used to render PDFs of the https://golang.org/pkg/net/http/pprof/[go pprof] output. 
+== REST Endpoint
 
+`sgcollect_info` can now be run from the Admin REST API as of Sync Gateway 2.1 using the link:admin-rest-api.html?v=2.1#/server/post__sgcollect_info[/_sgcollect_info] endpoint.
 
 == Zipfile contents
 
@@ -144,36 +146,37 @@ The tool creates the following log files in the ouput file.
             The pprof output that collects directly via an http client rather than using go tool, in case Go is not installed 
 |===
 
-== CLI command and parameters
+== Installing Optional Dependencies
 
-To see the CLI command line parameters, run: 
+`sgcollect_info` will be able to collect more information if the following tools are installed: 
 
-[source,bash]
-----
+* https://golang.org/doc/install[Golang] -- this should be the same version that Sync Gateway was built with. 
 
-./sgcollect_info --help
-----
 
-== Examples
+[cols="1,1", options="header"]
+|===
+| 
+            SG Version
+          
+| 
+            Go build version
+          
 
-Collect Sync Gateway diagnostics and save locally: 
 
-[source,bash]
-----
+|
 
-./sgcollect_info /tmp/sgcollect_info.zip
-----
+            1.3.0 
+|
+            1.5.3 
 
-Collect Sync Gateway diagnostics and upload them to the Couchbase Support AWS S3 bucket: 
+|
+            1.3.1 
+|
+            1.6.3 
+|===
 
-[source,bash]
-----
+If go is not installed, sgcollect_info will print the following error message, you can ignore this message and there is no need to report it. 
 
-./sgcollect_info \
-  --sync-gateway-config=/path/to/config.json \
-  --sync-gateway-executable=/usr/bin/sync_gateway \
-  --upload-host=s3.amazonaws.com/cb-customers \
-  --customer=Acme \
-  --ticket=123
-  /tmp/sgcollect_info.zip
-----
+`Exception during compression: [Error 2] The system cannot find the file specified IMPORTANT:   Compression using gozip failed.   Falling back to python implementation.   Please let us know about this and provide console output.`
+
+* http://www.graphviz.org/Download..php[Graphviz] -- this is used to render PDFs of the https://golang.org/pkg/net/http/pprof/[go pprof] output. 
