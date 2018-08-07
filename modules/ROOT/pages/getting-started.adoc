@@ -204,22 +204,40 @@ The following table lists the ports used for different types of Sync Gateway net
 
 To configure Couchbase Server before connecting Sync Gateway, run through the following. 
 
-* https://www.couchbase.com/nosql-databases/downloads[Download] and install Couchbase Server. 
-* Open the Couchbase Server Admin Console on http://localhost:8091 and log on using your administrator credentials. 
-* In the toolbar, select the *Data Buckets* tab and click the *Create New Data Bucket* button. 
+. https://www.couchbase.com/nosql-databases/downloads[Download] and install Couchbase Server.
+. Open the Couchbase Server Admin Console on http://localhost:8091 and log on using your administrator credentials.
+. In the toolbar, select the *Buckets* tab and click the *Add Bucket* button.
 +
-// <img src="../img/cb-create-bucket.png"/>
-center-image /> 
-* Provide a bucket name, for example **staging**, and leave the other options to their defaults. 
-* Next, we must create an RBAC user with specific privileges for Sync Gateway to connect to Couchbase Server. Open the *Security* tab and click the *Add User* button. 
+image::cb-create-bucket.png[]
 +
-// <img src="../img/create-user.png"/>
-center-image /> 
-* In the pop-up window, provide a *Username* and **Password**, those credentials will be used by Sync Gateway to connect. You must also enable the *Bucket Full Access* role on the bucket and the cluster wide *Read Only Admin* role. 
+. Provide a bucket name, for example **staging**, and leave the other options to their defaults.
+. Next, we must create an RBAC user with specific privileges for Sync Gateway to connect to Couchbase Server. Open the *Security* tab and click the *Add User* button.
 +
-// <img src="../img/user-settings.png"/>
-center-image /> 
-* If you're installing Couchbase Server on the cloud, make sure that network permissions (or firewall settings) allow incoming connections to Couchbase Server ports. In a typical mobile deployment on premise or in the cloud (AWS, RedHat etc), the following ports must be opened on the host for Couchbase Server to operate correctly: 8091, 8092, 8093, 8094, 11207, 11210, 11211, 18091, 18092, 18093. You must verify that any firewall configuration allows communication on the specified ports. If this is not done, the Couchbase Server node can experience difficulty joining a cluster. You can refer to the http://developer.couchbase.com/documentation/server/current/install/install-ports.html[Couchbase Server Network Configuration] guide to see the full list of available ports and their associated services.
+image::create-user.png[]
++
+. The steps to create the RBAC differ slightly depending on the version of Couchbase Server that you have installed. We explain the differences below.
++
+[.tabs]
+=====
+.Couchbase Server 5.1
+[.tab]
+====
+In the pop-up window, provide a *Username* and **Password**, those credentials will be used by Sync Gateway to connect later on. Next, you must grant RBAC roles to that user. If you are using Couchbase Server 5.1, you must enable the *Bucket Full Access* and *Read Only Admin* roles.
+
+image::user-settings.png[]
+
+====
+.Couchbase Server 5.5
+[.tab]
+====
+In the pop-up window, provide a *Username* and **Password**, those credentials will be used by Sync Gateway to connect later on. Next, you must grant RBAC roles to that user. If you are using Couchbase Server 5.5, you must enable the *Application Access* and *Read Only Admin* roles.
+
+image::user-settings-5-5.png[]
+
+====
+=====
++
+. If you're installing Couchbase Server on the cloud, make sure that network permissions (or firewall settings) allow incoming connections to Couchbase Server ports. In a typical mobile deployment on premise or in the cloud (AWS, RedHat etc), the following ports must be opened on the host for Couchbase Server to operate correctly: 8091, 8092, 8093, 8094, 11207, 11210, 11211, 18091, 18092, 18093. You must verify that any firewall configuration allows communication on the specified ports. If this is not done, the Couchbase Server node can experience difficulty joining a cluster. You can refer to the http://developer.couchbase.com/documentation/server/current/install/install-ports.html[Couchbase Server Network Configuration] guide to see the full list of available ports and their associated services.
 
 
 == Start Sync Gateway
