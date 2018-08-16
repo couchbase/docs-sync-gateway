@@ -17,19 +17,17 @@ The unavailability of those operations may result in some requests not being pro
 The duration of the downtime will depend on the data set and frequency of replications with mobile clients.
 To avoid this downtime, it is possible to pre-build the view index before directing traffic to the upgraded node (see the link:index.html#view-indexing[view indexing] section).
 
-[cols="1,1,6a", options="header"]
+[cols="1,1,6a"]
 |===
-|From
-|To
-|Steps
+|From |To |Steps
 
 |1.3
 |1.4
-|* A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes. Repeat this operation for each node that needs to be upgraded.
+|A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes. Repeat this operation for each node that needs to be upgraded.
 
 |1.4
 |1.5 xattrs disabled
-|* A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes. Repeat this operation for each node that needs to be upgraded.
+|A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes. Repeat this operation for each node that needs to be upgraded.
 
 |1.5 xattrs disabled
 |1.5 xattrs enabled
@@ -54,25 +52,23 @@ All of the different upgrade paths mentioned above assume that Couchbase Server 
 There are 3 commonly used upgrade paths for Couchbase Server.
 Depending on the one you choose, there may be additional consideration to keep in mind when using Sync Gateway:
 
-[cols="1,1,1,6a", options="header"]
+[cols="1,1,1,6a"]
 |===
-|Upgrade Strategy
-|Downtime
-|Additional Machine Requirements
-|Impact when using Sync Gateway
+|Upgrade Strategy |Downtime |Additional Machine Requirements |Impact when using Sync Gateway
 
 |Rolling Online Upgrade
 |None
 |Low
-|* **Potential transient connection errors:** The Couchbase Server re-balance operations can result in transient connection errors between Couchbase Server and Sync Gateway, which could result in Sync Gateway performance degradation.
-* **Potential for unexpected server errors during re-balance:** There is an increased potential to lose in-flight ops during a fail-over.
+|*Potential transient connection errors:* The Couchbase Server re-balance operations can result in transient connection errors between Couchbase Server and Sync Gateway, which could result in Sync Gateway performance degradation.
+
+*Potential for unexpected server errors during re-balance:* There is an increased potential to lose in-flight ops during a fail-over.
 
 |Upgrade Using Inter-cluster Replication
 |Small amount during switchover
 |High - duplicate entire cluster
 |Using an XDCR (Cross Data Center Replication) approach will have incur some Sync Gateway downtime, but less downtime than other approaches where Sync Gateway is shutdown during the entire Couchbase Server upgrade.
 
-It's important to note that the XDCR replication must be a **one way** replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster, and that no other writes can happen on the new (target) Couchbase Server cluster other than the writes from the XDCR replication, and no Sync Gateway instances should be configured to use the new (target) Couchbase Server cluster until the last step in the process.
+It's important to note that the XDCR replication must be a *one way* replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster, and that no other writes can happen on the new (target) Couchbase Server cluster other than the writes from the XDCR replication, and no Sync Gateway instances should be configured to use the new (target) Couchbase Server cluster until the last step in the process.
 
 . Start XDCR to do a one way replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster running the newer version.
 . Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster.
@@ -83,13 +79,14 @@ It's important to note that the XDCR replication must be a **one way** replicati
 
 Caveats:
 
-* **Small amount of downtime during switchover:** Since there may be writes still in transit after Sync Gateway has been shutdown, there will need to be some downtime until the target Couchbase Server cluster is completely caught up.
-* **XDCR should be monitored:** Make sure to monitor the XDCR relationship as per https://developer.couchbase.com/documentation/server/current/xdcr/xdcr-intro.html[XDCR docs].
+* *Small amount of downtime during switchover:* Since there may be writes still in transit after Sync Gateway has been shutdown, there will need to be some downtime until the target Couchbase Server cluster is completely caught up.
+* *XDCR should be monitored:* Make sure to monitor the XDCR relationship as per https://developer.couchbase.com/documentation/server/current/xdcr/xdcr-intro.html[XDCR docs].
 
 |Offline Upgrade
 |During entire upgrade
 |None
-|* Take Sync Gateway offline
+|
+* Take Sync Gateway offline
 * Upgrade Couchbase Server using any of the options mentioned in the https://developer.couchbase.com/documentation/server/current/install/upgrading.html[Upgrading Couchbase Server] documentation.
 * Bring Sync Gateway online
 |===

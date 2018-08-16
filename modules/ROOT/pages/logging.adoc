@@ -12,51 +12,35 @@ The console output of Sync Gateway can be filtered down via log levels and log k
 
 The console log output can be configured with the following log levels, ordered from least verbose, to most.
 Note that log levels are additive, so if you enable `info` level, `warn` and `error` logs are also enabled.
-By default, the log level is set to ``info``.
+By default, the log level is set to `info`.
 
-[cols="1,1,1", options="header"]
+[cols="1,1,2"]
 |===
-|
-              Log Level
+|Log Level |Appearance |Description
 
-|
-              Appearance
+|`none`
+|          -
+|Disables log output
 
-|
-              Description
+|`error`
+|`[ERR]`
+|Displays errors that need urgent attention
 
+|`warn`
+|`[WRN]`
+|Displays warnings that need some attention
 
+|`info`
+|`[INF]`
+|Displays information about normal operations that don't need attention
 
-|``none``
-|
-              -
-|
-              Disables log output
+|`debug`
+|`[DBG]`
+|Displays verbose output that might be useful when debugging
 
-|``error``
-|``[ERR]``
-|
-              Displays errors that need urgent attention
-
-|``warn``
-|``[WRN]``
-|
-              Displays warnings that need some attention
-
-|``info``
-|``[INF]``
-|
-              Displays information about normal operations that don't need attention
-
-|``debug``
-|``[DBG]``
-|
-              Displays verbose output that might be useful when debugging
-
-|``trace``
-|``[TRC]``
-|
-              Displays extremely verbose output that might be useful when debugging
+|`trace`
+|`[TRC]`
+|Displays extremely verbose output that might be useful when debugging
 |===
 
 Log levels can be set in the configuration file (see the link:config-properties.html#logging-$level[logging.$level] reference).
@@ -70,7 +54,7 @@ All log keys and descriptions are described in the link:config-properties.html#l
 
 === Console Output Color
 
-There is an option to color log output based on log level if link:config-properties.html#logging-console-color_enabled[logging.console.color_enabled] is set to ``true``.
+There is an option to color log output based on log level if link:config-properties.html#logging-console-color_enabled[logging.console.color_enabled] is set to `true`.
 Note: this setting is always disabled on Windows for compatibility reasons.
 
 === Console Output Redirection
@@ -95,49 +79,29 @@ These are 4 log files split by log level, with a guaranteed retention period for
 The log files can be collected with link:sgcollect-info.html[SGCollect Info], and can be analyzed by Couchbase Support for diagnosing issues in Sync Gateway.
 As described above, it is recommended to use link:index.html#console-output-redirection[Console Output redirection] if you require special handling of log files from Sync Gateway, as these files are intended for Couchbase Support.
 
-[cols="1,1,1,1", options="header"]
+[cols="1,1,1,1"]
 |===
-|
-            Log File
+|Log File |Default enabled |Default max_age |Minimum max_age
 
-|
-            Default enabled
+|`sg_error.log`
+|`true`
+|360 Days
+|180 Days
 
-|
-            Default max_age
+|`sg_warn.log`
+|`true`
+|180 Days
+|90 Days
 
-|
-            Minimum max_age
+|`sg_info.log`
+|`true`
+|6 Days
+|3 Days
 
-
-
-|``sg_error.log``
-|``true``
-|
-            360 Days
-|
-            180 Days
-
-|``sg_warn.log``
-|``true``
-|
-            180 Days
-|
-            90 Days
-
-|``sg_info.log``
-|``true``
-|
-            6 Days
-|
-            3 Days
-
-|``sg_debug.log``
-|``false``
-|
-            2 Days
-|
-            1 Day
+|`sg_debug.log`
+|`false`
+|2 Days
+|1 Day
 |===
 
 Each log level and its parameters are described in the link:config-properties.html#logging-$level[logging.$level] property reference.
