@@ -6,7 +6,7 @@ With Sync Gateway 1.5, you can seamlessly extend an existing Couchbase Server de
 In previous releases, you either had to ensure all writes happened through Sync Gateway, or had to set up bucket shadowing to ensure that the security and replication metadata needed by mobile applications was preserved.
 
 In this release, the metadata created by the Sync Gateway is abstracted from applications reading and writing data directly to Couchbase Server.
-Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (e*X*tended *ATTR*ibutes) to store that metadata into an external document fragment.
+Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (e**X**tended **ATTR**ibutes) to store that metadata into an external document fragment.
 Mobile, web and desktop applications can therefore write to the same bucket in a Couchbase cluster.
 
 == How to enable it
@@ -18,13 +18,12 @@ The steps below walk through how to enable this new feature.
 . https://www.couchbase.com/downloads[Download Couchbase Server 5.0].
 . https://www.couchbase.com/downloads?family=Mobile&product=Couchbase%20Sync%20Gateway&edition=Enterprise%20Edition[Download Sync Gateway 1.5].
 . Create a new bucket in the Couchbase Server Admin Console.
-. With Role Based Access Control (RBAC) newly introduced in Couchbase Server 5.0, you'll need to create a new user with authorized access to the bucket. Choose the *Security > Add User* option in the Couchbase Server Admin and select the *Bucket Full Access* and *Read Only Admin* roles.
+. With Role Based Access Control (RBAC) newly introduced in Couchbase Server 5.0, you'll need to create a new user with authorized access to the bucket.
+Choose the *Security > Add User* option in the Couchbase Server Admin and select the *Bucket Full Access* and *Read Only Admin* roles.
 . Start Sync Gateway with the following configuration file.
 +
-
 [source,json]
 ----
-
 {
     "databases": {
         "db": {
@@ -43,7 +42,10 @@ There are two properties to keep in mind.
 The `enable_shared_bucket_access` property is used to disable the default behaviour.
 And the `import_docs` property to specify that this Sync Gateway node should perform import processing of incoming documents.
 Note that in a clustered environment, only 1 node should use the `import_docs` property.
-. On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (SDKs) or through the Sync Gateway REST API. The mobile metadata is no longer kept in the document, but in a system extended attribute in Couchbase Server.
+
+. On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket.
+From then on, documents can be inserted on the Server directly (SDKs) or through the Sync Gateway REST API.
+The mobile metadata is no longer kept in the document, but in a system extended attribute in Couchbase Server.
 
 The reference to the configuration API changes can be found below.
 
@@ -68,7 +70,6 @@ The following tutorial demonstrates the extended attributes support introduced i
 
 [source]
 ----
-
 <div class="tiles">
     <div class="column size-1of2">
         <div class="box">
@@ -88,11 +89,11 @@ As of Sync Gateway 1.5, the Bucket Shadowing feature is deprecated and no longer
 The following steps outline a recommended method for migrating from Bucket Shadowing to the latest version with interoperability between Couchbase Server SDKs and Couchbase Mobile.
 
 . Follow the recommendations in the https://developer.couchbase.com/documentation/server/current/install/upgrade-online.html[Couchbase Server documentation] to upgrade all instances to 5.0.
-. Create a new bucket on Couchbase Server (**bucket 2**).
-. Install Sync Gateway 1.5 on a separate node with shared access enabled and connect it to the new bucket (**bucket 2**).
+. Create a new bucket on Couchbase Server (*bucket 2*).
+. Install Sync Gateway 1.5 on a separate node with shared access enabled and connect it to the new bucket (*bucket 2*).
 . Setup a link:running-replications.html[push replication] from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.
 . Once the replication has completed, test your application is performing as expected.
 . Update the load balancer to direct incoming traffic to the Sync Gateway 1.5 instance when you are ready to upgrade.
-. Delete the first bucket (**bucket 1**).
+. Delete the first bucket (*bucket 1*).
 
 // <img class="portrait" style="width: 450px;" src="img/bucket-shadowing-migration.png" width="400"/>

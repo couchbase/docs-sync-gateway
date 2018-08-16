@@ -5,15 +5,18 @@ In particular, when using NGINX or AWS Elastic Load Balancer (ELB). For an archi
 
 == When to use a reverse proxy
 
-* A reverse proxy can hide the existence of a Sync Gateway server or servers. This can help to secure the Sync gateway instances when your service is exposed to the internet.
+* A reverse proxy can hide the existence of a Sync Gateway server or servers.
+This can help to secure the Sync gateway instances when your service is exposed to the internet.
 * A reverse proxy can provide application firewall features that protect against common web-based attacks.
 * A reverse proxy can offload ssl termination from the Sync Gateway instances, this can be a significant overhead when supporting large numbers of mobile devices.
 * A reverse proxy can distribute the load from incoming requests to several Sync Gateway instances.
-* A reverse proxy may rewrite the URL of each incoming request in order to match the relevant internal location of the requested resource. For Sync Gateway the reverse proxy may map the Internet facing port 80 to the standard Sync Gateway public REST API port 4984.
+* A reverse proxy may rewrite the URL of each incoming request in order to match the relevant internal location of the requested resource.
+For Sync Gateway the reverse proxy may map the Internet facing port 80 to the standard Sync Gateway public REST API port 4984.
 
 == WebSocket Connection
 
-To keep a WebSocket connection open, the replicator sends a WebSocket PING message (also known as heartbeat) every 300 seconds (5 minutes). The keep alive timeout value of the load balancer must be configured to a higher value than the heartbeat interval.
+To keep a WebSocket connection open, the replicator sends a WebSocket PING message (also known as heartbeat) every 300 seconds (5 minutes).
+The keep alive timeout value of the load balancer must be configured to a higher value than the heartbeat interval.
 For example, 360 seconds.
 The following section demonstrates how to do that with NGINX.
 
@@ -45,7 +48,7 @@ Note: Replace 127.0.0.1 with the IP address of your server.
 
 === Basic nginx configuration for Sync Gateway
 
-If you installed nginx using the instructions above, then you will create your sync_gateway configuration file in **/etc/nginx/sites-available**.
+If you installed nginx using the instructions above, then you will create your sync_gateway configuration file in */etc/nginx/sites-available*.
 Create a file in that directory called sync_gateway with the following content:
 
 [source]
@@ -107,7 +110,7 @@ location / {
 
 * The `location` block specifies directives for all URL paths below the root path '/'.
 * The `proxy_pass` directive instructs nginx to forward all incoming traffic to servers defined in the sync_gateway `upstream` block.
-* The two `proxy_pass_header` directives instruct nginx to pass `Accept:` and `Server:` headers on inbound and outbound traffic, these headers allow CouchbaseLite and sync_gateway to optimise data transfer, e.g. by using gzip compression and multipart/mixed if it is supported.
+* The two `proxy_pass_header` directives instruct nginx to pass `Accept:` and `Server:` headers on inbound and outbound traffic, these headers allow CouchbaseLite and sync_gateway to optimize data transfer, e.g. by using gzip compression and multipart/mixed if it is supported.
 * The `keepalive_requests` directive instructs nginx to allow up to one thousand requests on the same connection, this is useful when getting a `\_changes` feed using longpoll.
 * The `keepalive_timeout` directive instructs nginx to keep connection open for 360 seconds from the last request, this value is longer than the default (300 seconds) value for the heartbeat on the _changes feed using longpoll.
 * The `proxy_read_timeout` directive instructs nginx to keep connection open for 360 seconds from the last server response, this value is longer than the default (300 seconds) value for the heartbeat on the _changes feed using longpoll.
@@ -135,7 +138,7 @@ curl http://myservice.example.org/
 {“couchdb”:”Welcome”,”vendor”:{“name”:”Couchbase Sync Gateway”,”version”:1},”version”:”Couchbase Sync Gateway/1.0.3(81;fa9a6e7)”}
 ----
 
-If you access your server using its IP address, e.g. `http://127.0.0.1/` (so that no `Host:` header is sent), you should see the standard `Welcome to nginx!` page.
+If you access your server using its IP address, e.g. `+http://127.0.0.1/+` (so that no `Host:` header is sent), you should see the standard `Welcome to nginx!` page.
 
 [source,bash]
 ----
@@ -164,7 +167,8 @@ upstream sync_gateway {
 
 === Transport Layer Security (HTTPS, SSL)
 
-To secure the connection between clients and Sync Gateway in production, you will want to use Transport Layer Security (TLS, also known as HTTPS or SSL.) This not only encrypts data from eavesdroppers (including passwords and login tokens), it also protects against Man-In-The-Middle attacks by verifying to the client that it's connecting to the real server, not an impostor.
+To secure the connection between clients and Sync Gateway in production, you will want to use Transport Layer Security (TLS, also known as HTTPS or SSL.)
+This not only encrypts data from eavesdroppers (including passwords and login tokens), it also protects against Man-In-The-Middle attacks by verifying to the client that it's connecting to the real server, not an impostor.
 
 To enable TLS you will need an X.509 certificate.
 For production, you should get a certificate from a reputable Certificate Authority, which will be signed by that authority.
@@ -184,7 +188,7 @@ sudo openssl req -x509 -nodes -days 1095 -newkey rsa:2048 -keyout /etc/nginx/ssl
 ----
 
 Whichever way you generated the certificate, you should now have two files, a certificate and a private key.
-We will assume they are at */etc/nginx/ssl/nginx.crt* and **/etc/nginx/ssl/nginx.key**.
+We will assume they are at */etc/nginx/ssl/nginx.crt* and */etc/nginx/ssl/nginx.key*.
 
 Now add a new server section to the nginx configuration file to support SSL termination:
 
