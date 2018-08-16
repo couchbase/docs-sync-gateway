@@ -1,6 +1,6 @@
-== What's New
+= What's New
 
-=== Views to GSI
+== Views to GSI
 
 Sync Gateway has been using system views for a variety of internal functions, including authentication and replication.
 Starting in 2.1, Sync Gateway will use GSI and N1QL to perform those tasks.
@@ -13,7 +13,7 @@ This capability is enabled by default and there are 2 properties in the configur
 * link:config-properties.html#databases-foo_db-use_views[databases.$db.use_views]
 * link:config-properties.html#databases-foo_db-num_index_replicas[databases.$db.num_index_replicas]
 
-=== X.509 Authentication against Couchbase Server
+== X.509 Authentication against Couchbase Server
 
 Sync Gateway adds the ability to use x.509 certificates to authenticate against Couchbase Server 5.5 or higher.
 
@@ -29,7 +29,7 @@ This functionality provides an alternative method of authentication to the exist
 
 If the **username**/**password** properties are also specified in the configuration file then Sync Gateway will use password-based authentication and also include the client certificate in the TLS handshake.
 
-=== Continuous Logging
+== Continuous Logging
 
 Continuous logging is a new feature in Sync Gateway 2.1 that allows the console log output to be separated from log files collected by Couchbase Support.
 
@@ -38,7 +38,7 @@ This allows system administrators running Sync Gateway to tweak log level, and l
 The previous logging configuration (``logging.default``) is being deprecated, and Sync Gateway 2.1 will display warnings on startup of what is required to update your configuration.
 Detailed information about continuous logging can be found in the link:logging.html[Logging guide].
 
-==== SGCollect Info
+=== SGCollect Info
 
 link:sgcollect-info.html[sgcollect_info] has been updated to use the continuous logging feature introduced in 2.1, and collects the four levelled files (**sg_error.log**, **sg_warn.log**, *sg_info.log* and **sg_debug.log**).
 
@@ -46,12 +46,12 @@ These new log files are rotated and compressed by Sync Gateway, so `sgcollect_in
 
 For example, if you have **sg_debug.log**, and *sg_debug-2018-04-23T16-57-13.218.log.gz* and then run `sgcollect_info` as normal, both of these files get put into a *sg_debug.log* file inside the zip output folder.
 
-=== Log Redaction
+== Log Redaction
 
 All log outputs can be redacted, this means that user-data, considered to be private, is removed.
 This feature is optional and can be enabled in the configuration with the link:config-properties.html#logging-redaction_level[logging.redaction_level] property.
 
-==== SGCollect Info
+=== SGCollect Info
 
 `sgcollect_info` now supports log redaction post-processing.
 In order to utilise this, Sync Gateway needs to be run with the `logging.redaction_level` property set to "partial".
@@ -62,23 +62,22 @@ Two new command line options have been added to ``sgcollect_info``:
 +
 When `--log-redaction-level` is set to partial, two zip files are produced, and tagged contents in the redacted one should be hashed in the same way as ``cbcollect_info``:
 +
-
 [source,bash]
 ----
-
 $ ./sgcollect_info --log-redaction-level=partial sgout.zip
 ...
 Zipfile built: sgout-redacted.zip
 Zipfile built: sgout.zip
 ----
+
 * ``--log-redaction-salt=SALT_VALUE``: salt used in the hashing of tagged data when enabling redaction. Defaults to a random uuid.
 
-=== Bucket operation timeout
+== Bucket operation timeout
 
 The link:config-properties.html#databases-foo_db-bucket_op_timeout_ms[databases.$db.bucket_op_timeout_ms] property to override the default timeout used by Sync Gateway to query Couchbase Server.
 It's generally not necessary to change this property unless there is a particularly heavy load on Couchbase Server which would increase the response time.
 
-=== Support for IPv6
+== Support for IPv6
 
 Sync Gateway now officially supports IPv6.
 
