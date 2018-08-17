@@ -108,13 +108,13 @@ location / {
 }
 ----
 
-* The `location` block specifies directives for all URL paths below the root path '/'.
+* The `location` block specifies directives for all URL paths below the root path `/`.
 * The `proxy_pass` directive instructs nginx to forward all incoming traffic to servers defined in the sync_gateway `upstream` block.
 * The two `proxy_pass_header` directives instruct nginx to pass `Accept:` and `Server:` headers on inbound and outbound traffic, these headers allow CouchbaseLite and sync_gateway to optimize data transfer, e.g. by using gzip compression and multipart/mixed if it is supported.
-* The `keepalive_requests` directive instructs nginx to allow up to one thousand requests on the same connection, this is useful when getting a `\_changes` feed using longpoll.
-* The `keepalive_timeout` directive instructs nginx to keep connection open for 360 seconds from the last request, this value is longer than the default (300 seconds) value for the heartbeat on the _changes feed using longpoll.
-* The `proxy_read_timeout` directive instructs nginx to keep connection open for 360 seconds from the last server response, this value is longer than the default (300 seconds) value for the heartbeat on the _changes feed using longpoll.
-* The two `proxy_set_header` directives enable support for WebSocket connections, which are used by Couchbase Lite for a pull replication's _changes feed.
+* The `keepalive_requests` directive instructs nginx to allow up to one thousand requests on the same connection, this is useful when getting a `_changes` feed using longpoll.
+* The `keepalive_timeout` directive instructs nginx to keep connection open for 360 seconds from the last request, this value is longer than the default (300 seconds) value for the heartbeat on the `_changes` feed using longpoll.
+* The `proxy_read_timeout` directive instructs nginx to keep connection open for 360 seconds from the last server response, this value is longer than the default (300 seconds) value for the heartbeat on the `_changes` feed using longpoll.
+* The two `proxy_set_header` directives enable support for WebSocket connections, which are used by Couchbase Lite for a pull replication's `_changes` feed.
 
 We now need to enable the `sync_gateway` site, in the sites-enabled directory you need to make a symbolic link to the `sync_gateway` file you just created:
 
@@ -153,7 +153,7 @@ You should see the standard Welcome to nginx! page.
 
 Sync Gateway instances have a "shared nothing" architecture: this means that you can scale out by simply deploying additional Sync Gateway instances.
 But incoming traffic needs to be distributed across all the instances.
-Ngingx can easily accommodate this and balance the incoming traffic load across all your Sync Gateway instances.
+Nginx can easily accommodate this and balance the incoming traffic load across all your Sync Gateway instances.
 Simply add the additional instances' IP addresses to the `upstream` block; for example:
 
 [source,bash]

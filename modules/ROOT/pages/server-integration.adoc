@@ -11,8 +11,10 @@ Examples of use cases include:
 
 The integration approaches are:
 
-* xref:#changes-feed[*Changes Feed*]: The changes feed returns a sorted list of changes made to documents in the database.
-* xref:#webhooks[*Webhooks*]: Sync Gateway can detect document updates and post the updated documents to one or more external URLs.
+xref:#changes-feed[Changes Feed]::
+The changes feed returns a sorted list of changes made to documents in the database.
+xref:#webhooks[Webhooks]::
+Sync Gateway can detect document updates and post the updated documents to one or more external URLs.
 
 Here's a table that compares each API in different scenarios:
 
@@ -42,16 +44,22 @@ Here's a table that compares each API in different scenarios:
 This article describes how to use the changes feed API to integrate Sync Gateway with other backend processes.
 For instance if you have a channel called "needs-email" you could have a bot that sends an email and then saves the document back with a flag to keep it out of the "needs-email" channel.
 
-The changes feed API is a REST API endpoint (xref:sync-gateway-public.adoc#/database/get\__db___changes[`+/{db}/_changes+`]) that returns a sorted list of changes made to documents in the database. It permits applications to implement business logic that reacts to changes in documents.
+The changes feed API is a REST API endpoint (xref:sync-gateway-public.adoc#/database/get\__db___changes[`+/{db}/_changes+`]) that returns a sorted list of changes made to documents in the database.
+It permits applications to implement business logic that reacts to changes in documents.
 There are several methods of connecting to the changes feed (also know as the feed type).
-The first 3 methods (`polling`, `longpoll` and `continuous`) are based on the CouchDB API. The last method (`websocket`) is specific to Sync Gateway.
+The first 3 methods (`polling`, `longpoll` and `continuous`) are based on the CouchDB API.
+The last method (`websocket`) is specific to Sync Gateway.
 
-- link:http://guide.couchdb.org/draft/notifications.html#polling[polling] (default): returns the list of changes immediately.
+link:http://guide.couchdb.org/draft/notifications.html#polling[`polling`] (default)::
+Returns the list of changes immediately.
 A new request must be sent to get the next set of changes.
-- link:http://guide.couchdb.org/draft/notifications.html#long[longpolling]: in addition to regular polling, if the request is sent with a special `last_seq` parameter, it will stay open until a new change occurs and is posted.
-- link:http://guide.couchdb.org/draft/notifications.html#continuous[continuous]: the continuous changes API allows you to receive change notifications as they come, in a single HTTP connection.
+link:http://guide.couchdb.org/draft/notifications.html#long[`longpolling`]::
+In addition to regular polling, if the request is sent with a special `last_seq` parameter, it will stay open until a new change occurs and is posted.
+link:http://guide.couchdb.org/draft/notifications.html#continuous[`continuous`]::
+The continuous changes API allows you to receive change notifications as they come, in a single HTTP connection.
 You make a request to the continuous changes API and both you and Sync Gateway will hold the connection open “forever.”
-- xref:#websockets[websockets]: the WebSocket mode is conceptually the same as continuous mode but it should avoid issues with proxy servers and gateways that cause continuous mode to fail in many real-world mobile use cases.
+xref:#websockets[`websockets`]::
+The WebSocket mode is conceptually the same as continuous mode but it should avoid issues with proxy servers and gateways that cause continuous mode to fail in many real-world mobile use cases.
 
 === WebSockets
 
@@ -88,7 +96,7 @@ each contains one or more change notifications (in the same format as the regula
 ----
 
 (The current server implementation sends at most one notification per message, but this could change.
-  Clients should accept any number.)
+Clients should accept any number.)
 
 An empty array is a special case: it denotes that at this point the feed has finished sending the backlog of existing revisions, and will now wait until new revisions are created.
 It thus indicates that the client has "caught up" with the current state of the database.
@@ -135,8 +143,8 @@ You can configure event handlers for webhooks with the link:config-properties.ht
 ==== Examples
 
 Following is a simple example of a `webhook` event handler.
-In this case, a single instance of a `webhook` event handler is defined for the event ``document_changed``.
-Every time a document changes, the document is sent to the URL ``http://someurl.com``.
+In this case, a single instance of a `webhook` event handler is defined for the event `document_changed`.
+Every time a document changes, the document is sent to the URL `+http://someurl.com+`.
 
 [source,javascript]
 ----
@@ -151,8 +159,8 @@ Every time a document changes, the document is sent to the URL ``http://someurl.
 ----
 
 Following is an example that defines two `webhook` event handlers.
-The `filter` function in the first handler recognizes documents with `doc.type` equal to `A` and posts the documents to the URL ``http://someurl.com/type_A``.
-The `filter` function in the second handler recognizes documents with `doc.type` equal to B and posts the documents to the URL ``http://someurl.com/type_B``.
+The `filter` function in the first handler recognizes documents with `doc.type` equal to `A` and posts the documents to the URL `+http://someurl.com/type_A+`.
+The `filter` function in the second handler recognizes documents with `doc.type` equal to B and posts the documents to the URL `+http://someurl.com/type_B+`.
 
 [source,javascript]
 ----

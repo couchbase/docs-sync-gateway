@@ -12,12 +12,18 @@ If the document is later updated, the sync function will be called again on the 
 
 It can do the following things:
 
-* *Validate the document:* If the document has invalid contents, the sync function can throw an exception to reject it. The document won't be added to the database, and the client request will get an error response
-* *Authorize the change:* The sync function can call `requireUser()` or `requireRole()` to specify what user(s) are allowed to modify the document. If the user making the change isn't in that list, an exception is thrown and the update is rejected with an error. Similarly, `requireAccess()` requires that the user making the change have access to any of the listed channels.
-* *Assign the document to channels:* Based on the contents of the document, the sync function can call *channel()* to add the document to one or more channels. This makes it accessible to users who have access to those channels, and will cause the document to be pulled by users that are subscribed to those channels.
-* *Grant users access to channels:* Calling `access(user, channel)` grants a user access to a channel. This allows documents to act as membership lists or access-control lists.
+* *Validate the document:* If the document has invalid contents, the sync function can throw an exception to reject it.
+The document won't be added to the database, and the client request will get an error response
+* *Authorize the change:* The sync function can call `requireUser()` or `requireRole()` to specify what user(s) are allowed to modify the document.
+If the user making the change isn't in that list, an exception is thrown and the update is rejected with an error.
+Similarly, `requireAccess()` requires that the user making the change have access to any of the listed channels.
+* *Assign the document to channels:* Based on the contents of the document, the sync function can call *channel()* to add the document to one or more channels.
+This makes it accessible to users who have access to those channels, and will cause the document to be pulled by users that are subscribed to those channels.
+* *Grant users access to channels:* Calling `access(user, channel)` grants a user access to a channel.
+This allows documents to act as membership lists or access-control lists.
 
-*The sync function is crucial to the security of your application.* It's in charge of data validation, and of authorizing both read and write access to documents.
+*The sync function is crucial to the security of your application.*
+It's in charge of data validation, and of authorizing both read and write access to documents.
 The API is high-level and lets you do some powerful things very simply, but you do need to remain vigilant and review the function carefully to make sure that it detects threats and prevents all illegal access.
 The sync function should be a focus of any security review of your application.
 
@@ -36,8 +42,8 @@ The sync function arguments are:
 `doc`::
 An object, the content of the document that is being saved.
 This matches the JSON that was saved by the Couchbase Lite and replicated to Sync Gateway.
-The `\_id` property contains the document ID, and the `\_rev` property the new revision ID.
-If the document is being deleted, there will be a `\_deleted` property with the value true.
+The `_id` property contains the document ID, and the `_rev` property the new revision ID.
+If the document is being deleted, there will be a `_deleted` property with the value true.
 `oldDoc`::
 If the document has been saved before, the revision that is being replaced is available in this argument.
 Otherwise it's `null`.
@@ -139,7 +145,7 @@ if (oldDoc) {
 
 The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
 
-If a user was granted access to the link:data-routing.html#special-channels[star channel] (noted `\*`), a call to `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `\*` channel). To allow a user to perform a document update in this case, you can specify multiple channel names (``requireAccess('any channel name', '*')'``)
+If a user was granted access to the link:data-routing.html#special-channels[star channel] (noted `+*+`), a call to `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `+*+` channel). To allow a user to perform a document update in this case, you can specify multiple channel names (`requireAccess('any channel name', '*')'`)
 
 == Routing
 
@@ -260,13 +266,14 @@ expiry("2018-07-06T17:00:00+01:00")
 Under the hood, the expiration time is set and managed on the Couchbase Server document (TTL is not supported for databases in walrus mode). The value can be specified in two ways:
 
 * *ISO-8601 format:* for example the 6th of July 2016 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`;
-* *as a numeric Couchbase Server expiry value:* Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of GET link:rest-api.html#/document/get\__db___doc_[+/{db}/{doc}+] when `show_exp=true` is included in the querystring.
+* *as a numeric Couchbase Server expiry value:* Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server).
+The document expiration time is returned in the response of GET link:rest-api.html#/document/get\__db___doc_[+/{db}/{doc}+] when `show_exp=true` is included in the querystring.
 
 As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication.
 This expiration time is not propagated when the document is replicated.
 The purge of the document does not cause it to be deleted on any other database.
 
-If link:shared-bucket-access.html[shared bucket access] is enabled (introduced in Sync Gateway 1.5), the behaviour of the expiry feature changes in the following way: when the expiry value is reached, instead of getting purged, the *active* revision of the document is tombstoned.
+If link:shared-bucket-access.html[shared bucket access] is enabled (introduced in Sync Gateway 1.5), the behavior of the expiry feature changes in the following way: when the expiry value is reached, instead of getting purged, the *active* revision of the document is tombstoned.
 If there is another non-tombstoned revision for this document (i.e a conflict) it will become the active revision.
 The tombstoned revision will be purged when the server's metadata purge interval is reached.
 

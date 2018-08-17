@@ -22,12 +22,12 @@ npm install
 node server.js
 ----
 
-You can open a browser window at http://localhost:8000/movies to view the JSON data.
+You can open a browser window at `+http://localhost:8000/movies+` to view the JSON data.
 
 The external store supports two endpoints:
 
-* GET ``/movies``: Retrieves all movies (from *movies.json*).
-* POST ``/movies``: Takes one movie as the request body and updates the item with the same `\_id` in *movies.json*.
+* GET `/movies`: Retrieves all movies (from *movies.json*).
+* POST `/movies`: Takes one movie as the request body and updates the item with the same `_id` in *movies.json*.
 
 == Importing Documents
 
@@ -48,7 +48,7 @@ http://www.couchbase.com/nosql-databases/downloads#couchbase-mobile[Download Syn
 ~/Downloads/couchbase-sync-gateway/bin/sync_gateway -dbname movies_lister
 ----
 
-The Sync Gateway database is now available at \http://localhost:4985/movies_lister/.
+The Sync Gateway database is now available at `+http://localhost:4985/movies_lister/+`.
 Create a new file called `import.js` with the following to retrieve the movies and insert them in the Sync Gateway database.
 
 [source,javascript]
@@ -100,8 +100,9 @@ var client = new Swagger({
 Here's what the code above is doing:
 
 . Use the https://github.com/request/request-promise[request-promise] library to retrieve the movies from the external store.
-. Save the movies to Sync Gateway. \The `post_db_bulk_docs` method takes a db name (`movies_lister`) and the documents to save in the request body.
-Notice that the response from the external store is an array and must be wrapped in a JSON object of the form ``{docs: movies}``.
+. Save the movies to Sync Gateway.
+The `post_db_bulk_docs` method takes a db name (`movies_lister`) and the documents to save in the request body.
+Notice that the response from the external store is an array and must be wrapped in a JSON object of the form `{docs: movies}`.
 . The response of the `+/{db}/_bulk_docs+` request contains the generated revision numbers which are written back to the external store.
 
 TIP: The Admin REST API Swagger spec is dynamically loaded.
@@ -126,7 +127,7 @@ Open the Sync Gateway Admin UI and you should see all the movies there.
 
 image::admin-ui-movies-lister.png[]
 
-Notice that the `\_rev` property is also stored on each record on the external store, `movies.json`.
+Notice that the `_rev` property is also stored on each record on the external store, `movies.json`.
 
 Run the program again, the same number of documents are visible in Sync Gateway.
 This time with a 2nd generation revision number.
@@ -203,9 +204,9 @@ Here's what the code above is doing:
 . Gets the last sequence number of the database.
 . Calls the `getChanges` method with the last sequence number.
 . Sends changes request to Sync Gateway with the following parameters:
-** *feed=longpoll*
-** *include_docs=true*
-** *since=X* (where X is the sequence number)
+** `feed=longpoll`
+** `include_docs=true`
+** `since=X` (where X is the sequence number)
 . Write the document to the external store.
 
 Run the program from the command line:
@@ -215,14 +216,15 @@ Run the program from the command line:
 node export.js
 ----
 
-Open the Admin UI on \http://localhost:4985/_admin/db/movies_lister and make changes to a document.
+Open the Admin UI on `+http://localhost:4985/_admin/db/movies_lister+` and make changes to a document.
 Notice that the change is also updated in the external store.
 
 image::https://cl.ly/1s2Q0t1i3W2w/export-update.gif[]
 
 == Importing Attachments
 
-Every movie in the stub API has a link to a thumbnail (in the `posters.thumbnail` property). Before sending the `\_bulk_docs` request, you will fetch the thumbnail for each movie and embed it as a base64 string under the `\_attachments` property.
+Every movie in the stub API has a link to a thumbnail (in the `posters.thumbnail` property).
+Before sending the `_bulk_docs` request, you will fetch the thumbnail for each movie and embed it as a base64 string under the `_attachments` property.
 
 Install the following dependencies:
 

@@ -2,9 +2,13 @@
 
 Sync Gateway supports the following authentication methods:
 
-* link:authentication.html#basic-authentication[Basic Authentication]: provide a username and password to authenticate users.
-* link:authentication.html#custom-authentication[Custom Authentication]: use an App Server to handle the authentication yourself and create user sessions on the Sync Gateway Admin REST API.
-* link:authentication.html#openid-connect[OpenID Connect Authentication]: use OpenID Connect providers (Google+, Paypal, etc.) to authenticate users. Static providers: Sync Gateway currently supports authentication endpoints for Facebook, Google+ and OpenID Connect providers
+link:authentication.html#basic-authentication[Basic Authentication]::
+Provide a username and password to authenticate users.
+link:authentication.html#custom-authentication[Custom Authentication]::
+Use an App Server to handle the authentication yourself and create user sessions on the Sync Gateway Admin REST API.
+link:authentication.html#openid-connect[OpenID Connect Authentication]::
+Use OpenID Connect providers (Google+, Paypal, etc.) to authenticate users.
+Static providers: Sync Gateway currently supports authentication endpoints for Facebook, Google+ and OpenID Connect providers
 
 [[_user_registration]]
 == User Registration
@@ -12,18 +16,18 @@ Sync Gateway supports the following authentication methods:
 The user must be created on Sync Gateway before it can be used for authentication.
 Users can be created through the Sync Gateway Admin REST API or configuration file.
 
-* *Admin REST API:* the user credentials (**username**/**password**) are passed in the request body to the link:admin-rest-api.html#/user/post\__db___user_[+POST /{db}/_user+] endpoint.
-+
+*Admin REST API:* the user credentials (**username**/**password**) are passed in the request body to the link:admin-rest-api.html#/user/post\__db___user_[+POST /{db}/_user+] endpoint.
+
 [source,bash]
 ----
 $ curl -vX POST "http://localhost:4985/justdoit/_user/" -H "accept: application/json" -H "Content-Type: application/json" -d '{"name": "john", "password": "pass"}'
 ----
-+
+
 Note that the Admin REST API is *not* accessible from the clients directly.
 To allow users to sign up, it is recommended to have an app server sitting alongside Sync Gateway that performs the user validation, creates a new user on the Sync Gateway admin port and then returns the response to the application.
 
-* *Configuration file:* user credentials are hardcoded in the configuration. This method is convenient for testing but we generally recommend to use the *Admin REST API* in a Sync Gateway deployment.
-+
+*Configuration file:* user credentials are hardcoded in the configuration. This method is convenient for testing but we generally recommend to use the *Admin REST API* in a Sync Gateway deployment.
+
 [source,javascript]
 ----
 {
@@ -54,7 +58,8 @@ Example:
 == Custom Authentication
 
 It's possible for an application server associated with a remote Couchbase Sync Gateway to provide its own custom form of authentication.
-Generally this will involve a particular URL that the app needs to post some form of credentials to; the App Server will verify those, then tell the Sync Gateway to create a new session for the corresponding user, and return session credentials in its response to the client app.
+Generally this will involve a particular URL that the app needs to post some form of credentials to;
+the App Server will verify those, then tell the Sync Gateway to create a new session for the corresponding user, and return session credentials in its response to the client app.
 
 The following diagram shows an example architecture to support Google SignIn in a Couchbase Mobile application, the client sends an access token to the App Server where a server side validation is done with the Google API and a corresponding Sync Gateway user is then created if it's the first time the user logs in.
 The last request creates a session:
@@ -100,9 +105,11 @@ Sync Gateway supports OpenID Connect.
 This allows your application to use Couchbase for data synchronization and delegate the authentication to a 3rd party server (known as the Provider).
 There are two implementation methods available with OpenID Connect:
 
-* link:authentication.html#implicit-flow[Implicit Flow]: with this method, the retrieval of the ID token takes place on the device.
+link:authentication.html#implicit-flow[Implicit Flow]::
+With this method, the retrieval of the ID token takes place on the device.
 You can then create a user session using the POST `+/{db}/_session+` endpoint on the Public REST API with the ID token.
-* link:authentication.html#authorization-code-flow[Authorization Code Flow]: this method relies on Sync Gateway to retrieve the ID token.
+link:authentication.html#authorization-code-flow[Authorization Code Flow]::
+This method relies on Sync Gateway to retrieve the ID token.
 
 [[_implicit_flow]]
 === Implicit Flow
