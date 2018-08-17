@@ -10,12 +10,12 @@ In each of the scenarios described below, the upgrade process will trigger views
 During the re-indexing, operations that are dependent on those views will not be available.
 The main operations relying on views to be indexed are:
 
-* A user requests data that doesn't reside in the link:config-properties.html#1.5/databases-foo_db-cache-channel_cache_max_length[channel cache].
-* A new channel or role is granted to a user in the link:sync-function-api.html[Sync Function].
+* A user requests data that doesn't reside in the xref:config-properties.adoc#1.5/databases-foo_db-cache-channel_cache_max_length[channel cache].
+* A new channel or role is granted to a user in the xref:sync-function-api.adoc[Sync Function].
 
 The unavailability of those operations may result in some requests not being processed.
 The duration of the downtime will depend on the data set and frequency of replications with mobile clients.
-To avoid this downtime, it is possible to pre-build the view index before directing traffic to the upgraded node (see the link:index.html#view-indexing[view indexing] section).
+To avoid this downtime, it is possible to pre-build the view index before directing traffic to the upgraded node (see the <<view-indexing,view indexing>> section).
 
 [cols="1,1,6a"]
 |===
@@ -51,7 +51,7 @@ It is recommended to test the upgrade on a staging environment before upgrading 
 
 == Couchbase Server
 
-All of the different upgrade paths mentioned above assume that Couchbase Server is running a link:upgrade.html[compatible version] for Sync Gateway.
+All of the different upgrade paths mentioned above assume that Couchbase Server is running a xref:compatibility-matrix.adoc[compatible version] for Sync Gateway.
 There are 3 commonly used upgrade paths for Couchbase Server.
 Depending on the one you choose, there may be additional consideration to keep in mind when using Sync Gateway:
 
@@ -83,17 +83,18 @@ It's important to note that the XDCR replication must be a *one way* replication
 Caveats:
 
 * *Small amount of downtime during switchover:* Since there may be writes still in transit after Sync Gateway has been shutdown, there will need to be some downtime until the target Couchbase Server cluster is completely caught up.
-* *XDCR should be monitored:* Make sure to monitor the XDCR relationship as per https://developer.couchbase.com/documentation/server/current/xdcr/xdcr-intro.html[XDCR docs].
+* *XDCR should be monitored:* Make sure to monitor the XDCR relationship as per xref:5.5@server:xdcr:xdcr-intro.adoc[XDCR docs].
 
 |Offline Upgrade
 |During entire upgrade
 |None
 |
 * Take Sync Gateway offline
-* Upgrade Couchbase Server using any of the options mentioned in the https://developer.couchbase.com/documentation/server/current/install/upgrading.html[Upgrading Couchbase Server] documentation.
+* Upgrade Couchbase Server using any of the options mentioned in the xref:5.5@server:install:upgrading.adoc[Upgrading Couchbase Server] documentation.
 * Bring Sync Gateway online
 |===
 
+[#view-indexing]
 === View Indexing
 
 Sync Gateway uses Couchbase Server views to index and query documents.
