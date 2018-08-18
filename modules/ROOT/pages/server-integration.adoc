@@ -1,4 +1,6 @@
-include::_attributes.adoc[]
+= Webhooks and Changes Feed
+:idprefix:
+:idseparator: -
 
 This guide describes two approaches for integrating Sync Gateway with other servers.
 These approaches can be used to build services that react to changes in documents.
@@ -115,22 +117,22 @@ The compressed messages sent from the server constitute a single stream of gzip-
 == Webhooks
 
 Since Sync Gateway 1.1, you can configure webhooks to detect document changes and to post changed documents to URLs that you specify.
-In more detail, the steps for a single webhook event handler are: 
+In more detail, the steps for a single webhook event handler are:
 
-. **Raise and listen for events**: Document changes (creations, updates, and deletions) that are made through Sync Gateway's Public REST API, including document changes that result from Couchbase Lite push replications, raise events that webhook event handlers listen for. 
-. **Filter**: You can define a `filter` function to examine the contents of the changed documents, and to decide which ones to post. 
-. **Post**: Sync Gateway uses asynchronous HTTP or HTTPS POSTs to post the changed documents identified by the `filter` function to the specified URL. Without a `filter` function, Sync Gateway posts all changed documents. 
+. **Raise and listen for events**: Document changes (creations, updates, and deletions) that are made through Sync Gateway's Public REST API, including document changes that result from Couchbase Lite push replications, raise events that webhook event handlers listen for.
+. **Filter**: You can define a `filter` function to examine the contents of the changed documents, and to decide which ones to post.
+. **Post**: Sync Gateway uses asynchronous HTTP or HTTPS POSTs to post the changed documents identified by the `filter` function to the specified URL. Without a `filter` function, Sync Gateway posts all changed documents.
 
 You can define multiple webhook event handlers.
-For example, you could define webhooks with different filtering criteria and that post changed documents to different URLs. 
+For example, you could define webhooks with different filtering criteria and that post changed documents to different URLs.
 
 [quote]
 *Caution:* Webhooks post your application's data, which might include user data, to URLs.
-Consider the security implications. 
+Consider the security implications.
 
 === When events are raised
 
-Sync Gateway raises a `document_changed` event every time it writes a document to a Couchbase Server bucket, such as during a Couchbase Lite push replication session. 
+Sync Gateway raises a `document_changed` event every time it writes a document to a Couchbase Server bucket, such as during a Couchbase Lite push replication session.
 
 You can configure event handlers for webhooks with the link:config-properties.html#event_handlers[event_handlers] property in the database configuration section of the JSON configuration file.
 
@@ -138,7 +140,7 @@ You can configure event handlers for webhooks with the link:config-properties.ht
 
 Following is a simple example of a `webhook` event handler.
 In this case, a single instance of a `webhook` event handler is defined for the event ``document_changed``.
-Every time a document changes, the document is sent to the URL ``http://someurl.com``. 
+Every time a document changes, the document is sent to the URL ``http://someurl.com``.
 
 [source,javascript]
 ----
@@ -155,7 +157,7 @@ Every time a document changes, the document is sent to the URL ``http://someurl.
 
 Following is an example that defines two `webhook` event handlers.
 The `filter` function in the first handler recognizes documents with `doc.type` equal to `A` and posts the documents to the URL ``http://someurl.com/type_A``.
-The `filter` function in the second handler recognizes documents with `doc.type` equal to B and posts the documents to the URL ``http://someurl.com/type_B``. 
+The `filter` function in the second handler recognizes documents with `doc.type` equal to B and posts the documents to the URL ``http://someurl.com/type_B``.
 
 [source,javascript]
 ----
