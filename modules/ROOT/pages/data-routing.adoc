@@ -29,7 +29,7 @@ There's not much to a channel besides its name.
 Channels come into existence as documents are assigned to them.
 Channels with no documents assigned to them are empty.
 
-Valid channel names consist of text letters ``[A–Z, a–z]``, digits ``[0–9]``, and a few special characters ``[= + / . , _ @]``.
+Valid channel names consist of text letters `[A–Z, a–z]`, digits `[0–9]`, and a few special characters `[= + / . , _ @]`.
 Channel names are case-sensitive.
 
 == Developing channels
@@ -56,7 +56,7 @@ The sync function cannot reference any external state and must return the same r
 You specify the sync function in the configuration file for the database.
 Each sync function applies to one database.
 
-To add the current document to a channel, the sync function calls the special function ``channel``, which takes one or more channel names (or arrays of channel names) as arguments.
+To add the current document to a channel, the sync function calls the special function `channel`, which takes one or more channel names (or arrays of channel names) as arguments.
 For convenience, `channel` ignores `null` or `undefined` argument values.
 
 Defining a sync function overrides the default channel mapping mechanism (the document's `channels` property is ignored).
@@ -76,7 +76,7 @@ Learn more about defining a sync function in our link:sync-function-api.html[Syn
 If Couchbase Lite doesn't specify any channels to replicate, it gets all the channels to which its user account has access.
 Due to this behavior, most apps do not have to specify a channels filter--instead they can just do the default sync configuration on the specify the Sync Gateway database URL with no filter in order to replicate the channels of interest.
 
-To replicate channels to Couchbase Lite, you configure the replication to use a filter named `sync_gateway/bychannel` with a filter parameter named ``channels``.
+To replicate channels to Couchbase Lite, you configure the replication to use a filter named `sync_gateway/bychannel` with a filter parameter named `channels`.
 The value of the `channels` parameter is a comma-separated list of channels to fetch.
 The replication from Sync Gateway now pulls only documents tagged with those channels.
 
@@ -136,14 +136,14 @@ function(doc) {
 }
 ----
 
-In the example, a chat room is represented by a document with a `type` property set to ``chatroom``.
+In the example, a chat room is represented by a document with a `type` property set to `chatroom`.
 The `channel_id` property names the associated channel (with which the actual chat messages are tagged) and the `members` property lists the users who have access.
 
 The `access()` function can also operate on roles.
 If a user name string begins with `role:` then the remainder of the string is interpreted as a role name.
 There's no ambiguity here, because ":" is an illegal character in a user or role name.
 
-Because anonymous requests are authenticated as the user "GUEST", you can make a channel and its documents public by calling `access` with a username of ``GUEST``.
+Because anonymous requests are authenticated as the user "GUEST", you can make a channel and its documents public by calling `access` with a username of `GUEST`.
 
 ==== Authorizing Document Updates
 
@@ -167,7 +167,7 @@ function(doc, oldDoc) { ... }
 
 `oldDoc` is the old revision of the document (or empty if this is a new document).
 
-You can validate user privileges by using the helper functions: ``requireUser``, ``requireRole``, or ``requireAccess``.
+You can validate user privileges by using the helper functions: `requireUser`, `requireRole`, or `requireAccess`.
 Here's some examples of how you can use the helper functions:
 
 [source,javascript]
@@ -201,17 +201,17 @@ function (doc, oldDoc) {
 
 There are a two special channels that are automatically created when Sync Gateway starts:
 
-* The **public channel**, written as `!` in the sync function.
+* The *public channel*, written as `!` in the sync function.
 Documents added to this channel are visible to any user (i.e all users are automatically granted access to the `!` channel).
 This channel can be used as a public distribution channel.
-* The *star* channel, written as `\*` in the sync function.
+* The *star* channel, written as `+*+` in the sync function.
 All documents are added to this channel.
-So any user that is granted access to the `\*` channel can access all the documents in the database.
+So any user that is granted access to the `+*+` channel can access all the documents in the database.
 A user can be given access to the *star* channel through the sync function or in the link:config-properties.html#foo_user[configuration file].
 ** *Note 1:* Sync Gateway automatically assigns documents to the all docs channel.
-Explicitly assigning a document to it in the Sync Function (i.e ``channel('*')``) will result in unexpected behavior such as receiving the document twice on the client side.
+Explicitly assigning a document to it in the Sync Function (i.e `channel('*')`) will result in unexpected behavior such as receiving the document twice on the client side.
 ** *Note 2:* The *star* channel doesn't mean that the user is granted access to all channels.
-It is only being granted access to 1 channel which contains **all documents**.
+It is only being granted access to 1 channel which contains *all documents*.
 This distinction is important when using the link:sync-function-api.html#requireaccesschannels[requireAccess()] Sync Function method.
 
 The following Sync Function maps the document to the public channel if it contains an `isPublic` property set to true and grants users with the 'admin' role access to the all docs channel.
@@ -235,7 +235,7 @@ function (doc, oldDoc) {
 
 You can use the admin REST API to see the channels that documents are assigned to.
 Issue an `\_all_docs` request, and add the query parameter `?channels=true` to the URL.
-Here's a command-line example that uses the https://github.com/jkbrzt/httpie[HTTPie] tool (like a souped-up curl) to look at the channels of the document ``foo``:
+Here's a command-line example that uses the https://github.com/jkbrzt/httpie[HTTPie] tool (like a souped-up curl) to look at the channels of the document `foo`:
 
 [source,bash]
 ----
@@ -266,7 +266,7 @@ Server: Couchbase Sync Gateway/1.00
 }
 ----
 
-The output shows that the document is in the channels `short` and ``word``.
+The output shows that the document is in the channels `short` and `word`.
 
 [[_inspecting_userrole_channels]]
 === Inspecting user/role channels
@@ -295,4 +295,4 @@ $ curl http://localhost:4985/db/_user/pupshaw
 }
 ----
 
-The output shows that the user `pupshaw` has access to channels `all` and ``hoopy``.
+The output shows that the user `pupshaw` has access to channels `all` and `hoopy`.

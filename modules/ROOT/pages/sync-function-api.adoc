@@ -7,7 +7,7 @@ For simple applications it might be the only server-side code you need to write.
 For more complex applications it is still a primary touchpoint for managing data routing and access control.
 
 The sync function is a JavaScript function whose source code is stored in the Sync Gateway's database configuration file.
-The sync function is called every time a new revision/update is made to a document, and the changes to channels and access made by the sync function are __tied to that revision__.
+The sync function is called every time a new revision/update is made to a document, and the changes to channels and access made by the sync function are _tied to that revision_.
 If the document is later updated, the sync function will be called again on the new revision, and the new channel assignments and user/channel access _replace_ the ones from the first call.
 
 It can do the following things:
@@ -50,8 +50,8 @@ The `\_id` property contains the document ID, and the `\_rev` property the new r
 If the document is being deleted, there will be a `\_deleted` property with the value true.
 `oldDoc`::
 If the document has been saved before, the revision that is being replaced is available in this argument.
-Otherwise it's ``null``.
-(In the case of a document with conflicts, the current provisional winning revision is passed in ``oldDoc``.)
+Otherwise it's `null`.
+(In the case of a document with conflicts, the current provisional winning revision is passed in `oldDoc`.)
 Your implementation of the sync function can omit the `oldDoc` parameter if you do not need it (JavaScript ignores extra parameters passed to a function).
 
 The default Sync Function is documented in the API reference link:config-properties.html#1.5/databases-foo_db-sync[databases.$dbname.sync].
@@ -60,7 +60,7 @@ The default Sync Function is documented in the API reference link:config-propert
 
 The sync function API provides several methods that you can use to validate document creation, updates and deletions.
 For error conditions, you can simply call the built-in JavaScript `throw()` function.
-You can also enforce user access privileges by calling ``requireUser()``, ``requireRole()``, or ``requireAccess()``.
+You can also enforce user access privileges by calling `requireUser()`, `requireRole()`, or `requireAccess()`.
 
 What happens to rejected documents? Firstly, they aren't saved to the Sync Gateway's database, so no access changes take effect.
 Instead an error code (usually 403 Forbidden) is returned to Couchbase Lite's replicator.
@@ -69,7 +69,7 @@ Any other exception (including implicit ones thrown by the JavaScript runtime, l
 
 === throw()
 
-At the most basic level, the sync function can prevent a document from persisting or syncing to any other users by calling `throw()` with an error object containing a ``forbidden``: property.
+At the most basic level, the sync function can prevent a document from persisting or syncing to any other users by calling `throw()` with an error object containing a `forbidden`: property.
 You enforce the validity of document structure by checking the necessary constraints and throwing an exception if they're not met.
 
 Here is an example sync function that disallows all writes to the database it is in.
@@ -107,9 +107,9 @@ requireUser(["snej", "jchris", "tleyden"]);
 ----
 
 The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
-All properties of the `doc` parameter should be considered __untrusted__, since this is after all the object that you're validating.
-This may sound obvious, but it can be easy to make mistakes, like calling `requireUser(doc.owners)` instead of ``requireUser(oldDoc.owners)``.
-When using one document property to validate another, look up that property in ``oldDoc``, not ``doc``!
+All properties of the `doc` parameter should be considered _untrusted_, since this is after all the object that you're validating.
+This may sound obvious, but it can be easy to make mistakes, like calling `requireUser(doc.owners)` instead of `requireUser(oldDoc.owners)`.
+When using one document property to validate another, look up that property in `oldDoc`, not `doc`!
 
 [[_requirerolerolename]]
 === requireRole(rolename)
@@ -149,15 +149,15 @@ if (oldDoc) {
 
 The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
 
-If a user was granted access to the link:data-routing.html#special-channels[star channel] (noted ``\*``), a call to `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `\*` channel).
-To allow a user to perform a document update in this case, you can specify multiple channel names (``requireAccess('any channel name', '*')'``).
+If a user was granted access to the link:data-routing.html#special-channels[star channel] (noted `+*+`), a call to `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `+*+` channel).
+To allow a user to perform a document update in this case, you can specify multiple channel names (`requireAccess('any channel name', '*')'`).
 
 == Routing
 
 The sync function API provides several functions that you can use to route documents.
 The routing functions assign documents to channels, and enable user access to channels (which will route documents in those channels to those users.)
 
-Routing changes have no effect until the document is actually saved in the database, so if the sync function first calls `channel()` or ``access()``, but then rejects the update, the channel and access changes will not occur.
+Routing changes have no effect until the document is actually saved in the database, so if the sync function first calls `channel()` or `access()`, but then rejects the update, the channel and access changes will not occur.
 
 === channel (name)
 
@@ -195,9 +195,9 @@ It can be called multiple times from a sync function.
 
 The first argument can be an array of strings, in which case each user in the array is given access.
 The second argument can also be an array of strings, in which case the user(s) are given access to each channel in the array.
-As a convenience, either argument may be `null` or ``undefined``, in which case nothing happens.
+As a convenience, either argument may be `null` or `undefined`, in which case nothing happens.
 
-If a user name begins with the prefix ``role:``, the rest of the name is interpreted as a role rather than a user.
+If a user name begins with the prefix `role:`, the rest of the name is interpreted as a role rather than a user.
 The call then grants access to the specified channels for all users with that role.
 
 NOTE: The effects of all access calls by all active documents are effectively unioned together, so if _any_ document grants a user access to a channel, that user has access to the channel.
@@ -206,7 +206,7 @@ CAUTION: Revoking access to a channel can cause a user to lose access to documen
 However, the replicator does _not_ currently delete such documents that have already been synced to a user's device (although future changes to those documents will not be replicated.)
 This is a design limitation of the Sync Gateway 1.0 that may be resolved in the future.
 
-The following code snippets shows some valid ways to call ``access()``:
+The following code snippets shows some valid ways to call `access()`:
 
 [source,javascript]
 ----
@@ -240,7 +240,7 @@ It can also affect the user's ability to revise documents, if the access functio
 Its use is similar to `access` -- the value of either parameter can be a string, an array of strings, or null.
 If the value is null, the call is a no-op.
 
-For consistency with the `access` call, role names must always be prefixed with ``role:``.
+For consistency with the `access` call, role names must always be prefixed with `role:`.
 An exception is thrown if a role name doesn't match this.
 Some examples:
 
@@ -272,7 +272,7 @@ expiry("2018-07-06T17:00:00+01:00")
 Under the hood, the expiration time is set and managed on the Couchbase Server document (TTL is not supported for databases in walrus mode).
 The value can be specified in two ways:
 
-* *ISO-8601 format:* for example the 6th of July 2016 at 17:00 in the BST timezone would be ``2016-07-06T17:00:00+01:00``;
+* *ISO-8601 format:* for example the 6th of July 2016 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`;
 * *as a numeric Couchbase Server expiry value:* Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server).
 The document expiration time is returned in the response of GET link:rest-api.html#/document/get__db___doc_[/{db}/{doc}] when `show_exp=true` is included in the querystring.
 
@@ -361,7 +361,7 @@ Therefore the Sync Function update will result in application downtime between t
 === When should you run a re-sync?
 
 When running a re-sync operation, the context in the Sync Function is the admin user.
-For that reason, calling the ``requireUser``, `requireAccess` and `requireRole` methods will always succeed.
+For that reason, calling the `requireUser`, `requireAccess` and `requireRole` methods will always succeed.
 It is very likely that you are using those functions in production to govern write operations.
 But in a re-sync operation, all the documents are already written to the database.
 For that reason, it is recommended to use re-sync for changing the assignment to channels only (i.e.
