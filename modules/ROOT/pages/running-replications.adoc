@@ -89,88 +89,58 @@ Source database documents will be filtered so that only those tagged with the ch
 
 The _replicate JSON Object supports the following properties.
 
-[cols="1,1,1,1", options="header"]
+[cols="1,1,3,1"]
 |===
-|
-            Name
-
-|
-            Type
-
-|
-            Description
-
-|
-            Default
-
-
+|Name |Type |Description |Default
 
 |``source``
-|
-            URL
+|URL
 |__Required.__ A URL pointing to the source database for the replication, the URL may be relative i.e. just the name of a local database on the Sync Gateway instance.
 The URL may point to the Admin REST API which will replicate all documents in the DB, or it may point to the public REST API which will only copy documents in the users assigned channels.
-|
-            none
+|none
 
 |``target``
-|
-            URL
+|URL
 |__Required.__ A URL pointing to the target database for the replication, the URL may be relative i.e. just the name of a local database on the Sync Gateway instance.
 The URL may point to the Admin REST API or it may point to the public REST API, this will impact the behavior of the target database sync function.
-|
-            none
+|none
 
 |``continuous``
-|
-            Boolean
+|Boolean
 |__Optional.__ Indicates whether the replication should be a one-shot or continuous replication.
-|
-            false
+|false
 
 |``filter``
-|
-            String
+|String
 |__Optional.__ Passes the name of filter to apply to the source documents, currently the only supported filter is "sync_gateway/bychannel", this will replicate documents only from the set of named channels.
-|
-            none
+|none
 
 |``query_params``
-|
-            Object
+|Object
 |``Optional.`` Passes parameters to the filter, for the "sync_gateway/bychannel" filter the value should be an array or channel names (JSON strings).
-|
-            none
+|none
 
 |``cancel``
-|
-            Boolean
+|Boolean
 |__Optional.__ Indicates that a running replication task should be canceled, the running task is identified by passing its replication_id or by passing the original source and target values.
-|
-            false
+|false
 
 |``replication_id``
-|
-            String
+|String
 |__Optional.__ If the cancel parameter is true then this is the id of the active replication task to be canceled, otherwise this is the replication_id to be used for the new replication.
 If no replication_id is given for a new replication it will be assigned a random UUID.
-|
-            false
+|false
 
 |``async``
-|
-            Boolean
+|Boolean
 |__Optional.__ Indicates that a one-shot replication should be run asynchronously and the request should return immediately.
 Replication progress can be monitored by using the _active_tasks resource.
-|
-            false
+|false
 
 |``changes_feed_limit``
-|
-            Number
+|Number
 |``Optional.`` The maximum number of change entries to pull in each loop of a continuous changes feed.
-|
-            50
+|50
 |===
 
 == Running replication on startup
