@@ -25,15 +25,18 @@ To avoid this downtime, it is possible to pre-build the view index before direct
 
 |1.3
 |1.4
-|* A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes. Repeat this operation for each node that needs to be upgraded.
+|* A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes.
+Repeat this operation for each node that needs to be upgraded.
 
 |1.4
 |1.5 xattrs disabled
-|* A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes. Repeat this operation for each node that needs to be upgraded.
+|* A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes.
+Repeat this operation for each node that needs to be upgraded.
 
 |1.5 xattrs disabled
 |1.5 xattrs enabled
-|* A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes. Repeat this operation for each node that needs to be upgraded.
+|* A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes.
+Repeat this operation for each node that needs to be upgraded.
 * The mobile metadata for existing documents is automatically migrated.
 * The first node to be upgraded should have the `import_docs=continuous` property enabled.
 
@@ -98,11 +101,11 @@ Caveats:
 === View Indexing
 
 Sync Gateway uses Couchbase Server views to index and query documents.
-When Sync Gateway starts, it will publish a Design Document which contains the View definitions (map/reduce functions). For example, the Design Document for Sync Gateway is the following:
+When Sync Gateway starts, it will publish a Design Document which contains the View definitions (map/reduce functions).
+For example, the Design Document for Sync Gateway is the following:
 
 [source,json]
 ----
-
 {
    "views":{
       "access":{
@@ -122,40 +125,38 @@ During a Sync Gateway upgrade, the index may also have to be re-built if the Des
 To avoid this downtime, you can publish the Design Document and build the index before starting Sync Gateway by using the Couchbase Server REST API.
 The following curl commands refer to a Sync Gateway 1.3 -> Sync Gateway 1.4 upgrade but they apply to any upgrade of Sync Gateway or Accelerator.
 
-. Start Sync Gateway 1.4 with Couchbase Server instance that *isn't* your production environment. Then, copy the Design Document to a file with the following.
+. Start Sync Gateway 1.4 with Couchbase Server instance that *isn't* your production environment.
+Then, copy the Design Document to a file with the following.
 +
-
 [source,bash]
 ----
-
 $ curl localhost:8092/<BUCKET_NAME>/_design/sync_gateway/ > ddoc.json
 ----
+
 . Create a Development Design Document on the cluster where Sync Gateway is going to be upgraded from 1.3:
 +
-
 [source,bash]
 ----
-
 $ curl -X PUT http://localhost:8092/<BUCKET_NAME>/_design/dev_sync_gateway/ -d @ddoc.json -H "Content-Type: application/json"
 ----
 +
 This should return:
 +
-
 [source,bash]
 ----
-
 {"ok":true,"id":"_design/dev_sync_gateway"}
 ----
-. Run a View Query against the Development Design Document. By default, a Development Design Document will index one vBucket per node, however we can force it to index the whole bucket using the `full_set` parameter:
-+
 
+. Run a View Query against the Development Design Document.
+By default, a Development Design Document will index one vBucket per node, however we can force it to index the whole bucket using the `full_set` parameter:
++
 [source,bash]
 ----
-
 $ curl "http://localhost:8092/sync_gateway/_design/dev_sync_gateway/_view/role_access_vbseq?full_set=true&stale=false&limit=1"
 ----
 +
 This may take some time to return, and you can track the index's progress in the Couchbase Server UI.
 Note that this will consume disk space to build an almost duplicate index until the switch is made.
-. Upgrade Sync Gateway. When Sync Gateway 1.4 starts, it will publish the new Design Document to Couchbase Server. This will match the Development Design Document we just indexed, so will be available immediately.
+
+. Upgrade Sync Gateway. When Sync Gateway 1.4 starts, it will publish the new Design Document to Couchbase Server.
+This will match the Development Design Document we just indexed, so will be available immediately.

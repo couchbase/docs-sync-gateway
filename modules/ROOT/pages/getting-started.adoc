@@ -121,7 +121,8 @@ If the installation was successful you will see the following.
 
 image::windows-installation-complete.png[]
 
-Sync Gateway runs as a service (reachable on http://localhost:4985/). To stop/start the service, you can use the Services application (**Control Panel --> Admin Tools --> Services**).
+Sync Gateway runs as a service (reachable on http://localhost:4985/).
+To stop/start the service, you can use the Services application (**Control Panel --> Admin Tools --> Services**).
 
 * The configuration file is located under **C:FilesGateway.json**.
 * Logs are located under **C:FilesGateway*.
@@ -210,18 +211,22 @@ To configure Couchbase Server before connecting Sync Gateway, run through the fo
 image::cb-create-bucket.png[]
 +
 . Provide a bucket name, for example **staging**, and leave the other options to their defaults.
-. Next, we must create an RBAC user with specific privileges for Sync Gateway to connect to Couchbase Server. Open the *Security* tab and click the *Add User* button.
+. Next, we must create an RBAC user with specific privileges for Sync Gateway to connect to Couchbase Server.
+Open the *Security* tab and click the *Add User* button.
 +
 image::create-user.png[]
 +
-. The steps to create the RBAC user differ slightly depending on the version of Couchbase Server that you have installed. We explain the differences below.
+. The steps to create the RBAC user differ slightly depending on the version of Couchbase Server that you have installed.
+We explain the differences below.
 +
 [.tabs]
 =====
 .Couchbase Server 5.1
 [.tab]
 ====
-In the pop-up window, provide a *Username* and **Password**, those credentials will be used by Sync Gateway to connect later on. Next, you must grant RBAC roles to that user. If you are using Couchbase Server 5.1, you must enable the *Bucket Full Access* and *Read Only Admin* roles.
+In the pop-up window, provide a *Username* and **Password**, those credentials will be used by Sync Gateway to connect later on.
+Next, you must grant RBAC roles to that user.
+If you are using Couchbase Server 5.1, you must enable the *Bucket Full Access* and *Read Only Admin* roles.
 
 image::user-settings.png[]
 
@@ -229,15 +234,20 @@ image::user-settings.png[]
 .Couchbase Server 5.5
 [.tab]
 ====
-In the pop-up window, provide a *Username* and **Password**, those credentials will be used by Sync Gateway to connect later on. Next, you must grant RBAC roles to that user. If you are using Couchbase Server 5.5, you must enable the *Application Access* and *Read Only Admin* roles.
+In the pop-up window, provide a *Username* and **Password**, those credentials will be used by Sync Gateway to connect later on.
+Next, you must grant RBAC roles to that user.
+If you are using Couchbase Server 5.5, you must enable the *Application Access* and *Read Only Admin* roles.
 
 image::user-settings-5-5.png[]
 
 ====
 =====
 +
-. If you're installing Couchbase Server on the cloud, make sure that network permissions (or firewall settings) allow incoming connections to Couchbase Server ports. In a typical mobile deployment on premise or in the cloud (AWS, RedHat etc), the following ports must be opened on the host for Couchbase Server to operate correctly: 8091, 8092, 8093, 8094, 11207, 11210, 11211, 18091, 18092, 18093. You must verify that any firewall configuration allows communication on the specified ports. If this is not done, the Couchbase Server node can experience difficulty joining a cluster. You can refer to the http://developer.couchbase.com/documentation/server/current/install/install-ports.html[Couchbase Server Network Configuration] guide to see the full list of available ports and their associated services.
-
+. If you're installing Couchbase Server on the cloud, make sure that network permissions (or firewall settings) allow incoming connections to Couchbase Server ports.
+In a typical mobile deployment on premise or in the cloud (AWS, RedHat etc), the following ports must be opened on the host for Couchbase Server to operate correctly: 8091, 8092, 8093, 8094, 11207, 11210, 11211, 18091, 18092, 18093.
+You must verify that any firewall configuration allows communication on the specified ports.
+If this is not done, the Couchbase Server node can experience difficulty joining a cluster.
+You can refer to the http://developer.couchbase.com/documentation/server/current/install/install-ports.html[Couchbase Server Network Configuration] guide to see the full list of available ports and their associated services.
 
 == Start Sync Gateway
 
@@ -245,10 +255,8 @@ The following steps explain how to connect Sync Gateway to the Couchbase Server 
 
 * Open a new file called *sync-gateway-config.json* with the following.
 +
-
 [source,javascript]
 ----
-
 {
     log: [*],
     databases: {
@@ -272,21 +280,20 @@ The following steps explain how to connect Sync Gateway to the Couchbase Server 
 +
 This configuration contains the user credentials of the *sync_gateway* user you created previously.
 It also enables link:shared-bucket-access.html[shared bucket access]; this feature was introduced in Sync Gateway 1.5 to allow Couchbase Server SDKs to also perform operation on this bucket.
+
 * Start Sync Gateway from the command line, or if Sync Gateway is running in a service replace the configuration file and restart the service.
 +
-
 [source,bash]
 ----
-
 ~/Downloads/couchbase-sync-gateway/bin/sync_gateway ~/path/to/sync-gateway-config.json
 ----
-* Run the application where Couchbase Lite is installed. You should then see the documents that were replicated on the Sync Gateway admin UI at http://localhost:4985/_admin/.
 
-{% include experimental-label.html %}
+* Run the application where Couchbase Lite is installed.
+You should then see the documents that were replicated on the Sync Gateway admin UI at http://localhost:4985/_admin/.
 
-
+//{% include experimental-label.html %}
 // <img src="../img/admin-ui-getting-started.png"/>
-center-image />
+// center-image />
 
 == Supported Platforms
 
