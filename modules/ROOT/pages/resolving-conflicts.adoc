@@ -107,22 +107,18 @@ function getChanges(seq) {
 
 Let's go through this step by step:
 
-. GET request to the _changes endpoint. With the following options:
-
-* *feed=longpoll&since=*
-+
-// <seq>:</seq>
- The response will contain all the changes since the specified seq.
- If seq is the last sequence number (the most recent one) then the connection will remain open until a new document is processed by Sync Gateway and the change event is sent.
- The getChanges method is called recursively to always have the latest changes.
-+* *include_docs:* The response will contain the document body (i.e. the current revision for that document).
-
-+* *all_docsactive_only=true:* The response will exclude changes that are deletions and channel access removals.
-
-.. *Detect and resolve conflicts.* If there are more than one revision then it's a conflict.
+. *GET request to the _changes endpoint*.
+With the following options:
+** `feed=longpoll&since=<seq>`: The response will contain all the changes since the specified seq.
+If seq is the last sequence number (the most recent one) then the connection will remain open until a new document is processed by Sync Gateway and the change event is sent.
+The getChanges method is called recursively to always have the latest changes.
+** `include_docs`: The response will contain the document body (i.e. the current revision for that document).
+** `all_docs&active_only=true`: The response will exclude changes that are deletions and channel access removals.
+. *Detect and resolve conflicts*.
+If there are more than one revision then it's a conflict.
 Resolve the conflict and return (stop processing this response).
 Once the conflict is resolve, get the next change(s).
-.. *There were no conflicts in this response, get the next change(s).*
+. *There were no conflicts in this response, get the next change(s)*.
 
 The program won`'t run yet because the resolveConflicts method isn`'t defined, read the next section to learn how to resolve conflicts once they are detected.
 
@@ -212,7 +208,8 @@ So what is this code doing?
 
 . *Use open_revs=all to get the properties in each revision.*
 . *Resolve the conflict.*
-For user documents, the revision with the latest updated_at value wins. For other document types, the current revision (the one that got picked deterministically by the system) remains the winner. Note that non-current revisions must still be removed otherwise they may be promoted as the current revision at a later time.
+For user documents, the revision with the latest updated_at value wins. For other document types, the current revision (the one that got picked deterministically by the system) remains the winner.
+Note that non-current revisions must still be removed otherwise they may be promoted as the current revision at a later time.
 The resolution logic may be different for each document type.
 . *Prepare the changes for the _bulk_docs request.*
 All non-current revision are marked for deletion with the `\_deleted: true` property.
@@ -242,4 +239,4 @@ Document with ID bar has 1 revisions.
 ----
 
 Add more conflicting revisions from the command-line with a different document ID (baz for example).
-The conflict is resolved and the program continues to listen for the next change(s). 
+The conflict is resolved and the program continues to listen for the next change(s).

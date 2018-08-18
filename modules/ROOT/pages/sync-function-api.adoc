@@ -12,14 +12,18 @@ If the document is later updated, the sync function will be called again on the 
 
 It can do the following things:
 
-* *Validate the document:* If the document has invalid contents, the sync function can throw an exception to reject it.
+Validate the document::
+If the document has invalid contents, the sync function can throw an exception to reject it.
 The document won't be added to the database, and the client request will get an error response
-* *Authorize the change:* The sync function can call `requireUser()` or `requireRole()` to specify what user(s) are allowed to modify the document.
+Authorize the change::
+The sync function can call `requireUser()` or `requireRole()` to specify what user(s) are allowed to modify the document.
 If the user making the change isn't in that list, an exception is thrown and the update is rejected with an error.
 Similarly, `requireAccess()` requires that the user making the change have access to any of the listed channels.
-* *Assign the document to channels:* Based on the contents of the document, the sync function can call *channel()* to add the document to one or more channels.
+Assign the document to channels::
+Based on the contents of the document, the sync function can call *channel()* to add the document to one or more channels.
 This makes it accessible to users who have access to those channels, and will cause the document to be pulled by users that are subscribed to those channels.
-* *Grant users access to channels:* Calling `access(user, channel)` grants a user access to a channel.
+Grant users access to channels::
+Calling `access(user, channel)` grants a user access to a channel.
 This allows documents to act as membership lists or access-control lists.
 
 *The sync function is crucial to the security of your application.*
@@ -39,11 +43,13 @@ function (doc, oldDoc) {
 
 The sync function arguments are:
 
-* ``doc``: An object, the content of the document that is being saved.
+`doc`::
+An object, the content of the document that is being saved.
 This matches the JSON that was saved by the Couchbase Lite and replicated to Sync Gateway.
 The `\_id` property contains the document ID, and the `\_rev` property the new revision ID.
 If the document is being deleted, there will be a `\_deleted` property with the value true.
-* ``oldDoc``: If the document has been saved before, the revision that is being replaced is available in this argument.
+`oldDoc`::
+If the document has been saved before, the revision that is being replaced is available in this argument.
 Otherwise it's ``null``.
 (In the case of a document with conflicts, the current provisional winning revision is passed in ``oldDoc``.)
 Your implementation of the sync function can omit the `oldDoc` parameter if you do not need it (JavaScript ignores extra parameters passed to a function).
@@ -355,7 +361,7 @@ The message body of the response contains the number of changes that were made a
 
 This is an expensive operation because it requires every document in the database to be processed by the new function.
 The database can't accept any requests until this process is complete (because no user's full access privileges are known until all documents have been scanned).
-Therefore the Sync Function update will result in application downtime between the call to the `/{db}/_offline` and `/{db}/_online` endpoints as mentioned above. 
+Therefore the Sync Function update will result in application downtime between the call to the `/{db}/_offline` and `/{db}/_online` endpoints as mentioned above.
 
 === When should you run a re-sync?
 

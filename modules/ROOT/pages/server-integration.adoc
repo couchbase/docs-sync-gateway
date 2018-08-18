@@ -11,8 +11,10 @@ Examples of use cases include:
 
 The integration approaches are:
 
-* xref:#changes-feed[*Changes Feed*]: The changes feed returns a sorted list of changes made to documents in the database.
-* xref:#webhooks[*Webhooks*]: Sync Gateway can detect document updates and post the updated documents to one or more external URLs.
+xref:#changes-feed[Changes Feed]::
+The changes feed returns a sorted list of changes made to documents in the database.
+xref:#webhooks[Webhooks]::
+Sync Gateway can detect document updates and post the updated documents to one or more external URLs.
 
 Here's a table that compares each API in different scenarios:
 
@@ -66,14 +68,19 @@ For instance if you have a channel called "needs-email" you could have a bot tha
 The changes feed API is a REST API endpoint (xref:sync-gateway-public.adoc#/database/get\__db___changes[`/{db}/_changes`]) that returns a sorted list of changes made to documents in the database.
 It permits applications to implement business logic that reacts to changes in documents.
 There are several methods of connecting to the changes feed (also know as the feed type).
-The first 3 methods (`polling`, `longpoll` and `continuous`) are based on the CouchDB API. The last method (`websocket`) is specific to Sync Gateway.
+The first 3 methods (`polling`, `longpoll` and `continuous`) are based on the CouchDB API.
+The last method (`websocket`) is specific to Sync Gateway.
 
-- link:http://guide.couchdb.org/draft/notifications.html#polling[polling] (default): returns the list of changes immediately.
+link:http://guide.couchdb.org/draft/notifications.html#polling[polling] (default)::
+Returns the list of changes immediately.
 A new request must be sent to get the next set of changes.
-- link:http://guide.couchdb.org/draft/notifications.html#long[longpolling]: in addition to regular polling, if the request is sent with a special `last_seq` parameter, it will stay open until a new change occurs and is posted.
-- link:http://guide.couchdb.org/draft/notifications.html#continuous[continuous]: the continuous changes API allows you to receive change notifications as they come, in a single HTTP connection.
+link:http://guide.couchdb.org/draft/notifications.html#long[longpolling]::
+In addition to regular polling, if the request is sent with a special `last_seq` parameter, it will stay open until a new change occurs and is posted.
+link:http://guide.couchdb.org/draft/notifications.html#continuous[continuous]::
+The continuous changes API allows you to receive change notifications as they come, in a single HTTP connection.
 You make a request to the continuous changes API and both you and Sync Gateway will hold the connection open “forever.”
-- xref:#websockets[websockets]: the WebSocket mode is conceptually the same as continuous mode but it should avoid issues with proxy servers and gateways that cause continuous mode to fail in many real-world mobile use cases.
+xref:#websockets[websockets]::
+The WebSocket mode is conceptually the same as continuous mode but it should avoid issues with proxy servers and gateways that cause continuous mode to fail in many real-world mobile use cases.
 
 === WebSockets
 
@@ -134,9 +141,10 @@ The output from the decompressor consists of a sequence of JSON arrays, each of 
 Since Sync Gateway 1.1, you can configure webhooks to detect document changes and to post changed documents to URLs that you specify.
 In more detail, the steps for a single webhook event handler are:
 
-. **Raise and listen for events**: Document changes (creations, updates, and deletions) that are made through Sync Gateway's Public REST API, including document changes that result from Couchbase Lite push replications, raise events that webhook event handlers listen for.
-. **Filter**: You can define a `filter` function to examine the contents of the changed documents, and to decide which ones to post.
-. **Post**: Sync Gateway uses asynchronous HTTP or HTTPS POSTs to post the changed documents identified by the `filter` function to the specified URL. Without a `filter` function, Sync Gateway posts all changed documents.
+. *Raise and listen for events*: Document changes (creations, updates, and deletions) that are made through Sync Gateway's Public REST API, including document changes that result from Couchbase Lite push replications, raise events that webhook event handlers listen for.
+. *Filter*: You can define a `filter` function to examine the contents of the changed documents, and to decide which ones to post.
+. *Post*: Sync Gateway uses asynchronous HTTP or HTTPS POSTs to post the changed documents identified by the `filter` function to the specified URL.
+Without a `filter` function, Sync Gateway posts all changed documents.
 
 You can define multiple webhook event handlers.
 For example, you could define webhooks with different filtering criteria and that post changed documents to different URLs.
