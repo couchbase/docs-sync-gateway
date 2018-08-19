@@ -274,7 +274,7 @@ The value can be specified in two ways:
 
 * *ISO-8601 format:* for example the 6th of July 2016 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`;
 * *as a numeric Couchbase Server expiry value:* Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server).
-The document expiration time is returned in the response of GET link:rest-api.html#/document/get__db___doc_[/{db}/{doc}] when `show_exp=true` is included in the querystring.
+The document expiration time is returned in the response of GET link:rest-api.html#/document/get\__db___doc_[+/{db}/{doc}+] when `show_exp=true` is included in the querystring.
 
 As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication.
 This expiration time is not propagated when the document is replicated.
@@ -349,14 +349,14 @@ To update the Sync Function, it is recommended to follow the steps outlined belo
 
 . Update the configuration file of the Sync Gateway instance.
 . Restart Sync Gateway.
-. Take the database offline using the link:admin-rest-api.html#!/database/post_db_offline[/{db}/_offline] endpoint.
+. Take the database offline using the link:admin-rest-api.html#!/database/post_db_offline[/+{db}+/_offline] endpoint.
 . Call the re-sync endpoint on the Admin REST API.
 The message body of the response contains the number of changes that were made as a result of calling re-sync.
-. Bring the database back online using the link:admin-rest-api.html#!/database/post_db_online[/{db}/_online] endpoint.
+. Bring the database back online using the link:admin-rest-api.html#!/database/post_db_online[/+{db}+/_online] endpoint.
 
 This is an expensive operation because it requires every document in the database to be processed by the new function.
 The database can't accept any requests until this process is complete (because no user's full access privileges are known until all documents have been scanned).
-Therefore the Sync Function update will result in application downtime between the call to the `/{db}/_offline` and `/{db}/_online` endpoints as mentioned above.
+Therefore the Sync Function update will result in application downtime between the call to the `/+{db}+/_offline` and `/+{db}+/_online` endpoints as mentioned above.
 
 === When should you run a re-sync?
 
@@ -372,6 +372,6 @@ Similarly, if you wish to change the channel/access rules, but only want those r
 If you need to ensure access to the database during the update, you can create a read-only backup of the Sync Gateway's bucket beforehand, then run a secondary Sync Gateway on the backup bucket, in read-only mode.
 After the update is complete, switch to the main Gateway and bucket.
 
-In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the link:admin-rest-api.html#!/database/post_db_offline[/{db}/_offline] endpoint.
+In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the link:admin-rest-api.html#!/database/post_db_offline[/+{db}+/_offline] endpoint.
 After the configuration is updated, *one* instance should be brought up so it can update the database -- if more than one is running at this time, they'll conflict with each other.
 After the first instance finishes opening the database, the others can be started.
