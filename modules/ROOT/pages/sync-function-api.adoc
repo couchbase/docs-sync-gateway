@@ -54,7 +54,7 @@ Otherwise it's `null`.
 (In the case of a document with conflicts, the current provisional winning revision is passed in `oldDoc`.)
 Your implementation of the sync function can omit the `oldDoc` parameter if you do not need it (JavaScript ignores extra parameters passed to a function).
 
-The default Sync Function is documented in the API reference link:config-properties.html#1.5/databases-foo_db-sync[databases.$dbname.sync].
+The default Sync Function is documented in the API reference xref:config-properties.adoc#1.5/databases-foo_db-sync[databases.$dbname.sync].
 
 == Validation and Authorization
 
@@ -149,7 +149,7 @@ if (oldDoc) {
 
 The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
 
-If a user was granted access to the link:data-routing.html#special-channels[star channel] (noted `+*+`), a call to `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `+*+` channel).
+If a user was granted access to the xref:data-routing.adoc#special-channels[star channel] (noted `+*+`), a call to `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `+*+` channel).
 To allow a user to perform a document update in this case, you can specify multiple channel names (`requireAccess('any channel name', '*')'`).
 
 == Routing
@@ -274,13 +274,13 @@ The value can be specified in two ways:
 
 * *ISO-8601 format:* for example the 6th of July 2016 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`;
 * *as a numeric Couchbase Server expiry value:* Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server).
-The document expiration time is returned in the response of GET link:rest-api.html#/document/get\__db___doc_[+/{db}/{doc}+] when `show_exp=true` is included in the querystring.
+The document expiration time is returned in the response of GET xref:rest-api.adoc#/document/get\__db___doc_[+/{db}/{doc}+] when `show_exp=true` is included in the querystring.
 
 As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication.
 This expiration time is not propagated when the document is replicated.
 The purge of the document does not cause it to be deleted on any other database.
 
-If link:shared-bucket-access.html[shared bucket access] is enabled (introduced in Sync Gateway 1.5), the behavior of the expiry feature changes in the following way: when the expiry value is reached, instead of getting purged, the *active* revision of the document is tombstoned.
+If xref:shared-bucket-access.adoc[shared bucket access] is enabled (introduced in Sync Gateway 1.5), the behavior of the expiry feature changes in the following way: when the expiry value is reached, instead of getting purged, the *active* revision of the document is tombstoned.
 If there is another non-tombstoned revision for this document (i.e a conflict) it will become the active revision.
 The tombstoned revision will be purged when the server's metadata purge interval is reached.
 
@@ -349,10 +349,10 @@ To update the Sync Function, it is recommended to follow the steps outlined belo
 
 . Update the configuration file of the Sync Gateway instance.
 . Restart Sync Gateway.
-. Take the database offline using the link:admin-rest-api.html#!/database/post_db_offline[/+{db}+/_offline] endpoint.
+. Take the database offline using the xref:admin-rest-api.adoc#!/database/post_db_offline[/+{db}+/_offline] endpoint.
 . Call the re-sync endpoint on the Admin REST API.
 The message body of the response contains the number of changes that were made as a result of calling re-sync.
-. Bring the database back online using the link:admin-rest-api.html#!/database/post_db_online[/+{db}+/_online] endpoint.
+. Bring the database back online using the xref:admin-rest-api.adoc#!/database/post_db_online[/+{db}+/_online] endpoint.
 
 This is an expensive operation because it requires every document in the database to be processed by the new function.
 The database can't accept any requests until this process is complete (because no user's full access privileges are known until all documents have been scanned).
@@ -372,6 +372,6 @@ Similarly, if you wish to change the channel/access rules, but only want those r
 If you need to ensure access to the database during the update, you can create a read-only backup of the Sync Gateway's bucket beforehand, then run a secondary Sync Gateway on the backup bucket, in read-only mode.
 After the update is complete, switch to the main Gateway and bucket.
 
-In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the link:admin-rest-api.html#!/database/post_db_offline[/+{db}+/_offline] endpoint.
+In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the xref:admin-rest-api.adoc#!/database/post_db_offline[/+{db}+/_offline] endpoint.
 After the configuration is updated, *one* instance should be brought up so it can update the database -- if more than one is running at this time, they'll conflict with each other.
 After the first instance finishes opening the database, the others can be started.
