@@ -86,8 +86,8 @@ A document can be removed from a channel without being deleted.
 For example, this can happen when a new revision is not added to one or more channels that the previous revision was in.
 
 Subscribers (downstream databases pulling from this database) automatically handle the change.
-Sync Gateway's `\_changes` feed includes one more revision of a document after it stops matching a channel.
-Couchbase Lite creates a special tombstone revision, adding `\_removed:true` property to the entry when this happens.
+Sync Gateway's `_changes` feed includes one more revision of a document after it stops matching a channel.
+Couchbase Lite creates a special tombstone revision, adding `_removed:true` property to the entry when this happens.
 
 This algorithm ensures that any views running in Couchbase Lite do not include an obsolete revision.
 The app code should use views to filter the results rather than just assuming that all documents in its local database are relevant.
@@ -106,10 +106,10 @@ Its value is derived from the union of:
 The only documents a user can access are those whose current revisions are assigned to one or more channels the user has access to:
 
 * A GET request to a document not assigned to one or more of the user's available channels fails with a 403 error.
-* The `\_all_docs` property is filtered to return only documents that are visible to the user.
-* The `\_changes` property ignores requests (via the `channels` parameter) for channels not visible to the user.
+* The `_all_docs` property is filtered to return only documents that are visible to the user.
+* The `_changes` property ignores requests (via the `channels` parameter) for channels not visible to the user.
 
-Write protection -- access control of document PUT or DELETE requests--is done by document validation.
+Write protection--access control of document PUT or DELETE requests--is done by document validation.
 This is handled in the sync function rather than a separate validation function.
 
 After a user is granted access to a new channel, the changes feed incorporates all existing documents in that channel, even those from earlier sequences than the current request's `since` parameter.
@@ -234,7 +234,7 @@ function (doc, oldDoc) {
 === Inspecting document channels
 
 You can use the admin REST API to see the channels that documents are assigned to.
-Issue an `\_all_docs` request, and add the query parameter `?channels=true` to the URL.
+Issue an `_all_docs` request, and add the query parameter `?channels=true` to the URL.
 Here's a command-line example that uses the https://github.com/jkbrzt/httpie[HTTPie] tool (like a souped-up curl) to look at the channels of the document `foo`:
 
 [source,bash]
