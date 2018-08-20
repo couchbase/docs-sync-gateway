@@ -12,35 +12,32 @@ The following features are being deprecated and will be unsupported in an upcomi
 
 - https://github.com/couchbase/sync_gateway/issues/716[*#716*] Use sync.atomic to synchronize logging logLevel
 - https://github.com/couchbase/sync_gateway/issues/2396[*#2396*] SyncGateway restart after node automatic failover is taking more time
-- https://github.com/couchbase/sync_gateway/issues/2536[*#2536*] SG-Replicator throughput is not increasing with SG-Accelerator
 - https://github.com/couchbase/sync_gateway/issues/2563[*#2563*] Allow callers to provide current value to WriteUpdateWithXattr
+- https://github.com/couchbase/sync_gateway/issues/3664[*#3664*] Unnecessary DCP reprocessing on SG restart 
 
 *Enhancements*
 
-- https://github.com/couchbase/sync_gateway/issues/145[*#145*] Switch from base/logging.go to 'clog' package
-- https://github.com/couchbase/sync_gateway/issues/341[*#341*] Sync_Gateway config file only supports one URL in connection string
-- https://github.com/couchbase/sync_gateway/issues/716[*#716*] Use sync.atomic to synchronize logging logLevel
-- https://github.com/couchbase/sync_gateway/issues/939[*#939*] Use W3C log format for HTTP logging
 - https://github.com/couchbase/sync_gateway/issues/1021[*#1021*] Enable log level to be set via SG config
 - https://github.com/couchbase/sync_gateway/issues/1652[*#1652*] Differentiate logging between standard out and standard error
-- https://github.com/couchbase/sync_gateway/issues/1964[*#1964*] Add DCP support to Walrus w/ rollback ability
+- https://github.com/couchbase/sync_gateway/issues/2664[*#2664*] Move to GSI for internal query operations
 - https://github.com/couchbase/sync_gateway/issues/3119[*#3119*] Avoid design doc/view creation when already present
+- https://github.com/couchbase/sync_gateway/issues/3157[*#3157*] Uptake the latest gocb for ipv6 support
+- https://github.com/couchbase/sync_gateway/issues/3259[*#3259*] Log Redaction
+- https://github.com/couchbase/sync_gateway/issues/3276[*#3276*] Sync Function requireAdmin() functionality
+- https://github.com/couchbase/sync_gateway/issues/3329[*#3329*] Support authenticating against CBS using x.509 certificate
+- https://github.com/couchbase/sync_gateway/issues/3388[*#3388*] Include body hash in Sync Gateway import calculation 
+- https://github.com/couchbase/sync_gateway/issues/3508[*#3508*] Allow configuration of GoCB opTimeout value
 - https://github.com/couchbase/sync_gateway/issues/3526[*#3526*] 2.1.0- sg collect info - Show message if sync gateway is not running
-- https://github.com/couchbase/sync_gateway/issues/3584[*#3584*] Sync-gateway does not show any error on logs when used wrong name/value pairs for logging
+
 
 *Bugs*
 
-- https://github.com/couchbase/sync_gateway/issues/1574[*#1574*] Windows installer does not start and stop service wrapper
 - https://github.com/couchbase/sync_gateway/issues/2173[*#2173*] Go-couchbase 500 errors when rebalancing
+- https://github.com/couchbase/sync_gateway/issues/3425[*#3425*] Uptake fix for https://github.com/couchbaselabs/sync_gateway_admin_ui/issues/47
+- https://github.com/couchbase/sync_gateway/issues/3452[*#3452*] Sync Function expiry() fails if passed a constant numeric value 
+- https://github.com/couchbase/sync_gateway/issues/3475[*#3475*] prependChanges can result in multiple revisions for a doc in channel cache 
 - https://github.com/couchbase/sync_gateway/issues/3548[*#3548*] Windows logs are written to "Program Files (x86)" when running from "Program Files"
-- https://github.com/couchbase/sync_gateway/issues/3549[*#3549*] Incompatible Windows filename from _sgcollect_info endpoint
-- https://github.com/couchbase/sync_gateway/issues/3555[*#3555*] _sgcollect_info endpoint fails with 500 error on build 78
-- https://github.com/couchbase/sync_gateway/issues/3559[*#3559*] Output_directory parameter is ignored on sg_collectinfo rest end point
-- https://github.com/couchbase/sync_gateway/issues/3561[*#3561*] Uploadhost is ignored when upload parameter is not given to _sgcollect_info end point
-- https://github.com/couchbase/sync_gateway/issues/3572[*#3572*] _sg_collect_info rest end point : Throwing bad request error for a requirement for upload host with upload enabled to false
-- https://github.com/couchbase/sync_gateway/issues/3583[*#3583*] Sgcollect : No sgcollect info zip for sg accel
-- https://github.com/couchbase/sync_gateway/issues/3632[*#3632*] Sgcollect rest api fails with no write access to "/opt/couchbase-sync-gateway/tools"
-- https://github.com/couchbase/sync_gateway/issues/3655[*#3655*] Sg collect rest API does not create zip files under /home/sync-gateway
+
 
 *Known Issues*
 
@@ -48,12 +45,10 @@ The following features are being deprecated and will be unsupported in an upcomi
 
 == Upgrading
 
-The upgrade from views to GSI (N1QL) happens automatically when starting a Sync Gateway 2.1 node in a cluster that was previously using views.
+The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 node in a cluster that was previously using views. By default, Sync Gateway requires the Couchbase Server cluster to be running Couchbase Server 5.5, with at least two nodes running the Index Service. If this is not the case, users must configure the `use_views` and/or `num_index_replicas` properties in their Sync Gateway config during upgrade.
 
-Installation will follow the same approach implemented in 2.0 for view changes.
-On startup, Sync Gateway will check for the existence of the GSI indexes, and only attempt to create them if they do not already exist.
-As part of the existence check, Sync Gateway will also check if link:config-properties.html#databases-foo_db-num_index_replicas[databases.$db.num_index_replicas] for the existing indexes matches the value specified in the configuration file.
-If not, Sync Gateway will drop and recreate the index.
+Installation follows the same general approach used in 2.0. On startup, Sync Gateway will check for the existence of the required indexes, and only attempt to create them if they do not already exist.
+
 Then, Sync Gateway will wait until indexes are available before starting to serve requests.
 
 Sync Gateway 2.1 will *not* automatically remove the previously used design documents.
