@@ -45,14 +45,17 @@ The recommended approach to perform operations on a bucket dedicated to Couchbas
 
 == Upgrading
 
-The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 node in a cluster that was previously using views. By default, Sync Gateway requires the Couchbase Server cluster to be running Couchbase Server 5.5, with at least two nodes running the Index Service. If this is not the case, users must configure the `use_views` and/or `num_index_replicas` properties in their Sync Gateway config during upgrade.
+The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 node in a cluster that was previously using views.
+By default, Sync Gateway requires the Couchbase Server cluster to be running Couchbase Server 5.5, with at least two nodes running the Index Service.
+If this is not the case, users must configure the `use_views` and/or `num_index_replicas` properties in their Sync Gateway configuration during upgrade.
 
-Installation follows the same general approach used in 2.0. On startup, Sync Gateway will check for the existence of the required indexes, and only attempt to create them if they do not already exist.
+Installation follows the same general approach used in 2.0.
+On startup, Sync Gateway will check for the existence of the required indexes, and only attempt to create them if they do not already exist.
 
 Then, Sync Gateway will wait until indexes are available before starting to serve requests.
 
 Sync Gateway 2.1 will *not* automatically remove the previously used design documents.
-Removal of the obsolete design documents is done via a call to the new xref:admin-rest-api.adoc#/server/post\__post_upgrade[+/{db}/_post_upgrade+] endpoint in Sync Gateway`'s Admin REST API.
+Removal of the obsolete design documents is done via a call to the xref:admin-rest-api.adoc#/server/post\__post_upgrade[+/_post_upgrade+] endpoint in Sync Gateway`'s Admin REST API.
 This endpoint can be run in preview mode (`?preview=true`) to see which design documents would be removed.
 To summarize, the steps to perform an upgrade to Sync Gateway 2.1 are:
 
