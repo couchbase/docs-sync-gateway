@@ -1,6 +1,7 @@
 = Webhooks and Changes Feed
 :idprefix:
 :idseparator: -
+:url-couchdb: http://guide.couchdb.org/draft/notifications.html
 
 This guide describes two approaches for integrating Sync Gateway with other servers.
 These approaches can be used to build services that react to changes in documents.
@@ -18,7 +19,7 @@ Sync Gateway can detect document updates and post the updated documents to one o
 
 Here's a table that compares each API in different scenarios:
 
-[cols="2,1,1",width="60%"]
+[cols="1,1,1",width="80%"]
 |===
 |Scenario |Changes feed (pull) |Webhooks (push)
 
@@ -44,18 +45,20 @@ Here's a table that compares each API in different scenarios:
 This article describes how to use the changes feed API to integrate Sync Gateway with other backend processes.
 For instance if you have a channel called "needs-email" you could have a bot that sends an email and then saves the document back with a flag to keep it out of the "needs-email" channel.
 
-The changes feed API is a REST API endpoint (xref:sync-gateway-public.adoc#/database/get\__db___changes[`/+{db}+/_changes`]) that returns a sorted list of changes made to documents in the database.
+The changes feed API is a REST API endpoint
+// TODO: This page doesn't exist
+(xref:sync-gateway-public.adoc#/database/get\__db___changes[`/+{db}+/_changes`]) that returns a sorted list of changes made to documents in the database.
 It permits applications to implement business logic that reacts to changes in documents.
 There are several methods of connecting to the changes feed (also know as the feed type).
 The first 3 methods (`polling`, `longpoll` and `continuous`) are based on the CouchDB API.
 The last method (`websocket`) is specific to Sync Gateway.
 
-http://guide.couchdb.org/draft/notifications.html#polling[polling] (default)::
+{url-couchdb}#polling[polling] (default)::
 Returns the list of changes immediately.
 A new request must be sent to get the next set of changes.
-http://guide.couchdb.org/draft/notifications.html#long[longpolling]::
+{url-couchdb}#long[longpolling]::
 In addition to regular polling, if the request is sent with a special `last_seq` parameter, it will stay open until a new change occurs and is posted.
-http://guide.couchdb.org/draft/notifications.html#continuous[continuous]::
+{url-couchdb}#continuous[continuous]::
 The continuous changes API allows you to receive change notifications as they come, in a single HTTP connection.
 You make a request to the continuous changes API and both you and Sync Gateway will hold the connection open "`forever`".
 <<websockets,websockets>>::

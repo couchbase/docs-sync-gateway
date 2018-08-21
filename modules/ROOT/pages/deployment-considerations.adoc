@@ -1,4 +1,6 @@
 = Deployment Considerations
+:url-curl: https://curl.haxx.se/
+:url-httpie: https://github.com/jakubroztocil/httpie
 
 The following guide describes a set of recommended best practices for a production deployment of Couchbase Mobile.
 
@@ -16,7 +18,7 @@ To access the Admin REST API from an entirely different network or from a remote
 
 In addition to the Admin REST API, a user can be assigned to a role with additional privileges.
 The role and the user assigned to it can be created in the configuration file.
-Then, the Sync Function's xref:sync-function-api.adoc#requirerolerolename[requireRole()] method can be used to allow certain operations only if the user has that role.
+Then, the Sync Function's xref:sync-function-api.adoc#requirerole-rolename[requireRole()] method can be used to allow certain operations only if the user has that role.
 
 *Data Model Validation*
 
@@ -250,8 +252,8 @@ After renaming the log file logrotate will send the `SIGHUP` signal to the `sync
 
 === Troubleshooting and Fine-Tuning
 
-In general, https://curl.haxx.se/[curl], a command-line HTTP client, is your friend.
-You might also want to try https://github.com/jkbrzt/httpie[httpie], a human-friendly command-line HTTP client.
+In general, {url-curl}[curl], a command-line HTTP client, is your friend.
+You might also want to try {url-httpie}[HTTPie], a human-friendly command-line HTTP client.
 By using these tools, you can inspect databases and documents via the Public REST API, and look at user and role access privileges via the Admin REST API.
 
 An additional useful tool is the admin-port URL */databasename/_dump/channels*, which returns an HTML table that lists all active channels and the documents assigned to them.
@@ -262,7 +264,7 @@ You can get in touch with us on our mailing list at our https://forums.couchbase
 
 === How to file a bug
 
-If you're pretty sure you've found a bug, please https://github.com/couchbase/sync_gateway/issues?q=is%3Aopen[file a bug report] at our GitHub repository and we can follow-up accordingly.
+If you're pretty sure you've found a bug, please https://github.com/couchbase/sync_gateway/issues[file a bug report] at our GitHub repository and we can follow-up accordingly.
 
 == Enterprise Customer Support
 
@@ -272,7 +274,7 @@ Support email: support@couchbase.com
 
 Support phone number: +1-650-417-7500, option #1
 
-Support portal: http://support.couchbase.com
+Support portal: https://support.couchbase.com
 
 To speed up the resolution of your issue, we will need some information to troubleshoot what is going on.
 The more information you can provide in the questions below the faster we will be able to identify your issue and propose a fix:
@@ -324,14 +326,12 @@ Make sure you include the last slash (`/`) character after the company name.
 curl --upload-file FILE NAME https://s3.amazonaws.com/customers.couchbase.com/<YOUR COMPANY NAME>/
 ----
 
-NOTE: We ship `curl` with Couchbase Server, on Linux this is located in `/opt/couchbase/bin/`
+NOTE: We ship `curl` with Couchbase Server, on Linux this is located in `/opt/couchbase/bin/`.
 
 ==== Firewalled Sync Gateway Nodes
 
 If your Sync Gateway nodes do not have internet access, the best way to provide the logs to us is to copy the files then run `curl` from a machine with internet access.
 We ship a Windows `curl` binary as part of Couchbase Server, so if you have Couchbase Server installed on a laptop or other system which has an Internet connection you can upload from there.
-Alternatively you can download standalone Curl for Windows:
-
-http://curl.haxx.se/download.html
+Alternatively you can download standalone Curl for Windows: {url-curl}download.html.
 
 Once uploaded, please send an e-mail to support@couchbase.com letting us know what files have been uploaded.
