@@ -1,4 +1,6 @@
 = Sync Function API
+:idprefix:
+:idseparator: -
 
 The sync function is the core API you interact with on Sync Gateway.
 This article explains its functionality, and how you write and configure it.
@@ -92,7 +94,6 @@ We recommend that you not create invalid documents in the first place.
 As much as possible, your app logic and validation function should prevent invalid documents from being created locally.
 The server-side sync function validation should be seen as a fail-safe and a guard against malicious access.
 
-[[_requireuserusername]]
 === requireUser(username)
 
 The `requireUser()` function authorizes a document update by rejecting it unless it's made by a specific user or users, as shown in the following example:
@@ -111,7 +112,6 @@ All properties of the `doc` parameter should be considered _untrusted_, since th
 This may sound obvious, but it can be easy to make mistakes, like calling `requireUser(doc.owners)` instead of `requireUser(oldDoc.owners)`.
 When using one document property to validate another, look up that property in `oldDoc`, not `doc`!
 
-[[_requirerolerolename]]
 === requireRole(rolename)
 
 The `requireRole()` function authorizes a document update by rejecting it unless the user making it has a specific role or roles, as shown in the following example:
@@ -130,7 +130,6 @@ In the latter case, the user making the change must have one or more of the give
 
 The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
 
-[[_requireaccesschannels]]
 === requireAccess(channels)
 
 The `requireAccess()` function authorizes a document update by rejecting it unless the user making it has access to at least one of the given channels, as shown in the following example:

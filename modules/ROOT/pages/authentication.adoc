@@ -1,4 +1,6 @@
 = Authentication
+:idprefix:
+:idseparator: -
 
 Sync Gateway supports the following authentication methods:
 
@@ -10,7 +12,6 @@ Use an App Server to handle the authentication yourself and create user sessions
 Use OpenID Connect providers (Google+, Paypal, etc.) to authenticate users.
 Static providers: Sync Gateway currently supports authentication endpoints for Facebook, Google+ and OpenID Connect providers
 
-[[_user_registration]]
 == User Registration
 
 The user must be created on Sync Gateway before it can be used for authentication.
@@ -53,10 +54,10 @@ This is the recommended way of using basic authentication.
 
 Example:
 
-* xref:2.1@couchbase-lite:ROOT::swift.adoc#basic-authentication[Swift]
-* xref:2.1@couchbase-lite:ROOT::java.adoc#basic-authentication[Java]
-* xref:2.1@couchbase-lite:ROOT::csharp.adoc#basic-authentication[C#]
-* xref:2.1@couchbase-lite:ROOT::objc.adoc#basic-authentication[Objective-C]
+* xref:2.1@couchbase-lite::swift.adoc#basic-authentication[Swift]
+* xref:2.1@couchbase-lite::java.adoc#basic-authentication[Java]
+* xref:2.1@couchbase-lite::csharp.adoc#basic-authentication[C#]
+* xref:2.1@couchbase-lite::objc.adoc#basic-authentication[Objective-C]
 
 == Custom Authentication
 
@@ -96,10 +97,10 @@ It is recommended to return the session details to the client application in the
 
 Example:
 
-* xref:2.1@couchbase-lite:ROOT::swift.adoc#session-authentication[Swift]
-* xref:2.1@couchbase-lite:ROOT::java.adoc#session-authentication[Java]
-* xref:2.1@couchbase-lite:ROOT::csharp.adoc#session-authentication[C#]
-* xref:2.1@couchbase-lite:ROOT::objc.adoc#session-authentication[Objective-C]
+* xref:2.1@couchbase-lite::swift.adoc#session-authentication[Swift]
+* xref:2.1@couchbase-lite::java.adoc#session-authentication[Java]
+* xref:2.1@couchbase-lite::csharp.adoc#session-authentication[C#]
+* xref:2.1@couchbase-lite::objc.adoc#session-authentication[Objective-C]
 
 == OpenID Connect
 
@@ -110,6 +111,7 @@ There are two implementation methods available with OpenID Connect:
 <<implicit-flow>>::
 With this method, the retrieval of the ID token takes place on the device.
 You can then create a user session using the POST `/+{db}+/_session` endpoint on the Public REST API with the ID token.
+
 <<authorization-code-flow>>::
 This method relies on Sync Gateway to retrieve the ID token.
 
@@ -118,7 +120,8 @@ This method relies on Sync Gateway to retrieve the ID token.
 http://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth[Implicit Flow] has the key feature of allowing clients to obtain their own Open ID token and use it to authenticate against Sync Gateway.
 The implicit flow with Sync Gateway is as follows:
 
-. The client obtains a *signed* Open ID token directly from an OpenID Connect provider. Note that only signed tokens are supported.
+. The client obtains a *signed* Open ID token directly from an OpenID Connect provider.
+Note that only signed tokens are supported.
 To verify that the Open ID token being sent is indeed signed, you can use the https://jwt.io/#debugger-io[jwt.io Debugger].
 In the algorithm dropdown, make sure to select `RS256` as the signing algorithm (other options such as `HS256` are not yet supported by Sync Gateway).
 . The client includes the Open ID token as an `Authorization: Bearer <id_token>` header on requests made against the Sync Gateway REST API.
