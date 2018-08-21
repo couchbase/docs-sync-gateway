@@ -1,6 +1,8 @@
-== What's New
+= What's New
+:idprefix:
+:idseparator: -
 
-=== Views to GSI
+== Views to GSI
 
 Prior to 2.1, Sync Gateway used system views for a variety of internal operations, including authentication and replication.
 Starting in 2.1, Sync Gateway will use GSI and N1QL to perform those tasks.
@@ -10,8 +12,8 @@ Note that this only impacts system views.
 Users can continue to define views through the xref:admin-rest-api.adoc#/query[Sync Gateway Admin REST API].
 This capability is enabled by default and there are 2 properties in the configuration file which can be adjusted:
 
-* link:config-properties.html#databases-foo_db-use_views[databases.$db.use_views]
-* link:config-properties.html#databases-foo_db-num_index_replicas[databases.$db.num_index_replicas]
+* xref:config-properties.adoc#databases-foo_db-use_views[`databases.$db.use_views`]
+* xref:config-properties.adoc#databases-foo_db-num_index_replicas[`databases.$db.num_index_replicas`]
 
 NOTE: Use of GSI requires Couchbase Server 5.5, with at least one node running the Index Service.
 Users wanting to run Sync Gateway 2.1 with an older version of Couchbase Server will need to continue to use views, by setting the `use_views` property.
@@ -19,23 +21,23 @@ Users wanting to run Sync Gateway 2.1 with an older version of Couchbase Server 
 NOTE: By default, Sync Gateway requires the Index Service to be running on at least two Couchbase Server nodes (required for index replica).
 Users can run with a single Index Service node by setting Sync Gateway's `num_index_replicas` property to zero, but this may result in increased downtime in the event of an index node failure.
 
-=== X.509 Authentication against Couchbase Server
+== X.509 Authentication against Couchbase Server
 
 Sync Gateway adds the ability to use x.509 certificates to authenticate against Couchbase Server 5.5 or higher.
 
 Certificate based authentication provides an additional layer of security; it relies on a certificate authority, CA, to validate identities and issue certificates. To enable certificate based authentication on Sync Gateway, paths to the client certificate, private key and root CA must be set in the configuration file:
 
-* link:config-properties.html#databases-foo_db-certpath[databases.$db.certpath]
-* link:config-properties.html#databases-foo_db-keypath[databases.$db.keypath]
-* link:config-properties.html#databases-foo_db-cacertpath[databases.$db.cacertpath]
+* xref:config-properties.adoc#databases-foo_db-certpath[databases.$db.certpath]
+* xref:config-properties.adoc#databases-foo_db-keypath[databases.$db.keypath]
+* xref:config-properties.adoc#databases-foo_db-cacertpath[databases.$db.cacertpath]
 
-Instructions to generate the client certificate, private key and root CA can be found in 	https://developer.couchbase.com/documentation/server/current/security/security-x509certsintro.html[x.509 for TLS].
+Instructions to generate the client certificate, private key and root CA can be found in xref:5.5@server:security:security-x509certsintro.adoc[x.509 for TLS].
 
 This functionality provides an alternative method of authentication to the existing password-based authentication method.
 
 If the **username**/**password** properties are also specified in the configuration file then Sync Gateway will use password-based authentication and also include the client certificate in the TLS handshake.
 
-=== Continuous Logging
+== Continuous Logging
 
 Continuous logging is a new feature in Sync Gateway 2.1 that provides more flexibility in how logs are generated and retained, whilst maintaining the level of logging required by Couchbase Support for investigation of issues.
 
@@ -44,49 +46,48 @@ Sync Gateway logging is now written to separate files by log level, with each lo
 Console logging can also be configured independently, providing additional flexibility for system administrators depending on their needs.
 
 The previous logging configuration (`logging.default`) is being deprecated, and Sync Gateway 2.1 will display warnings on startup of what is required to update your configuration.
-Detailed information about continuous logging can be found in the link:logging.html[Logging guide].
+Detailed information about continuous logging can be found in the xref:logging.adoc[Logging guide].
 
-==== SGCollect Info
+=== SGCollect Info
 
-link:sgcollect-info.html[sgcollect_info] has been updated to use the continuous logging feature introduced in 2.1, and collects the four levelled files (**sg_error.log**, **sg_warn.log**, *sg_info.log* and **sg_debug.log**).
+xref:sgcollect-info.adoc[`sgcollect_info`] has been updated to use the continuous logging feature introduced in 2.1, and collects the four levelled files (*sg_error.log*, *sg_warn.log*, *sg_info.log* and *sg_debug.log*).
 
 These new log files are rotated and compressed by Sync Gateway, so `sgcollect_info` decompresses these rotated logs, and concatenates them back into a single file upon collection.
 
-For example, if you have **sg_debug.log**, and *sg_debug-2018-04-23T16-57-13.218.log.gz* and then run `sgcollect_info` as normal, both of these files get put into a *sg_debug.log* file inside the zip output folder.
+For example, if you have *sg_debug.log*, and *sg_debug-2018-04-23T16-57-13.218.log.gz* and then run `sgcollect_info` as normal, both of these files get put into a *sg_debug.log* file inside the zip output folder.
 
-=== Log Redaction
+== Log Redaction
 
 All log outputs can be redacted, this means that user-data, considered to be private, is removed.
-This feature is optional and can be enabled in the configuration with the link:config-properties.html#logging-redaction_level[logging.redaction_level] property.
+This feature is optional and can be enabled in the configuration with the xref:config-properties.adoc#logging-redaction_level[`logging.redaction_level`] property.
 
-==== SGCollect Info
+=== SGCollect Info
 
 `sgcollect_info` now supports log redaction post-processing.
-In order to utilise this, Sync Gateway needs to be run with the `logging.redaction_level` property set to "partial".
+In order to utilize this, Sync Gateway needs to be run with the `logging.redaction_level` property set to "partial".
 
-Two new command line options have been added to ``sgcollect_info``:
+Two new command line options have been added to `sgcollect_info`:
 
-* ``--log-redaction-level=REDACT_LEVEL``: redaction level for the logs collected, `none` and `partial` supported. Defaults to ``none``.
+* `--log-redaction-level=REDACT_LEVEL`: redaction level for the logs collected, `none` and `partial` supported. Defaults to `none`.
 +
-When `--log-redaction-level` is set to partial, two zip files are produced, and tagged contents in the redacted one should be hashed in the same way as ``cbcollect_info``:
+When `--log-redaction-level` is set to partial, two zip files are produced, and tagged contents in the redacted one should be hashed in the same way as `cbcollect_info`:
 +
-
 [source,bash]
 ----
-
 $ ./sgcollect_info --log-redaction-level=partial sgout.zip
 ...
 Zipfile built: sgout-redacted.zip
 Zipfile built: sgout.zip
 ----
-* ``--log-redaction-salt=SALT_VALUE``: salt used in the hashing of tagged data when enabling redaction. Defaults to a random uuid.
 
-=== Bucket operation timeout
+* `--log-redaction-salt=SALT_VALUE`: salt used in the hashing of tagged data when enabling redaction. Defaults to a random uuid.
 
-The link:config-properties.html#databases-foo_db-bucket_op_timeout_ms[databases.$db.bucket_op_timeout_ms] property to override the default timeout used by Sync Gateway to query Couchbase Server.
+== Bucket operation timeout
+
+The xref:config-properties.adoc#databases-foo_db-bucket_op_timeout_ms[`databases.$db.bucket_op_timeout_ms`] property to override the default timeout used by Sync Gateway to query Couchbase Server.
 It's generally not necessary to change this property unless there is a particularly heavy load on Couchbase Server which would increase the response time.
 
-=== Support for IPv6
+== Support for IPv6
 
 Sync Gateway now officially supports IPv6.
 
