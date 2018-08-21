@@ -1,88 +1,73 @@
 = Logging
+:idprefix:
+:idseparator: -
 
-Continuous logging is a new feature in Sync Gateway 2.1 that allows the console log output to be separated from log files collected by Couchbase Support. 
+Continuous logging is a new feature in Sync Gateway 2.1 that allows the console log output to be separated from log files collected by Couchbase Support.
 
-This allows system administrators running Sync Gateway to tweak the log level, and log keys for the console output to suit their needs, whilst maintaining the level of logging required by Couchbase Support for investigation of issues. 
+This allows system administrators running Sync Gateway to tweak the log level, and log keys for the console output to suit their needs, whilst maintaining the level of logging required by Couchbase Support for investigation of issues.
 
 == Console Log Output
 
-The console output of Sync Gateway can be filtered down via log levels and log keys, and you can tweak this as much as you like without impacting Support's ability to analyze the log files described in <<log-file-outputs, Log File Outputs>>.
+The console output of Sync Gateway can be filtered down via log levels and log keys, and you can tweak this as much as you like without impacting Support's ability to analyze the log files described in <<log-file-outputs>>.
 
 === Log Levels
 
 The console log output can be configured with the following log levels, ordered from least verbose, to most.
 Note that log levels are additive, so if you enable `info` level, `warn` and `error` logs are also enabled.
-By default, the log level is set to ``info``. 
+By default, the log level is set to `info`.
 
-[cols="1,1,1", options="header"]
+[cols="1,1,2"]
 |===
-| 
-              Log Level
-            
-| 
-              Appearance
-            
-| 
-              Description
-            
+|Log Level |Appearance |Description
 
+|`none`
+|          -
+|Disables log output
 
-|``none``
-|
-              - 
-|
-              Disables log output 
+|`error`
+|`[ERR]`
+|Displays errors that need urgent attention
 
-|``error``
-|``[ERR]``
-|
-              Displays errors that need urgent attention 
+|`warn`
+|`[WRN]`
+|Displays warnings that need some attention
 
-|``warn``
-|``[WRN]``
-|
-              Displays warnings that need some attention 
+|`info`
+|`[INF]`
+|Displays information about normal operations that don't need attention
 
-|``info``
-|``[INF]``
-|
-              Displays information about normal operations that don't need attention 
+|`debug`
+|`[DBG]`
+|Displays verbose output that might be useful when debugging
 
-|``debug``
-|``[DBG]``
-|
-              Displays verbose output that might be useful when debugging 
-
-|``trace``
-|``[TRC]``
-|
-              Displays extremely verbose output that might be useful when debugging 
+|`trace`
+|`[TRC]`
+|Displays extremely verbose output that might be useful when debugging
 |===
 
-Log levels can be set in the configuration file (see the link:config-properties.html#logging-$level[logging.$level] reference).
+Log levels can be set in the configuration file (see the xref:config-properties.adoc#logging-$level[`logging.$level`] reference).
 
 === Log Keys
 
 Log keys are used to provide finer-grained control over what is logged.
-By default, only `HTTP` is enabled. 
+By default, only `HTTP` is enabled.
 
-All log keys and descriptions are described in the link:config-properties.html#logging-console-log_keys[logging.console.log_level] property reference.
+All log keys and descriptions are described in the xref:config-properties.adoc#logging-console-log_keys[`logging.console.log_level`] property reference.
 
 === Console Output Color
 
-There is an option to color log output based on log level if link:config-properties.html#logging-console-color_enabled[logging.console.color_enabled] is set to ``true``.
-Note: this setting is always disabled on Windows for compatibility reasons. 
+There is an option to color log output based on log level if xref:config-properties.adoc#logging-console-color_enabled[`logging.console.color_enabled`] is set to `true`.
+Note: this setting is always disabled on Windows for compatibility reasons.
 
 === Console Output Redirection
 
-The log files described below are intended for Couchbase Support, and users are urged not to rely on these. 
+The log files described below are intended for Couchbase Support, and users are urged not to rely on these.
 
 If you have special requirements for logs, such as centralized logging, you can redirect the console output to a file, and apply your own log collection mechanism to feed that data elsewhere.
-For example: 
+For example:
 
 [source]
 ----
-
 # Start Sync Gateway and redirect console output to a file
 ./sync-gateway > my_sg_logs.txt 2>&1
 
@@ -93,63 +78,45 @@ logcollector my_sg_logs.txt
 == Log File Outputs
 
 These are 4 log files split by log level, with a guaranteed retention period for each.
-The log files can be collected with link:sgcollect-info.html[SGCollect Info], and can be analyzed by Couchbase Support for diagnosing issues in Sync Gateway.
-As described above, it is recommended to use link:index.html#console-output-redirection[Console Output redirection] if you require special handling of log files from Sync Gateway, as these files are intended for Couchbase Support. 
+The log files can be collected with xref:sgcollect-info.adoc[SGCollect Info], and can be analyzed by Couchbase Support for diagnosing issues in Sync Gateway.
+As described above, it is recommended to use
+//can't find this fragment target on index.adoc
+link:index.html#console-output-redirection[Console Output redirection] if you require special handling of log files from Sync Gateway, as these files are intended for Couchbase Support.
 
-[cols="1,1,1,1", options="header"]
+[cols="1,1,1,1"]
 |===
-| 
-            Log File
-          
-| 
-            Default enabled
-          
-| 
-            Default max_age
-          
-| 
-            Minimum max_age
-          
+|Log File |Default enabled |Default max_age |Minimum max_age
 
+|`sg_error.log`
+|`true`
+|360 Days
+|180 Days
 
-|``sg_error.log``
-|``true``
-|
-            360 Days 
-|
-            180 Days 
+|`sg_warn.log`
+|`true`
+|180 Days
+|90 Days
 
-|``sg_warn.log``
-|``true``
-|
-            180 Days 
-|
-            90 Days 
+|`sg_info.log`
+|`true`
+|6 Days
+|3 Days
 
-|``sg_info.log``
-|``true``
-|
-            6 Days 
-|
-            3 Days 
-
-|``sg_debug.log``
-|``false``
-|
-            2 Days 
-|
-            1 Day 
+|`sg_debug.log`
+|`false`
+|2 Days
+|1 Day
 |===
 
-Each log level and its parameters are described in the link:config-properties.html#logging-$level[logging.$level] property reference.
+Each log level and its parameters are described in the xref:config-properties.adoc#logging-$level[logging.$level] property reference.
 
 === Log File Rotation
 
 These four log files will be rotated once each exceeds a threshold size, defined by `max_size` in megabytes.
 Once rotated, the log files will be compressed with gzip, to reduce the disk space taken up by older logs.
-These old logs will then be cleaned up once the age exceeds `max_age` in days. 
+These old logs will then be cleaned up once the age exceeds `max_age` in days.
 
 == Log Redaction
 
 All log outputs can be redacted, this means that user-data, considered to be private, is removed.
-This feature is optional and can be enabled in the configuration with the link:config-properties.html#logging-redaction_level[logging.redaction_level] property.
+This feature is optional and can be enabled in the configuration with the xref:config-properties.adoc#logging-redaction_level[`logging.redaction_level`] property.
