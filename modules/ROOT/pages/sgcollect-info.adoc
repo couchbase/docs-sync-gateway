@@ -1,43 +1,38 @@
 = SG Collect Info
 
 `sgcollect_info` is command line utility that provides detailed statistics for a specific Sync Gateway node.
-This tool must be run on each node individually, not on all simultaneously. 
+This tool must be run on each node individually, not on all simultaneously.
 
-`sgcollect_info` outputs the following statistics in a zip file: 
+`sgcollect_info` outputs the following statistics in a zip file:
 
-. Logs 
-. Configuration 
-. Expvars (exported variables) that contain important stats 
-. System Level OS stats 
-. Golang profile output (runtime memory and cpu profiling info) 
+. Logs
+. Configuration
+. Expvars (exported variables) that contain important stats
+. System Level OS stats
+. Golang profile output (runtime memory and cpu profiling info)
 
-
-[[_cli_command_and_parameters]]
 == CLI command and parameters
 
-To see the CLI command line parameters, run: 
+To see the CLI command line parameters, run:
 
 [source,bash]
 ----
-
 ./sgcollect_info --help
 ----
 
 == Examples
 
-Collect Sync Gateway diagnostics and save locally: 
+Collect Sync Gateway diagnostics and save locally:
 
 [source,bash]
 ----
-
 ./sgcollect_info /tmp/sgcollect_info.zip
 ----
 
-Collect Sync Gateway diagnostics and upload them to the Couchbase Support AWS S3 bucket: 
+Collect Sync Gateway diagnostics and upload them to the Couchbase Support AWS S3 bucket:
 
 [source,bash]
 ----
-
 ./sgcollect_info \
   --sync-gateway-config=/path/to/config.json \
   --sync-gateway-executable=/usr/bin/sync_gateway \
@@ -49,134 +44,96 @@ Collect Sync Gateway diagnostics and upload them to the Couchbase Support AWS S3
 
 == REST Endpoint
 
-`sgcollect_info` can now be run from the Admin REST API as of Sync Gateway 2.1 using the link:admin-rest-api.html?v=2.1#/server/post__sgcollect_info[/_sgcollect_info] endpoint.
+`sgcollect_info` can now be run from the Admin REST API as of Sync Gateway 2.1 using the xref:admin-rest-api.adoc#/server/post\__sgcollect_info[_sgcollect_info] endpoint.
 
 == Zipfile contents
 
-The tool creates the following log files in the ouput file. 
+The tool creates the following log files in the ouput file.
 
-[cols="1,1", options="header"]
+[cols="1,2"]
 |===
-| 
-            Log file
-          
-| 
-            Description
-          
+|Log file |Description
 
+|`sync_gateway_access.log`
+|The http access log for sync gateway (i.e which GETs and PUTs it has received and from which IPs)
 
-|``sync_gateway_access.log``
-|
-            The http access log for sync gateway (i.e which GETs and PUTs it has received and from which IPs) 
+|`sg_accel_access.log`
+|The http access log for sg_accel (i.e which GETs and PUTs it has received and from which IPs)
 
-|``sg_accel_access.log``
-|
-            The http access log for sg_accel (i.e which GETs and PUTs it has received and from which IPs) 
+|`sg_accel_error.log`
+|The error log (all logging sent to stderr by sg_accel) for the sg_accel process
 
-|``sg_accel_error.log``
-|
-            The error log (all logging sent to stderr by sg_accel) for the sg_accel process 
+|`sync_gateway_error.log`
+|The error log (all logging sent to stderr by sync_gateway) for the sync_gateway process
 
-|``sync_gateway_error.log``
-|
-            The error log (all logging sent to stderr by sync_gateway) for the sync_gateway process 
+|`server_status.log`
+|The output of \http://localhost:4895 for the running sync gateway
 
-|``server_status.log``
-|
-            The output of http://localhost:4895 for the running sync gateway 
+|`db_db_name_status.log`
+|The output of \http://localhost:4895/db_name for the running sync gateway
 
-|``db_db_name_status.log``
-|
-            The output of http://localhost:4895/db_name for the running sync gateway 
+|`sync_gateway.json`
+|The on-disk configuration file used by sync_gateway when it was launched
 
-|``sync_gateway.json``
-|
-            The on-disk configuration file used by sync_gateway when it was launched 
+|`sg_accel.json`
+|The on-disk configuration file used by sg_accel when it was launched
 
-|``sg_accel.json``
-|
-            The on-disk configuration file used by sg_accel when it was launched 
+|`running_server_config.log`
+|The configuration used by sync gateway as it is running (may not match the on-disk config as it can be changed on-the-fly)
 
-|``running_server_config.log``
-|
-            The configuration used by sync gateway as it is running (may not match the on-disk config as it can be changed on-the-fly) 
+|`running_db_db_name_config.log`
+|The config used by sync gateway for the database specified by db_name
 
-|``running_db_db_name_config.log``
-|
-            The config used by sync gateway for the database specified by db_name 
+|`expvars_json.log`
+|The expvars (global exposed variables - see https://www.mikeperham.com/2014/12/17/expvar-metrics-for-golang/ for the running sync gateway instance)
 
-|``expvars_json.log``
-|
-            The expvars (global exposed variables - see http://www.mikeperham.com/2014/12/17/expvar-metrics-for-golang/ for the running sync gateway instance) 
+|`sgcollect_info_options.log`
+|The command line arguments passed to sgcollect_info for this particular output
 
-|``sgcollect_info_options.log``
-|
-            The command line arguments passed to sgcollect_info for this particular output 
+|`sync_gateway.log`
+|OS-level System Stats
 
-|``sync_gateway.log``
-|
-            OS-level System Stats 
+|`expvars_json.log`
+|Exported Variables (expvars) from Sync Gateway which show runtime stats
 
-|``expvars_json.log``
-|
-            Exported Variables (expvars) from Sync Gateway which show runtime stats 
+|`goroutine.pdf/raw/txt`
+|Goroutine pprof profile output
 
-|``goroutine.pdf/raw/txt``
-|
-            Goroutine pprof profile output 
+|`heap.pdf/raw/txt`
+|Heap pprof profile output
 
-|``heap.pdf/raw/txt``
-|
-            Heap pprof profile output 
+|`profile.pdf/raw/txt`
+|CPU profile pprof profile output
 
-|``profile.pdf/raw/txt``
-|
-            CPU profile pprof profile output 
+|`syslog.tar.gz`
+|System level logs like /var/log/dmesg on Linux
 
-|``syslog.tar.gz``
-|
-            System level logs like /var/log/dmesg on Linux 
+|`sync_gateway`
+|The Sync Gateway binary executable
 
-|``sync_gateway``
-|
-            The Sync Gateway binary executable 
-
-|``pprof_http_*.log``
-|
-            The pprof output that collects directly via an http client rather than using go tool, in case Go is not installed 
+|`pprof_http_*.log`
+|The pprof output that collects directly via an http client rather than using go tool, in case Go is not installed
 |===
 
 == Installing Optional Dependencies
 
-`sgcollect_info` will be able to collect more information if the following tools are installed: 
+`sgcollect_info` will be able to collect more information if the following tools are installed:
 
-* https://golang.org/doc/install[Golang] -- this should be the same version that Sync Gateway was built with. 
+* https://golang.org/doc/install[Golang] -- this should be the same version that Sync Gateway was built with.
 
-
-[cols="1,1", options="header"]
+[cols="1,1",width="50%"]
 |===
-| 
-            SG Version
-          
-| 
-            Go build version
-          
+|Version |Go build version
 
+|1.3.0
+|1.5.3
 
-|
-
-            1.3.0 
-|
-            1.5.3 
-
-|
-            1.3.1 
-|
-            1.6.3 
+|1.3.1
+|1.6.3
 |===
 
-If go is not installed, sgcollect_info will print the following error message, you can ignore this message and there is no need to report it. 
+If go is not installed, `sgcollect_info` will print the following error message, you can ignore this message and there is no need to report it.
 
-`Exception during compression: [Error 2] The system cannot find the file specified IMPORTANT:   Compression using gozip failed.   Falling back to python implementation.   Please let us know about this and provide console output.`
+`Exception during compression: [Error 2] The system cannot find the file specified IMPORTANT:Compression using gozip failed. Falling back to python implementation. Please let us know about this and provide console output.`
 
-* http://www.graphviz.org/Download..php[Graphviz] -- this is used to render PDFs of the https://golang.org/pkg/net/http/pprof/[go pprof] output. 
+* https://www.graphviz.org/Download..php[Graphviz] -- this is used to render PDFs of the https://golang.org/pkg/net/http/pprof/[go pprof] output.
