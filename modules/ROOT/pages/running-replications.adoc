@@ -1,43 +1,42 @@
-= Running replications
+= Running Replications
 
 Sync Gateway has the ability to run active one way replications between two Sync Gateway databases.
 Documents go through the Sync Function on the target Sync Gateway instance which ensures that access permissions are updated.
-On the architecture diagram below, any changes that users/systems make on either Sync Gateway instance will be replicated to the other Sync Gateway instance. 
+On the architecture diagram below, any changes that users/systems make on either Sync Gateway instance will be replicated to the other Sync Gateway instance.
 
 image::running-replications.png[]
 
-*Note:* A _Sync Gateway database_ can also be referred to as a namespace for documents, the data is *always* stored in Couchbase Server. 
+NOTE: A _Sync Gateway database_ can also be referred to as a namespace for documents, the data is *always* stored in Couchbase Server.
 
-Features: 
+Features:
 
-* JSON configuration to specify replications 
-* Supports multiple replications running concurrently 
-* Can run both OneShot and Continuous replications 
-* Does not store anything persistently 
-* Stateless -- can be interrupted/restarted anytime without negative side effects 
-* Filter replications using channels 
+* JSON configuration to specify replications
+* Supports multiple replications running concurrently
+* Can run both OneShot and Continuous replications
+* Does not store anything persistently
+* Stateless -- can be interrupted/restarted anytime without negative side effects
+* Filter replications using channels
 
-Limitations: 
+Limitations:
 
-* Can only replicates SG databases that are hosted on recent versions of Sync Gateway (after commit 50d30eb3d on March 7, 2014) 
-* In deployments with multiple Sync Gateway nodes, only _one_ of the Sync Gateways should be configured for replications. If multiple Sync Gateways are configured for replications, it could substantially increase the amount of duplicate work, and therefore should be avoided. The limitation is that the system is not guaranteed to be Highly Available: if the Sync Gateway that is chosen to drive the replication goes down or is otherwise removed from the system, then the replications will stop. 
+* Can only replicates SG databases that are hosted on recent versions of Sync Gateway (after commit 50d30eb3d on March 7, 2014).
+* In deployments with multiple Sync Gateway nodes, only _one_ of the Sync Gateways should be configured for replications.
+If multiple Sync Gateways are configured for replications, it could substantially increase the amount of duplicate work, and therefore should be avoided.
+The limitation is that the system is not guaranteed to be Highly Available: if the Sync Gateway that is chosen to drive the replication goes down or is otherwise removed from the system, then the replications will stop.
 
-
-[[_running_replications_via_the_rest_api]]
 == Running replications via the REST API
 
-A replication is run by sending a POST request to the server endpoint /_replicate, with a JSON object defining the replication parameters.
+A replication is run by sending a POST request to the server endpoint `_replicate`, with a JSON object defining the replication parameters.
 Both one-shot and continuous replications can be run.
 Each replication is one-way between two local or remote Sync Gateway databases.
 Multiple replications can run simultaneously, supporting bi-directional replications and different replication topologies.
-Be aware that both databases being synchronized should have the same sync function, otherwise it could lead to unexpected behaviour. 
+Be aware that both databases being synchronized should have the same sync function, otherwise it could lead to unexpected behavior.
 
 These parameters start a one-shot replication between two databases on the local Sync Gateway instance.
-The request will block until the replication has completed. 
+The request will block until the replication has completed.
 
 [source,javascript]
 ----
-
 {
     "source": "db",
     "target": "db-copy"
@@ -45,11 +44,10 @@ The request will block until the replication has completed.
 ----
 
 These parameters start a one-shot replication between one database on the local Sync Gateway instance and one on a remote Sync Gateway instance.
-The request will return immediately and the replication will run asynchronously. 
+The request will return immediately and the replication will run asynchronously.
 
 [source,javascript]
 ----
-
 {
     "source": "db",
     "target": "http://example.com:4985/db-copy",
@@ -57,12 +55,11 @@ The request will return immediately and the replication will run asynchronously.
 }
 ----
 
-These parameters start a continuous replication between one database on the local Sync Gateway instance and one on a remote Sync Gateway instance with the user provided replication_id.
-The request will return immediately and the replication will run asynchronously. 
+These parameters start a continuous replication between one database on the local Sync Gateway instance and one on a remote Sync Gateway instance with the user provided `replication_id`.
+The request will return immediately and the replication will run asynchronously.
 
 [source,javascript]
 ----
-
 {
     "replication_id":"my-named-replication",
     "source": "db",
@@ -73,11 +70,10 @@ The request will return immediately and the replication will run asynchronously.
 
 These parameters start a continuous replication between one database on the local Sync Gateway instance and one on a remote Sync Gateway instance.
 The replicator will batch up to 1000 revisions at a time, this will improve replication performance but will use more memory resources.
-Source database documents will be filtered so that only those tagged with the channel names "channel1" or "channel2" are replicated. 
+Source database documents will be filtered so that only those tagged with the channel names "channel1" or "channel2" are replicated.
 
 [source,javascript]
 ----
-
 {
     "source": "db",
     "target": "http://example.com:4985/db-copy",
@@ -90,103 +86,76 @@ Source database documents will be filtered so that only those tagged with the ch
 
 == Configuration Properties
 
-The _replicate JSON Object supports the following properties. 
+The `_replicate` JSON Object supports the following properties.
 
-[cols="1,1,1,1", options="header"]
+[cols="1,1,3,1"]
 |===
-| 
-            Name
-          
-| 
-            Type
-          
-| 
-            Description
-          
-| 
-            Default
-          
+|Name |Type |Description |Default
 
+|`source`
+|URL
+|_Required._ A URL pointing to the source database for the replication, the URL may be relative i.e. just the name of a local database on the Sync Gateway instance.
+The URL may point to the Admin REST API which will replicate all documents in the DB, or it may point to the public REST API which will only copy documents in the users assigned channels.
+|none
 
-|``source``
-|
-            URL 
-|__Required.__ A URL pointing to the source database for the replication, the URL may be relative i.e. just the name of a local database on the Sync Gateway instance. The URL may point to the Admin REST API which will replicate all documents in the DB, or it may point to the public REST API which will only copy documents in the users assigned channels. 
-|
-            none 
+|`target`
+|URL
+|_Required._ A URL pointing to the target database for the replication, the URL may be relative i.e. just the name of a local database on the Sync Gateway instance.
+The URL may point to the Admin REST API or it may point to the public REST API, this will impact the behavior of the target database sync function.
+|none
 
-|``target``
-|
-            URL 
-|__Required.__ A URL pointing to the target database for the replication, the URL may be relative i.e. just the name of a local database on the Sync Gateway instance. The URL may point to the Admin REST API or it may point to the public REST API, this will impact the behaviour of the target database sync function. 
-|
-            none 
+|`continuous`
+|Boolean
+|_Optional._ Indicates whether the replication should be a one-shot or continuous replication.
+|false
 
-|``continuous``
-|
-            Boolean 
-|__Optional.__ Indicates whether the replication should be a one-shot or continuous replication. 
-|
-            false 
+|`filter`
+|String
+|_Optional._ Passes the name of filter to apply to the source documents, currently the only supported filter is "sync_gateway/bychannel", this will replicate documents only from the set of named channels.
+|none
 
-|``filter``
-|
-            String 
-|__Optional.__ Passes the name of filter to apply to the source documents, currently the only supported filter is "sync_gateway/bychannel", this will replicate documents only from the set of named channels. 
-|
-            none 
+|`query_params`
+|Object
+|_Optional._ Passes parameters to the filter, for the "sync_gateway/bychannel" filter the value should be an array or channel names (JSON strings).
+|none
 
-|``query_params``
-|
-            Object 
-|``Optional.`` Passes parameters to the filter, for the "sync_gateway/bychannel" filter the value should be an array or channel names (JSON strings). 
-|
-            none 
+|`cancel`
+|Boolean
+|_Optional._ Indicates that a running replication task should be canceled, the running task is identified by passing its `replication_id` or by passing the original source and target values.
+|false
 
-|``cancel``
-|
-            Boolean 
-|__Optional.__ Indicates that a running replication task should be cancelled, the running task is identified by passing its replication_id or by passing the original source and target values. 
-|
-            false 
+|`replication_id`
+|String
+|_Optional._ If the cancel parameter is true then this is the id of the active replication task to be canceled, otherwise this is the `replication_id` to be used for the new replication.
+If no `replication_id` is given for a new replication it will be assigned a random UUID.
+|false
 
-|``replication_id``
-|
-            String 
-|__Optional.__ If the cancel parameter is true then this is the id of the active replication task to be cancelled, otherwise this is the replication_id to be used for the new replication. If no replication_id is given for a new replication it will be assigned a random UUID. 
-|
-            false 
+|`async`
+|Boolean
+|_Optional._ Indicates that a one-shot replication should be run asynchronously and the request should return immediately.
+Replication progress can be monitored by using the `_active_tasks` resource.
+|false
 
-|``async``
-|
-            Boolean 
-|__Optional.__ Indicates that a one-shot replication should be run asynchronously and the request should return immediately. Replication progress can be monitored by using the _active_tasks resource. 
-|
-            false 
-
-|``changes_feed_limit``
-|
-            Number 
-|``Optional.`` The maximum number of change entries to pull in each loop of a continuous changes feed. 
-|
-            50 
+|`changes_feed_limit`
+|Number
+|_Optional._ The maximum number of change entries to pull in each loop of a continuous changes feed.
+|50
 |===
 
 == Running replication on startup
 
-If you want to run replications as soon as Sync Gateway starts, you can define replications in the top level "replications" property of the Sync Gateway configuration, the "replications" value is an array of objects, each object defines a single replication, the object properties are the same as those for the _replicate end-point on the Admin REST API. 
+If you want to run replications as soon as Sync Gateway starts, you can define replications in the top level "replications" property of the Sync Gateway configuration, the "replications" value is an array of objects, each object defines a single replication, the object properties are the same as those for the `_replicate` end-point on the Admin REST API.
 
-One-shot replications are always run asynchronously even if the "async" property is not set to true. 
+One-shot replications are always run asynchronously even if the "async" property is not set to true.
 
 A One-shot replication that references a local database for either source or target, will be run after a short delay (5 seconds) in order to allow the local REST API's to come up.
 Replications may be given a user defined "replication_id" otherwise Sync Gateway will generate a random UUID.
-Replications defined in config may not contain the "cancel" property. 
+Replications defined in config may not contain the "cancel" property.
 
 [source,javascript]
 ----
-
 {
-    "log":["*"],                        
+    "log":["*"],
     "replications":[
         {
             "source": "db",
@@ -227,23 +196,22 @@ Replications defined in config may not contain the "cancel" property.
                 "GUEST": {"disabled": false, "admin_channels": ["*"]}
             }
         }
-    }                     
+    }
 }
 ----
 
 == Monitoring replications
 
 By default a simple one-shot replication blocks until it is complete and returns the stats for the completed task.
-Async one-shot and continuous replications return immediately with the in flight task stats. 
+Async one-shot and continuous replications return immediately with the in flight task stats.
 
-You can get a list of active replication tasks by sending a GET request to the `/_active_tasks` endpoint, this will return a list of all running one-shot and continuous replications for the current Sync Gateway instance. 
+You can get a list of active replication tasks by sending a GET request to the `_active_tasks` endpoint, this will return a list of all running one-shot and continuous replications for the current Sync Gateway instance.
 
 The response is a JSON array of active task objects, each object contains the original request parameters for the replication, a unique `replication_id` and some stats for the replication instance.
-The list of returned stats and their meaning can be found on the API reference of the link:admin-rest-api.html#/server/get__active_tasks[/_active_tasks] endpoint.
+The list of returned stats and their meaning can be found on the API reference of the xref:admin-rest-api.adoc#/server/get\__active_tasks[`_active_tasks`] endpoint.
 
 [source,javascript]
 ----
-
 [
     {
         "type":"replication",
@@ -270,16 +238,15 @@ The list of returned stats and their meaning can be found on the API reference o
 ]
 ----
 
-== Cancelling replications
+== Canceling replications
 
-An active replication task is canceled by sending a POST request to the server endpoint /_replicate, with a JSON object.
-The JSON object must contain the "cancel" property set to true and either a valid "replication_id" or the identical source, target and continuous values used to start the replication. 
+An active replication task is canceled by sending a POST request to the server endpoint `_replicate`, with a JSON object.
+The JSON object must contain the "cancel" property set to true and either a valid "replication_id" or the identical source, target and continuous values used to start the replication.
 
-This will cancel an active replication with a "replication_id" of "my-one-shot-replication", the "replication_id" value can be obtained by sending a request to _active_tasks. 
+This will cancel an active replication with a "replication_id" of "my-one-shot-replication", the "replication_id" value can be obtained by sending a request to _active_tasks.
 
 [source,javascript]
 ----
-
 {
     "cancel": true,
     "replication_id": "my-one-shot-replication"
@@ -287,23 +254,21 @@ This will cancel an active replication with a "replication_id" of "my-one-shot-r
 ----
 
 This will cancel a replication that was started with same "source" and "target" values as those in the cancel request.
-By ommitting the "continuous" property it's value will default to **false**, a replication must also have been started as a one-shot to match. 
+By omitting the "continuous" property it's value will default to *false*, a replication must also have been started as a one-shot to match.
 
 [source,javascript]
 ----
-
 {
-    "cancel":true,          
+    "cancel":true,
     "source": "db",
     "target": "db-copy"
 }
 ----
 
-When an active task is cancelled, the response returns the stats of the replication up to the point when it was stopped. 
+When an active task is canceled, the response returns the stats of the replication up to the point when it was stopped.
 
 [source,javascript]
 ----
-
 {
     "type":"replication",
     "replication_id":"3791d562153505408e0b2730603ed7c1",
@@ -323,8 +288,9 @@ When an active task is cancelled, the response returns the stats of the replicat
 XDCR (cross data centre replication) is the Couchbase Server API to replicate between Couchbase Server clusters.
 Both XDCR and SG-Replicate can be used to keep clusters in different data centres in sync.
 However, SG-Replicate was designed specifically for a Couchbase Mobile deployment.
-The diagram below describes the notable differences between SG-Replicate and XDCR. 
+The diagram below describes the notable differences between SG-Replicate and XDCR.
 
 image::xdcr-sg-replicate.png[]
 
-NOTE: Sync Gateway is not compatible with XDCR in Active - Active mode (also known as bi-direction XDCR). If you intend to use XDCR between clusters that use Sync Gateway, make sure that XDCR is configured to replicate documents one-way only (Active - Passive).
+NOTE: Sync Gateway is not compatible with XDCR in Active - Active mode (also known as bi-direction XDCR).
+If you intend to use XDCR between clusters that use Sync Gateway, make sure that XDCR is configured to replicate documents one-way only (Active - Passive).
