@@ -1,52 +1,48 @@
-= Taking databases offline and online
+= Taking Databases Offline and Online
 
-Sync Gateway 1.2 introduces functionality that permits a specific database to be taken offline and brought back online, without requiring that the Sync Gateway instance be stopped and without affecting other databases that are served by the instance. 
+Sync Gateway 1.2 introduces functionality that permits a specific database to be taken offline and brought back online, without requiring that the Sync Gateway instance be stopped and without affecting other databases that are served by the instance.
 
 This online/offline status for a database is with respect to a specific Sync Gateway instance.
-The status does not apply to other Sync Gateway instances, unless coordinated operations there have brought the databases on those instances into the same state. 
+The status does not apply to other Sync Gateway instances, unless coordinated operations there have brought the databases on those instances into the same state.
 
 == Motivation and use cases
 
-Specific uses for the database offline/online functionality include: 
+Specific uses for the database offline/online functionality include:
 
-* Taking a database offline, without affecting other databases. 
-* Changing configuration properties for a database (while it is offline), without needing to restart Sync Gateway. 
-* Resynchronizing a database while it is offline. 
-* Detecting a lost DCP or TAP feed, and taking the database offline automatically. 
-* Creating a database in an offline state, so that the start of service delivery for the database can be postponed or coordinated across Sync Gateway instances. 
-* Performing a Couchbase Server upgrade. 
-
+* Taking a database offline, without affecting other databases.
+* Changing configuration properties for a database (while it is offline), without needing to restart Sync Gateway.
+* Resynchronizing a database while it is offline.
+* Detecting a lost DCP or TAP feed, and taking the database offline automatically.
+* Creating a database in an offline state, so that the start of service delivery for the database can be postponed or coordinated across Sync Gateway instances.
+* Performing a Couchbase Server upgrade.
 
 == Sync Gateway
 
-* Taking a database offline: link:admin-rest-api.html#!/database/post_db_offline[+POST /{db}/_offline+]
-* Taking a database online: link:admin-rest-api.html#!/database/post_db_online[+POST /{db}/_online+]
+* Taking a database offline: xref:admin-rest-api.adoc#/database/post\__db___offline[POST /+{db}+/_offline]
+* Taking a database online: xref:admin-rest-api.adoc#/database/post\__db___online[POST /+{db}+/_online]
 
 By default, when Sync Gateway starts, it brings all databases that are defined in the configuration file online.
-To keep a database offline when Sync Gateway starts, you can add the `offline` configuration property to the database configuration properties for the database, with the value `true` (see link:config-properties.html#foo_db[database properties]).
+To keep a database offline when Sync Gateway starts, you can add the `offline` configuration property to the database configuration properties for the database, with the value `true` (see xref:config-properties.adoc#databases-foo_db[database properties]).
 
-Later, to bring the database online, you can use the `+POST /{db}/_online+` Admin REST API request. 
+Later, to bring the database online, you can use the `POST /+{db}+/_online` Admin REST API request.
 
 === Offline state triggers
 
 Sync Gateway will take a database offline automatically if specific conditions occur.
 Specifically, if Sync Gateway detects that the DCP feed or TAP feed for a database has been lost, then Sync Gateway takes the database offline automatically, so that the problem can be investigated.
-When the cause is known and has been corrected, you can use an Admin REST API request to bring the database back online. 
+When the cause is known and has been corrected, you can use an Admin REST API request to bring the database back online.
 
-{% if site.version == '1.4' %} 
-
-The exception to this behavior is when running with a link:accelerator.html[Sync Gateway Accelerator] architecture, in which case the Sync Gateway will not open a DCP or TAP feed, and therefore not go into the offline state.
-
-{% endif %} 
+// TODO locate migrated accelerator file
+The exception to this behavior is when running with a https://developer.couchbase.com/documentation/mobile/current/guides/sync-gateway/accelerator.html[Sync Gateway Accelerator] architecture, in which case the Sync Gateway will not open a DCP or TAP feed, and therefore not go into the offline state.
 
 === State diagram
 
-This state diagram represents the states for Sync Gateway and for the connection between Sync Gateway and a Couchbase Server database. 
-
+This state diagram represents the states for Sync Gateway and for the connection between Sync Gateway and a Couchbase Server database.
 
 image::state-diagram-offline-12.png[]
 
-In the state diagram: 
+In the state diagram:
 
-* To the left of the gray dashed line, starting or stopping a Sync Gateway instance affects the connections to all of the databases that the instance serves. 
-* To the right of the gray dashed line, you perform operations on specific databases. For example, two databases could be online, while a third database could be taken offline, resynchronized, and then brought back online. 
+* To the left of the gray dashed line, starting or stopping a Sync Gateway instance affects the connections to all of the databases that the instance serves.
+* To the right of the gray dashed line, you perform operations on specific databases.
+For example, two databases could be online, while a third database could be taken offline, resynchronized, and then brought back online.
