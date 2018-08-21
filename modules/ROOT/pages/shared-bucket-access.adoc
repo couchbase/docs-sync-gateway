@@ -1,5 +1,5 @@
 = Bucket Access
-//{% include landing.html %}
+:url-downloads: https://www.couchbase.com/downloads
 
 With Sync Gateway 1.5, you can seamlessly extend an existing Couchbase Server deployment to connect with remote edge devices that are occasionally disconnected or connected.
 
@@ -15,8 +15,8 @@ This new feature was made opt-in primarily out of consideration for existing cus
 It ensures that their existing configs will continue to work as-is, and supports upgrade without bringing down the entire Sync Gateway cluster.
 The steps below walk through how to enable this new feature.
 
-. https://www.couchbase.com/downloads[Download Couchbase Server 5.0].
-. https://www.couchbase.com/downloads?family=Mobile&product=Couchbase%20Sync%20Gateway&edition=Enterprise%20Edition[Download Sync Gateway 1.5].
+. {url-downloads}[Download Couchbase Server 5.0].
+. {url-downloads}#couchbase-mobile[Download Sync Gateway 1.5].
 . Create a new bucket in the Couchbase Server Admin Console.
 . With Role Based Access Control (RBAC) newly introduced in Couchbase Server 5.0, you'll need to create a new user with authorized access to the bucket.
 Choose the *Security > Add User* option in the Couchbase Server Admin and select the *Bucket Full Access* and *Read Only Admin* roles.
@@ -51,20 +51,20 @@ The mobile metadata is no longer kept in the document, but in a system extended 
 
 The reference to the configuration API changes can be found below.
 
-* link:config-properties.html#1.5/databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
-* link:config-properties.html#1.5/databases-foo_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
-* link:config-properties.html#1.5/databases-foo_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+* link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
+* link:config-properties.html#databases-foo_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+* link:config-properties.html#databases-foo_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
 
 When this feature is enabled, the REST API will include the following changes.
 
-* Sync Gateway purging (link:admin-rest-api.html?v=1.5#/document/post\__db___purge[+/{db}/_purge+]) removes the document and its associated extended attributes.
-* Sync Gateway document expiry (PUT link:admin-rest-api.html?v=1.5#/document/put\__db___doc_[+/{db}/{docid}+]) will tombstone the active revision.
+* Sync Gateway purging (xref:admin-rest-api.adoc#/document/post\__db___purge[/+{db}+/_purge]) removes the document and its associated extended attributes.
+* Sync Gateway document expiry (PUT xref:admin-rest-api.adoc#/document/put\__db___doc_[+/{db}/{docid}+]) will tombstone the active revision.
 
 == Tombstones
 
 When this feature is enabled, mobile tombstones are not retained indefinitely.
 They will be purged based on the server's metadata purge interval.
-To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:config-properties.html#1.5/databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
+To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
 
 == Sample App
 
@@ -90,7 +90,7 @@ The following tutorial demonstrates the extended attributes support introduced i
 As of Sync Gateway 1.5, the Bucket Shadowing feature is deprecated and no longer supported.
 The following steps outline a recommended method for migrating from Bucket Shadowing to the latest version with interoperability between Couchbase Server SDKs and Couchbase Mobile.
 
-. Follow the recommendations in the https://developer.couchbase.com/documentation/server/current/install/upgrade-online.html[Couchbase Server documentation] to upgrade all instances to 5.0.
+. Follow the recommendations in the xref:server:install:upgrade-online.adoc[Couchbase Server documentation] to upgrade all instances to 5.0.
 . Create a new bucket on Couchbase Server (*bucket 2*).
 . Install Sync Gateway 1.5 on a separate node with shared access enabled and connect it to the new bucket (*bucket 2*).
 . Setup a link:running-replications.html[push replication] from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.

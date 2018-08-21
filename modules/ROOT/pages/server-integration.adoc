@@ -1,6 +1,7 @@
 = Webhooks and Changes Feed
 :idprefix:
 :idseparator: -
+:url-couchdb: http://guide.couchdb.org/draft/notifications.html
 
 This guide describes two approaches for integrating Sync Gateway with other servers.
 These approaches can be used to build services that react to changes in documents.
@@ -11,14 +12,14 @@ Examples of use cases include:
 
 The integration approaches are:
 
-xref:#changes-feed[Changes Feed]::
+<<changes-feed>>::
 The changes feed returns a sorted list of changes made to documents in the database.
-xref:#webhooks[Webhooks]::
+<<webhooks>>::
 Sync Gateway can detect document updates and post the updated documents to one or more external URLs.
 
 Here's a table that compares each API in different scenarios:
 
-[cols="2,1,1",width="60%"]
+[cols="1,1,1",width="80%"]
 |===
 |Scenario |Changes feed (pull) |Webhooks (push)
 
@@ -50,15 +51,15 @@ There are several methods of connecting to the changes feed (also know as the fe
 The first 3 methods (`polling`, `longpoll` and `continuous`) are based on the CouchDB API.
 The last method (`websocket`) is specific to Sync Gateway.
 
-link:http://guide.couchdb.org/draft/notifications.html#polling[`polling`] (default)::
+{url-couchdb}#polling[polling] (default)::
 Returns the list of changes immediately.
 A new request must be sent to get the next set of changes.
-link:http://guide.couchdb.org/draft/notifications.html#long[`longpolling`]::
+{url-couchdb}#long[longpolling]::
 In addition to regular polling, if the request is sent with a special `last_seq` parameter, it will stay open until a new change occurs and is posted.
-link:http://guide.couchdb.org/draft/notifications.html#continuous[`continuous`]::
+{url-couchdb}#continuous[continuous]::
 The continuous changes API allows you to receive change notifications as they come, in a single HTTP connection.
 You make a request to the continuous changes API and both you and Sync Gateway will hold the connection open “forever.”
-xref:#websockets[`websockets`]::
+<<websockets>>::
 The WebSocket mode is conceptually the same as continuous mode but it should avoid issues with proxy servers and gateways that cause continuous mode to fail in many real-world mobile use cases.
 
 === WebSockets
@@ -138,7 +139,7 @@ Consider the security implications.
 
 Sync Gateway raises a `document_changed` event every time it writes a document to a Couchbase Server bucket, such as during a Couchbase Lite push replication session.
 
-You can configure event handlers for webhooks with the xref:config-properties.adoc#event_handlers[event_handlers] property in the database configuration section of the JSON configuration file.
+You can configure event handlers for webhooks with the xref:config-properties.adoc#databases-foo_db-event_handlers[event_handlers] property in the database configuration section of the JSON configuration file.
 
 ==== Examples
 

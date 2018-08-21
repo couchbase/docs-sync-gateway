@@ -1,4 +1,6 @@
 = Sync Function API
+:idprefix:
+:idseparator: -
 
 The sync function is the core API you interact with on Sync Gateway.
 This article explains its functionality, and how you write and configure it.
@@ -12,14 +14,18 @@ If the document is later updated, the sync function will be called again on the 
 
 It can do the following things:
 
-* *Validate the document:* If the document has invalid contents, the sync function can throw an exception to reject it.
+Validate the document::
+If the document has invalid contents, the sync function can throw an exception to reject it.
 The document won't be added to the database, and the client request will get an error response
-* *Authorize the change:* The sync function can call `requireUser()` or `requireRole()` to specify what user(s) are allowed to modify the document.
+Authorize the change::
+The sync function can call `requireUser()` or `requireRole()` to specify what user(s) are allowed to modify the document.
 If the user making the change isn't in that list, an exception is thrown and the update is rejected with an error.
 Similarly, `requireAccess()` requires that the user making the change have access to any of the listed channels.
-* *Assign the document to channels:* Based on the contents of the document, the sync function can call *channel()* to add the document to one or more channels.
+Assign the document to channels::
+Based on the contents of the document, the sync function can call *channel()* to add the document to one or more channels.
 This makes it accessible to users who have access to those channels, and will cause the document to be pulled by users that are subscribed to those channels.
-* *Grant users access to channels:* Calling `access(user, channel)` grants a user access to a channel.
+Grant users access to channels::
+Calling `access(user, channel)` grants a user access to a channel.
 This allows documents to act as membership lists or access-control lists.
 
 *The sync function is crucial to the security of your application.*
@@ -63,7 +69,6 @@ Instead an error code (usually 403 Forbidden) is returned to Couchbase Lite's re
 
 Any other exception (including implicit ones thrown by the JavaScript runtime, like array bounds exceptions) will also prevent the document update, but will cause the gateway to return an HTTP 500 "Internal Error" status.
 
-[#throw]
 === throw()
 
 At the most basic level, the sync function can prevent a document from persisting or syncing to any other users by calling `throw()` with an error object containing a `forbidden`: property.
@@ -89,7 +94,6 @@ We recommend that you not create invalid documents in the first place.
 As much as possible, your app logic and validation function should prevent invalid documents from being created locally.
 The server-side sync function validation should be seen as a fail-safe and a guard against malicious access.
 
-[[_requireuserusername]]
 === requireUser(username)
 
 The `requireUser()` function authorizes a document update by rejecting it unless it's made by a specific user or users, as shown in the following example:
@@ -108,8 +112,6 @@ All properties of the `doc` parameter should be considered _untrusted_, since th
 This may sound obvious, but it can be easy to make mistakes, like calling `requireUser(doc.owners)` instead of `requireUser(oldDoc.owners)`.
 When using one document property to validate another, look up that property in `oldDoc`, not `doc`!
 
-//[[_requirerolerolename]]
-[#requirerole-rolename]
 === requireRole(rolename)
 
 The `requireRole()` function authorizes a document update by rejecting it unless the user making it has a specific role or roles, as shown in the following example:
@@ -128,8 +130,6 @@ In the latter case, the user making the change must have one or more of the give
 
 The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
 
-//[[_requireaccesschannels]]
-[#requireaccess-channels]
 === requireAccess(channels)
 
 The `requireAccess()` function authorizes a document update by rejecting it unless the user making it has access to at least one of the given channels, as shown in the following example:

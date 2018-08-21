@@ -1,4 +1,6 @@
-= Deployment considerations
+= Deployment Considerations
+:url-curl: https://curl.haxx.se/
+:url-httpie: https://github.com/jakubroztocil/httpie
 
 The following guide describes a set of recommended best practices for a production deployment of Couchbase Mobile.
 
@@ -10,7 +12,7 @@ In a Couchbase Mobile production deployment, administrators typically perform op
 If Sync Gateway is deployed on an internal network, you can bind the xref:config-properties.adoc#server[adminInterface] of Sync Gateway to the internal network.
 In this case, the firewall should also be configured to allow external connections to the public xref:config-properties.adoc#server[interface] port.
 
-To access the Admin REST API from an entirely different network or from a remote desktop we recommend to use https://whatbox.ca/wiki/SSH_Tunneling[SSH tunnelling].
+To access the Admin REST API from an entirely different network or from a remote desktop we recommend to use https://whatbox.ca/wiki/SSH_Tunneling[SSH tunneling].
 
 *Authorization*
 
@@ -45,14 +47,16 @@ This can be done in both Couchbase Lite and via the xref:admin-rest-api.adoc#!/d
 Beginning in Couchbase Mobile 1.3, documents can have a Time To Live (TTL) value - when the TTL expires the document will be purged from the local database.
 Note that this does not affect the copy of the document on any other device.
 This concept is covered in more detail in the
-// This xref doesn't exist in couchbase-lite link:../../couchbase-lite/native-api/document/index.html#document-expiration-ttl[Document] guide; it redirects to the link below
+// This is the original link -> link:../../couchbase-lite/native-api/document/index.html#document-expiration-ttl[Document] guide. It redirects to the URL used below. (Unless you're in version 1.3, then the link does take you to an exact location with a matching section title)
+// TODO: determine correct target or migrate page if missing
 https://developer.couchbase.com/documentation/mobile/2.0/couchbase-lite/index.html[Document] guide.
 
 Depending on the use case, data model and many more variables, there can be a need to proactively manage these tombstones as they are created.
 For example, you might decide that if a document is deleted on a Couchbase Lite client, that you want to purge the document (on that device) as soon as the delete has been successfully replicated out to Sync Gateway.
 Then later on Sync Gateway, set an expiration so that they are automatically purged after a set period (perhaps a week, or a month, to allow for all other devices to sync and receive the delete notifications) - more on this later.
 If a document is deleted on the Sync Gateway itself (say by a batch process or REST API client), you may similarly want to set a TTL, and on the Couchbase Lite devices you can monitor the
-// This xref doesn't exist in couchbase-lite link:../../couchbase-lite/native-api/database/index.html#database-notifications[Database Change Notifications]; it redirects to the link below
+//This is the original link -> link:../../couchbase-lite/native-api/database/index.html#database-notifications[Database Change Notifications]. It redirects to the URL used below. (Unless you're in version 1.3, then the link does take you to an exact location with a matching section title)
+// TODO: determine correct target or migrate page if missing
 https://developer.couchbase.com/documentation/mobile/2.0/couchbase-lite/index.html[Database Change Notifications] and purge locally whenever a document is marked as deleted.
 
 == Log Rotation
@@ -247,8 +251,8 @@ After renaming the log file logrotate will send the `SIGHUP` signal to the `sync
 
 === Troubleshooting and Fine-Tuning
 
-In general, https://curl.haxx.se/[curl], a command-line HTTP client, is your friend.
-You might also want to try https://github.com/jkbrzt/httpie[httpie], a human-friendly command-line HTTP client.
+In general, {url-curl}[curl], a command-line HTTP client, is your friend.
+You might also want to try {url-httpie}[HTTPie], a human-friendly command-line HTTP client.
 By using these tools, you can inspect databases and documents via the Public REST API, and look at user and role access privileges via the Admin REST API.
 
 An additional useful tool is the admin-port URL */databasename/_dump/channels*, which returns an HTML table that lists all active channels and the documents assigned to them.
@@ -269,7 +273,7 @@ Support email: support@couchbase.com
 
 Support phone number: +1-650-417-7500, option #1
 
-Support portal: http://support.couchbase.com
+Support portal: https://support.couchbase.com
 
 To speed up the resolution of your issue, we will need some information to troubleshoot what is going on.
 The more information you can provide in the questions below the faster we will be able to identify your issue and propose a fix:
@@ -327,6 +331,6 @@ NOTE: We ship `curl` with Couchbase Server, on Linux this is located in `/opt/co
 
 If your Sync Gateway nodes do not have internet access, the best way to provide the logs to us is to copy the files then run `curl` from a machine with internet access.
 We ship a Windows `curl` binary as part of Couchbase Server, so if you have Couchbase Server installed on a laptop or other system which has an Internet connection you can upload from there.
-Alternatively you can download standalone Curl for Windows: http://curl.haxx.se/download.html.
+Alternatively you can download standalone Curl for Windows: {url-curl}download.html.
 
 Once uploaded, please send an e-mail to support@couchbase.com letting us know what files have been uploaded.

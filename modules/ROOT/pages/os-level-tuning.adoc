@@ -1,8 +1,8 @@
 = OS Level Tuning
+:url-keepalive: https://tldp.org/HOWTO/TCP-Keepalive-HOWTO
 
 To get the most out of Sync Gateway, it may be necessary to tune a few parameters of the OS.
 
-[[_tuning_the_max_no._of_file_descriptors]]
 == Tuning the max no. of file descriptors
 
 Raising the maximum number of file descriptors available to Sync Gateway is important because it directly affects the maximum number of *sockets* the Sync Gateway can have open, and therefore the maximum number of endpoints that the Sync Gateway can support.
@@ -91,7 +91,7 @@ If you have already raised the maximum number of file descriptors available to S
 
 === Understanding the problem
 
-Mobile endpoints tend to abruptly disconnect from the network without closing their side of the connection, as described in http://tldp.org/HOWTO/TCP-Keepalive-HOWTO/overview.html[Section 2.3. (Checking for dead peers)] of the TCP-Keepalive-HOWTO.
+Mobile endpoints tend to abruptly disconnect from the network without closing their side of the connection, as described in {url-keepalive}/overview.html[Section 2.3. (Checking for dead peers)] of the TCP-Keepalive-HOWTO.
 
 By default, these connections will hang around for approximately 7200 seconds (2 hours) before they are detected to be dead and cleaned up by the tcp/ip stack of the Sync Gateway process.
 If enough of these connections accumulate, you can end up seeing "too many open files" errors on Sync Gateway.
@@ -141,13 +141,12 @@ To activate the changes and persist them across reboots, run:
 $ sysctl -p
 ----
 
-See http://tldp.org/HOWTO/TCP-Keepalive-HOWTO/usingkeepalive.html[Using TCP keepalive under Linux] for more details on setting these parameters.
+See {url-keepalive}/usingkeepalive.html[Using TCP keepalive under Linux] for more details on setting these parameters.
 
-[[_references_1]]
 === References
 
-* http://tldp.org/HOWTO/TCP-Keepalive-HOWTO/overview.html[TCP Keepalive HOWTO]
-* http://stackoverflow.com/questions/5907527/application-control-of-tcp-retransmission-on-linux[Application control of TCP retransmission on Linux]
+* {url-keepalive}/overview.html[TCP Keepalive HOWTO]
+* https://stackoverflow.com/questions/5907527/application-control-of-tcp-retransmission-on-linux[Application control of TCP retransmission on Linux]
 * https://groups.google.com/forum/#!msg/golang-nuts/rRu6ibLNdeI/0bjSmO5fN_8J[Proactively closing longpoll connections for endpoints that disappear from the network]
-* http://linux.die.net/man/7/tcp[TCP man page]
+* https://linux.die.net/man/7/tcp[TCP man page]
 * https://github.com/couchbase/sync_gateway/issues/742[Sync Gateway Issue 742]
