@@ -4,7 +4,7 @@
 
 Prior to 2.1, Sync Gateway used system views for a variety of internal operations, including authentication and replication.
 Starting in 2.1, Sync Gateway will use GSI and N1QL to perform those tasks.
-A key advantage of the switch to GSI is that it supports index replicas, allowing Sync Gateway to reducing the downtime during a server upgrade, rebalance or failover from several hours to a few seconds.
+A key advantage of the switch to GSI is that it supports index replicas, allowing Sync Gateway to reduce the downtime during a server upgrade, rebalance or failover from several hours to a few seconds.
 This change also improves overall query performance.
 Note that this only impacts system views.
 Users can continue to define views through the xref:admin-rest-api.adoc#/query[Sync Gateway Admin REST API].
@@ -13,9 +13,11 @@ This capability is enabled by default and there are 2 properties in the configur
 * link:config-properties.html#databases-foo_db-use_views[databases.$db.use_views]
 * link:config-properties.html#databases-foo_db-num_index_replicas[databases.$db.num_index_replicas]
 
-Notes: 
-* Use of GSI requires Couchbase Server 5.5, with at least one node running the Index Service. Users wanting to run Sync Gateway 2.1 with an older version of Couchbase Server will need to continue to use views, by setting the use_views property.
-* By default, Sync Gateway requires the Index Service to be running on at least two Couchbase Server nodes (required for index replica).  Users can run with a single Index Service node by setting Sync Gateway's num_index_replicas property to zero, but this may result in increased downtime in the event of index node failure.
+NOTE: Use of GSI requires Couchbase Server 5.5, with at least one node running the Index Service.
+Users wanting to run Sync Gateway 2.1 with an older version of Couchbase Server will need to continue to use views, by setting the `use_views` property.
+
+NOTE: By default, Sync Gateway requires the Index Service to be running on at least two Couchbase Server nodes (required for index replica).
+Users can run with a single Index Service node by setting Sync Gateway's `num_index_replicas` property to zero, but this may result in increased downtime in the event of an index node failure.
 
 === X.509 Authentication against Couchbase Server
 
@@ -37,11 +39,11 @@ If the **username**/**password** properties are also specified in the configurat
 
 Continuous logging is a new feature in Sync Gateway 2.1 that provides more flexibility in how logs are generated and retained, whilst maintaining the level of logging required by Couchbase Support for investigation of issues.
 
-Sync Gateway logging is now written to separate files by log level, with each log level supporting individual retention policies. 
+Sync Gateway logging is now written to separate files by log level, with each log level supporting individual retention policies.
 
 Console logging can also be configured independently, providing additional flexibility for system administrators depending on their needs.
 
-The previous logging configuration (``logging.default``) is being deprecated, and Sync Gateway 2.1 will display warnings on startup of what is required to update your configuration.
+The previous logging configuration (`logging.default`) is being deprecated, and Sync Gateway 2.1 will display warnings on startup of what is required to update your configuration.
 Detailed information about continuous logging can be found in the link:logging.html[Logging guide].
 
 ==== SGCollect Info
