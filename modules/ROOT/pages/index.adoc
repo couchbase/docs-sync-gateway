@@ -23,18 +23,120 @@ Users can run with a single Index Service node by setting Sync Gateway's `num_in
 
 == X.509 Authentication against Couchbase Server
 
-Sync Gateway adds the ability to use x.509 certificates to authenticate against Couchbase Server 5.5 or higher.
+Sync Gateway adds the ability to use X.509 certificates to authenticate against Couchbase Server 5.5 or higher.
+This functionality can be used instead or in addition to the existing authentication method which is to specify a username and password in the configuration file.
 
-Certificate based authentication provides an additional layer of security; it relies on a certificate authority, CA, to validate identities and issue certificates. To enable certificate based authentication on Sync Gateway, paths to the client certificate, private key and root CA must be set in the configuration file:
+=== X.509 Certificates for Couchbase Server
 
+In order to generate a certificate for Sync Gateway, you must first generate the cluster certificate and node certificates.
+Instructions to create and install those certificates can be found https://developer.couchbase.com/documentation/server/current/security/security-x509certsintro.html#story-h2-2[here] (step 1 to 12).
+
+=== Enabling X.509 Authentication
+
+To use X.509 certificates for authentication, it must be enabled on Couchbase Server.
+And in this case, Couchbase Server authenticates the RBAC user according to a field in the X.509 certificate.
+Instructions to enable X.509 authentication and to specify the field to look for the RBAC username can be found https://developer.couchbase.com/documentation/server/current/security/security-x509certsintro.html#story-h2-2[here] (step 13).
+
+=== X.509 Certificates for Sync Gateway
+
+The client certificates need to be signed by the Couchbase cluster certificate.
+So in order to generate certificates for Sync Gateway, we will use the output files from the <<x-509-certificates-for-couchbase-server,X.509 Certificates for Couchbase Server>> section.
+You should have a folder called *SSLCA*.
+
+From the parent directory (i.e `../SSLCA`), follow the steps below.
+
+. Create a new file called *ssl.conf* with the following.
+This configuration will be used to generate the client certificate in the next step.
++
+[source,bash]
+----
+[ req ]
+default_bits        = 2048
+distinguished_name  = req_distinguished_name
+req_extensions      = req_ext
+prompt              = no
+
+[ req_distinguished_name ]
+countryName         = US
+stateOrProvinceName = California
+localityName        = San Jose
+organizationName    = XYZ Inc
+commonName          = www.xyz.com
+
+[ req_ext ]
+subjectAltName = @alt_names
+[alt_names]
+DNS.1   = node1-user1.xyz.com
+DNS.2   = node1-user2.xyz.com
+----
+. Create a new file called *client.sh* with the following.
+This script creates a new client certificate.
++
+[source,bash]
+----
+export TOPDIR=SSLCA
+export ROOT_DIR=rootdir
+export NODE_DIR=nodedir
+export INT_DIR=intdir
+
+export CLIENT_INT_DIR=client_intdir
+export CLIENT_CERT_DIR=client_certdir
+
+cd ${TOPDIR}
+mkdir ${CLIENT_INT_DIR}
+mkdir ${CLIENT_CERT_DIR}
+
+cd ${CLIENT_INT_DIR}
+openssl genrsa -out int.key 2048
+openssl req -new -key int.key -out int.csr -subj '/C=US/O=XYZ/CN=XYZIntCA'
+cat <<EOF >> ./v3_ca.ext
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer:always
+basicConstraints = CA:true
+EOF
+openssl x509 -req -in int.csr -CA ../${ROOT_DIR}/ca.pem -CAkey ../${ROOT_DIR}/ca.key \
+-CAcreateserial -CAserial ../${ROOT_DIR}/rootCA.srl -extfile ./v3_ca.ext \
+-out int.pem -days 365
+
+cd ../${CLIENT_CERT_DIR}
+openssl genrsa -out client.key 2048
+openssl req -new -key client.key -out client.csr -config ../../ssl.conf
+openssl x509 -req -in client.csr -CA ../${CLIENT_INT_DIR}/int.pem \
+-CAkey ../${CLIENT_INT_DIR}/int.key \
+-CAcreateserial -CAserial ../${CLIENT_INT_DIR}/intermediateCA.srl \
+-out client.pem -days 365 \
+-extfile ../../ssl.conf -extensions req_ext
+cat client.pem ../${CLIENT_INT_DIR}/int.pem > chain.pem
+----
+. Run the script.
++
+[source,bash]
+----
+$ ./client.sh
+----
+. Create a new file called *sync-gateway-config.json* with the following.
++
+[source,json]
+----
+{
+  "databases": {
+    "db": {
+      "server": "http://localhost:8091",
+      "bucket": "default",
+      "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
+      "certpath": "./SSLCA/client_certdir/chain.pem",
+      "keypath": "./SSLCA/client_certdir/client.key",
+      "cacertpath": "./SSLCA/root/ca.pem"
+    }
+  }
+}
+----
+As shown above, certificate based authentication on Sync Gateway is enabled with the following properties in the configuration file.
++
 * xref:config-properties.adoc#databases-foo_db-certpath[databases.$db.certpath]
 * xref:config-properties.adoc#databases-foo_db-keypath[databases.$db.keypath]
 * xref:config-properties.adoc#databases-foo_db-cacertpath[databases.$db.cacertpath]
-
-Instructions to generate the client certificate, private key and root CA can be found in xref:5.5@server:security:security-x509certsintro.adoc[x.509 for TLS].
-
-This functionality provides an alternative method of authentication to the existing password-based authentication method.
-
++
 If the **username**/**password** properties are also specified in the configuration file then Sync Gateway will use password-based authentication and also include the client certificate in the TLS handshake.
 
 == Continuous Logging
