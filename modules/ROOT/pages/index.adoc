@@ -29,24 +29,16 @@ This functionality can be used instead or in addition to the existing authentica
 === X.509 Certificates for Couchbase Server
 
 In order to generate a certificate for Sync Gateway, you must first generate the cluster certificate and node certificates.
-Instructions to create and install those certificates can be found https://developer.couchbase.com/documentation/server/current/security/security-x509certsintro.html#story-h2-2[here] (step 1 to 12).
-
-=== Enabling X.509 Authentication
-
-To use X.509 certificates for authentication, it must be enabled on Couchbase Server.
-And in this case, Couchbase Server authenticates the RBAC user according to a field in the X.509 certificate.
-Instructions to enable X.509 authentication and to specify the field to look for the RBAC username can be found https://developer.couchbase.com/documentation/server/current/security/security-x509certsintro.html#story-h2-2[here] (step 13).
+Instructions to create and install those certificates can be found https://developer.couchbase.com/documentation/server/current/security/security-x509certsintro.html#story-h2-2[here] (step 1 to 13).
 
 === X.509 Certificates for Sync Gateway
 
 The client certificates need to be signed by the Couchbase cluster certificate.
-So in order to generate certificates for Sync Gateway, we will use the output files from the <<x-509-certificates-for-couchbase-server,X.509 Certificates for Couchbase Server>> section.
-You should have a folder called *SSLCA*.
+So in order to generate certificates for Sync Gateway, we will use the output files from the previous section.
 
-From the parent directory (i.e `../SSLCA`), follow the steps below.
+You should now have a folder called *SSLCA*. From the parent directory (i.e `../SSLCA`), follow the steps below.
 
 . Create a new file called *ssl.conf* with the following.
-This configuration will be used to generate the client certificate in the next step.
 +
 [source,bash]
 ----
@@ -61,7 +53,7 @@ countryName         = US
 stateOrProvinceName = California
 localityName        = San Jose
 organizationName    = XYZ Inc
-commonName          = www.xyz.com
+commonName          = travel-sample
 
 [ req_ext ]
 subjectAltName = @alt_names
@@ -69,6 +61,9 @@ subjectAltName = @alt_names
 DNS.1   = node1-user1.xyz.com
 DNS.2   = node1-user2.xyz.com
 ----
+When using X.509 certificates for authentication, Couchbase Server searches for the RBAC username in the certificate sent by the client.
+In the https://developer.couchbase.com/documentation/server/current/security/security-x509certsintro.html#story-h2-2[X.509 Certificates for Couchbase Server] instructions, you specified `commonName` as the field to use for the RBAC username.
+Hence, the `commonName` field is set to `travel-sample`.
 . Create a new file called *client.sh* with the following.
 This script creates a new client certificate.
 +
