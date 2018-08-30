@@ -144,36 +144,21 @@ The tool creates the following log files in the ouput file.
             The pprof output that collects directly via an http client rather than using go tool, in case Go is not installed 
 |===
 
-== CLI command and parameters
+If go is not installed, `sgcollect_info` will print the following error message, you can ignore this message and there is no need to report it.
 
-To see the CLI command line parameters, run: 
+`Exception during compression: [Error 2] The system cannot find the file specified IMPORTANT:Compression using gozip failed. Falling back to python implementation. Please let us know about this and provide console output.`
 
-[source,bash]
-----
+* https://www.graphviz.org/Download..php[Graphviz] -- this is used to render PDFs of the https://golang.org/pkg/net/http/pprof/[go pprof] output.
 
-./sgcollect_info --help
-----
+== Sharing Files with Us
 
-== Examples
-
-Collect Sync Gateway diagnostics and save locally: 
+The `sgcollect_info` tool can result in large files.
+Simply run the command below, replacing `<FILE NAME>` and `<YOUR COMPANY NAME>`, to upload a file to our cloud storage on Amazon AWS.
+Make sure you include the last slash (`/`) character after the company name.
 
 [source,bash]
 ----
-
-./sgcollect_info /tmp/sgcollect_info.zip
+curl --upload-file FILE NAME https://s3.amazonaws.com/customers.couchbase.com/<YOUR COMPANY NAME>/
 ----
 
-Collect Sync Gateway diagnostics and upload them to the Couchbase Support AWS S3 bucket: 
-
-[source,bash]
-----
-
-./sgcollect_info \
-  --sync-gateway-config=/path/to/config.json \
-  --sync-gateway-executable=/usr/bin/sync_gateway \
-  --upload-host=s3.amazonaws.com/cb-customers \
-  --customer=Acme \
-  --ticket=123
-  /tmp/sgcollect_info.zip
-----
+NOTE: We ship `curl` with Couchbase Server, on Linux this is located in `/opt/couchbase/bin/`.
