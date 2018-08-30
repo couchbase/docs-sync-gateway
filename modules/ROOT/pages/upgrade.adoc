@@ -2,11 +2,33 @@
 :idprefix:
 :idseparator: -
 
-This section is an overview of the different options to upgrade a running cluster to the latest version of Sync Gateway and Couchbase Server.
-For a complete list of instructions, we recommend to follow the http://docs.couchbase.com/tutorials/travel-sample/deploy/centos#/0/4/0[upgrade section] in the travel sample tutorial.
-You will learn how to perform a rolling upgrade and enable the shared bucket access introduced in Sync Gateway 1.5 in order to use N1QL, Mobile and Server SDKs on the same bucket.
+This page documents various implementation details and functionalities to consider when performing a Sync Gateway upgrade.
 
-== Sync Gateway
+== Sync Gateway 2.1
+
+The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 node in a cluster that was previously using views.
+By default, Sync Gateway requires the Couchbase Server cluster to be running Couchbase Server 5.5, with at least two nodes running the Index Service.
+If this is not the case, users must configure the `use_views` and/or `num_index_replicas` properties in their Sync Gateway configuration during upgrade.
+
+Installation follows the same general approach used in 2.0.
+On startup, Sync Gateway will check for the existence of the required indexes, and only attempt to create them if they do not already exist.
+
+Then, Sync Gateway will wait until indexes are available before starting to serve requests.
+
+Sync Gateway 2.1 will *not* automatically remove the previously used design documents.
+Removal of the obsolete design documents is done via a call to the xref:admin-rest-api.adoc#/server/post__post_upgrade[+/_post_upgrade+] endpoint in Sync Gateway`'s Admin REST API.
+This endpoint can be run in preview mode (`?preview=true`) to see which design documents would be removed.
+To summarize, the steps to perform an upgrade to Sync Gateway 2.1 are:
+
+. Upgrade one node in the cluster to 2.1, and wait for it to be reachable via the REST API (for example at \http://localhost:4985/).
+. Upgrade the rest of the nodes in the cluster.
+. Clean up obsolete views:
+** *Optional* Issue a call to `/_post_upgrade?preview=true` on any node to preview which design documents will be removed.
+To upgrade to 2.1, expect to see "sync_gateway" and "sync_housekeeping" listed.
+** Issue a call to `/post_upgrade` to remove the obsolete design documents.
+The response should indicate that "sync_gateway" and "sync_housekeeping" were removed.
+
+== Sync Gateway 1.x
 
 In each of the scenarios described below, the upgrade process will trigger views in Couchbase Server to be re-indexed.
 During the re-indexing, operations that are dependent on those views will not be available.
@@ -50,51 +72,6 @@ That being said, it is possible to avoid this downtime by running the 2 upgrade 
 
 NOTE: Enabling convergence on your existing deployment (i.e XATTRs) is *not* reversible.
 It is recommended to test the upgrade on a staging environment before upgrading the production environment.
-
-== Couchbase Server
-
-All of the different upgrade paths mentioned above assume that Couchbase Server is running a xref:compatibility-matrix.adoc[compatible version] for Sync Gateway.
-There are 3 commonly used upgrade paths for Couchbase Server.
-Depending on the one you choose, there may be additional consideration to keep in mind when using Sync Gateway:
-
-[cols="1,1,1,6a"]
-|===
-|Upgrade Strategy |Downtime |Additional Machine Requirements |Impact when using Sync Gateway
-
-|Rolling Online Upgrade
-|None
-|Low
-|*Potential transient connection errors:* The Couchbase Server re-balance operations can result in transient connection errors between Couchbase Server and Sync Gateway, which could result in Sync Gateway performance degradation.
-
-*Potential for unexpected server errors during re-balance:* There is an increased potential to lose in-flight ops during a fail-over.
-
-|Upgrade Using Inter-cluster Replication
-|Small amount during switchover
-|High - duplicate entire cluster
-|Using an XDCR (Cross Data Center Replication) approach will have incur some Sync Gateway downtime, but less downtime than other approaches where Sync Gateway is shutdown during the entire Couchbase Server upgrade.
-
-It's important to note that the XDCR replication must be a *one way* replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster, and that no other writes can happen on the new (target) Couchbase Server cluster other than the writes from the XDCR replication, and no Sync Gateway instances should be configured to use the new (target) Couchbase Server cluster until the last step in the process.
-
-. Start XDCR to do a one way replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster running the newer version.
-. Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster.
-. Shutdown Sync Gateway to prevent any new writes from coming in.
-. Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster -- this should happen very quickly, since it will only be the residual writes in transit before the Sync Gateway shutdown.
-. Reconfigure Sync Gateway to point to the target cluster.
-. Restart Sync Gateway.
-
-Caveats:
-
-* *Small amount of downtime during switchover:* Since there may be writes still in transit after Sync Gateway has been shutdown, there will need to be some downtime until the target Couchbase Server cluster is completely caught up.
-* *XDCR should be monitored:* Make sure to monitor the XDCR relationship as per xref:5.5@server:xdcr:xdcr-intro.adoc[XDCR docs].
-
-|Offline Upgrade
-|During entire upgrade
-|None
-|
-* Take Sync Gateway offline
-* Upgrade Couchbase Server using any of the options mentioned in the xref:5.5@server:install:upgrade.adoc[Upgrading Couchbase Server] documentation.
-* Bring Sync Gateway online
-|===
 
 === View Indexing
 
@@ -162,3 +139,48 @@ Note that this will consume disk space to build an almost duplicate index until 
 
 . Upgrade Sync Gateway. When Sync Gateway 1.4 starts, it will publish the new Design Document to Couchbase Server.
 This will match the Development Design Document we just indexed, so will be available immediately.
+
+== Couchbase Server
+
+All of the different upgrade paths mentioned above assume that Couchbase Server is running a xref:compatibility-matrix.adoc[compatible version] for Sync Gateway.
+There are 3 commonly used upgrade paths for Couchbase Server.
+Depending on the one you choose, there may be additional consideration to keep in mind when using Sync Gateway:
+
+[cols="1,1,1,6a"]
+|===
+|Upgrade Strategy |Downtime |Additional Machine Requirements |Impact when using Sync Gateway
+
+|Rolling Online Upgrade
+|None
+|Low
+|*Potential transient connection errors:* The Couchbase Server re-balance operations can result in transient connection errors between Couchbase Server and Sync Gateway, which could result in Sync Gateway performance degradation.
+
+*Potential for unexpected server errors during re-balance:* There is an increased potential to lose in-flight ops during a fail-over.
+
+|Upgrade Using Inter-cluster Replication
+|Small amount during switchover
+|High - duplicate entire cluster
+|Using an XDCR (Cross Data Center Replication) approach will have incur some Sync Gateway downtime, but less downtime than other approaches where Sync Gateway is shutdown during the entire Couchbase Server upgrade.
+
+It's important to note that the XDCR replication must be a *one way* replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster, and that no other writes can happen on the new (target) Couchbase Server cluster other than the writes from the XDCR replication, and no Sync Gateway instances should be configured to use the new (target) Couchbase Server cluster until the last step in the process.
+
+. Start XDCR to do a one way replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster running the newer version.
+. Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster.
+. Shutdown Sync Gateway to prevent any new writes from coming in.
+. Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster -- this should happen very quickly, since it will only be the residual writes in transit before the Sync Gateway shutdown.
+. Reconfigure Sync Gateway to point to the target cluster.
+. Restart Sync Gateway.
+
+Caveats:
+
+* *Small amount of downtime during switchover:* Since there may be writes still in transit after Sync Gateway has been shutdown, there will need to be some downtime until the target Couchbase Server cluster is completely caught up.
+* *XDCR should be monitored:* Make sure to monitor the XDCR relationship as per xref:5.5@server:xdcr:xdcr-intro.adoc[XDCR docs].
+
+|Offline Upgrade
+|During entire upgrade
+|None
+|
+* Take Sync Gateway offline
+* Upgrade Couchbase Server using any of the options mentioned in the xref:5.5@server:install:upgrade.adoc[Upgrading Couchbase Server] documentation.
+* Bring Sync Gateway online
+|===

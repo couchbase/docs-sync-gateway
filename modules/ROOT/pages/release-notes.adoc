@@ -42,27 +42,3 @@ The recommended approach to perform operations on a bucket dedicated to Couchbas
 *Known Issues*
 
 - {url-issues-sync}/3562[*#3562*] Sync Gateway requires Couchbase Server nodes to use the same SSL memcached port
-
-== Upgrading
-
-The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 node in a cluster that was previously using views.
-By default, Sync Gateway requires the Couchbase Server cluster to be running Couchbase Server 5.5, with at least two nodes running the Index Service.
-If this is not the case, users must configure the `use_views` and/or `num_index_replicas` properties in their Sync Gateway configuration during upgrade.
-
-Installation follows the same general approach used in 2.0.
-On startup, Sync Gateway will check for the existence of the required indexes, and only attempt to create them if they do not already exist.
-
-Then, Sync Gateway will wait until indexes are available before starting to serve requests.
-
-Sync Gateway 2.1 will *not* automatically remove the previously used design documents.
-Removal of the obsolete design documents is done via a call to the xref:admin-rest-api.adoc#/server/post__post_upgrade[+/_post_upgrade+] endpoint in Sync Gateway`'s Admin REST API.
-This endpoint can be run in preview mode (`?preview=true`) to see which design documents would be removed.
-To summarize, the steps to perform an upgrade to Sync Gateway 2.1 are:
-
-. Upgrade one node in the cluster to 2.1, and wait for it to be reachable via the REST API (for example at \http://localhost:4985/).
-. Upgrade the rest of the nodes in the cluster.
-. Clean up obsolete views:
-** *Optional* Issue a call to `/_post_upgrade?preview=true` on any node to preview which design documents will be removed.
-To upgrade to 2.1, expect to see "sync_gateway" and "sync_housekeeping" listed.
-** Issue a call to `/post_upgrade` to remove the obsolete design documents.
-The response should indicate that "sync_gateway" and "sync_housekeeping" were removed.
