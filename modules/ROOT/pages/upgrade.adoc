@@ -2,10 +2,58 @@
 :idprefix:
 :idseparator: -
 
-This page documents various implementation details and functionalities to consider when performing a Sync Gateway upgrade.
+This page documents various implementation details and functionalities to consider when performing an upgrade to Sync Gateway {page-component-version}.
 
-== Sync Gateway 2.1
+== Views to GSI
 
+Prior to 2.1, Sync Gateway used system views for a variety of internal operations, including authentication and replication.
+Starting in 2.1, Sync Gateway will use GSI and N1QL to perform those tasks.
+
+The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 node in a cluster that was previously using views.
+
+Use of GSI requires Couchbase Server 5.5, with at least one node running the Index Service. Users wanting to run Sync Gateway 2.1 with an older version of Couchbase Server will need to continue to use views, by setting the `use_views` property.
+
+== Configuration Changes
+
+|===
+| Before | After
+| *Sync Gateway 1.5 or above*
+`shared_bucket_access: false`
+| *Sync Gateway 1.5 or above*
+`shared_bucket_access: true`
+2+a|
+After restarting Sync Gateway with the updated configuration file, the mobile metadata for existing documents is automatically migrated.
+To enable shared bucket on incoming documents, one Sync Gateway node in the cluster must also have the `import_docs: continuous` property in the configuration file.
+
+Enabling shared bucket access on your existing deployment is *not* reversible.
+It is recommended to test the upgrade on a staging environment before upgrading the production environment.
+| *Sync Gateway 2.1 or above*
+`num_index_replicas: 1`
+| *Sync Gateway 2.1 or above*
+`num_index_replicas: 2` (or n)
+2+|
+After restarting Sync Gateway with the updated configuration file, the number of Index Replicas in the Couchbase Server cluster is automatically updated.
+|===
+
+== Upgrade
+
+A rolling upgrade is the recommended method to upgrade a Sync Gateway cluster.
+At a high level, a rolling upgrade consists of the following steps:
+
+. The load balancer configuration is updated to stop any HTTP traffic going to the node that will be upgraded.
+. The upgrade is performed on the given node
+. The load balancer configuration is updated to re-balance the HTTP traffic across all nodes.
+
+Those steps are then repeated for each node in the Sync Gateway cluster.
+
+The tables below provide more detail for distinct upgrade scenarios.
+
+|===
+| From | To
+| *Sync Gateway 1.1, 1.2, 1.3, 1.4, 1.5, 2.0*
+| *Sync Gateway 2.1* (`use_views: false`)
+2+|No downtime in a rolling upgrade.
+2+a|
 The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 node in a cluster that was previously using views.
 By default, Sync Gateway requires the Couchbase Server cluster to be running Couchbase Server 5.5, with at least two nodes running the Index Service.
 If this is not the case, users must configure the `use_views` and/or `num_index_replicas` properties in their Sync Gateway configuration during upgrade.
@@ -27,10 +75,59 @@ To summarize, the steps to perform an upgrade to Sync Gateway 2.1 are:
 To upgrade to 2.1, expect to see "sync_gateway" and "sync_housekeeping" listed.
 ** Issue a call to `/post_upgrade` to remove the obsolete design documents.
 The response should indicate that "sync_gateway" and "sync_housekeeping" were removed.
+|===
 
-== Sync Gateway 1.x
+|===
+| From | To
+| *Sync Gateway 1.1, 1.2, 1.3, 1.4, 1.5*
+| *Sync Gateway 2.0, 2.1*
+(`use_views: true`)
+2+|No downtime in a rolling upgrade.
+2+a|
+In 2.0, Sync Gateway's design documents include the version number in the design document name.
+In this release for example, the design documents are named `_design/sync_gateway_2.0` and `_design/sync_housekeeping_2.0`.
 
-In each of the scenarios described below, the upgrade process will trigger views in Couchbase Server to be re-indexed.
+On startup, Sync Gateway will check for the existence of these design documents, and only attempt to create them if they do not already exist.
+Then, Sync Gateway will wait until views are available and indexed before starting to serve requests.
+To evaluate this, Sync Gateway will issue a `stale=false&limit=1` query against the Sync Gateway views (channels, access and role_access).
+
+If the view request exceeds the default timeout of 75s (which would be expected when indexing large buckets), Sync Gateway will log additional messages and retry.
+The logging output will look like this:
+
+[source,bash]
+----
+14:26:41.039-08:00 Design docs for current SG view version (2.0) found.
+14:26:41.039-08:00 Verifying view availability for bucket default...
+14:26:42.045-08:00 Timeout waiting for view "access" to be ready for bucket "default" - retrying...
+14:26:42.045-08:00 Timeout waiting for view "channels" to be ready for bucket "default" - retrying...
+14:26:42.045-08:00 Timeout waiting for view "role_access" to be ready for bucket "default" - retrying...
+14:26:44.065-08:00 Timeout waiting for view "access" to be ready for bucket "default" - retrying...
+14:26:44.065-08:00 Timeout waiting for view "role_access" to be ready for bucket "default" - retrying...
+14:26:44.065-08:00 Timeout waiting for view "channels" to be ready for bucket "default" - retrying...
+14:26:44.072-08:00 Views ready for bucket default.
+----
+
+Sync Gateway 2.0 will *not* automatically remove the previous design documents.
+Removal of the obsolete design documents is done via a call to the new xref:admin-rest-api.adoc#/server/post\__post_upgrade[`_post_upgrade`] endpoint in Sync Gateway's Admin REST API.
+This endpoint can be run in preview mode (`?preview=true`) to see which design documents would be removed.
+To summarize, the steps to perform an upgrade to Sync Gateway 2.0 are:
+
+. Upgrade one node in the cluster to 2.0, and wait for it to be reachable via the REST API (for example at \http://localhost:4985/).
+. Upgrade the rest of the nodes in the cluster.
+. Clean up obsolete views:
+** *Optional* Issue a call to `_post_upgrade?preview=true` on any node to preview which design documents will be removed.
+To upgrade to 2.0, expect to see "sync_gateway" and "sync_housekeeping" listed.
+** Issue a call to `_post_upgrade` to remove the obsolete design documents.
+The response should indicate that "sync_gateway" and "sync_housekeeping" were removed.
+|===
+
+|===
+| From | To
+| *Sync Gateway 1.1, 1.2, 1.3, 1.4*
+| *Sync Gateway 1.5*
+2+|Possible downtime in a rolling upgrade. Follow the steps below to avoid any downtime.
+2+a|
+In this upgrade path, the upgrade process will trigger views in Couchbase Server to be re-indexed.
 During the re-indexing, operations that are dependent on those views will not be available.
 The main operations relying on views to be indexed are:
 
@@ -39,41 +136,7 @@ The main operations relying on views to be indexed are:
 
 The unavailability of those operations may result in some requests not being processed.
 The duration of the downtime will depend on the data set and frequency of replications with mobile clients.
-To avoid this downtime, it is possible to pre-build the view index before directing traffic to the upgraded node (see the <<view-indexing>> section).
-
-[cols="1,1,6a"]
-|===
-|From |To |Steps
-
-|1.3
-|1.4
-|A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes.
-Repeat this operation for each node that needs to be upgraded.
-
-|1.4
-|1.5 xattrs disabled
-|A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes.
-Repeat this operation for each node that needs to be upgraded.
-
-|1.5 xattrs disabled
-|1.5 xattrs enabled
-|* A rolling upgrade is supported: modify your load balancer's config to stop any HTTP traffic going to the node that will be upgraded, perform the upgrade on the given node and re-balance the traffic across all nodes.
-Repeat this operation for each node that needs to be upgraded.
-* The mobile metadata for existing documents is automatically migrated.
-* The first node to be upgraded should have the `import_docs=continuous` property enabled.
-
-|1.4
-|1.5 xattrs enabled
-|* This upgrade, if done directly, will result in application downtime because all the nodes must be taken offline during the upgrade.
-* The first node to be restarted should have the `import_docs=continuous` property enabled.
-
-That being said, it is possible to avoid this downtime by running the 2 upgrade paths mentioned above (first, an upgrade from 1.4 to 1.5, and second, an upgrade from 1.5 to 1.5 with xattrs enabled).
-|===
-
-NOTE: Enabling convergence on your existing deployment (i.e XATTRs) is *not* reversible.
-It is recommended to test the upgrade on a staging environment before upgrading the production environment.
-
-=== View Indexing
+To avoid this downtime, it is possible to pre-build the view index before directing traffic to the upgraded node.
 
 Sync Gateway uses Couchbase Server views to index and query documents.
 When Sync Gateway starts, it will publish a Design Document which contains the View definitions (map/reduce functions).
@@ -139,6 +202,7 @@ Note that this will consume disk space to build an almost duplicate index until 
 
 . Upgrade Sync Gateway. When Sync Gateway 1.4 starts, it will publish the new Design Document to Couchbase Server.
 This will match the Development Design Document we just indexed, so will be available immediately.
+|===
 
 == Couchbase Server
 
