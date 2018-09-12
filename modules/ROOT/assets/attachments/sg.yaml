@@ -1,0 +1,575 @@
+type: object
+properties:
+  adminInterface:
+    description: Port or TCP network address (IP address and the port) that the Admin REST API listens on. The loopback address prefix before the port (`127.0.0.1`) means the interface will not be reachable from other hosts. To make it reachable, change it to ":4985".
+    type: string
+    default: '127.0.0.1:4985'
+  adminUI:
+    description: URL of the Sync Gateway Admin Console HTML page.
+    type: string
+    default: ':4985/_admin/'
+  compressResponses:
+    description: Whether to compress HTTP responses. Set to false to disable compression of HTTP responses.
+    type: boolean
+    default: 'true'
+  configServer:
+    description: URL of a Couchbase database-configuration server (for dynamic database discovery). A database-configuration server allows Sync Gateway to load a database configuration dynamically from a remote endpoint. If a database configuration server is defined, when Sync Gateway gets a request for a database that it doesn't know about, then Sync Gateway will attempt to retrieve the database configuration properties from the URL ConfigServer/DBname, where DBname is the database name.
+    type: string
+  CORS:
+    description: Configuration object for allowing CORS (cross-origin resource sharing). This is a useful to interact directly with Sync Gateway from HTML 5 applications via XHR.
+    type: object
+    properties:
+      Origin:
+        type: array
+        description: List of allowed origins; use an asterisk (*) to allow access from everywhere. Note that the asterisk (*) cannot be used if you plan to authenticate users as well (by using the `withCredentials` flag on the client side). In this case, the explicit domain(s) must be specified in the `Origin` and `LoginOrigin` properties of the configuration file.
+        items:
+          type: string
+      LoginOrigin:
+        type: array
+        description: List of allowed login origins.
+        items:
+          type: string
+      Headers:
+        type: array
+        description: |
+          List of HTTP headers that can be used by domains specified in the `Origin` and `LoginOrigin` properties.
+          
+          A common value is `["Content-Type"]` as clients use the `Content-Type: application/json` header when sending data as JSON in the body of POST/PUT requests.
+        items:
+          type: string
+      MaxAge:
+        type: integer
+        description: Value for the Access-Control-Max-Age header. This is the the number of seconds that the response to a CORS preflight request can be cached before sending another preflight request.
+  couchbaseKeepaliveInterval:
+    description: TCP keep-alive interval in seconds between Sync Gateway and Couchbase Server.
+    type: integer
+  databases:
+    description: Database settings.
+    type: object
+    properties:
+      foo_db:
+        type: object
+        description: The database name is stored as a key.
+        properties:
+          allow_empty_password:
+            type: boolean
+            description: Whether to allow empty passwords for Couchbase Server authentication.
+            default: 'false'
+          bucket:
+            type: string
+            description: Bucket name on Couchbase Server or a Walrus bucket. The default is the database name.
+            default: the database name
+          import_docs:
+            type: boolean
+            description: |
+              If set to `true`, causes the Sync Gateway to scan the bucket on startup looking for documents that have no `_sync` metadata, and adding that metadata. You only want to have this on when you do the first import, because it will slow down the startup of the Sync Gateway. You also only want to run a single Sync Gateway while in this mode, otherwise they'll step on each other's toes trying to generate the `_sync` metadata at the same time.
+              
+              In Sync Gateway 1.5, the behaviour of this property has changed to work in tandem with the [enable_shared_bucket_access](#1.5/databases-foo_db-enable_shared_bucket_access) property. When **shared bucket access** is enabled, setting this property to continuous (`"import_docs": "continuous"`) indicates that this Sync Gateway node should perform import processing. If **shared bucket access** is not enabled, Sync Gateway continues to support the previously existing import functionality.
+              
+              In a deployment with **shared bucket access** enabled and [Sync Gateway Accelerator nodes](../accelerator.html), this property is not required because the import process is always shared across Sync Gateway Accelerator.
+            default: false
+          channel_index:
+            type: object
+            properties:
+              server:
+                type: string
+                description: Hostname to the Couchbase Server cluster.
+              bucket:
+                type: string
+                description: Bucket name for channel indexing. A common name is "channel_index".
+          cache:
+            type: object
+            description: Database cache configuration.
+            properties:
+              max_wait_pending:
+                type: integer
+                description: Maximum wait time in milliseconds for a pending sequence before skipping sequences.
+                default: 5000
+              max_num_pending:
+                type: integer
+                description: Maximum number of pending sequences before skipping the sequence.
+                default: 10000
+              max_wait_skipped:
+                type: integer
+                description: Maximum wait time in milliseconds for a skipped sequence before abandoning the sequence.
+                default: 3600000
+              enable_star_channel:
+                type: boolean
+                description: Enable the star (*) channel.
+                default: 'true'
+              channel_cache_max_length:
+                type: integer
+                description: Maximum number of entries maintained in cache per channel.
+                default: 500
+              channel_cache_min_length:
+                type: integer
+                description: Minimum number of entries maintained in cache per channel.
+                default: 50
+              channel_cache_expiry:
+                type: integer
+                description: Time (seconds) to keep entries in cache beyond the minimum retained.
+                default: 60
+          enable_shared_bucket_access:
+            type: boolean
+            description: |
+              Starting in Sync Gateway 1.5, Couchbase Server and Mobile applications can now read from and write to the same bucket.
+              
+              This property specifies whether to enable the interopability between Couchbase Mobile and Couchbase Server. On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
+              
+              Mobile applications require additional metadata in order to manage security and replication. In previous versions of Sync Gateway, this information has always been stored in the document body. Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (x-attributes) to store that metadata into an external document fragment.
+              
+              #### Import process
+              
+              Import is the name for the process by which non-Sync Gateway writes obtain mobile metadata. Any non-Sync Gateway write is eligible for import. A filter function can be specified using the [databases.foo_db.import_filter](#1.5/databases-foo_db-import_filter) property to only import specific documents.
+              
+              The document is first run through the Sync Function to compute read security and routing, with the following specifics/differences:
+              
+              - The import is processed with an admin user context in the Sync Function, similar to writes made through the Sync Gateway Admin API. This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
+              - During import, `oldDoc` is `nil` when the Sync Function is executed.
+              
+              Only one node in a Sync Gateway cluster should be configured for feed-based import - it processes the full DCP stream. The [Import+](#1.5/log) log key can be used to troubleshoot the import process further in the logs.
+              
+              ##### Import and Sync Gateway Accelerator
+                  
+              In a deployment with Sync Gateway Accelerator, feed-based import processing is performed by the Accelerator nodes. Import work is sharded across the Accelerator cluster, in the same way that indexing work is sharded today.
+              
+              #### Tombstones
+              
+              When convergence is enabled, mobile tombstones are now also server tombstones. The document body is deleted, and the information required to replicate the tombstone is retained in the mobile extended attribute.
+              
+              ##### Metadata Purge Interval
+              
+              The server's metadata purge interval becomes an important consideration for mobile deployments under convergence. When the server purges a tombstone (based on the metadata purge interval), that tombstone will no longer be replicated to mobile clients.
+              
+              For most mobile deployments, customers should set the server's metadata purge interval based on their expected client replication frequency, to ensure that clients are notified of the tombstone prior to that tombstone being purged.
+              
+              The default Metadata Purge Interval is set to 3 days which can potentially result in tombstones being purged before all clients have had a chance to get notified of it.
+              
+              Ways to tune the Metadata Purge Interval on Couchbase Server:
+              
+              - Bucket settings [on UI](https://developer.couchbase.com/documentation/server/5.0/settings/configure-compact-settings.html)
+              - Bucket endpoint [on the REST API](https://developer.couchbase.com/documentation/server/4.6/rest-api/rest-bucket-create.html)
+              
+              #### Implementation notes for XATTRs:
+              
+              Extended attributes (xattrs) are JSON objects that can be associated with Couchbase documents. Each document can be associated with zero or more extended attributes. There are currently three types (user, system, virtual). Mobile Convergence uses a system extended attribute, which has the following characteristics central to convergence:
+              
+               - Shares lifetime with the document metadata - when a document is deleted, system xattrs are preserved with the tombstone.
+               - Allocated 1MB of storage, independent of the 20MB available for the document 
+              
+              Extended attributes are stored as part of the document, and are replicated with the document (both intra-cluster replication and XDCR).
+              
+              Extended attributes can be accessed via the SDKs using the sub-document API, via command-line tools, and via views. They are not yet accessible via N1QL.
+              
+              Since extended attributes are not yet available via N1QL or the Admin Console, obtaining a document's mobile metadata while troubleshooting is somewhat less straightforward than in 1.4. The `raw` endpoint ([/db/_raw/{docid}](../../../references/sync-gateway/admin-rest-api/index.html#!/document/get_db_raw_doc)) on Sync Gateway's Admin REST API returns both the document and it's associated mobile metadata.
+            default: 'false'
+          event_handlers:
+            type: object
+            description: Webhooks in Sync Gateway are designed to minimize performance impacts on Sync Gateway's regular processing. Sync Gateway manages the number of processes that are spawned for webhook event handling, so that slow response times from the HTTP POST operations don't consume available CPU resources on Sync Gateway nodes. When a `webhook` event handler is defined, after Sync Gateway has updated a document, Sync Gateway adds a `document_changed` event to an asynchronous event-processing queue (the event queue). New processes are then spawned to apply the `filter` function to the documents and to perform the HTTP POST operations. When an event is not added to the event queue, but is instead discarded, a warning message is written to the the Sync Gateway log. You can configure Sync Gateway to log information about event handling, by including either the log key `Event` or `Events+` in the `Log` property in your Sync Gateway configuration file. `Events+` is more verbose.
+            properties:
+              document_changed:
+                description: The configuraton for the action to perform when a document change is detected.
+                type: array
+                items:
+                  type: object
+                  properties:
+                    filter:
+                      description: A JavaScript function used to determine which documents to post. The filter function accepts the document body as input and returns a boolean value. If the filter function returns true, then Sync Gateway posts the document. If the filter function returns false, then Sync Gateway does not post the document. If no filter function is defined, then Sync Gateway posts all changed documents. Filtering only determines which documents to post. It does not extract specific content from documents and post only that.
+                      type: string
+                      required: true
+                    handler:
+                      description: Type of the event handler. This must be `"webhook"` (only 1 possible value currently).
+                      type: string
+                    timeout:
+                      description: Time in seconds to wait for a response to the POST operation. Using a timeout ensures that slow-running POST operations don't cause the webhook event queue to back up. Slow-running POST operations are discarded (if they time out), so that new events can be processed. When the timeout is reached, Sync Gateway stops listening for a response. A value of 0 (zero) means no timeout. The default value should work well in the majority of cases. You should not need to adjust it to tune performance.
+                      type: integer
+                      default: 60
+                    url:
+                      description: URL to which to post documents (for a webhook event handler).
+                      type: string
+                      required: true
+              max_processes:
+                type: integer
+                description: Maximum number of events that can be processed concurrently, that is, no more than `max_processes` concurrent processes will be spawned for event handling. The default value should work well in the majority of cases. You should not need to adjust it to tune performance. However, if you wish to ensure that most webhook posts are sent, you can set it to sufficiently high value.
+                default: 500
+              wait_for_process:
+                type: string
+                description: Maximum wait time in milliseconds before canceling event processing for an event that is detected when the event queue is full. If you set the value to 0 (zero), then incoming events are discarded immediately if the event queue is full. If you wish to avoid any blocking of standard Sync Gateway processing this may be a desirable value to use. The default value should work well in the majority of cases. You should not need to adjust it to tune performance.
+                default: 100
+          feed_type:
+            type: string
+            description: Feed type DCP or TAP.
+            default: TAP
+          import_filter:
+            type: string
+            description: |
+              JavaScript filter function to determine if a document written to the Couchbase Server bucket should be made available to Couchbase Mobile clients (i.e imported). The filter function takes the document body as parameter and is expected to return a boolean to indicate whether the document should be imported.
+              
+              ```json
+              {
+                "databases": {
+                  "db": {
+                    "server": "http://localhost:8091",
+                    "bucket": "default",
+                    "password": "password",
+                    "import_docs": "continuous",
+                    "enable_shared_bucket_access": true,  
+                    "import_filter": `
+              		function(doc) {
+              		  if (doc.type != "mobile") {
+              		    return false
+              		  }
+              		  return true
+              		}
+              		`,
+                  }
+                }
+              }
+              ```
+            default: function(doc) {return false;}
+          oidc:
+            type: object
+            description: OIDC providers.
+            properties:
+              default_provider:
+                type: string
+                description: Provider to use for OIDC requests that don't specify a provider. If only one provider is specified in the providers map, it is used as the default provider. If multiple providers are defined and default_provider is not specified, requests to /db/_oidc must specify the provider parameter.
+              providers:
+                type: object
+                properties:
+                  foo_provider:
+                    type: object
+                    properties:
+                      issuer:
+                        type: string
+                        description: The OpenID Connect Provider issuer.
+                      client_id:
+                        type: string
+                        description: The client ID defined in the provider for Sync Gateway.
+                      validation_key:
+                        type: string
+                        description: Client secret associated with the client. Required for auth code flow.
+                      signing_method:
+                        type: string
+                        description: Optional. Signing method used for validation key (provides additional security).
+                      callback_url:
+                        type: string
+                        description: Optional. The callback URL to be invoked after the end-user obtains a client token. When not provided, Sync Gateway will generate it based on the incoming request.
+                      register:
+                        type: string
+                        description: Optional. Whether Sync Gateway should automatically create users for successfully authenticated users that don't have an already existing user in Sync Gateway.
+                      disable_session:
+                        type: string
+                        description: Optional. By default, Sync Gateway will create a new session for the user upon successful OIDC authentication, and set that session in the usual way on the _oidc_callback and _oidc_refresh responses. If disable_session is set to true, the session is not created (clients must use the ID token for subsequent authentications).
+                      scope:
+                        type: array
+                        description: Optional. By default, Sync Gateway uses the scope "openid email" when calling the OP's authorize endpoint. If the scope property is defined in the config (as an array of string values), it will override this scope.
+                        items:
+                          type: string
+                      include_access:
+                        type: string
+                        description: Optional. When true, the oidccallback response will include the access_token, expires_at and token_type properties returned by the OP.
+                      user_prefix:
+                        type: string
+                        description: Optional. Specifies the prefix for Sync Gateway usernames for the provider. When not specified, defaults to issuer.
+                      discovery_url:
+                        type: string
+                        description: Optional. Discovery URL used to obtain the OpenID Connect provider configuration. If not specified, the default discovery endpoint of [issuer]/.well-known/openid-configuration will be used.
+                      disable_cfg_validation:
+                        type: string
+                        description: Optional. Disables strict validation of the OpenID Connect configuration.
+          offline:
+            type: string
+            description: Whether the database if kept offline when Sync Gateway starts. Specifying the value true results in the database being kept offline. The default (if the property is omitted) is to bring the database online when Sync Gateway starts. For more information, see Taking databases offline and bringing them online.
+            default: 'false'
+          password:
+            type: string
+            description: Bucket password for authenticating to Couchbase Server. There is no default.
+          pool:
+            type: string
+            description: Couchbase pool name. The default is the string default.
+          rev_cache_size:
+            type: integer
+            description: Size of the revision cache, specified as the total number of document revisions to cache in memory for all recently accessed documents. When the revision cache is full, Sync Gateway removes less recent document revisions to make room for new document revisions. Adjust this property to tune memory consumption by Sync Gateway, for example on servers with less memory and in cases when Sync Gateway creates many new documents and/or updates many documents relative to the number of read operations.
+            default: 5000
+          revs_limit:
+            type: integer
+            description: |
+              Maximum depth to which a document's revision tree can grow. In Sync Gateway 1.5, the `revs_limit` configuration cannot be set lower than 20. Setting the `revs_limit` to a low value (typically below 100) can have adverse effects as described below.
+              
+              The value of `revs_limit` governs the point at which to prune a document's revision tree.
+              
+              Indeed, the process to remove obsolete revisions is called pruning and runs automatically every time a revision is added. Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite. On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
+            
+              If there are conflicting revisions, the document may end up with **disconnected branches** after the pruning process. In the animation below, the document has a conflicting branch (revisions `4'` - `1001'`). When the shortest branch (in this case the conflicting branch) reaches the 1003rd update, it gets is cut off. The revision tree is not in a corrupted state and the logic that chooses the winning revision still applies. But it may make it impossible to do certain merges (n-way merge) to resolve conflicts and will occupy disk space that could have been free-ed if the conflict was resolved early on.<br><br>
+            
+              ![](https://cl.ly/3C1G3t3R1v19/pruning-sg.gif)
+              
+              If the revision tree gets into this state then the only option to resolve the conflict is to pick a winning branch and tombstone all the non-winning conflicting branches. It should be noted that tuning the `revs_limit` to a lower value increases the likelyhood of this scenario happening.
+              
+              See also:
+              - Couchbase Lite [pruning](../../couchbase-lite/native-api/revision/index.html#pruning).
+              - Sync Gateway purge endpoint [/{db}/_purge](references/sync-gateway/admin-rest-api/index.html#!/document/post_db_purge).
+              - Sync Gateway [document TTLs](references/sync-gateway/admin-rest-api/index.html#!/document/put_db_doc).
+            default: 1000
+          roles:
+            type: object
+            description: Initial roles.
+            properties:
+              foo_role:
+                type: object
+                description: The role name.
+                properties:
+                  admin_channels:
+                    type: array
+                    description: The list of channels this role is automatically granted access to when Sync Gateway starts.
+                    items:
+                      type: string
+          server:
+            type: string
+            description: |
+              In Sync Gateway 1.5, we've added the ability to specify multiple hosts in the configuration. Sync Gateway supports both the `couchbase://` and `http://` schemes for specifying connection endpoints.
+              
+              Sync Gateway 1.5 also supports SSL in the connection to Couchbase Server. The `couchbases://` scheme should be used. As with the Couchbase Server SDKs, the `https://` scheme is **not** supported.
+            
+              Hostname(s) to the Couchbase Server nodes in the cluster.
+              
+              The following are all valid `server` values:
+              
+                - `couchbase://host1`
+                - `couchbases://host1`
+                - `couchbase://host1,host2`
+                - `couchbase://host1:11210,host2,`
+                - `couchbases://host1:11207,host2`
+                - `http://host1:8091`
+                - `http://host1,host2:8091`
+                - `http://foo:bar@host1:8091`
+                
+              As with the SDK, when using the `couchbase://` or `couchbases://` schemes, the port is not required, but if specified should be the external/internal bucket ports (defaults are 11210 or 11207 respectively). Attempting to use the admin ports (8091/18091) will result in a startup error.
+              
+              On startup, Sync Gateway will try each hostname that is provided until it is able to connect successfully.
+              
+              If the connection to Couchbase Server is lost during normal operations, Sync Gateway will automatically re-connect to another node in the cluster. During that re-connection period, the Sync Gateway will appear [offline](../database-offline/index.html) and documents will not be replicated to mobile clients.
+                
+              The default value is an in-memory bucket called **walrus** that is only used during development and prototyping.
+            default: 'walrus:'
+          sync:
+            type: string
+            description: |
+              The sync function is a JavaScript function whose source code is stored in the Sync Gateway's database configuration file. Every time a new document, revision or deletion is added to a database, the sync function is called and given a chance to examine the document (see [Sync Function Guide](../../../guides/sync-gateway/sync-function-api-guide/index.html)).
+
+              If you don't supply a sync function, Sync Gateway uses the following default sync function:
+
+              ```javascript
+              function (doc, oldDoc) {
+                 channel(doc.channels);
+              }
+              ```
+
+              In plain English: by default, a document will be assigned to the channels listed in its channels property (whose value must be a string or an array of strings.) More subtly, since there is no validation, any user can change any document. For this reason, the default sync function is really only useful for experimentation and development.
+            default: function(doc, oldDoc) {channel(doc.channels);}
+          unsupported:
+            type: object
+            decription: Features that are currently in developer preview or unsupported.
+            properties:
+              replicator_2:
+                type: boolean
+                description: |
+                  Property to enable the replication protocol used in Couchbase Lite 2.0.
+                  
+                  To use this protocol with Couchbase Lite 2.0, the replication URL should specify WebSockets as the URL scheme (see the [Replication](https://developer.couchbase.com/documentation/mobile/2.0/guides/couchbase-lite/native-api/replication/index.html) section). Mobile clients using Couchbase Lite 1.x can continue to use http as the URL scheme. Sync Gateway will automatically use the 1.x replication protocol when a Couchbase Lite 1.x client connects through "http://localhost:4984/db" and the 2.0 replication protocol when a Couchbase Lite 2.0 client connects through "ws://localhost:4984/db".
+                  
+                  More details about the protocol can be found in the [Replication Protocol](https://github.com/couchbase/couchbase-lite-core/wiki/Replication-Protocol) wiki.
+                default: 'false'
+          username:
+            type: string
+            description: Bucket username for authenticating to Couchbase Server. There is no default.
+          users:
+            type: object
+            description: Initial user accounts.
+            properties:
+              foo_user:
+                type: object
+                description: The user's name.
+                properties:
+                  password:
+                    type: string
+                    description: The user's password.
+                  admin_channels:
+                    type: array
+                    description: The list of channels this user is automatically granted access to when Sync Gateway starts. If `"*"` is specified then the user is granted access to the [star channel](../channels/index.html#special-channels) which contains all documents.
+                    items:
+                      type: string
+                  admin_roles:
+                    type: array
+                    description: The list of roles this user is automatically assigned to when Sync Gateway starts.
+                    items:
+                      type: string
+                  disabled:
+                    type: boolean
+                    description: Whether this user account is disabled.
+  facebook:
+    description: Configuration for Facebook Login authentication.
+    type: object
+    properties:
+      register:
+        description: Whether the Facebook Login server will register new user accounts.
+        type: boolean
+        default: 'false'
+  interface:
+    description: Public REST API port.
+    type: string
+    default: ':4984'
+  log:
+    description: |
+      Comma-separated list of log keys to enable for diagnostic logging. Use ["*"] to enable logging for all log keys.
+            
+      - Access: Anytime an access() call is made in the sync function.
+      - Attach: Attachment processing.
+      - Auth: Authentication.
+      - Bucket: Sync Gateway interactions with the bucket (verbose logging).
+      - Cache: Interactions with Sync Gateway's in-memory channel cache.
+      - Changes: Processing of _changes requests.
+      - CRUD: Updates made by Sync Gateway to documents.
+      - DCP: DCP-feed processing (verbose logging).
+      - Events: Event processing (webhooks).
+      - Feed: Server-feed processing.
+      - HTTP: All requests made to the Sync Gateway REST APIs (Sync and Admin). Note that the log keyword HTTP is always enabled, which means that HTTP requests and error responses are always logged (in a non-verbose manner). HTTP+ provides more verbose HTTP logging.
+      - Replicate: Log messages related to replications between Sync Gateways (using sg-replicate). This tag cannot be used for replications initiated by Couchbase Lite.
+      - Import+: This logging key was introduced in Sync Gateway 1.5 to help troubleshoot the import process of a document (this is the Sync Gateway process to make a document that was added through N1QL or the Server SDKs mobile-aware). This log key can be useful to troubleshoot why a given document was not successfully imported.
+    type: string
+    default: '["HTTP"]'
+  logFilePath:
+    description: Absolute or relative path on the filesystem to the log file. A relative path is from the directory that contains the Sync Gateway executable file.
+    type: string
+    default: 'stderr'
+  logging:
+    description: The logging object.
+    type: object
+    properties:
+      default:
+        type: object
+        properties:
+          logFilePath:
+            description: Absolute or relative path on the filesystem to the log file. A relative path is from the directory that contains the Sync Gateway executable file.
+            type: string
+            default: 'stderr'
+          logKeys:
+            description: |
+              Comma-separated list of log keys to enable for diagnostic logging. Use ["*"] to enable logging for all log keys.
+              
+              - Access: Anytime an access() call is made in the sync function.
+              - Attach: Attachment processing.
+              - Auth: Authentication.
+              - Bucket: Sync Gateway interactions with the bucket (verbose logging).
+              - Cache: Interactions with Sync Gateway's in-memory channel cache.
+              - Changes: Processing of _changes requests.
+              - CRUD: Updates made by Sync Gateway to documents.
+              - DCP: DCP-feed processing (verbose logging).
+              - Events: Event processing (webhooks).
+              - Feed: Server-feed processing.
+              - HTTP: All requests made to the Sync Gateway REST APIs (Sync and Admin). Note that the log keyword HTTP is always enabled, which means that HTTP requests and error responses are always logged (in a non-verbose manner). HTTP+ provides more verbose HTTP logging.
+              - Replicate: Log messages related to replications between Sync Gateways (using sg-replicate). This tag cannot be used for replications initiated by Couchbase Lite.
+              - Import+: This logging key was introduced in Sync Gateway 1.5 to help troubleshoot the import process of a document (this is the Sync Gateway process to make a document that was added through N1QL or the Server SDKs mobile-aware). This log key can be useful to troubleshoot why a given document was not successfully imported.
+            type: string
+            default: '["HTTP"]'
+          logLevel:
+            description: |
+              The level of logging.
+              
+              - debug: 'Print all debug messages. With this level of logging, logs are usually voluminous. This log level is usually disabled in production.'
+              - info: 'Pint all information messages.'
+              - error: 'Print all errors. If an application is running smoothly it should not generate any error level logs.'
+              - panic: 'Logs a message, then panics.'
+              - fatal: 'Logs a message, then calls os.Exit(1).'
+            type: string
+            default: '["info"]'
+          rotation:
+            description: The log file may be rotated by defining a "rotation" sub document. See details in the table below.
+            type: object
+            properties:
+              maxsize:
+                type: integer
+                description: The maximum size in MB of the log file before it gets rotated.
+                default: 100
+              maxage:
+                type: integer
+                description: The maximum number of days to retain old log files.
+              maxbackups:
+                type: integer
+                description: The maximum number of old log files to retain.
+              localtime:
+                type: boolean
+                description: If true, it uses the computer's local time to format the backup timestamp.
+                default: 'UTC'
+  maxCouchbaseConnections:
+    description: Maximum number of sockets to open to a Couchbase Server node.
+    type: integer
+    default: 16
+  maxCouchbaseOverflow:
+    description: Maximum number of overflow sockets to open.
+    type: integer
+    default: 0
+  maxFileDescriptors:
+    description: Maximum number of open file descriptors.
+    type: integer
+    default: 5000
+  maxHeartbeat:
+    description: Maximum heartbeat value for _changes feed requests (in seconds).
+    type: integer
+  maxIncomingConnections:
+    description: Maximum number of incoming HTTP connections to accept.
+    type: integer
+    default: 0
+  pretty:
+    description: Whether to pretty-print JSON responses.
+    type: boolean
+    default: 'false'
+  profileInterface:
+    description: TCP network address (IP address and the port) that the Go profile API listens on. You can obtain go profiling information from the interface. You can omit the IP address.
+    type: string
+  replications:
+    type: array
+    items:
+      type: object
+      properties:
+        replication_id:
+          type: string
+          description: ID to assign this replication with. If no replication_id is given for a new replication it will be assigned a random UUID.
+        source:
+          type: string
+          description: Identifies the database to copy revisions from. Can be a string containing a local database name or a remote database URL, or an object whose url property contains the database name or URL. Also an object can contain headers property that contains custom header values such as a cookie.
+        target:
+          type: string
+          description: Identifies the database to copy revisions to. Same format and interpretation as source.
+        continuous:
+          type: boolean
+          description: Specifies whether the replication should be in continuous mode.
+        changes_feed_limit:
+          type: string
+          description: The maximum number of change entries to pull in each loop of a continous changes feed.
+          default: 50
+        filter:
+          type: string
+          description: Indicates that the documents should be filtered using the specified filter function name. A common value used when replicating from Sync Gateway is sync_gateway/bychannel to limit the pull replication to a set of channels.
+        query_params:
+          type: array
+          description: A set of key/value pairs to use in the querystring of the replication. For example, the channels field can be used to pull from a set of channels (in this particular case, the filter key must be set for the channels field to work as expected).
+          items:
+            type: string
+  serverReadTimeout:
+    description: Maximum duration in seconds before timing out the read of an HTTP(S) request. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
+    type: integer
+  serverWriteTimeout:
+    description: Maximum duration in seconds before timing out the write of an HTTP(S) response. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
+    type: integer
+  slowServerCallWarningThreshold:
+    description: Log warnings if database calls made by Sync Gateway take this many milliseconds or longer.
+    type: integer
+    default: 200
+  SSLCert:
+    description: Absolute or relative path on the filesystem to the TLS certificate file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
+    type: string
+  SSLKey:
+    description: Absolute or relative path on the filesystem to the TLS private key file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
+    type: string

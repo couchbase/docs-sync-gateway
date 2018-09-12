@@ -1,0 +1,191 @@
+properties:
+  adminInterface:
+    description: Port or TCP network address (IP address and the port) that the Admin REST API listens on. The loopback address prefix before the port (`127.0.0.1`) means the interface will not be reachable from other hosts. To make it reachable, change it to ":4985".
+    type: string
+    default: '127.0.0.1:4985'
+  channel_index:
+    type: object
+    properties:
+      num_shards:
+        type: integer
+        description: Represents the maximum number of concurrent Sync Gateway Accelerator nodes that can be supported by the index. It is only necessary to override the default value for large Sync Gateway Accelerator clusters (> 16 nodes). Higher num_shards values can result in a more fragmented index, as entries in the index are grouped by shard. A higher num_shards value results in more work for index reads that scan all shards (in large backfill scenarios for example). Changing num_shards requires a flush to rebuild the channel index bucket.
+        default: 16
+      tombstone_compact_freq:
+        type: integer
+        description: How often tombstones should be compacted in the channel index. When compaction runs, it identifies tombstones that are older than the server's metadata purge interval and removes them from Sync Gateway Accelerator's channel index.
+        default: 24
+  cluster_config:
+    type: object
+    description: The configuration to specify where the data bucket resides.
+    properties:
+      server:
+        type: string
+        description: |
+          Hostname(s) to the Couchbase Server nodes in the cluster.
+          
+          Multiple URLs can be specified in any of the following formats:
+          
+            - `couchbase://host1`
+            - `couchbases://host1`
+            - `couchbase://host1,host2`
+            - `couchbase://host1:11210,host2,`
+            - `couchbases://host1:11207,host2`
+            - `http://host1:8091`
+            - `http://host1,host2:8091`
+            - `http://foo:bar@host1:8091`
+            
+          On startup, Sync Gateway Accelerator will try each hostname that is provided until it is able to connect successfully.
+          
+          If the connection to Couchbase Server is lost during normal operations, Sync Gateway Accelerator will automatically re-connect to another node in the cluster.
+            
+          The default value is an in-memory bucket called **walrus** that is only used during development and prototyping.
+        default: 'walrus:'
+      bucket:
+        type: string
+        description: The bucket name where the data is stored (i.e the one specified in the database configuration.)
+      data_dir:
+        type: string
+        description: The directory to store the Sync Gateway Accelerator internal files. Those files can be ignored from back-ups and Sync Gateway Accelerator will re-create them on start-up if they get deleted.
+  couchbaseKeepaliveInterval:
+    description: TCP keep-alive interval in seconds between Sync Gateway and Couchbase Server.
+    type: integer
+  databases:
+      description: Database settings.
+      type: object
+      properties:
+        foo_db:
+          type: object
+          description: The database name is stored as a key.
+          properties:
+            bucket:
+              type: string
+              description: Bucket name on Couchbase Server or a Walrus bucket. The default is the value of the property Name.
+            server:
+              type: string
+              description: |
+                Hostname(s) to the Couchbase Server nodes in the cluster.
+                
+                Multiple URLs can be specified in any of the following formats:
+                
+                  - `couchbase://host1`
+                  - `couchbases://host1`
+                  - `couchbase://host1,host2`
+                  - `couchbase://host1:11210,host2,`
+                  - `couchbases://host1:11207,host2`
+                  - `http://host1:8091`
+                  - `http://host1,host2:8091`
+                  - `http://foo:bar@host1:8091`
+                  
+                On startup, Sync Gateway Accelerator will try each hostname that is provided until it is able to connect successfully.
+                
+                If the connection to Couchbase Server is lost during normal operations, Sync Gateway Accelerator will automatically re-connect to another node in the cluster.
+                  
+                The default value is an in-memory bucket called **walrus** that is only used during development and prototyping.
+              default: 'walrus:'
+            channel_index:
+              type: object
+              properties:
+                writer:
+                  type: boolean
+                  description: Whether the channel index node can write to the bucket.
+                server:
+                  type: string
+                  description: |
+                    Hostname(s) to the Couchbase Server nodes in the cluster.
+                    
+                    Multiple URLs can be specified in any of the following formats:
+                    
+                      - `couchbase://host1`
+                      - `couchbases://host1`
+                      - `couchbase://host1,host2`
+                      - `couchbase://host1:11210,host2,`
+                      - `couchbases://host1:11207,host2`
+                      - `http://host1:8091`
+                      - `http://host1,host2:8091`
+                      - `http://foo:bar@host1:8091`
+                      
+                    On startup, Sync Gateway Accelerator will try each hostname that is provided until it is able to connect successfully.
+                    
+                    If the connection to Couchbase Server is lost during normal operations, Sync Gateway Accelerator will automatically re-connect to another node in the cluster.
+                bucket:
+                  type: string
+                  description: Bucket name for channel indexing. A common name is "channel_index".
+            enable_shared_bucket_access:
+              type: boolean
+              description: |
+                This property specifies whether to enable the interoperability between Couchbase Mobile and Couchbase Server. Refer to Sync Gateway's [equivalent property](config-properties/index.html#1.5/databases-foo_db-enable_shared_bucket_access) for full details.
+                
+                The only difference when enabling **shared bucket access** with Sync Gateway Accelerator is that the `import_docs` property doesn't need to be set. Indeed, in a Sync Gateway + Sync Gateway Accelerator deployment, the import process is always shared between Sync Gateway Accelerator nodes.
+              default: 'false'
+  log:
+    description: |
+      Comma-separated list of log keys to enable for diagnostic logging. Use ["*"] to enable logging for all log keys.
+      
+      - ChannelStorage: Useful for low-level Sync Gateway Accel troubleshooting. Provides more granular logging during read and write of lower-level indexing at the document level.
+      - DCP: DCP-feed processing (verbose logging).
+      - DIndex: Useful for high-level Sync Gateway Accel troubleshooting. Provides information on high-level operations between Sync Gateway/Sync Gateway Accelerator and the channel index.
+      - HTTP: All requests made to the Sync Gateway REST APIs (Sync and Admin). Note that the log keyword HTTP is always enabled, which means that HTTP requests and error responses are always logged (in a non-verbose manner). HTTP+ provides more verbose HTTP logging.
+    type: string
+    default: '["HTTP"]'
+  logFilePath:
+    description: Absolute or relative path on the filesystem to the log file. A relative path is from the directory that contains the Sync Gateway executable file.
+    type: string
+    default: 'stderr'
+  logging:
+    description: The logging object.
+    type: object
+    properties:
+      default:
+        type: object
+        properties:
+          logFilePath:
+            description: Absolute or relative path on the filesystem to the log file. A relative path is from the directory that contains the Sync Gateway executable file.
+            type: string
+            default: 'stderr'
+          logKeys:
+            description: |
+              Comma-separated list of log keys to enable for diagnostic logging. Use ["*"] to enable logging for all log keys.
+              
+              - Access: Anytime an access() call is made in the sync function.
+              - Attach: Attachment processing.
+              - Auth: Authentication.
+              - Bucket: Sync Gateway interactions with the bucket (verbose logging).
+              - Cache: Interactions with Sync Gateway's in-memory channel cache.
+              - Changes: Processing of _changes requests.
+              - CRUD: Updates made by Sync Gateway to documents.
+              - DCP: DCP-feed processing (verbose logging).
+              - Events: Event processing (webhooks).
+              - Feed: Server-feed processing.
+              - HTTP: All requests made to the Sync Gateway REST APIs (Sync and Admin). Note that the log keyword HTTP is always enabled, which means that HTTP requests and error responses are always logged (in a non-verbose manner). HTTP+ provides more verbose HTTP logging.
+              - Replicate: Log messages related to replications between Sync Gateways (using sg-replicate). This tag cannot be used for replications initiated by Couchbase Lite.
+              - Import+: This logging key was introduced in Sync Gateway 1.5 to help troubleshoot the import process of a document (this is the Sync Gateway process to make a document that was added through N1QL or the Server SDKs mobile-aware). This log key can be useful to troubleshoot why a given document was not successfully imported.
+            default: '["HTTP"]'
+          logLevel:
+            description: |
+              The level of logging.
+              
+              - debug: 'Print all debug messages. With this level of logging, logs are usually voluminous. This log level is usually disabled in production.'
+              - info: 'Pint all information messages.'
+              - error: 'Print all errors. If an application is running smoothly it should not generate any error level logs.'
+              - panic: 'Logs a message, then panics.'
+              - fatal: 'Logs a message, then calls os.Exit(1).'
+            type: string
+            default: '["info"]'
+          rotation:
+            description: The log file may be rotated by defining a "rotation" sub document. See details in the table below.
+            type: object
+            properties:
+              maxsize:
+                type: integer
+                description: The maximum size in MB of the log file before it gets rotated.
+                default: 100
+              maxage:
+                type: integer
+                description: The maximum number of days to retain old log files.
+              maxbackups:
+                type: integer
+                description: The maximum number of old log files to retain.
+              localtime:
+                type: boolean
+                description: If true, it uses the computer's local time to format the backup timestamp.
+                default: 'UTC'
