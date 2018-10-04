@@ -66,11 +66,11 @@ Generally this will involve a particular URL that the app needs to post some for
 the App Server will verify those, then tell the Sync Gateway to create a new session for the corresponding user, and return session credentials in its response to the client app.
 
 The following diagram shows an example architecture to support Google SignIn in a Couchbase Mobile application, the client sends an access token to the App Server where a server side validation is done with the Google API and a corresponding Sync Gateway user is then created if it's the first time the user logs in.
-The last request creates a session:
+The last request creates a session.
 
 image::custom-auth-flow.png[]
 
-Given a user has already been created, the request to create a new session for that user name is the following:
+Given a user that has already been created, a new session for that user can be created on the Admin xref:admin-rest-api.adoc#/session/post\__db___session[POST /+{db}+/_session] endpoint.
 
 [source,bash]
 ----
@@ -90,7 +90,7 @@ The HTTP response body contains the credentials of the session.
 * *name* corresponds to the `cookie_name`
 * *value* corresponds to the `session_id`
 * *path* is the hostname of the Sync Gateway
-* *expirationDate* corresponds to the `expires`
+* *expirationDate* corresponds to the cookie's expiration time. The endpoint's xref:admin-rest-api.adoc#/session/post\__db___session[API reference] contains more information about how the expiration time is automatically extended according to the user session activity.
 * *secure* Whether the cookie should only be sent using a secure protocol (e.g. HTTPS)
 * *httpOnly* Whether the cookie should only be used when transmitting HTTP, or HTTPS, requests thus restricting access from other, non-HTTP APIs
 
