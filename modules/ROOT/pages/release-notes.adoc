@@ -1,114 +1,64 @@
 = SG release notes
 
-== Deprecation Notices
+== 1.3.1 release
 
-The following features are being deprecated and will be unsupported in an upcoming version of Sync Gateway. 
+.Enhancements
+* https://github.com/couchbase/sync_gateway/issues/1745[#1745] Add retry when trying to connect to a server node in "warmup" state
+* https://github.com/couchbase/sync_gateway/issues/2005[#2005] Tombstones don't grant access, don't propagate to users granted access by the doc
+* https://github.com/couchbase/sync_gateway/issues/2013[#2013] Azure returns unsigned ID token in response to refresh request
+* https://github.com/couchbase/sync_gateway/issues/2038[#2038] Uptake expvar refactoring for perf usage into 1.3.1
+* https://github.com/couchbase/sync_gateway/issues/2046[#2046] Service install script enhancement for Ubuntu 16.04
 
-* *Bucket shadowing* has been deprecated since 1.4 and has now become unsupported. The recommended approach to perform operations on a bucket dedicated to Couchbase Mobile is to enable link:shared-bucket-access.html[shared bucket access].
+.Bugs
+* https://github.com/couchbase/sync_gateway/issues/973[#973] Can't initiate websocket connection
+* https://github.com/couchbase/sync_gateway/issues/1554[#1554] Panic: send on closed channel when closing database
+* https://github.com/couchbase/sync_gateway/issues/1999[#1999] Sync Gateway terminating changes requests
 
+== 1.3 release
 
-== New Features
+.Performance Improvements
+* https://github.com/couchbase/sync_gateway/issues/1631[#1631] Disable assimilator when autoImport=false and shadower=nil
+* https://github.com/couchbase/sync_gateway/issues/1752[#1752] Major inefficiencies replicating docs with many revisions
 
-=== No Conflicts Mode
+.Enhancements
+* https://github.com/couchbase/sync_gateway/issues/508[#508] Feature Request: Oauth2 Support
+* https://github.com/couchbase/sync_gateway/issues/656[#656] Special characters in channel names cause error
+* https://github.com/couchbase/sync_gateway/issues/1326[#1326] Map URI's without a trailing slash to the same handlers as the trailing backslash routes
+* https://github.com/couchbase/sync_gateway/issues/1331[#1331] Create and distribute a diagnostics tool
+* https://github.com/couchbase/sync_gateway/issues/1623[#1623] POST to _changes is incompatible with CouchDB's implementation
+* https://github.com/couchbase/sync_gateway/issues/1634[#1634] Querying a view via the Public REST API returns total row count
+* https://github.com/couchbase/sync_gateway/issues/1663[#1663] Add `\_replicate` support to SG admin REST API
+* https://github.com/couchbase/sync_gateway/issues/1680[#1680] SGW /{db}/{doc}?revs_info=true doesn't show revision info
+* https://github.com/couchbase/sync_gateway/issues/1683[#1683] Allow forward slashes in attachment names
+* https://github.com/couchbase/sync_gateway/issues/1685[#1685] Misleading error message when trying to add attachment to unavailable document
+* https://github.com/couchbase/sync_gateway/issues/1686[#1686] New logging REST API endpoint
+* https://github.com/couchbase/sync_gateway/issues/1688[#1688] Implement OpenID Connect relying-party support
+* https://github.com/couchbase/sync_gateway/issues/1710[#1710] Ability for Sync Gateway to bring itself back online after unexpected offline
+* https://github.com/couchbase/sync_gateway/issues/1774[#1774] Functional tests for OIDC authentication
+* https://github.com/couchbase/sync_gateway/issues/1926[#1926] Handle invalid username characters in OIDC issuer, subject
 
-Sync Gateway 2.0 can be run in "no conflicts mode". When running in this mode, Sync Gateway will reject any updates that would otherwise create a conflict.
-When using Couchbase Lite 2.0, these conflicts can be automatically detected and resolved by the client. 
+.Bugs
+* https://github.com/couchbase/sync_gateway/issues/1024[#1024] Sync Gateway not reporting changes
+* https://github.com/couchbase/sync_gateway/issues/1034[#1034] SyncGateway not looking up the ancestry to find an attachment
+* https://github.com/couchbase/sync_gateway/issues/1051[#1051] Couchbase Server indexing stuck on SG views
+* https://github.com/couchbase/sync_gateway/issues/1286[#1286] Removing a node from CB-cluster and rebalance causing writer SG to crash
+* https://github.com/couchbase/sync_gateway/issues/1308[#1308] [Distributed Index] User not getting docs in _changes when given access via sync function
+* https://github.com/couchbase/sync_gateway/issues/1384[#1384] Changes feed returning duplicates for * channel
+* https://github.com/couchbase/sync_gateway/issues/1388[#1388] [Distributed Index] Panic when restarting sync_gateway
+* https://github.com/couchbase/sync_gateway/issues/1471[#1471] [Distributed Index] Panic when shutting down sg_accel while it is indexing
+* https://github.com/couchbase/sync_gateway/issues/1575[#1575] New warning happening on SG 1.2: "MultiChangesFeed: Terminator missing for Continuous/Wait mode"
+* https://github.com/couchbase/sync_gateway/issues/1631[#1631] Disable assimilator when autoImport=false and shadower=nil
+* https://github.com/couchbase/sync_gateway/issues/1656[#1656] Users can be created with empty password even though `allow_empty_password` is `False`
+* https://github.com/couchbase/sync_gateway/issues/1691[#1691] Latest gocb breaks go get
+* https://github.com/couchbase/sync_gateway/issues/1702[#1702] _changes with doc_ids filter does not return deleted docs
+* https://github.com/couchbase/sync_gateway/issues/1706[#1706] Attachments fail to sync if revpos ancestor on server has been compacted
+* https://github.com/couchbase/sync_gateway/issues/1712[#1712] Return an error for unsupported changes filter
+* https://github.com/couchbase/sync_gateway/issues/1728[#1728] Attachments still stored for documents rejected by sync function
+* https://github.com/couchbase/sync_gateway/issues/1736[#1736] Intermittent unit test failure - TestPostChangesChannelFilterClock
+* https://github.com/couchbase/sync_gateway/issues/1751[#1751] SG master doesn't compile on i386
+* https://github.com/couchbase/sync_gateway/issues/1760[#1760] Compiling for i386 fails in `pruneRevisions`
+* https://github.com/couchbase/sync_gateway/issues/1769[#1769] Filter by channel works with arrays only
+* https://github.com/couchbase/sync_gateway/issues/1857[#1857] Changes feed with doc_ids filter omits `deleted` properties
 
-Details on how to configure this mode, along with additional information, is included at (link:config-properties.html#2.0/databases-foo_db-allow_conflicts[databases.$db.allow_conflicts]).
-
-=== Data Lifecycle Management
-
-An expiry value can now be set for Couchbase Lite replication checkpoints (and local documents more generally), allowing users to configure how long these are retained.
-By default they will be retained for 90 days, but this can be customized using (link:config-properties.html#2.0/databases-foo_db-local_doc_expiry_secs[databases.$db.local_doc_expiry_secs]).
-
-Document expiry can now be set using the Sync Function.
-A new built-in function, (link:sync-function-api.html#expiry[expiry()]) can be used to set the Couchbase Server expiry for the document. 
-
-== Upgrading
-
-Starting in Sync Gateway 2.0, Sync Gateway`'s design documents include the version number in the design document name.
-In this release for example, the design documents are named `\_design/sync_gateway_2.0` and ``\_design/sync_housekeeping_2.0``. 
-
-On startup, Sync Gateway will check for the existence of these design documents, and only attempt to create them if they do not already exist.
-Then, Sync Gateway will wait until views are available and indexed before starting to serve requests.
-To evaluate this, Sync Gateway will issue a `stale=false&limit=1` query against the Sync Gateway views (channels, access and role_access). 
-
-If the view request exceeds the default timeout of 75s (which would be expected when indexing large buckets), Sync Gateway will log additional messages and retry.
-The logging output will look like this: 
-
-[source,bash]
-----
-
-14:26:41.039-08:00 Design docs for current SG view version (2.0) found.
-14:26:41.039-08:00 Verifying view availability for bucket default...
-14:26:42.045-08:00 Timeout waiting for view "access" to be ready for bucket "default" - retrying...
-14:26:42.045-08:00 Timeout waiting for view "channels" to be ready for bucket "default" - retrying...
-14:26:42.045-08:00 Timeout waiting for view "role_access" to be ready for bucket "default" - retrying...
-14:26:44.065-08:00 Timeout waiting for view "access" to be ready for bucket "default" - retrying...
-14:26:44.065-08:00 Timeout waiting for view "role_access" to be ready for bucket "default" - retrying...
-14:26:44.065-08:00 Timeout waiting for view "channels" to be ready for bucket "default" - retrying...
-14:26:44.072-08:00 Views ready for bucket default.
-----
-
-Sync Gateway 2.0 will *not* automatically remove the previous design documents.
-Removal of the obsolete design documents is done via a call to the new link:admin-rest-api.html#/server/post__post_upgrade[/_post_upgrade] endpoint in Sync Gateway`'s Admin REST API.
-This endpoint can be run in preview mode (``?preview=true``) to see which design documents would be removed.
-To summarize, the steps to perform an upgrade to Sync Gateway 2.0 are: 
-
-. Upgrade one node in the cluster to 2.0, and wait for it to be reachable via the REST API (for example at http://localhost:4985/). 
-. Upgrade the rest of the nodes in the cluster. 
-. Clean up obsolete views: 
-** *Optional* Issue a call to `/_post_upgrade?preview=true` on any node to preview which design documents will be removed. To upgrade to 2.0, expect to see "sync_gateway" and "sync_housekeeping" listed. 
-** Issue a call to `/_post_upgrade` to remove the obsolete design documents. The response should indicate that "sync_gateway" and "sync_housekeeping" were removed.
-
-== 1.5.2
-
-*Bugs*
-
-* https://github.com/couchbase/sync_gateway/issues/3756[#3756] DCP Feed does not seed from all nodes
-
-== 1.5.0
-
-*Performance Improvements*
-
-* https://github.com/couchbase/sync_gateway/issues/1850[#1850] Avoid duplicate parsing of HTTP query string 
-* https://github.com/couchbase/sync_gateway/issues/2871[#2871] Review bucket_gocb concurrent op limits 
-* https://github.com/couchbase/sync_gateway/issues/2928[#2928] Optimize document unmarshalling for GetDoc 
-* https://github.com/couchbase/sync_gateway/issues/3102[#3102] Use rev cache for _changes w/ include_docs 
-
-*Enhancements*
-
-* https://github.com/couchbase/sync_gateway/issues/744[#744] When try to put nonexistent document with rev: Document revision conflict 
-* https://github.com/couchbase/sync_gateway/issues/1280[#1280] Auto-expire unused _local checkpoint documents 
-* https://github.com/couchbase/sync_gateway/issues/1580[#1580] Use latest version of Otto 
-* https://github.com/couchbase/sync_gateway/issues/2354[#2354] Windows service wrapper should write to a configurable stderr log file 
-* https://github.com/couchbase/sync_gateway/issues/2709[#2709] Conflict-free mode (allow_conflicts:false) 
-* https://github.com/couchbase/sync_gateway/issues/3015[#3015] Set document expiry via Sync Function 
-* https://github.com/couchbase/sync_gateway/issues/3123[#3123] Log _sync:seq on startup 
-* https://github.com/couchbase/sync_gateway/issues/3136[#3136] Inter-document compression in BLIP replicator 
-* https://github.com/couchbase/sync_gateway/issues/3105[#3105] Set document expiry via Sync Function 
-
-*Bugs*
-
-* https://github.com/couchbase/sync_gateway/issues/1003[#1003] SG with bucket shadowing doesn't work properly after CB restarted 
-* https://github.com/couchbase/sync_gateway/issues/1406[#1406] Feedtype=DCP not working sometimes 
-* https://github.com/couchbase/sync_gateway/issues/1488[#1488] Rebalance -in a CBS node results in timeouts which manifests as empty changes feed 
-* https://github.com/couchbase/sync_gateway/issues/2108[#2108] Missing sequences in _changes feed causing sg-replicate missing documents replication 
-* https://github.com/couchbase/sync_gateway/issues/2223[#2223] Wrong name being set for users 
-* https://github.com/couchbase/sync_gateway/issues/2371[#2371] Logging - "Replicate" works when in *.json but not when you PUT _logging 
-* https://github.com/couchbase/sync_gateway/issues/2383[#2383] Channel cache missing data when request instantiating cache times out 
-* https://github.com/couchbase/sync_gateway/issues/2410[#2410] SG gets into a 100% cpu state, where restart is the only recovery 
-* https://github.com/couchbase/sync_gateway/issues/2441[#2441] RedHat/Centos 6 'initctl restart sync_gateway' does not work as expected 
-* https://github.com/couchbase/sync_gateway/issues/2458[#2458] Log rotation skipping BLIP keys 
-* https://github.com/couchbase/sync_gateway/issues/2717[#2717] SG Blip handler not reloading user channels 
-* https://github.com/couchbase/sync_gateway/issues/3048[#3048] Panic when attempting to make invalid update to a conflicting document 
-* https://github.com/couchbase/sync_gateway/issues/3049[#3049] Allow non-winning tombstone revisions when running with allow_conflicts=false 
-* https://github.com/couchbase/sync_gateway/issues/3054[#3054] Mobile import of SDK write doesn't preserve expiry 
-* https://github.com/couchbase/sync_gateway/issues/3107[#3107] _revisions property is stored in rev cache after new_edits=false write 
-* https://github.com/couchbase/sync_gateway/issues/3108[#3108] Channel grant to role doesn't trigger reload of user context during write 
-* https://github.com/couchbase/sync_gateway/issues/3146[#3146] One-shot changes requests should log timing information 
-* https://github.com/couchbase/sync_gateway/issues/3174[#3174] sgcollect_info crashes if error encountered getting expvars 
-* https://github.com/couchbase/sync_gateway/issues/3247[#3247] Ensure one-shot sg-replicate replications don't start until views are indexed 
-* https://github.com/couchbase/sync_gateway/issues/3248[#3248] CloseNotifier handling not being used for continuous changes 
-* https://github.com/couchbase/sync_gateway/issues/3307[#3307] Pushing yet-unseen tombstoned doc to Sync Gateway returns error in XATTR mode 
-* https://github.com/couchbase/sync_gateway/issues/3344[#3344] Sync Gateway 1.5.1 panics when querying a view 
+.Known Issues
+* https://github.com/couchbase/sync_gateway/issues/1979[#1979] OIDC - Azure AD must be default provider when using multiple providers
