@@ -51,49 +51,11 @@ The reference to the configuration properties can be found below.
 * link:config-properties.html#databases-foo_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
 * link:config-properties.html#databases-foo_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
 
-== Tombstones
+== Metadata Purge Interval
 
-When this feature is enabled, mobile tombstones are not retained indefinitely.
+When this feature is enabled, xref:managing-tombstones.adoc[mobile tombstones] are not retained indefinitely.
 They will be purged based on the server's metadata purge interval.
 To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
-
-The storage location of tombstones differs slightly depending on whether the Shared Bucket Access feature is enabled (`enable_shared_bucket_access: true`).
-The table below describes those differences.
-
-|===
-|`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
-
-2+a|*Mobile metadata storage location*
-|Document body (`doc._sync`)
-|System extended attribute (`xattr._sync`)
-
-2+a|*Tombstone storage location*
-|Document body
-|System extended attribute (`xattr._sync`).
-Empty document body.
-|===
-
-Document operations also have a different impact on tombstones when Shared Bucket Access is enabled/disabled.
-
-|===
-|`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
-
-2+a|*Deleting a document through Sync Gateway*
-|Creates a tombstone
-|Creates a tombstone
-
-2+a|*Purging a document through Sync Gateway*
-|Removes the document and metadata
-|Removes the document and metadata
-
-2+a|*Deleting a document body in the bucket (SDK, N1QL, expiry)*
-|Removes the document and metadata
-|Creates a tombstone
-
-2+a|*Purging a document's metadata (on Couchbase Server)*
-|N/A
-|Removes the tombstone metadata
-|===
 
 == Migrating from Bucket Shadowing
 

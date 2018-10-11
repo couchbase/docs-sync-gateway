@@ -155,56 +155,6 @@ As shown above, certificate based authentication on Sync Gateway is enabled with
 +
 If the **username**/**password** properties are also specified in the configuration file then Sync Gateway will use password-based authentication and also include the client certificate in the TLS handshake.
 
-== Managing Tombstones
-
-By design, when a document is deleted in Couchbase Mobile, they are not actually deleted from the database, but simply marked as deleted (by setting the `_deleted` property). The reason that documents are not immediately removed is to allow all devices to see that they have been deleted - particularly in the case of devices that may not be online continuously and therefore not syncing regularly.
-
-To actually remove the documents permanently, you need to _purge_ them.
-The following tables describe how to purge tombstones (automatically or manually) and reset the Sync Gateway channel cache when Shared Bucket Access is enabled or disabled.
-
-|===
-2+a|*Automatic purging of tombstones*
-|`enable_shared_bucket_access: false`
-|`enable_shared_bucket_access: true`
-|Tombstones can be automatically purged from the bucket by setting a server expiry on tombstone documents.
-This can be easily automated via SG using the xref:sync-function-api.adoc#expiry[expiry()] function in the Sync Function.
-The expiry time should be sufficient (perhaps a week, or a month) to allow for all other devices to sync and receive the delete notification.
-|Tombstones are automatically purged from the bucket based on the server's metadata purge interval.
-|===
-
-|===
-2+a|*Manually purging tombstones*
-|`enable_shared_bucket_access: false`
-|`enable_shared_bucket_access: true`
-|Tombstones can be manually removed via Sync Gateway's xref:admin-rest-api.adoc#/document/post\__db___purge[/{db}/_purge] endpoint, or deleting documents directly in the bucket.
-|Tombstones can be manually removed via Sync Gateway's xref:admin-rest-api.adoc#/document/post\__db___purge[/{db}/_purge] endpoint.
-|===
-
-Deleted/expired tombstones aren't automatically ejected from Sync Gateway's in-memory channel caches:
-
-|===
-|`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
-
-2+a|*For tombstones purged on Couchbase Server*
-a|
-* Restarting Sync Gateway will flush the cache
-a|
-* Restarting Sync Gateway will flush the cache.
-* Starting in 2.1.1, running the xref:admin-rest-api.adoc#/database/post\__db___compact[/{db}/_compact] endpoint will remove purged tombstones from the channel cache.
-
-
-2+a|*For documents purged on Sync Gateway*
-a|
-* Restarting Sync Gateway will flush the cache.
-* Starting in 2.1.1, this is done automatically.
-a|
-* Restarting Sync Gateway will flush the cache.
-* Starting in 2.1.1, this is done automatically.
-|===
-
-Purging of tombstones is also required on Couchbase Lite.
-For example, you might decide that if a document is deleted on a Couchbase Lite client, that you want to purge the document (on that device) as soon as the delete has been successfully replicated out to Sync Gateway.
-
 == Log Rotation
 
 === Built-in log rotation
