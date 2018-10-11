@@ -1,7 +1,7 @@
 = Shared Bucket Access
 :url-downloads: https://www.couchbase.com/downloads
 
-With Sync Gateway 1.5, you can seamlessly extend an existing Couchbase Server deployment to connect with remote edge devices that are occasionally disconnected or connected.
+Starting in Sync Gateway 1.5, you can seamlessly extend an existing Couchbase Server deployment to connect with remote edge devices that are occasionally disconnected or connected.
 
 In previous releases, you either had to ensure all writes happened through Sync Gateway, or had to set up bucket shadowing to ensure that the security and replication metadata needed by mobile applications was preserved.
 
@@ -13,16 +13,14 @@ Mobile, web and desktop applications can therefore write to the same bucket in a
 
 This new feature was made opt-in primarily out of consideration for existing customers upgrading from Sync Gateway 1.4.
 It ensures that their existing configs will continue to work as-is, and supports upgrade without bringing down the entire Sync Gateway cluster.
-The steps below walk through how to enable this new feature.
 
-. {url-downloads}[Download Couchbase Server 5.0].
-. {url-downloads}#couchbase-mobile[Download Sync Gateway 1.5].
-. Create a new bucket in the Couchbase Server Admin Console.
-. With Role Based Access Control (RBAC) newly introduced in Couchbase Server 5.0, you'll need to create a new user with authorized access to the bucket.
-Choose the *Security > Add User* option in the Couchbase Server Admin and select the *Bucket Full Access* and *Read Only Admin* roles.
-. Start Sync Gateway with the following configuration file.
+The xref:getting-started.adoc[getting started] page includes step-by-step instructions to:
+
+. Install Couchbase Server 5.0 or above.
+. Configure Couchbase Server with RBAC.
+. Install Sync Gateway with a configuration file that enables Mobile-Web data synchronization.
+Another example is presented below.
 +
---
 [source,json]
 ----
 {
@@ -32,33 +30,26 @@ Choose the *Security > Add User* option in the Couchbase Server Admin and select
             "username": "my-user",
             "password": "my-password",
             "server": "http://localhost:8091",
-            "enable_shared_bucket_access": true,
-            "import_docs": true
+            "enable_shared_bucket_access": true, <1>
+            "import_docs": true <2>
         }
     }
 }
 ----
-
-There are two properties to keep in mind.
-The `enable_shared_bucket_access` property is used to disable the default behavior.
-And the `import_docs` property to specify that this Sync Gateway node should perform import processing of incoming documents.
+<1> The `enable_shared_bucket_access` property is used to enable Web-Mobile data sync.
+<2> The `import_docs` property is used to specify that this Sync Gateway node should perform import processing of incoming documents.
 Note that in a clustered environment, only 1 node should use the `import_docs` property.
---
-
-. On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket.
+On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket.
 From then on, documents can be inserted on the Server directly (SDKs) or through the Sync Gateway REST API.
 The mobile metadata is no longer kept in the document, but in a system extended attribute in Couchbase Server.
 
-The reference to the configuration API changes can be found below.
+== Reference
+
+The reference to the configuration properties can be found below.
 
 * link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
 * link:config-properties.html#databases-foo_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
 * link:config-properties.html#databases-foo_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
-
-When this feature is enabled, the REST API will include the following changes.
-
-* Sync Gateway purging (xref:admin-rest-api.adoc#/document/post\__db___purge[/+{db}+/_purge]) removes the document and its associated extended attributes.
-* Sync Gateway document expiry (PUT xref:admin-rest-api.adoc#/document/put\__db___doc_[+/{db}/{docid}+]) will tombstone the active revision.
 
 == Tombstones
 
