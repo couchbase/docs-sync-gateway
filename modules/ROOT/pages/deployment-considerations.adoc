@@ -47,112 +47,38 @@ This method is used in the getting started xref:getting-started.adoc#start-sync-
 Sync Gateway 2.1 adds the ability to use X.509 certificates to authenticate against Couchbase Server 5.5 or higher.
 This functionality can be used instead or in addition to the existing authentication method which is to specify a username and password in the configuration file.
 
-==== X.509 Certificates for Couchbase Server
+To use x.509 authentication with Sync Gateway, you must first run through the following steps.
 
-You must first generate the cluster certificate and node certificates.
-Instructions to create and install those certificates can be found xref:server:security:security-x509certsintro.adoc#sslconfig[here] (step 1 to 13).
+. Create x.509 certificates for Couchbase Server.
+See xref:server:security:security-x509certsintro.adoc#sslconfig[instructions steps 1 - 10].
+. Configure each Couchbase Server node in the cluster.
+ See xref:server:security:security-x509certsintro.adoc#sslconfig[instructions steps 11 - 12].
+. Enable Client Certificate Authentication.
+See xref:server:security:security-x509certsintro.adoc#sslconfig[instructions step 13].
 
-==== X.509 Certificates for Sync Gateway
+After completing step 3, you will have multiple files generated in the current directory.
+From the generated files, you must copy `ca.pem`, `chain.pem` and `pkey.key` to the machine where Sync Gateway is running.
 
-The client certificates need to be signed by the Couchbase cluster certificate.
-So in order to generate certificates for Sync Gateway, we will use the output files from the previous section.
+To connect successfully, you must also ensure the following:
 
-You should now have a folder called *SSLCA*. From the parent directory (i.e `../SSLCA`), follow the steps below.
+. A bucket named *travel-sample* exists.
+See xref:getting-started.adoc#configure-couchbase-server[instructions].
+. The RBAC user with the name *travel-sample* exists has access permissions to the bucket.
+See xref:getting-started.adoc#configure-couchbase-server[instructions].
 
-. Create a new file called *ssl.conf* with the following.
-+
-[source,bash]
-----
-[ req ]
-default_bits        = 2048
-distinguished_name  = req_distinguished_name
-req_extensions      = req_ext
-prompt              = no
+Then, x.509 can be enabled on Sync Gateway by specifying the absolute or relative path to each of those files in the configuration file.
 
-[ req_distinguished_name ]
-countryName         = US
-stateOrProvinceName = California
-localityName        = San Jose
-organizationName    = XYZ Inc
-commonName          = travel-sample
-
-[ req_ext ]
-subjectAltName = @alt_names
-[alt_names]
-DNS.1   = node1-user1.xyz.com
-DNS.2   = node1-user2.xyz.com
-----
-When using X.509 certificates for authentication, Couchbase Server searches for the RBAC username in the certificate sent by the client.
-In the https://developer.couchbase.com/documentation/server/current/security/security-x509certsintro.html#story-h2-2[X.509 Certificates for Couchbase Server] instructions, you specified `commonName` as the field to use for the RBAC username.
-Hence, the `commonName` field is set to `travel-sample`.
-. Create a new file called *client.sh* with the following.
-This script creates a new client certificate.
-+
-[source,bash]
-----
-export TOPDIR=SSLCA
-export ROOT_DIR=rootdir
-export NODE_DIR=nodedir
-export INT_DIR=intdir
-
-export CLIENT_INT_DIR=client_intdir
-export CLIENT_CERT_DIR=client_certdir
-
-cd ${TOPDIR}
-mkdir ${CLIENT_INT_DIR}
-mkdir ${CLIENT_CERT_DIR}
-
-cd ${CLIENT_INT_DIR}
-openssl genrsa -out int.key 2048
-openssl req -new -key int.key -out int.csr -subj '/C=US/O=XYZ/CN=XYZIntCA'
-cat <<EOF >> ./v3_ca.ext
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid:always,issuer:always
-basicConstraints = CA:true
-EOF
-openssl x509 -req -in int.csr -CA ../${ROOT_DIR}/ca.pem -CAkey ../${ROOT_DIR}/ca.key \
--CAcreateserial -CAserial ../${ROOT_DIR}/rootCA.srl -extfile ./v3_ca.ext \
--out int.pem -days 365
-
-cd ../${CLIENT_CERT_DIR}
-openssl genrsa -out client.key 2048
-openssl req -new -key client.key -out client.csr -config ../../ssl.conf
-openssl x509 -req -in client.csr -CA ../${CLIENT_INT_DIR}/int.pem \
--CAkey ../${CLIENT_INT_DIR}/int.key \
--CAcreateserial -CAserial ../${CLIENT_INT_DIR}/intermediateCA.srl \
--out client.pem -days 365 \
--extfile ../../ssl.conf -extensions req_ext
-cat client.pem ../${CLIENT_INT_DIR}/int.pem > chain.pem
-----
-. Run the script.
-+
-[source,bash]
-----
-$ ./client.sh
-----
-. Create a new file called *sync-gateway-config.json* with the following.
-+
 [source,json]
 ----
-{
-  "databases": {
-    "db": {
-      "server": "http://localhost:8091",
-      "bucket": "default",
-      "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
-      "certpath": "./SSLCA/client_certdir/chain.pem",
-      "keypath": "./SSLCA/client_certdir/client.key",
-      "cacertpath": "./SSLCA/root/ca.pem"
-    }
-  }
-}
+include::{examplesdir}/x509-config.json[]
 ----
-As shown above, certificate based authentication on Sync Gateway is enabled with the following properties in the configuration file.
-+
+
+More detail on the configuration properties for x.509 authentication can be found below.
+
 * xref:config-properties.adoc#databases-foo_db-certpath[databases.$db.certpath]
 * xref:config-properties.adoc#databases-foo_db-keypath[databases.$db.keypath]
 * xref:config-properties.adoc#databases-foo_db-cacertpath[databases.$db.cacertpath]
-+
+
 If the **username**/**password** properties are also specified in the configuration file then Sync Gateway will use password-based authentication and also include the client certificate in the TLS handshake.
 
 == Log Rotation
