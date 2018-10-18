@@ -1,4 +1,4 @@
-= Shared Bucket Access
+= Mobile-Web Data Sync
 :url-downloads: https://www.couchbase.com/downloads
 
 Starting in Sync Gateway 1.5, you can seamlessly extend an existing Couchbase Server deployment to connect with remote edge devices that are occasionally disconnected or connected.
@@ -7,7 +7,11 @@ In previous releases, you either had to ensure all writes happened through Sync 
 
 In this release, the metadata created by the Sync Gateway is abstracted from applications reading and writing data directly to Couchbase Server.
 Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (e**X**tended **ATTR**ibutes) to store that metadata into an external document fragment.
+
 Mobile, web and desktop applications can therefore write to the same bucket in a Couchbase cluster.
+The diagram below describes this architecture.
+
+image::shared-bucket-access.svg[]
 
 == How to enable it
 
@@ -56,6 +60,28 @@ The reference to the configuration properties can be found below.
 When this feature is enabled, xref:managing-tombstones.adoc[mobile tombstones] are not retained indefinitely.
 They will be purged based on the server's metadata purge interval.
 To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
+
+== FAQ
+
+=== How do I query the document's sync metadata?
+
+Starting in Couchbase Server 5.5, the N1QL query language supports the ability to select extended attributes (xattrs) where the document's sync metadata is stored.
+The following query shows an example of that feature.
+
+[source,sql]
+----
+SELECT meta().xattrs._sync FROM `travel-sample` WHERE meta().id = "mydocId"
+----
+
+Prior to 5.5, there is no way to query the mobile metadata with `shared_bucket_access_enabled: true`.
+
+=== How do I access a blob stored in Couchbase Lite?
+
+See the xref:couchbase-lite:ROOT:swift.adoc#blobs[Blob] example.
+
+=== How do I access an attachment from a WebApp?
+
+Attachments can be accessed through Sync Gateway's REST API using the xref:rest-api.adoc#/attachment/get\__db___doc___attachment_[/{db}/{doc}/{attchament}] endpoint.
 
 == Migrating from Bucket Shadowing
 
