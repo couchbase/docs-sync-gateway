@@ -63,9 +63,17 @@ To ensure tombstones are replicated to clients, you should set the server's meta
 
 == FAQ
 
-=== How do I query for all documents in a channel with N1QL?
+=== How do I query the document's sync metadata?
 
-// TODO
+Starting in Couchbase Server 5.5, the N1QL query language supports the ability to select extended attributes (xattrs) where the document's sync metadata is stored.
+The following query shows an example of that feature.
+
+[source,sql]
+----
+SELECT meta().xattrs._sync FROM `travel-sample` WHERE meta().id = "mydocId"
+----
+
+Prior to 5.5, there is no way to query the mobile metadata with `shared_bucket_access_enabled: true`.
 
 === How do I access a blob stored in Couchbase Lite?
 
