@@ -26,7 +26,7 @@ Sync Gateway processes the security metadata (channel membership, access grants)
 
 image::channel-access-accelerator.png[]
 
-To optimize this process, Sync Gateway maintains an in-memory cache of recent changes in each channel (step 3) which is used to serve the `GET/POST /{db}/_changes` requests (step 4). When a client requests changes, Sync Gateway first attempts to serve the request from the in-memory channel cache.
+To optimize this process, Sync Gateway maintains an in-memory cache of recent changes in each channel (step 3) which is used to serve the `GET/POST /+{db}+/_changes` requests (step 4). When a client requests changes, Sync Gateway first attempts to serve the request from the in-memory channel cache.
 If the cache isn't sufficient, Sync Gateway issues a view query to Couchbase Server to retrieve the non-cached result for the channel(s). 
 
 So as write throughput increases, the cache for a particular channel is invalidated more frequently and every Sync Gateway node needs to issue a view query to update the in-memory cache and serve changes feed requests. 
