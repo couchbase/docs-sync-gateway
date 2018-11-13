@@ -8,7 +8,7 @@ image::running-replications.png[]
 
 NOTE: A _Sync Gateway database_ can also be referred to as a namespace for documents, the data is *always* stored in Couchbase Server.
 
-Features:
+== Features
 
 * JSON configuration to specify replications
 * Supports multiple replications running concurrently
@@ -17,12 +17,15 @@ Features:
 * Stateless -- can be interrupted/restarted anytime without negative side effects
 * Filter replications using channels
 
-Limitations:
+== Limitations
 
 * Can only replicates SG databases that are hosted on recent versions of Sync Gateway (after commit 50d30eb3d on March 7, 2014)
 * In deployments with multiple Sync Gateway nodes, only _one_ of the Sync Gateways should be configured for replications.
 If multiple Sync Gateways are configured for replications, it could substantially increase the amount of duplicate work, and therefore should be avoided.
 The limitation is that the system is not guaranteed to be Highly Available: if the Sync Gateway that is chosen to drive the replication goes down or is otherwise removed from the system, then the replications will stop.
+* Replication between Sync Gateway databases doesn't support automatic conflict resolution when the no-conflicts mode is enabled (i.e xref:config-properties.adoc#databases-foo_db-allow_conflicts["allow_conflicts": false]).
+When running two Sync Gateway clusters with `allow_conflicts: false`, cross-cluster document conflicts will result in that document no longer being replicated.
+To avoid this, the application must ensure concurrent, cross-cluster updates updates are not made to a given document.
 
 == Running replications via the REST API
 
