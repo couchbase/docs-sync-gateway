@@ -2,7 +2,9 @@
 
 By design, when a document is deleted in Couchbase Mobile, they are not actually deleted from the database, but simply marked as deleted (by setting the `_deleted` property). The reason that documents are not immediately removed is to allow all devices to see that they have been deleted - particularly in the case of devices that may not be online continuously and therefore not syncing regularly.
 
-To actually remove the documents permanently, you need to _purge_ them.
+== Purging Tombstones
+
+To remove tombstones, you need to purge them.
 The following tables describe how to purge tombstones (automatically or manually) and reset the Sync Gateway channel cache when Shared Bucket Access is enabled or disabled.
 
 |===
@@ -23,7 +25,13 @@ The expiry time should be sufficient (perhaps a week, or a month) to allow for a
 |Tombstones can be manually removed via Sync Gateway's xref:admin-rest-api.adoc#/document/post\__db___purge[+/{db}/_purge+] endpoint.
 |===
 
-Deleted/expired tombstones aren't automatically ejected from Sync Gateway's in-memory channel caches:
+Purging of tombstones is also required on Couchbase Lite.
+For example, you might decide that if a document is deleted on a Couchbase Lite client, that you want to purge the document (on that device) as soon as the delete has been successfully replicated out to Sync Gateway.
+
+== Cache Ejection
+
+Deleted/expired tombstones aren't automatically ejected from Sync Gateway's in-memory channel caches.
+The following table describes how to eject Sync Gateway's cache.
 
 |===
 |`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
@@ -44,9 +52,6 @@ a|
 * Restarting Sync Gateway will flush the cache.
 * Starting in 2.1.1, this is done automatically.
 |===
-
-Purging of tombstones is also required on Couchbase Lite.
-For example, you might decide that if a document is deleted on a Couchbase Lite client, that you want to purge the document (on that device) as soon as the delete has been successfully replicated out to Sync Gateway.
 
 == Tombstone Lifecycle
 
