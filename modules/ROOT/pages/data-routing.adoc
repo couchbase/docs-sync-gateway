@@ -12,7 +12,7 @@ You use channels to:
 * Authorize users to access documents.
 * Minimize the amount of data synced down to devices.
 
-== Introduction to channels
+== Introduction to Channels
 
 In Sync Gateway, a *channel* is like a combination of a tag and a message-queue.
 Channels have relationships to both documents and users:
@@ -34,44 +34,21 @@ Channels with no documents assigned to them are empty.
 Valid channel names consist of text letters `[A–Z, a–z]`, digits `[0–9]`, and a few special characters `[= + / . , _ @]`.
 Channel names are case-sensitive.
 
-== Developing channels
+== Creating Channels
 
 Now that you've learned what a channel is as a concept, let's put it to practice and see how a channel definition is applied and how it affects the system.
-
-=== Mapping documents to channels
 
 You assign documents to `channels` either by adding a channels property to the document or by using a sync function.
 No matter which option you choose, the channel assignment is implicit--the content of the document determines what channels it belongs to.
 
-==== Using a channels property
-
+* *Using the channels property*.
 Adding a `channels` property to each document is the easiest way to map documents to channels.
 The `channels` property is an array of strings that contains the names of the channels to which the document belongs.
 If you do not include a `channels` property in a document, the document does not appear in any channels.
-
-==== Using a sync function
-
-Creating a sync function is a more flexible way to map documents to channels.
+* *Using a sync function*.
+Creating a xref:sync-function-api.adoc[sync function] is a more flexible way to map documents to channels.
 A sync function is a JavaScript function that takes a document body as input and, based on the document content, decides what channels to assign the document to.
 The sync function cannot reference any external state and must return the same results every time it's called on the same input.
-
-You specify the sync function in the configuration file for the database.
-Each sync function applies to one database.
-
-To add the current document to a channel, the sync function calls the special function `channel`, which takes one or more channel names (or arrays of channel names) as arguments.
-For convenience, `channel` ignores `null` or `undefined` argument values.
-
-Defining a sync function overrides the default channel mapping mechanism (the document's `channels` property is ignored).
-The default mechanism is equivalent to the following simple sync function:
-
-[source,javascript]
-----
-function (doc) {
-    channel (doc.channels);
-}
-----
-
-Learn more about defining a sync function in our xref:sync-function-api.adoc[Sync Function API guide].
 
 === Replicating channels to Couchbase Lite
 

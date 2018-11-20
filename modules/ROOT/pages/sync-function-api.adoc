@@ -56,7 +56,7 @@ Otherwise it's `null`.
 (In the case of a document with conflicts, the current provisional winning revision is passed in `oldDoc`.)
 Your implementation of the sync function can omit the `oldDoc` parameter if you do not need it (JavaScript ignores extra parameters passed to a function).
 
-The default Sync Function is documented in the API reference xref:config-properties.adoc#databases-foo_db-sync[databases.$dbname.sync].
+If you don't supply a sync function, Sync Gateway uses the xref:config-properties.adoc#databases-foo_db-sync[default Sync Function].
 
 == Validation and Authorization
 
@@ -167,7 +167,7 @@ The routing functions assign documents to channels, and enable user access to ch
 
 Routing changes have no effect until the document is actually saved in the database, so if the sync function first calls `channel()` or `access()`, but then rejects the update, the channel and access changes will not occur.
 
-=== channel (name)
+=== channel(name)
 
 The `channel()` function routes the document to the named channel(s). It accepts one or more arguments, each of which must be a channel name string, or an array of strings.
 The channel function can be called zero or more times from the sync function, for any document.
@@ -177,7 +177,7 @@ Here is an example that routes all "published" documents to the "public" channel
 ----
 function (doc, oldDoc) {
    if (doc.published) {
-      channel ("public");
+      channel("public");
    }
 }
 ----
@@ -195,7 +195,7 @@ If that happens, the next time Couchbase Lite pulls changes from the gateway, it
 
 == Read Access
 
-=== access (username, channelname)
+=== access(username, channelname)
 
 The `access()` function grants access to a channel to a specified user.
 It can be called multiple times from a sync function.
@@ -240,7 +240,7 @@ function (doc, oldDoc) {
 }
 ----
 
-=== role (username, rolename)
+=== role(username, rolename)
 
 The `role()` function grants a user a role, indirectly giving them access to all channels granted to that role.
 It can also affect the user's ability to revise documents, if the access function requires role membership to validate certain types of changes.
@@ -266,7 +266,7 @@ You can create a role after the fact; as soon as a role is created, any pre-exis
 
 == Expiry
 
-=== expiry (value)
+=== expiry(value)
 
 Calling `expiry(value)` from within the sync function will set the expiry value (TTL) on the document.
 When the expiry value is reached, the document will be purged from the database.
