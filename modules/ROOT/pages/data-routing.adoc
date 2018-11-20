@@ -50,6 +50,40 @@ Creating a xref:sync-function-api.adoc[sync function] is a more flexible way to 
 A sync function is a JavaScript function that takes a document body as input and, based on the document content, decides what channels to assign the document to.
 The sync function cannot reference any external state and must return the same results every time it's called on the same input.
 
+== Channel Count
+
+Sync Gateway can assign a document to new channels as long as the sync metadata remains under the allowed limit.
+
+The sync metadata contains the list of channel names to which a document is mapped.
+And when a document is assigned to a new channel, the channel name is appended to that document's sync metadata.
+
+Therefore, the size that is occupied by channel sync metadata varies based on the following.
+
+* The channel name.
+A shorter channel name will occupy less space ("customer==0030169303" vs "cs==0030169303").
+* The value of revs_limit.
+Indeed, the sync metadata is retained for each non-leaf revision.
+
+The following table estimates the allowed channel count per document according to different parameters when shared bucket access is disabled/enabled.
+
+|===
+|`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
+
+2+a|*Sync metadata size limit*
+|20 Mb per document
+|1 Mb per document
+
+2+a|*Formula to find the max channel count per document*
+|(20Mb - doc size) / (average channel name size * revs_limit)
+|1Mb / (average channel name size * revs_limit)
+2+a|*Example 1: doc size = 5 Mb, average channel name size = 25 bytes, revs_limit = 100*
+|(20Mb - 5Mb)/(25bytes * 100) = 6000
+|1Mb/(25 bytes * 100) = 400
+2+a|*Example 1: doc size = 5 Mb, average channel name size = 25 bytes, revs_limit = 1000*
+|(20Mb - 5Mb)/(25bytes * 1000) = 600
+|1Mb/(25 bytes * 1000) = 40
+|===
+
 === Replicating channels to Couchbase Lite
 
 If Couchbase Lite doesn't specify any channels to replicate, it gets all the channels to which its user account has access.
