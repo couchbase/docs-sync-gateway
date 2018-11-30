@@ -641,6 +641,8 @@ paths:
         Each enclosed body contains one requested document. The bodies appear in the same order as in the request, but can also be identified by their X-Doc-ID and X-Rev-ID headers.
         A body for a document with no attachments will have content type application/json and contain the document itself.
         A body for a document that has attachments will be written as a nested multipart/related body. Its first part will be the document's JSON, and the subsequent parts will be the attachments (each identified by a Content-Disposition header giving its attachment name.)
+      produces:
+      - 'multipart/mixed'
       parameters:
       - $ref: '#/parameters/revs'
       - $ref: '#/parameters/revs_limit'
@@ -649,13 +651,19 @@ paths:
       responses:
         200:
           description: Request completed successfully
-          schema:
-            type: object
-            properties:
-              docs:
-                type: array
-                items:
-                  $ref: '#/definitions/DocumentResponse'
+          examples:
+            multipart/mixed (document found): |
+              --1cba224ff2aa106566e3ab65de9c861c24558ba368f8cd7f6fcde53b88f4
+              Content-Type: application/json
+
+              {"_id":"doc123","_rev":"1-c543d6514c609f65180f94af247aaffe","hello":"world!"}
+              --1cba224ff2aa106566e3ab65de9c861c24558ba368f8cd7f6fcde53b88f4
+            multipart/mixed (document not found): |
+              --1cba224ff2aa106566e3ab65de9c861c24558ba368f8cd7f6fcde53b88f4
+              Content-Type: application/json; error="true"
+
+              {"error":"not_found","id":"doc1234","reason":"missing","status":404}
+              --1cba224ff2aa106566e3ab65de9c861c24558ba368f8cd7f6fcde53b88f4
         301:
           description: Request failed with a forbidden error. This usually happens because the user requesting that document doesn't have access to it. Access to documents is granted to users through channels.
           schema:
