@@ -10,12 +10,14 @@ NOTE: A _Sync Gateway database_ can also be referred to as a namespace for docum
 
 == Features
 
+* Replicates via the Sync Gateway REST API
 * JSON configuration to specify replications
 * Supports multiple replications running concurrently
 * Can run both OneShot and Continuous replications
 * Does not store anything persistently
 * Stateless -- can be interrupted/restarted anytime without negative side effects
-* Filter replications using channels
+* Can specify which channel(s) to sync
+* Supports Master/Master and Master/Slave topologies
 
 == Limitations
 
@@ -290,10 +292,4 @@ When an active task is canceled, the response returns the stats of the replicati
 
 XDCR (cross data centre replication) is the Couchbase Server API to replicate between Couchbase Server clusters.
 Both XDCR and SG-Replicate can be used to keep clusters in different data centres in sync.
-However, SG-Replicate was designed specifically for a Couchbase Mobile deployment.
-The diagram below describes the notable differences between SG-Replicate and XDCR.
-
-image::xdcr-sg-replicate.png[]
-
-NOTE: Sync Gateway is not compatible with XDCR in Active - Active mode (also known as bi-direction XDCR).
-If you intend to use XDCR between clusters that use Sync Gateway, make sure that XDCR is configured to replicate documents one-way only (Active - Passive).
+However, SG-Replicate was designed specifically for a Couchbase Mobile deployment and must be used for replication between mobile clusters.
