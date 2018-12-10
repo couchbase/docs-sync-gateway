@@ -52,37 +52,29 @@ The sync function cannot reference any external state and must return the same r
 
 == Channel Count
 
-Sync Gateway can assign a document to new channels as long as the sync metadata remains under the allowed limit.
+Every time a document is assigned to a new channel, the channel name is appended to that document's sync metadata.
 
-The sync metadata contains the list of channel names to which a document is mapped.
-When a document is assigned to a new channel, the channel name is appended to that document's sync metadata.
-
-Therefore, the size that is occupied by channel sync metadata varies based on the following.
-
-* The channel name.
-A shorter channel name will occupy less space ("customer==0030169303" vs "cs==0030169303").
-* The value of revs_limit.
-Indeed, a copy of channel metadata is retained for each revision of a document.
-
-The following table estimates the channel count limits per document according to different parameters when shared bucket access is disabled/enabled.
+Therefore, a document's set of channels is bound by the allowed sync metadata size described in the following table.
 
 |===
 |`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
+ 2+a|*Sync metadata size limit*
 
-2+a|*Sync metadata size limit*
 |20 MB per document
 |1 MB per document
-
-2+a|*Formula to find the max channel count per document*
-|(20MB - doc size) / (average channel name size * revs_limit)
-|1MB / (average channel name size * revs_limit)
-2+a|*Example 1: doc size = 5 MB, average channel name size = 25 bytes, revs_limit = 100*
-|(20MB - 5MB)/(25 bytes * 100) = 6000
-|1MB/(25 bytes * 100) = 400
-2+a|*Example 1: doc size = 5 MB, average channel name size = 25 bytes, revs_limit = 1000*
-|(20MB - 5MB)/(25 bytes * 1000) = 600
-|1MB/(25 bytes * 1000) = 40
 |===
+
+Sync Gateway will assign a document to a new channel as long as the sync metadata remains under the allowed limit.
+
+*What to do when your channel count exceeds the usable space for sync metadata?*
+
+In order to lower the sync metadata size per document, you can do one of the following:
+
+* Lower the number of channels per document.
+* Shorten the channel names.
+A shorter channel name will occupy less space ("customer==0030169303" vs "cs==0030169303").
+* Lower the xref:config-properties.adoc#databases-foo_db-revs_limit[revs_limit] value.
+Indeed, a copy of channel metadata is retained for each revision of a document.
 
 === Replicating channels to Couchbase Lite
 
