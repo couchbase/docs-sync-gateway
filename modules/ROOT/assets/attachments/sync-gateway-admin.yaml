@@ -386,9 +386,17 @@ parameters:
         HTTP:
           type: boolean
           description: All requests made to the Sync Gateway REST APIs (Sync and Admin). Note that the log keyword HTTP is always enabled, which means that HTTP requests and error responses are always logged (in a non-verbose manner). HTTP+ provides more verbose HTTP logging.
-  loglevel:
+  level:
     in: query
     name: level
+    description: |
+      Verbosity of the logging. The default value is 1 which is regular logging. level=2 enables warnings and
+      panics logging and level=3 will log panics only.
+    type: integer
+    deprecated: true
+  logLevel:
+    in: query
+    name: logLevel
     description: |
       Verbosity of the logging. The default value is 1 which is regular logging. level=2 enables warnings and
       panics logging and level=3 will log panics only.
@@ -1173,7 +1181,8 @@ paths:
 
         The PUT request replaces all existing logging tags with the ones specified in the request body.
       parameters:
-      - $ref: '#/parameters/loglevel'
+      - $ref: '#/parameters/level'
+      - $ref: '#/parameters/logLevel'
       - $ref: '#/parameters/logtags'
       responses:
         201:
@@ -1187,7 +1196,8 @@ paths:
 
         The POST request only updates the tags specified in the request body.
       parameters:
-      - $ref: '#/parameters/loglevel'
+      - $ref: '#/parameters/level'
+      - $ref: '#/parameters/logLevel'
       - $ref: '#/parameters/logtags'
       responses:
         201:
