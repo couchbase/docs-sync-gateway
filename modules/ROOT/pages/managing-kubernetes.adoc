@@ -1,0 +1,24 @@
+= Managing Kubernetes
+
+== Rolling Upgrades of Sync Gateway Nodes
+
+Since we use a deployment controller, we can do a rolling upgrade of the Sync Gateway nodes in the cluster and the load balancer will automatically take care of redirecting the traffic to the remaining nodes.
+
+Note that if you have configured your deployment to have a single Sync Gateway import node, then you will experience some latency in processing write requests until the import node comes back up again.
+
+. For example, if you want to upgrade the version of the Sync Gateway, you can update the corresponding deployment config file and re-apply that to the cluster
++
+[source,console]
+----
+kubectl apply -f sgw-deployment-upgrade.yaml
+----
+. You can verify the status of the rollout as follows
++
+[source,console]
+----
+kubectl rollout status deployment sync-gateway
+----
+The deployment controller will ensure that at least one replica is available to server the incoming requests while the other replicas are being upgraded.
+The load balancer will automatically redirect all requests to the remaining nodes.
++
+*Optional:* If you want to rollback, you can do that with `kubectl rollout undo  deployment sync-gateway`.

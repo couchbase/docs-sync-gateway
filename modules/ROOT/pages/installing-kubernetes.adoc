@@ -1,0 +1,264 @@
+= Kubernetes
+
+This page describes the steps to deploy a Sync Gateway cluster on Kubernetes.
+
+== Pre-requisites
+
+Before you begin, you must have the following:
+
+* A Couchbase Server cluster already running on Kubernetes.
+If you don't already have one, you can refer to xref:operator::install-kubernetes.adoc[this guide] for instructions.
+* A Couchbase Server RBAC user with application access privileges.
+Refer to xref:getting-started.adoc#creating-an-rbac-user[this section] for instructions.
+
+== Deploying a Sync Gateway Cluster
+
+The Sync Gateway nodes in a cluster are homogeneous in configuration with two exceptions.
+
+* Importer node: under xref:shared-bucket-access.adoc[convergence/shared bucket access], it is recommended that one node handles document import processing.
+For high availability, you can configure more than one node in your cluster to be an import node, though it is strongly discouraged for all Sync Gateway nodes in the cluster to be configured for import processing.
+The configuration of the import Sync Gateway node is slightly different (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
+* Replicator node: if you are using inter-cluster replication using sg-replicate then there will be one designated replicator node whose configuration is different than the rest of the nodes.
+
+The following sections cover the steps to deploy a cluster of regular Sync Gateway nodes.
+The configuration and deployment controller files will differ if you are deploying a cluster of import nodes or a single replicator node.
+
+For example, to deploy a cluster with 4 regular nodes, 1 import node and 1 replicator node you would run the steps below 3 times, each time with a different configuration and deployment controller file.
+
+=== Configuration file
+
+In this section, you will create the Sync Gateway configuration file and store it in a secret location.
+
+. Create a new file called *sgw-config.json* with the following and replace the `server` key with the addressable Couchbase Server hostname.
++
+[source,json]
+----
+{
+  "logging": {
+    "console": {
+      "log_keys": ["*"]
+    }
+  },
+  "databases": {
+    "db": {
+      "server": "http://cb-example-0000.cb-example:8091", // <1>
+      "bucket": "default",
+      "username": "admin", // <2>
+      "password": "password",
+      "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
+      "allow_conflicts": false,
+      "revs_limit": 20
+    }
+  }
+}
+----
+<1> The server key should point to the Couchbase Server cluster.
+This would typically be of the form `http://CB_SERVER_POD.CB_SERVER_SERVICE_NAME:8091`.
+<2> The username/password keys should match what was setup in the <<pre-requisites, pre-requisites>> section when you configured the Sync Gateway RBAC user.
+. You will use a https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/[Kubernetes configMap] to pass the configuration file to Sync Gateway on launch.
+However, since the Sync Gateway contains sensitive information, it is recommended that you create a secret from the config file and pass that to the Sync Gateway.
+Run the following command to create a secret called "sgw-config" from the specified Sync Gateway configuration file (*sgw-config.json*).
++
+[source,console]
+----
+kubectl create secret generic sgw-config --from-file sgw-config.json
+----
++
+If successful, you will see the following.
++
+[source,console]
+----
+secret "sgw-config" created
+----
+
+=== Deployment controller
+
+In this section you will deploy the Sync Gateway cluster with the configuration file that you created above.
+
+You will be using a https://kubernetes.io/docs/concepts/workloads/controllers/deployment/[Kubernetes deployment controller].
+A deployment controller allows you to define the number of Sync Gateway replicas and other parameters.
+
+. Create a new file called *sgw-deployment.yaml* with the following.
++
+[source,yaml]
+----
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sync-gateway <1>
+spec:
+  replicas: 2 <2>
+  template:
+    metadata:
+      labels:
+        app: sync-gateway
+    spec:
+      containers:
+        - name: sync-gateway
+          image: couchbase/sync-gateway:2.2.1-enterprise <3>
+          args: ["/sync-gateway-config/sgw-config.json"] <4>
+          volumeMounts:
+            - name: sgw-config-volume
+              mountPath: /sync-gateway-config
+              readOnly: true
+          env:
+            - name: GOMAXPROCS
+              value: "2"
+          resources:
+            requests:
+              cpu: "100m"
+            limits:
+              cpu: "100m"
+      volumes:
+        - name: sgw-config-volume
+          secret:
+            secretName: sgw-config
+----
+<1> `metadata.name`: The name of the deployment is "sync-gateway".
+<1> `spec.replicas`: 2 Sync Gateway replicas that are deployed at most.
+* For import node deployment, this *must* be 1 because there can be at most 1 Sync Gateway replicator in a cluster.
+If high availability is important, you probably want at least 2 Sync Gateway import nodes.
+* For replicator node deployment, this *must* be 1 because there can be at most 1 Sync Gateway import node in a cluster.
+<1> `containers[].image`: Points to the docker image for Sync Gateway.
+<1> `containers[].args`: Points to the Sync Gateway configuration file named "sgw-config-working.json" which is mounted at the path specified via the `volumeMounts` config.
+<1> `volumeMounts`: Specifies where to mount the volume into the container.
+<1> `volumes`: Specifies what to mount.
+In our case, the "secret" with name "sgw-config" corresponding to the Sync Gateway configuration that was created in the previous step is mounted.
+Learn more about Kubernetes volumes https://kubernetes.io/docs/concepts/storage/volumes/[here].
+. Deploy the Sync Gateway cluster using the deployment controller file.
++
+[source,console]
+----
+kubectl create -f sgw-deployment.yaml
+----
+If successful, you will see the following.
++
+[source,console]
+----
+deployment.extensions "sync-gateway" created
+----
+. You can check the status of the deployment with the following command until all the pods corresponding to the Sync Gateway are in the "Ready" state and the status is "Running".
++
+[source,console]
+----
+kubectl get pods
+----
++
+If successful, you will see the following.
++
+[source,console]
+----
+NAME                                 READY     STATUS    RESTARTS   AGE
+cb-example-0000                      1/1       Running   0          3d
+cb-example-0001                      1/1       Running   0          3d
+cb-example-0002                      1/1       Running   0          3d
+couchbase-operator-fd8db588b-9fzsw   1/1       Running   1          3d
+sync-gateway-7474f5df4b-c29xw        1/1       Running   2          18m
+sync-gateway-7474f5df4b-p98sq        1/1       Running   0          18m
+----
+
+== Deploying a Load Balancer
+
+In a production deployment, you will likely have one or more Sync Gateway nodes fronted by a xref:load-balancer.adoc[load balancer].
+
+You will deploy the load balancer using the https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/[Kubernetes Load Balancer service].
+The load balancer service provides an externally accessible IP address and routes traffic to the right ports in the cluster.
+
+Follow these steps to deploy a load balancer in front of the Sync Gateway cluster.
+
+. Create a new file called *sgw-load-balancer.yaml* with the following.
++
+[source,yaml]
+----
+kind: Service
+apiVersion: v1
+metadata:
+  name: sgw-load-balancer <1>
+spec:
+  selector:
+    app: sync-gateway <2>
+  ports:
+  - protocol: TCP
+    port: 4984 <3>
+    targetPort: 4984
+  type: LoadBalancer
+----
+<1> `metadata.name`: the name of the load balancer is "sgw-load-balancer".
+<1> `spec.selector.app`: this value corresponds to the pods targeted by the load balancer.
+In this case, it targets any pods with the `app=sync-gateway` label which are the Sync Gateway nodes - this corresponds to what was specified in the deployment yaml file.
+<1> `spec.ports[].targetPort`: the load balancer service targets ports 4984 on the Sync Gateway cluster.
+This is the Sync Gateway port corresponding to the xref:rest-api.adoc[REST API].
+For security purposes, it is recommended that you do not expose the admin port (4985) over the Internet.
+. Deploy the load balancer.
++
+[source,console]
+----
+kubectl create -f sgw-load-balancer.yaml
+----
+If successful, you will see the following.
++
+[source,console]
+----
+service "sgw-load-balancer" created
+----
+. Verify the status of the service creation with the following.
++
+[source,console]
+----
+kubectl get services
+----
+If successful, you will see the following.
++
+[source,console]
+----
+NAME                TYPE           CLUSTER-IP     EXTERNAL-IP
+cb-example          ClusterIP      None           <none>
+cb-example-srv      ClusterIP      None           <none>
+cb-example-ui       NodePort       10.3.246.239   <none>
+kubernetes          ClusterIP      10.3.240.1     <none>
+sgw-load-balancer   LoadBalancer   10.3.253.17    35.184.19.17
+----
+The *sgw-load-balancer*'s `EXTERNAL-IP` is the load balancer's publicly accessible hostname.
+. Verify the pods that the load balancer is targeting.
++
+[source,console]
+----
+kubectl describe service sgw-load-balancer
+----
+You should see the equivalent of the following.
++
+[source,console]
+----
+Name:                     sgw-load-balancer
+Namespace:                default
+Labels:                   <none>
+Annotations:              <none>
+Selector:                 app=sync-gateway
+Type:                     LoadBalancer
+IP:                       10.3.253.17
+LoadBalancer Ingress:     35.184.19.17
+Port:                     <unset>  4984/TCP
+TargetPort:               4984/TCP
+NodePort:                 <unset>  32397/TCP
+Endpoints:                10.0.0.34:4984,10.0.0.35:4984
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:
+----
+Notice the "endpoints" field and confirm that it corresponds to the Sync Gateway nodes.
+In this example, we have 2 Sync Gateway nodes (two regular nodes).
+. Verify the Sync Gateway cluster is accessible with the following command; where `EXTERNAL-IP` is the IP that was copied in step 3.
++
+[source,console]
+----
+curl  http://EXTERNAL-IP:4984
+----
+It should return the following.
++
+[source,console]
+----
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":"2.1"},"version":"Couchbase Sync Gateway/2.1.1(17;fea9947)"}
+----
+
+You have successfully deployed a Sync Gateway cluster on Kubernetes.
+The xref:managing-kubernetes.adoc[Managing Kubernetes] page contains additional details related to the management of the cluster.
