@@ -62,13 +62,18 @@ The table below describes those differences.
 |`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
 
 2+a|*Mobile metadata storage location*
-|Document (`doc._sync`)
-|System extended attribute (`xattr._sync`)
+|Persisted on the document (`doc._sync`)
+|Persisted as system extended attributes (`xattr._sync`)
 
 2+a|*Tombstone storage location*
-|Document
-|System extended attribute (`xattr._sync`).
-Empty document body.
+|Persisted on the document
+|Persisted as system extended attributes (`xattr._sync`).
+
+2+a|*Additional properties on a tombstone*
+|Persisted on the document
+|Not persisted.
+
+NOTE: Setting additional properties on tombstones may appear to be successful through Couchbase Lite SDKs or the Sync Gateway REST APIs but those properties will not be persisted to Couchbase Server.
 |===
 
 Document operations also have a different impact on tombstones when Shared Bucket Access is enabled/disabled.
