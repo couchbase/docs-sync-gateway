@@ -1,0 +1,26 @@
+= Data Modeling
+
+== Property prefix
+
+User properties cannot begin with an underscore (`+_+`).
+
+The underscore character (`+_+`) is a reserved prefix for system properties of a document (`+_id+`, `+_rev+` etc.)
+A document which contains user properties with a leading underscore will be rejected by Sync Gateway with the following error.
+[source,text]
+----
+"{"error":"Bad Request","reason":"user defined top level properties beginning with '_' are not allowed in document body"}"
+----
+This rule applies to writes performed through Couchbase Lite SDKs and Sync Gateway REST APIs.
+And to writes performed through Couchbase SDKs when xref:shared-bucket-access.adoc[Mobile-Web Data Sync] is enabled.
+
+This may be an issue in the following scenarios:
+
+* In a deployment with Mobile-Web Data Sync and Field Level Encryption enabled, this rule conflicts with the default xref:java-sdk::encryption.adoc#format[field encryption format].
+* http://ottomanjs.com/[Ottoman.js] adds an `_type` attribute to the root of the document.
+So if you are using Ottoman within your app, then you would encounter this issue.
+
+Note that in a deployment with Mobile-Web Data Sync and Field Level Encryption enabled, this rule conflicts with the default xref:java-sdk::encryption.adoc#format[field encryption format].
+
+=== Workaround
+
+The recommended workaround in these scenarios is to wrap the property prefixed with an underscore in another object whose key isn't prefixed with an underscore.
