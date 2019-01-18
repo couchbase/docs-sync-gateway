@@ -1,0 +1,42 @@
+= Deployment
+
+When deploying your application for production use you will need to use Sync Gateway and Couchbase Server.
+This article covers different aspects of using Sync Gateway and Couchbase Server during production.
+
+== Where to Host
+
+Whether hosting on-premise, or in the cloud, you will want to have your Sync Gateway and Couchbase Server sit closely to each other for optimal performance between these two systems.
+They can share the same physical machine as long as their recommended supported hardware requirements are met:
+
+|===
+| Couchbase Server | Sync Gateway
+
+| Quad-core/16GB RAM
+| Quad-core/4GB RAM
+|===
+
+== Sizing and Scaling
+
+Your physical hardware determines how many active, concurrent users you can comfortably support for a single Sync Gateway.
+
+Alternatively, instead of scaling vertically, you can also scale horizontally by running Sync Gateway nodes as a cluster.
+(In general, you will want to have at least two Sync Gateway nodes to ensure high-availability in case one should fail.)
+This means running an identically configured instance of Sync Gateway on each of several machines, and load-balancing them by directing each incoming HTTP request to a random node.
+Sync Gateway nodes are "shared-nothing," so they don’t need to coordinate any state or even know about each other.
+
+With multiple Sync Gateways, we recommend placing this cluster behind a load balancer server to coordinate connection requests in clients (see the xref:load-balancer.adoc[Load Balancer] guide).
+
+== Performance Considerations
+
+Keep in mind the following notes on performance:
+
+- Sync Gateway nodes don’t keep any local state, so they don’t require any disk.
+- Sync Gateway nodes maintain a channel metadata cache in RAM.
+Tuning the channel cache values in the configuration file can speed up the performance (see the xref:config-properties.adoc#databases-foo_db-cache[databases.$db.cache] properties).
+- Sync Gateway is designed for multiprocessing.
+It uses lightweight threads and asynchronous I/O.
+Therefore, adding more CPU cores to a Sync Gateway node can speed it up.
+- As is typical with databases, writes are going to put a greater load on the system than reads.
+In particular, every write operation gets processed by the xref:sync-function-api.adoc[Sync Function] and triggers notifications to other clients with read access, who then perform reads to get the new data.
+- Each client running a continuous replication has an open socket to be notified of changes, these sockets remain idle most of the time (unless documents are being modified at a very high rate), so the actual data traffic is low — the issue is just managing that many sockets.
+We recommend developers to optimize how many connections they need to open to the sync tier (see the xref:os-level-tuning.adoc[OS Level Tuning] guide).
