@@ -197,6 +197,7 @@ If that happens, the next time Couchbase Lite pulls changes from the gateway, it
 
 === access(username, channelname)
 
+Documents can grant users access to channels.
 The `access()` function grants access to a channel to a specified user.
 It can be called multiple times from a sync function.
 
@@ -225,20 +226,27 @@ access (null, "hbo");  // no-op
 access ("snej", null);  // no-op
 ----
 
-Here is an example of a sync function that grants access to a channel for all the users listed in a document:
+A typical example is a document that represents a shared resource (like a chat room or photo gallery).
+The document has a `members` property that lists the users who can access the resource.
+If the documents belonging to the resource are all tagged with a specific channel, then the following sync function can be used to detect the membership property and assign access to the users listed in it:
 
 [source,javascript]
 ----
-function (doc, oldDoc) {
-    if (doc.type == "chat_room") {
-        // Give members access to the chat channel this document manages:
-        access (doc.members, doc.channel_name);
-
-        // Put this document in the channel it manages:
-        channel (doc.channel_name);
+function(doc) {
+    if (doc.type == "chatroom") {
+        access (doc.members, doc.channel_id)
     }
 }
 ----
+
+In the example, a chat room is represented by a document with a `type` property set to `chatroom`.
+The `channel_id` property names the associated channel (with which the actual chat messages are tagged) and the `members` property lists the users who have access.
+
+The `access()` function can also operate on roles.
+If a user name string begins with `role:` then the remainder of the string is interpreted as a role name.
+There's no ambiguity here, because ":" is an illegal character in a user or role name.
+
+Because anonymous requests are authenticated as the user "GUEST", you can make a channel and its documents public by calling `access` with a username of `GUEST`.
 
 === role(username, rolename)
 

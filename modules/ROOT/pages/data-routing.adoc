@@ -122,33 +122,7 @@ That way the next pull request retrieves all documents to which the user now has
 
 ==== Programmatic Authorization
 
-Documents can grant users access to channels.
-This is done by writing a sync function that recognizes such documents and calls a special `access()` function to grant access.
-
-The `access()` function takes the following parameters: a user name or array of user names and a channel name or array of channel names.
-For convenience, null values are ignored (treated as empty arrays).
-
-A typical example is a document that represents a shared resource (like a chat room or photo gallery).
-The document has a `members` property that lists the users who can access the resource.
-If the documents belonging to the resource are all tagged with a specific channel, then the following sync function can be used to detect the membership property and assign access to the users listed in it:
-
-[source,javascript]
-----
-function(doc) {
-    if (doc.type == "chatroom") {
-        access (doc.members, doc.channel_id)
-    }
-}
-----
-
-In the example, a chat room is represented by a document with a `type` property set to `chatroom`.
-The `channel_id` property names the associated channel (with which the actual chat messages are tagged) and the `members` property lists the users who have access.
-
-The `access()` function can also operate on roles.
-If a user name string begins with `role:` then the remainder of the string is interpreted as a role name.
-There's no ambiguity here, because ":" is an illegal character in a user or role name.
-
-Because anonymous requests are authenticated as the user "GUEST", you can make a channel and its documents public by calling `access` with a username of `GUEST`.
+This section has moved to the xref:sync-function-api.adoc#read-access[Sync Function API page].
 
 ==== Authorizing Document Updates
 
