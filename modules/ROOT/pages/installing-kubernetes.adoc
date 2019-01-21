@@ -29,7 +29,8 @@ For example, to deploy a cluster with 4 regular nodes, 1 import node and 1 repli
 
 In this section, you will create the Sync Gateway configuration file and store it in a secret location.
 
-Open the *sgw-config.json* file corresponding to your deployment or create a new file called *sgw-config.json* with the following configuration . In both cases,  replace the `server` key with the addressable Couchbase Server hostname.
+. Open the *sgw-config.json* file corresponding to your deployment or create a new file called *sgw-config.json* with the following configuration.
+In both cases,  replace the `server` key with the addressable Couchbase Server hostname.
 +
 [source,json]
 ----
@@ -37,31 +38,30 @@ Open the *sgw-config.json* file corresponding to your deployment or create a new
   "logging": {
     "console": {
       "log_file_path": "/var/tmp/sglogs",
-    "console": {
-      "log_level": "debug",
-      "log_keys": ["*"]
-    },
-    "error": {
-      "enabled": true,
-      "rotation": {
-        "max_size": 20,
-        "max_age": 180
+      "console": {
+        "log_level": "debug",
+        "log_keys": ["*"]
+      },
+      "error": {
+        "enabled": true,
+        "rotation": {
+          "max_size": 20,
+          "max_age": 180
+        }
+      },
+      "warn": {
+        "enabled": true,
+        "rotation": {
+          "max_size": 20,
+          "max_age": 90
+        }
+      },
+      "info": {
+        "enabled": false
+      },
+      "debug": {
+        "enabled": false
       }
-    },
-    "warn": {
-      "enabled": true,
-      "rotation": {
-        "max_size": 20,
-        "max_age": 90
-      }
-    },
-    "info": {
-      "enabled": false
-    },
-    "debug": {
-      "enabled": false
-    }
-      
     }
   },
   "databases": {
@@ -80,8 +80,9 @@ Open the *sgw-config.json* file corresponding to your deployment or create a new
 <1> The server key should point to the Couchbase Server cluster.
 This would typically be of the form `http://CB_SERVER_POD.CB_SERVER_SERVICE_NAME:8091`.
 <2> The username/password keys should match what was setup in the <<pre-requisites, pre-requisites>> section when you configured the Sync Gateway RBAC user.
-. You will use a https://kubernetes.io/docs/concepts/configuration/secret/[Kubernetes Secrets] to pass the configuration file to Sync Gateway on launch.
-Alternatively, you could use https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/[Kubernetes configMap] if you are not concerned about the security. However, since the Sync Gateway contains sensitive information, it is recommended that you create a secret from the config file and pass that to the Sync Gateway.
+. You will use a https://kubernetes.io/docs/concepts/configuration/secret/[Kubernetes Secret] to pass the configuration file to Sync Gateway on launch.
+Alternatively, you could use a https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/[Kubernetes configMap] if you are not concerned about the security.
+However, since the Sync Gateway contains sensitive information, it is recommended that you create a secret from the config file and pass that to the Sync Gateway.
 Run the following command to create a secret called "sgw-config" from the specified Sync Gateway configuration file (*sgw-config.json*).
 +
 [source,console]
@@ -167,9 +168,8 @@ deployment.extensions "sync-gateway" created
 [source,console]
 ----
 kubectl get pods --watch
-
-The --watch option is optional but you use it to be asynchronously notified of  updates to status of the pods instead of having to repeatedly run the command.
 ----
+The `--watch` option is optional but you use it to be asynchronously notified of  updates to status of the pods instead of having to repeatedly run the command.
 +
 If successful, you will see the following.
 +
@@ -191,7 +191,9 @@ In a production deployment, you will likely have one or more Sync Gateway nodes 
 You will deploy the load balancer using the https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/[Kubernetes Load Balancer service].
 The load balancer service provides an externally accessible IP address and routes traffic to the right ports in the cluster.
 
-NOTE : Load Balancers only work on  Cloud Environments (e.g. AWS, GCP etc). So if you are deploying an on-prem clusters or using something like [minikube](https://github.com/kubernetes/minikube) for your test deployment, this option will not work. Please use a [service](https://kubernetes.io/docs/concepts/services-networking/service/) such  as NodePort or Ingress instead. 
+NOTE: Load balancers only work on  Cloud Environments (e.g. AWS, GCP etc).
+So if you are deploying on premise or using something like https://github.com/kubernetes/minikube[minikube] for your test deployment, this option will not work.
+Please use a https://kubernetes.io/docs/concepts/services-networking/service/[service] such  as NodePort or Ingress instead.
 
 Follow these steps to deploy a load balancer in front of the Sync Gateway cluster.
 
