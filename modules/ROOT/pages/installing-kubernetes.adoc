@@ -139,7 +139,7 @@ spec:
         - name: sync-gateway
           image: couchbase/sync-gateway:2.1.2-enterprise <3>
           args: ["/sync-gateway-config/sgw-config.json"] <4>
-          volumeMounts:
+          volumeMounts: <5>
             - name: sgw-config-volume
               mountPath: /sync-gateway-config
               readOnly: true
@@ -151,20 +151,20 @@ spec:
               cpu: "2"
             limits:
               cpu: "2"
-      volumes:
+      volumes: <6>
         - name: sgw-config-volume
           secret:
             secretName: sgw-config
 ----
 <1> `metadata.name`: The name of the deployment is "sync-gateway".
-<1> `spec.replicas`: 2 Sync Gateway replicas that are deployed at most.
+<2> `spec.replicas`: 2 Sync Gateway replicas that are deployed at most.
 * For import node deployment, this *must* be 1 because there can be at most 1 Sync Gateway replicator in a cluster.
 If high availability is important, you probably want at least 2 Sync Gateway import nodes.
 * For replicator node deployment, this *must* be 1 because there can be at most 1 Sync Gateway import node in a cluster.
-<1> `containers[].image`: Points to the docker image for Sync Gateway.
-<1> `containers[].args`: Points to the Sync Gateway configuration file named "sgw-config-working.json" which is mounted at the path specified via the `volumeMounts` config.
-<1> `volumeMounts`: Specifies where to mount the volume into the container.
-<1> `volumes`: Specifies what to mount.
+<3> `containers[].image`: Points to the docker image for Sync Gateway.
+<4> `containers[].args`: Points to the Sync Gateway configuration file named "sgw-config-working.json" which is mounted at the path specified via the `volumeMounts` config.
+<5> `volumeMounts`: Specifies where to mount the volume into the container.
+<6> `volumes`: Specifies what to mount.
 In our case, the "secret" with name "sgw-config" corresponding to the Sync Gateway configuration that was created in the previous step is mounted.
 Learn more about Kubernetes volumes https://kubernetes.io/docs/concepts/storage/volumes/[here].
 . Deploy the Sync Gateway cluster from the specified deployment controller file.
