@@ -13,24 +13,32 @@ Refer to xref:getting-started.adoc#creating-an-rbac-user[this section] for instr
 
 == Deploying a Sync Gateway Cluster
 
-The Sync Gateway nodes in a cluster are homogeneous in configuration with two exceptions.
+The Sync Gateway nodes in a cluster are homogeneous in configuration with the exception of importer nodes.
 
-Importer node:: under xref:shared-bucket-access.adoc[convergence/shared bucket access], it is recommended that one node handles document import processing.
+Importer node:: Under xref:shared-bucket-access.adoc[convergence/shared bucket access], it is recommended that one node handles document import processing.
 For high availability, you can configure more than one node in your cluster to be an import node, though it is strongly discouraged for all Sync Gateway nodes in the cluster to be configured for import processing.
 The configuration of the Sync Gateway import node is slightly different (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
-Replicator node:: if you are using inter-cluster replication using sg-replicate then there will be one designated replicator node whose configuration is different than the rest of the nodes.
+//Replicator node:: if you are using inter-cluster replication using sg-replicate then there will be one designated replicator node whose configuration is different than the rest of the nodes.
 
-The following sections cover the steps to deploy a cluster of regular Sync Gateway nodes.
-The configuration and deployment controller files will differ if you are deploying a cluster of importer nodes or a single replicator node.
+The following sections cover the steps to deploy regular nodes or import nodes.
+// or a single replicator node.
 
-For example, to deploy a cluster with 4 regular nodes, 1 import node and 1 replicator node you would run the steps below 3 times, each time with a different configuration and deployment controller file.
+For example, to deploy a cluster with 4 regular nodes and 1 importer node you would run the steps below 2 times, each time with a different configuration and deployment controller file.
 
 === Configuration file
 
 In this section, you will create the Sync Gateway configuration file and store it in a secret location.
 
-. Open the *sgw-config.json* file corresponding to your deployment or create a new file called *sgw-config.json* with the following configuration.
-In both cases,  replace the `server` key with the addressable Couchbase Server hostname.
+. Open the configuration file corresponding to your deployment.
++
+|===
+| Regular Node | Importer Node
+
+| link:{attachmentsdir}/kubernetes/sgw-config.json[sgw-config.json]
+| link:{attachmentsdir}/kubernetes/sgw-config-import.json[sgw-config-import.json]
+|===
+. Replace the `server` key with the addressable Couchbase Server hostname.
+The following example shows the configuration file for a regular node.
 +
 [source,json]
 ----
@@ -83,11 +91,11 @@ This would typically be of the form `http://CB_SERVER_POD.CB_SERVER_SERVICE_NAME
 . You will use a https://kubernetes.io/docs/concepts/configuration/secret/[Kubernetes Secret] to pass the configuration file to Sync Gateway on launch.
 Alternatively, you could use a https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/[Kubernetes configMap] if you are not concerned about the security.
 However, since the Sync Gateway contains sensitive information, it is recommended that you create a secret from the config file and pass that to the Sync Gateway.
-Run the following command to create a secret called "sgw-config" from the specified Sync Gateway configuration file (*sgw-config.json*).
+Run the following command to create a secret called "sgw-config" or "sgw-config-import" with the corresponding Sync Gateway configuration file.
 +
 [source,console]
 ----
-kubectl create secret generic sgw-config --from-file sgw-config.json
+kubectl create secret generic [sgw-config|sgw-config-import] --from-file [configuration-file]
 ----
 +
 If successful, you will see the following.
@@ -104,7 +112,15 @@ In this section you will deploy the Sync Gateway cluster with the configuration 
 You will be using a https://kubernetes.io/docs/concepts/workloads/controllers/deployment/[Kubernetes deployment controller].
 A deployment controller allows you to define the number of Sync Gateway replicas and other parameters.
 
-. Create a new file called *sgw-deployment.yaml* with the following.
+. Open the controller file corresponding to your deployment.
++
+|===
+| Regular Node | Importer Node
+
+| link:{attachmentsdir}/kubernetes/sgw-deployment.yaml[sgw-deployment.yaml]
+| link:{attachmentsdir}/kubernetes/sgw-deployment-import.yaml[sgw-deployment-import.yaml]
+|===
+The following example shows the controller file for a regular node.
 +
 [source,yaml]
 ----
@@ -151,11 +167,11 @@ If high availability is important, you probably want at least 2 Sync Gateway imp
 <1> `volumes`: Specifies what to mount.
 In our case, the "secret" with name "sgw-config" corresponding to the Sync Gateway configuration that was created in the previous step is mounted.
 Learn more about Kubernetes volumes https://kubernetes.io/docs/concepts/storage/volumes/[here].
-. Deploy the Sync Gateway cluster using the deployment controller file.
+. Deploy the Sync Gateway cluster from the specified deployment controller file.
 +
 [source,console]
 ----
-kubectl create -f sgw-deployment.yaml
+kubectl create --from-file [deployment-controller-file]
 ----
 If successful, you will see the following.
 +
