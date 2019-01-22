@@ -1,8 +1,8 @@
-= Kubernetes
+= Installing on Kubernetes
 
 This page describes the steps to deploy a Sync Gateway cluster on Kubernetes.
 
-== Pre-requisites
+== Prerequisites
 
 Before you begin, you must have the following:
 
@@ -17,11 +17,11 @@ The Sync Gateway nodes in a cluster are homogeneous in configuration with two ex
 
 * Importer node: under xref:shared-bucket-access.adoc[convergence/shared bucket access], it is recommended that one node handles document import processing.
 For high availability, you can configure more than one node in your cluster to be an import node, though it is strongly discouraged for all Sync Gateway nodes in the cluster to be configured for import processing.
-The configuration of the import Sync Gateway node is slightly different (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
+The configuration of the Sync Gateway import node is slightly different (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
 * Replicator node: if you are using inter-cluster replication using sg-replicate then there will be one designated replicator node whose configuration is different than the rest of the nodes.
 
 The following sections cover the steps to deploy a cluster of regular Sync Gateway nodes.
-The configuration and deployment controller files will differ if you are deploying a cluster of import nodes or a single replicator node.
+The configuration and deployment controller files will differ if you are deploying a cluster of importer nodes or a single replicator node.
 
 For example, to deploy a cluster with 4 regular nodes, 1 import node and 1 replicator node you would run the steps below 3 times, each time with a different configuration and deployment controller file.
 
@@ -219,7 +219,7 @@ spec:
 <1> `metadata.name`: the name of the load balancer is "sgw-load-balancer".
 <1> `spec.selector.app`: this value corresponds to the pods targeted by the load balancer.
 In this case, it targets any pods with the `app=sync-gateway` label which are the Sync Gateway nodes - this corresponds to what was specified in the deployment yaml file.
-<1> `spec.ports[].targetPort`: the load balancer service targets ports 4984 on the Sync Gateway cluster.
+<1> `spec.ports[].targetPort`: the load balancer service targets port 4984 on the Sync Gateway cluster.
 This is the Sync Gateway port corresponding to the xref:rest-api.adoc[REST API].
 For security purposes, it is recommended that you do not expose the admin port (4985) over the Internet.
 . Deploy the load balancer.
