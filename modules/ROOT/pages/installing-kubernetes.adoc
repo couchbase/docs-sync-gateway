@@ -24,16 +24,17 @@ The configuration of the Sync Gateway import node is slightly different than the
 The following sections cover the steps to deploy regular or import Sync Gateway nodes.
 // or a single replicator node.
 
-You will have to repeat the steps in this section once for the "regular" nodes and once for the "import" node. The difference is the  Sync Gateway configuration file and the Kubernetes Deployment Controller config file.
+You will have to repeat the steps in this section once for the "regular" or non-import nodes and once for the "import" node. The difference is the  Sync Gateway configuration file and the Kubernetes Deployment Controller config file.
 
-=== Configuration file
+=== Sync Gateway Configuration File
 
-In this section, you will create the Sync Gateway configuration file and store it in a secret location.
+In this section, you will create a https://kubernetes.io/docs/concepts/configuration/secret/[Kubernetes secret] from a new or existing Sync Gateway configuration.
 
-. Open the configuration file corresponding to your deployment.
+. Open the Sync Gateway configuration file corresponding to your deployment.
+If you don't have a configuration file you may also use our sample configuration shown below as a starting point.
 +
 |===
-| Regular Node | Importer Node
+| Regular Node | Import Node
 
 | link:{attachmentsdir}/kubernetes/sgw-config.json[sgw-config.json]
 | link:{attachmentsdir}/kubernetes/sgw-config-import.json[sgw-config-import.json]
@@ -86,13 +87,13 @@ The following example shows the configuration file for a regular node.
   }
 }
 ----
-<1> The server key should point to the Couchbase Server cluster.
+<1> The server key should point to any pod in the  Couchbase Server cluster.
 This would typically be of the form `http://CB_SERVER_POD.CB_SERVER_SERVICE_NAME:8091`.
 <2> The username/password keys should match what was setup in the <<pre-requisites, pre-requisites>> section when you configured the Sync Gateway RBAC user.
 . You will use a https://kubernetes.io/docs/concepts/configuration/secret/[Kubernetes Secret] to pass the configuration file to Sync Gateway on launch.
-Alternatively, you could use a https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/[Kubernetes configMap] if you are not concerned about the security.
+Alternatively, you could use a https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/[Kubernetes configMap] if you are not concerned about security.
 However, since the Sync Gateway contains sensitive information, it is recommended that you create a secret from the config file and pass that to the Sync Gateway.
-Run the following command to create a secret called "sgw-config" or "sgw-config-import" with the corresponding Sync Gateway configuration file.
+Run the following command to create a secret called "sgw-config" or "sgw-config-import" corresponding  to regular and import versions of Sync Gateway configuration file respectively
 +
 [source,console]
 ----
@@ -116,7 +117,7 @@ A deployment controller allows you to define the number of Sync Gateway replicas
 . Open the controller file corresponding to your deployment.
 +
 |===
-| Regular Node | Importer Node
+| Regular Node | Import Node
 
 | link:{attachmentsdir}/kubernetes/sgw-deployment.yaml[sgw-deployment.yaml]
 | link:{attachmentsdir}/kubernetes/sgw-deployment-import.yaml[sgw-deployment-import.yaml]
@@ -159,11 +160,13 @@ spec:
 ----
 <1> `metadata.name`: The name of the deployment is "sync-gateway".
 <2> `spec.replicas`: 2 Sync Gateway replicas that are deployed at most.
-* For import node deployment, this *must* be 1 because there can be at most 1 Sync Gateway replicator in a cluster.
-If high availability is important, you probably want at least 2 Sync Gateway import nodes.
-* For replicator node deployment, this *must* be 1 because there can be at most 1 Sync Gateway import node in a cluster.
+* For import node deployment, this *is recommended* to be 1.
+If high availability is important, you may want at least 2 Sync Gateway import nodes.
+However, given the overhead of redundant import docs processing by multiple nodes, this is not typically recommended.
+//* For replicator node deployment, this *must* be 1 because there can be at most 1 Sync Gateway import node in a cluster.
 <3> `containers[].image`: Points to the docker image for Sync Gateway.
 <4> `containers[].args`: Points to the Sync Gateway configuration file named "sgw-config-working.json" which is mounted at the path specified via the `volumeMounts` config.
+If you are using the sample config files, this would be "sgw-config-import.json" for the import node.
 <5> `volumeMounts`: Specifies where to mount the volume into the container.
 <6> `GOMAXPROCS`: This GO runtime environment variable is used to limit the number of system threads that are allocated to Sync Gateway.
 <7> `containers[].resources.limits.cpu`: This is used to specify the CPU limit for the Sync Gateway pod.
@@ -194,7 +197,7 @@ kubectl get pods --watch
 The `--watch` option is optional but you use it to be asynchronously notified of  updates to status of the pods instead of having to repeatedly run the command.
 +
 If successful, you will see a listing of the Sync Gateway pods that were deployed.
-In the sample output below, we have Couchbase Server and Sync Gateway pods running on the same namespace.
+In the sample output below, we have Couchbase Server and Sync Gateway pods running in the same https://kubernetes.io/docs/tasks/administer-cluster/namespaces-walkthrough/[namespace].
 In a production deployment, you may have Couchbase Server deployed on a separate namespace.
 +
 [source,console]
@@ -302,7 +305,7 @@ External Traffic Policy:  Cluster
 Events:
 ----
 Notice the "endpoints" field and confirm that it corresponds to the Sync Gateway nodes.
-In this example, we have 2 Sync Gateway nodes (two regular nodes).
+In this example, we have 2 Sync Gateway nodes.
 . Verify the Sync Gateway cluster is accessible with the following command; where `EXTERNAL-IP` is the IP that was copied in step 3.
 +
 [source,console]
