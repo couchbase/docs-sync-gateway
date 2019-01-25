@@ -9,21 +9,22 @@ Before you begin, you must have the following:
 * A Couchbase Server cluster already running on Kubernetes.
 If you don't already have one, you can refer to xref:operator::install-kubernetes.adoc[this guide] for instructions.
 * A Couchbase Server RBAC user with application access privileges.
+Sync Gateway will connect to the Couchbase Server as this RBAC user.
 Refer to xref:getting-started.adoc#creating-an-rbac-user[this section] for instructions.
 
 == Deploying a Sync Gateway Cluster
 
-The Sync Gateway nodes in a cluster are homogeneous in configuration with the exception of importer nodes.
+The Sync Gateway nodes in a cluster have a homogeneous configuration with the exception of import node.
 
-Importer node:: Under xref:shared-bucket-access.adoc[convergence/shared bucket access], it is recommended that one node handles document import processing.
-For high availability, you can configure more than one node in your cluster to be an import node, though it is strongly discouraged for all Sync Gateway nodes in the cluster to be configured for import processing.
-The configuration of the Sync Gateway import node is slightly different (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
+Importer node:: Under xref:shared-bucket-access.adoc[convergence/shared bucket access], it is recommended that one Sync Gateway node in a cluster be configured for handling document import processing.
+For high availability, you can configure more than one Sync Gateway node in your cluster to be the import node, although it is strongly discouraged for multiple Sync Gateway nodes in the cluster to be configured for import processing.
+The configuration of the Sync Gateway import node is slightly different than the "regular" Sync Gateway nodes (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
 //Replicator node:: if you are using inter-cluster replication using sg-replicate then there will be one designated replicator node whose configuration is different than the rest of the nodes.
 
-The following sections cover the steps to deploy regular nodes or import nodes.
+The following sections cover the steps to deploy regular or import Sync Gateway nodes.
 // or a single replicator node.
 
-For example, to deploy a cluster with 4 regular nodes and 1 importer node you would run the steps below 2 times, each time with a different configuration and deployment controller file.
+You will have to repeat the steps in this section once for the "regular" nodes and once for the "import" node. The difference is the  Sync Gateway configuration file and the Kubernetes Deployment Controller config file.
 
 === Configuration file
 
