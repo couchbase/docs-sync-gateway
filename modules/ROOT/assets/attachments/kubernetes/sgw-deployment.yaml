@@ -1,9 +1,9 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: sync-gateway # <1>
+  name: sync-gateway
 spec:
-  replicas: 2 # <2>
+  replicas: 2
   template:
     metadata:
       labels:
@@ -11,21 +11,21 @@ spec:
     spec:
       containers:
         - name: sync-gateway
-          image: couchbase/sync-gateway:2.1.2-enterprise # <3>
-          args: ["/sync-gateway-config/sgw-config.json"] # <4>
-          volumeMounts: # <5>
+          image: couchbase/sync-gateway:2.1.2-enterprise
+          args: ["/sync-gateway-config/sgw-config.json"]
+          volumeMounts:
             - name: sgw-config-volume
               mountPath: /sync-gateway-config
               readOnly: true
           env:
-            - name: GOMAXPROCS # <6>
+            - name: GOMAXPROCS
               value: "2"
           resources:
             requests:
               cpu: "2"
             limits:
-              cpu: "2" # <7>
-      volumes: # <8>
+              cpu: "2"
+      volumes:
         - name: sgw-config-volume
           secret:
             secretName: sgw-config
