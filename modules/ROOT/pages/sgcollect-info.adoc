@@ -123,6 +123,27 @@ These new log files are rotated and compressed by Sync Gateway, so `sgcollect_in
 
 For example, if you have *sg_debug.log*, and *sg_debug-2018-04-23T16-57-13.218.log.gz* and then run `sgcollect_info` as normal, both of these files get put into a *sg_debug.log* file inside the zip output folder.
 
+== Log Redaction
+
+SGCollect Info now supports log redaction post-processing.
+In order to utilize this, Sync Gateway needs to be run with the `logging.redaction_level` property set to "partial".
+
+Two new command line options have been added to `sgcollect_info`:
+
+* `--log-redaction-level=REDACT_LEVEL`: redaction level for the logs collected, `none` and `partial` supported. Defaults to `none`.
++
+When `--log-redaction-level` is set to partial, two zip files are produced, and tagged contents in the redacted one should be hashed in the same way as `cbcollect_info`:
++
+[source,bash]
+----
+$ ./sgcollect_info --log-redaction-level=partial sgout.zip
+...
+Zipfile built: sgout-redacted.zip
+Zipfile built: sgout.zip
+----
+
+* `--log-redaction-salt=SALT_VALUE`: salt used in the hashing of tagged data when enabling redaction. Defaults to a random uuid.
+
 == Installing Optional Dependencies
 
 `sgcollect_info` will be able to collect more information if the following tools are installed:
