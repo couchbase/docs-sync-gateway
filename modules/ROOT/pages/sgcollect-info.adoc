@@ -31,7 +31,7 @@ Collect Sync Gateway diagnostics and save locally:
 
 Collect Sync Gateway diagnostics and upload them to the Couchbase Support AWS S3 bucket:
 
-[source,bash]
+[source,console]
 ----
 ./sgcollect_info \
   --sync-gateway-config=/path/to/config.json \
@@ -114,6 +114,14 @@ The tool creates the following log files in the ouput file.
 |`pprof_http_*.log`
 |The pprof output that collects directly via an http client rather than using go tool, in case Go is not installed
 |===
+
+=== File concatenation
+
+SGCollect Info has been updated to use the xref:logging.adoc#continuous-logging[continuous logging] feature introduced in 2.1, and collects the four leveled files (*sg_error.log*, *sg_warn.log*, *sg_info.log* and *sg_debug.log*).
+
+These new log files are rotated and compressed by Sync Gateway, so `sgcollect_info` decompresses these rotated logs, and concatenates them back into a single file upon collection.
+
+For example, if you have *sg_debug.log*, and *sg_debug-2018-04-23T16-57-13.218.log.gz* and then run `sgcollect_info` as normal, both of these files get put into a *sg_debug.log* file inside the zip output folder.
 
 == Installing Optional Dependencies
 
