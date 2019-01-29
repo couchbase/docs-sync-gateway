@@ -19,30 +19,18 @@ You can use kubectl to view logs for a specific pod using following command. Thi
 
 ===  Using sgcollect_info
 [sgcollect_info] (https://docs.couchbase.com/sync-gateway/2.1/sgcollect-info.html) is command line utility that detailed statistics for a specific Sync Gateway node. This tool must be run on each node individually.
-[Download] (https://docs.couchbase.com/sync-gateway/2.1/getting-started.html)  the tool for the platform on which your pod was deployed. The tool is bundled with platform specific Sync Gateway binary 
-==== Copying sgcollect_info to pods
-To use sgcollect_info, you must copy it over to the specific pod . The following [kubectl cp command](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#cp).  copies sgcollect_info into the /tmp folder on specified Sync Gateway pod 
-`kubectl cp sgcollect_info <pod_id>:/tmp/ `
++ The sgcollect-info tool is bundled as part of the Sync Gateway docker image 
 
 ==== Collecting logs on pod
-To collect  logs on specific pod,  run sgcollect_info using the kubectl [exec command](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#exec). The following command runs sgcollect_info on the specified pod and outputs the results in a out.zip file.
-`kubectl exec <pod_id> -- /tmp/sgcollect_info out.zip`
+To collect  logs on specific pod,  run sgcollect_info using the kubectl [exec command](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#exec). The following command runs sgcollect_info on the specified pod and outputs the results to a out.zip file.
+`kubectl exec <pod_id> -- /opt/couchbase-sync-gateway/tools/sgcollect_info /tmp/out.zip`
 
 ==== Coping log output from pod
 To copy the sgcollect_info generated output from the pod , use the kubectl [cp command](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#cp). The following
 `kubectl cp <pod_id>:/tmp/out.zip . `
 
 ==== Convenience Scripts
-===== Copying sgcollect_info to all pods
-The following script copies sgcollect_info to all the Sync Gateway pods. This script is available as `copy_sgcollectinfo_to_sgw_pods.sh` and you can run it with optional path argument 
 `
-#! /bin/sh
-FOLDER=${1:-/tmp/}
-for pod in `kubectl get pods -o=name | grep sync-gateway | sed "s/^.\{4\}//"`
-do
-    echo "copying sgcollect_info to  $pod:$FOLDER"
-    kubectl cp sgcollect_info $pod:$FOLDER
-done
 `
 ===== Collecting  sgcollect_info logs from all pods
 The following script runs sgcollect_info on all the pods and to copy the zipped files over to the current folder. This script is available as `collect_logs_sgw_pods.sh ` 
