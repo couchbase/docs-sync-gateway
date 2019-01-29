@@ -59,12 +59,12 @@ The following script runs sgcollect_info on all the pods and to copy the zipped 
 [source,console]
 ----
 #! /bin/sh
-FOLDER=${1:-/tmp}
+OUTFOLDER=${1:-/tmp}
 for pod in `kubectl get pods -o=name | grep sync-gateway | sed "s/^.\{4\}//"`
 do
-    LOGFILE=$FOLDER/$pod'_sgcollect_info_out.zip'
+    LOGFILE=$OUTFOLDER/$pod'_sgcollect_info_out.zip'
     echo "Running sgcollect_info to generate $LOGFILE"
-    kubectl exec $pod -- $FOLDER/sgcollect_info $LOGFILE
+    kubectl exec $pod -- /opt/couchbase-sync-gateway/tools/sgcollect_info $LOGFILE
     echo "copying $pod:$LOGFILE to current folder"
     kubectl cp $pod:$LOGFILE .
 done
