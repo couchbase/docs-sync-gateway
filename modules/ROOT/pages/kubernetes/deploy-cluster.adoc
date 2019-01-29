@@ -16,9 +16,9 @@ Refer to xref:getting-started.adoc#creating-an-rbac-user[this section] for instr
 
 The Sync Gateway nodes in a cluster have a homogeneous configuration with the exception of import node.
 
-Importer node:: Under xref:shared-bucket-access.adoc[convergence/shared bucket access], it is recommended that one Sync Gateway node in a cluster be configured for handling document import processing.
+Import node:: Under xref:shared-bucket-access.adoc[convergence/shared bucket access], it is recommended that one Sync Gateway node in a cluster be configured for handling document import processing.
 For high availability, you can configure more than one Sync Gateway node in your cluster to be the import node, although it is strongly discouraged for multiple Sync Gateway nodes in the cluster to be configured for import processing.
-The configuration of the Sync Gateway import node is slightly different than the "regular" Sync Gateway nodes (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
+The configuration of the Sync Gateway import node is slightly different than the "regular" or "non-import" Sync Gateway nodes (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
 //Replicator node:: if you are using inter-cluster replication using sg-replicate then there will be one designated replicator node whose configuration is different than the rest of the nodes.
 
 The following sections cover the steps to deploy regular or import Sync Gateway nodes.
@@ -274,6 +274,8 @@ couchbase-operator-fd8db588b-9fzsw   1/1       Running   1          3d
 sync-gateway-7474f5df4b-c29xw        1/1       Running   2          18m
 sync-gateway-7474f5df4b-p98sq        1/1       Running   0          18m
 ----
+Make sure that you have sufficient CPU resources on the node on which the pods are being deployed.
+Failure to do so will result in an "insufficient resource" exception when attempting to deploy the pods.
 
 == Deploying a Load Balancer
 
