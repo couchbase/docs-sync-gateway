@@ -148,39 +148,64 @@ Download Sync Gateway from the {url-downloads}#couchbase-mobile[Couchbase downlo
 wget {sg_download_link}{sg_package_name}.tar.gz
 ----
 
-Install sync_gateway by unpacking the tar.gz installer.
+From here, there are two installation options.
 
+*Option 1:* Start Sync Gateway from the Command Line
+
+. Unpack the tar.gz installer.
++
+[source,bash,subs="attributes"]
+----
+sudo tar -zxvf {sg_package_name}.tar.gz
+----
+. Launch the `sync_gateway` program from the command line.
++
+[source,console]
+----
+~/Downloads/couchbase-sync-gateway/bin/sync_gateway
+----
+
+*Option 2:* Run Sync Gateway as a service
+
+. Unpack the tar.gz installer to the */opt* directory.
++
 [source,bash,subs="attributes"]
 ----
 sudo tar -zxvf {sg_package_name}.tar.gz --directory /opt
 ----
-
-Create the sync_gateway service.
-
+. Create a new macOS user.
++
+[source,console]
+----
+sudo sysadminctl -addUser sync_gateway
+----
+If the operation is successful, you will get the following output.
++
+[source,console]
+----
+sysadminctl ----------------------------
+sysadminctl No clear text password or interactive option was specified (adduser, change/reset password will not allow user to use FDE) !
+sysadminctl ----------------------------
+sysadminctl Creating user record…
+sysadminctl Assigning UID: 505
+sysadminctl Creating home directory at /Users/sync_gateway
+----
+. Create a new group and add the `sync_gateway` user to that group.
++
+[source,console]
+----
+sudo dseditgroup -o create sync_gateway
+sudo dseditgroup -o edit -a sync_gateway -t user sync_gateway
+----
+. Run Sync Gateway as a service with the following.
++
 [source,bash]
 ----
-$ sudo mkdir /Users/sync_gateway
-
-$ cd /opt/couchbase-sync-gateway/service
-
-$ sudo ./sync_gateway_service_install.sh
+cd /opt/couchbase-sync-gateway/service
+sudo ./sync_gateway_service_install.sh
 ----
-
-To restart sync_gateway (it will automatically start again).
-
-[source,bash]
-----
-$ sudo launchctl stop sync_gateway
-----
-
-To remove the service.
-
-[source,bash]
-----
-$ sudo launchctl unload /Library/LaunchDaemons/com.couchbase.mobile.sync_gateway.plist
-----
-
-The config file and logs are located in `/Users/sync_gateway`.
+Other scripts in that directory are available to update or uninstall the service.
+The configuration file and logs are located in `/Users/sync_gateway`.
 --
 ====
 
