@@ -975,6 +975,42 @@ paths:
           description: Bad request.
         401:
           description: Authentication failed.  Unable to refresh token.
+  /{db}/_facebook:
+    parameters:
+      - $ref: '#/parameters/db'
+    post:
+      tags:
+        - auth
+      summary: User creation / authentication via Facebook
+      description: |
+        Sync Gateway allows users to authenticate using a Facebook account. Your application is responsible for generating a Facebook token; this generally needs to be done by running the Facebook login flow inside a web-view and capturing the generated token. This endpoint can be used to check the validity of the access token.
+        To allow Facebook Login with Sync Gateway, it must be explicitely enabled in the Sync Gateway configuration file (see the [`facebook.register`](../../../guides/sync-gateway/config-properties/index.html#2.0/facebook) property).
+      parameters:
+        - in: body
+          name: body
+          description: Request body
+          schema:
+            type: object
+            properties:
+              access_token:
+                type: string
+                decription: The access token for the user to authenticate
+          responses:
+            200:
+              description: The request was successful
+              schema:
+                authentication_handlers:
+                  type: array
+                  description: List of authentication methods.
+                  items:
+                    type: string
+                ok:
+                  type: boolean
+                  description: Always true if the operation was successful.
+                userCtx:
+                  $ref: '#/definitions/UserContext'
+            401:
+              description: Authentication failed. Facebook verification server status 400
   /{db}/_revs_diff:
     parameters:
     - $ref: '#/parameters/db'
