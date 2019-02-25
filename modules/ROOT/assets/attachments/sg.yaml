@@ -75,15 +75,50 @@ properties:
             default: 2500
           delta_sync:
             type: object
-            description: Delta sync configuration.
+            description: |
+              *NOTE:* Delta Sync Feature is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
+
+              Delta sync configuration.
+
+              Delta Sync is the ability to replicate only parts of the Couchbase mobile document that have changed.
+              This can result in significant savings in bandwidth consumption.
+              This is especially important in mobile deployments when network bandwidth is typically constrained.
+              Delta Sync does not apply to attachment contents.
+
+              Delta Sync is disabled by default on the Sync Gateway. You can enable delta sync in the Sync Gateway config file (see <<Configuration>> section  ).
+
+              Couchbase Lite clients is driven by Sync Gateway configuration.
+              In other words, if delta sync is enabled on Sync Gateway, then Couchbase Lite clients will switch to using delta sync and if it is disabled on Sync Gateway, then clients will switch to normal mode.
+              Delta Sync is automatically enabled for peer-to-peer sync between Couchbase Lite clients.
+              Delta sync is disabled for Couchbase Lite DB-to-DB sync.
+
+              The following new configuration settings related to Delta Sync have been added to the "database" section of the config file
+
+              ```javascript
+              "databases": {
+                  "db": {
+                      .....
+                      "delta_sync": {
+                          "enabled": true,
+                          "rev_max_age_seconds": 86400
+                      }
+                       "revs_limit": 20
+                      .....
+                  }
+              }
+              ```
+
             properties:
               enabled:
                 type: boolean
-                description: To enable delta sync during replication with this database.
+                description: Set this property to "true" to enable delta sync.
                 default: 'true'
               rev_max_age_seconds:
                 type: integer
-                description: How long to keep deltas to old revisions for (in seconds).
+                description: |
+                  On write, revision body is backed up in bucket and retained for `rev_max_age_seconds`.
+                  New deltas can be generated only for read requests that come in within the "rev_max_age_seconds" time window.
+                  Setting this value to 0 will generate deltas opportunistically on pull replications, with no additional storage requirements.
                 default: 86400
           import_docs:
             type: boolean
