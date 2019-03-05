@@ -2,43 +2,20 @@
 :idprefix:
 :idseparator: -
 
-== Guaranteed Availability
+== Delta Sync
 
-Prior to 2.1, Sync Gateway used system views for a variety of internal operations, including authentication and replication.
-Starting in 2.1, Sync Gateway will use GSI and N1QL to perform those tasks.
+This release adds delta sync support in replications between Couchbase Lite and Sync Gateway.
+Delta Sync is the ability to replicate only parts of the Couchbase mobile document that have changed.
+This can result in significant savings in bandwidth consumption as well as throughput improvements, especially when network bandwidth is typically constrained.
 
-xref:indexing.adoc[Read more]
+xref:config-properties.adoc#databases-foo_db-delta_sync[Read more]
 
-== X.509 Authentication against Couchbase Server
+== Stats Monitoring Enhancements
 
-Sync Gateway adds the ability to use X.509 certificates to authenticate against Couchbase Server 5.5 or higher.
-This functionality can be used instead or in addition to the existing authentication method which is to specify a username and password in the configuration file.
+Sync Gateway includes a number of new metrics available through the Admin REST API (`/_expvars`).
+Those new metrics cover performance, resource utilization and health checks of the Sync Gateway nodes.
 
-xref:security.adoc#x-509-certificates[Read more]
-
-== Continuous Logging
-
-Continuous logging is a new feature in Sync Gateway 2.1 that provides more flexibility in how logs are generated and retained, whilst maintaining the level of logging required by Couchbase Support for investigation of issues.
-
-The previous logging configuration (`logging.default`) is being deprecated, and Sync Gateway 2.1 will display warnings on startup of what is required to update your configuration.
-
-xref:logging.adoc#continuous-logging[Read more]
-
-== Log Redaction
-
-All log outputs can be redacted, this means that user-data, considered to be private, is removed.
-This feature is optional and can be enabled in the configuration with the xref:config-properties.adoc#logging-redaction_level[`logging.redaction_level`] property.
-
-SGCollect Info now supports xref:sgcollect-info.adoc#log-redaction[log redaction] post-processing.
-
-== Bucket operation timeout
-
-The xref:config-properties.adoc#databases-foo_db-bucket_op_timeout_ms[`databases.$db.bucket_op_timeout_ms`] property to override the default timeout used by Sync Gateway to query Couchbase Server.
-It's generally not necessary to change this property unless there is a particularly heavy load on Couchbase Server which would increase the response time.
-
-== Support for IPv6
-
-Sync Gateway now officially supports IPv6.
+xref:admin-rest-api.adoc#/server/get__expvar[Read more]
 
 == Release Notes
 
