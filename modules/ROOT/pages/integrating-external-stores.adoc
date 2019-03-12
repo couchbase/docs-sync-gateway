@@ -125,9 +125,12 @@ Start the program from the command line:
 node import.js
 ----
 
-Open the Sync Gateway Admin UI and you should see all the movies there.
+To verify that the movie documents have been imported, you can:
 
-image::admin-ui-movies-lister.png[]
+* Monitor the Sync Gateway sequence number returned by the database endpoint (xref:sync-gateway::rest-api.adoc#/database/get\__db__[`+GET /{db}/+`]).
+The sequence number increments for every change that happens on the Sync Gateway database.
+* Query a document by ID on the Sync Gateway REST API (xref:sync-gateway::rest-api.adoc#/document/get\__db___doc_[`+GET /{db}/{id}+`]).
+* Query a document from the Query Workbench on the Couchbase Server Console.
 
 Notice that the `_rev` property is also stored on each record on the external store, `movies.json`.
 
@@ -218,7 +221,7 @@ Run the program from the command line:
 node export.js
 ----
 
-Open the Admin UI on `+http://localhost:4985/_admin/db/movies_lister+` and make changes to a document.
+Update a document through the Sync Gateway REST API.
 Notice that the change is also updated in the external store.
 
 image::export-update.gif[]
