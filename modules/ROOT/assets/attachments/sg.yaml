@@ -76,43 +76,51 @@ properties:
           delta_sync:
             type: object
             description: |
-              *NOTE:* Delta Sync Feature is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
+              *NOTE:* Delta Sync is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
 
-              Delta sync configuration.
+              Delta Sync is the ability to replicate only parts of the Couchbase mobile document that have changed. This can result in significant savings in bandwidth consumption as well as throughput improvements, especially when network bandwidth is typically constrained.
 
-              Delta Sync is the ability to replicate only parts of the Couchbase mobile document that have changed.
-              This can result in significant savings in bandwidth consumption.
-              This is especially important in mobile deployments when network bandwidth is typically constrained.
               Delta Sync does not apply to attachment contents.
 
-              Delta Sync is disabled by default on the Sync Gateway. You can enable delta sync in the Sync Gateway config file (see <<Configuration>> section  ).
+              Delta Sync is disabled by default on the Sync Gateway. You can enable it through the `enabled` property.
 
-              Couchbase Lite clients is driven by Sync Gateway configuration.
-              In other words, if delta sync is enabled on Sync Gateway, then Couchbase Lite clients will switch to using delta sync and if it is disabled on Sync Gateway, then clients will switch to normal mode.
-              Delta Sync is automatically enabled for peer-to-peer sync between Couchbase Lite clients.
-              Delta sync is disabled for Couchbase Lite DB-to-DB sync.
+              If delta sync is enabled on Sync Gateway, then Couchbase Lite clients will switch to using delta sync automatically.
+              Similarly, if delta sync is disabled on Sync Gateway, clients will switch to normal mode.
 
-              The following new configuration settings related to Delta Sync have been added to the "database" section of the config file
+              The following configuration example enables delta sync.
 
               ```javascript
-              "databases": {
-                  "db": {
-                      .....
-                      "delta_sync": {
-                          "enabled": true,
-                          "rev_max_age_seconds": 86400
-                      }
-                       "revs_limit": 20
-                      .....
+              {
+                "logging": {
+                  "console": {
+                    "log_keys": ["*"]
                   }
+                },
+                "databases": {
+                  "db": {
+                    "server": "http://localhost:8091",
+                    "bucket": "default",
+                    "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
+                    "allow_conflicts": false,
+                    "revs_limit": 20,
+                    "delta_sync": {
+                      "enabled": true,
+                      "rev_max_age_seconds": 86400
+                    }
+                  }
+                }
               }
               ```
 
+              Foot notes:
+
+              - Delta Sync is automatically enabled for peer-to-peer sync between Couchbase Lite clients.
+              - Delta sync is disabled for Couchbase Lite database replicas.
             properties:
               enabled:
                 type: boolean
                 description: Set this property to "true" to enable delta sync.
-                default: 'true'
+                default: 'false'
               rev_max_age_seconds:
                 type: integer
                 description: |
