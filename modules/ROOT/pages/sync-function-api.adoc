@@ -211,10 +211,6 @@ The call then grants access to the specified channels for all users with that ro
 NOTE: The effects of all access calls by all active documents are effectively unioned together, so if _any_ document grants a user access to a channel, that user has access to the channel.
 Calling `access(username, channelname)` multiple times to grant the same user access to the same channel will result in negative performance implications.
 
-CAUTION: Revoking access to a channel can cause a user to lose access to documents, if s/he no longer has access to any channels those documents are in.
-However, the replicator does _not_ currently delete such documents that have already been synced to a user's device (although future changes to those documents will not be replicated.)
-This is a design limitation of Sync Gateway that may be resolved in the future.
-
 The following code snippets shows some valid ways to call `access()`:
 
 [source,javascript]
@@ -226,6 +222,14 @@ access (["snej", "jchris"], ["mtv", "mtv2", "vh1"]);
 access (null, "hbo");  // no-op
 access ("snej", null);  // no-op
 ----
+
+==== Access Removal Behavior
+
+CAUTION: Revoking access to a channel can cause a user to lose access to documents, if s/he no longer has access to any channels those documents are in.
+However, the replicator does _not_ currently delete such documents that have already been synced to a user's device (although future changes to those documents will not be replicated.)
+This is a design limitation of Sync Gateway that may be resolved in the future.
+
+==== Example
 
 A typical example is a document that represents a shared resource (like a chat room or photo gallery).
 The document has a `members` property that lists the users who can access the resource.
