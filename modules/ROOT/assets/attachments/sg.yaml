@@ -73,6 +73,69 @@ properties:
             description: |
               Configures how long Sync Gateway should wait for a bucket operation to complete before timing out and trying again. The value can be increased in scenarios where there is a heavy load on Couchbase Server and operations are likely to take more than 2.5 seconds to complete. The default value is 2500 milliseconds.
             default: 2500
+          delta_sync:
+            type: object
+            description: |
+              *NOTE:* Delta Sync is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
+
+              Delta Sync is the ability to replicate only parts of the Couchbase mobile document that have changed. This can result in significant savings in bandwidth consumption as well as throughput improvements, especially when network bandwidth is typically constrained.
+
+              Delta Sync incurs additional bucket storage requirements which can be tuned with the [`rev_max_age_seconds`](config-properties.html#databases-foo_db-delta_sync-rev_max_age_seconds) property.
+
+              Delta Sync does not apply to attachment contents.
+
+              Delta Sync is disabled by default on the Sync Gateway. You can enable it through the `enabled` property.
+
+              If delta sync is enabled on Sync Gateway, then Couchbase Lite clients will switch to using delta sync automatically.
+              Similarly, if delta sync is disabled on Sync Gateway, clients will switch to normal mode.
+
+              The following configuration example enables delta sync.
+
+              ```javascript
+              {
+                "logging": {
+                  "console": {
+                    "log_keys": ["*"]
+                  }
+                },
+                "databases": {
+                  "db": {
+                    "server": "http://localhost:8091",
+                    "bucket": "default",
+                    "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
+                    "allow_conflicts": false,
+                    "revs_limit": 20,
+                    "delta_sync": {
+                      "enabled": true,
+                      "rev_max_age_seconds": 86400
+                    }
+                  }
+                }
+              }
+              ```
+
+              Foot notes:
+
+              - Delta Sync is automatically enabled for peer-to-peer sync between Couchbase Lite clients.
+              - Delta sync is disabled for Couchbase Lite database replicas.
+            properties:
+              enabled:
+                type: boolean
+                description: Set this property to "true" to enable delta sync.
+                default: 'false'
+              rev_max_age_seconds:
+                type: integer
+                description: |
+                  On a write operation, the revision body is backed up in the bucket and retained for `rev_max_age_seconds` to calculate future revision deltas.
+                  As a result, new deltas can only be generated for read requests that come in within the `rev_max_age_seconds` time window.
+                  The storage of backed up revision bodies for delta sync incurs additional bucket storage requirements.
+
+                  The additional storage can be calculated with the following formula: `(doc_size * updates_per_day * 86400) / rev_max_age_seconds`.
+
+                  For example, with `rev_max_age_seconds`'s default value, an average document size of 4 KB and 100 writes/day, enabling delta sync would take up an additional 400 KB of storage on Couchbase Server (`(4 * 100 * 86400)/86400`).
+
+                  Setting this value to 0 will generate deltas opportunistically on pull replications, with no additional storage requirements.
+                default: 86400
           import_docs:
             type: boolean
             description: |
