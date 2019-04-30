@@ -126,8 +126,14 @@ properties:
               rev_max_age_seconds:
                 type: integer
                 description: |
-                  On write, revision body is backed up in bucket and retained for `rev_max_age_seconds`.
-                  New deltas can be generated only for read requests that come in within the "rev_max_age_seconds" time window.
+                  On a write operation, the revision body is backed up in the bucket and retained for `rev_max_age_seconds` to calculate future revision deltas.
+                  As a result, new deltas can only be generated for read requests that come in within the `rev_max_age_seconds` time window.
+                  The storage of backed up revision bodies for delta sync incurs additional bucket storage requirements.
+
+                  The additional storage can be calculated with the following formula: `(doc_size * updates_per_day * 86400) / rev_max_age_seconds`.
+
+                  For example, with `rev_max_age_seconds`'s default value, an average document size of 4 KB and 100 writes/day, enabling delta sync would take up an additional 400 KB of storage on Couchbase Server (`(4 * 100 * 86400)/86400`).
+
                   Setting this value to 0 will generate deltas opportunistically on pull replications, with no additional storage requirements.
                 default: 86400
           import_docs:
