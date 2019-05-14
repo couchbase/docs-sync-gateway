@@ -210,7 +210,10 @@ This metric can be used to calculate the latency of `_changes` request.
 
 ===== rev_send_latency
 
-Time between receiving the `/_changes` response to sending a revision.
+In a pull replication, Sync Gateway sends a `/_changes` request to the client.
+The client responds with the list of revisions that it wants to receive.
+
+`rev_send_latency` is measuring the time between the client asking for some revisions via the `/_changes` response, and Sync Gateway sending that revision to the client.
 
 NOTE: Measuring time from the `/_changes` response means that this stat will vary significantly depending on the changes batch size.
 A larger batch size will result in a spike of this stat, even if the processing time per revision is unchanged.
