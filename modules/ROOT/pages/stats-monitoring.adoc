@@ -68,8 +68,8 @@ The response is a JSON object with the following schema.
           "num_pull_repl_total_one_shot": 0,
           "{xref-cb-config}request_changes_count[request_changes_count]": 0,
           "{xref-cb-config}request_changes_time[request_changes_time]": 0,
-          "rev_processing_time": 0,
-          "rev_send_count": 0,
+          "{xref-cb-config}rev_processing_time[rev_processing_time]": 0,
+          "{xref-cb-config}rev_send_count[rev_send_count]": 0,
           "{xref-cb-config}rev_send_latency[rev_send_latency]": 0
         },
         "{xref-cb-config}database[database]": {
@@ -208,6 +208,22 @@ This metric can be used to calculate the latency of `_changes` request.
 
 `_changes` request latency = `request_changes_time` / `request_changes_count`
 
+===== rev_processing_time
+
+The total amount of time processing revisions.
+
+This metric can be used with `rev_send_count` to calculate the average processing time per revision.
+
+average processing time per revision = `rev_processing_time` / `rev_send_count`.
+
+===== rev_send_count
+
+The total amount of time processing revisions.
+
+This metric can be used with `rev_send_count` to calculate the average processing time per revision.
+
+average processing time per revision = `rev_processing_time` / `rev_send_count`.
+
 ===== rev_send_latency
 
 In a pull replication, Sync Gateway sends a `/_changes` request to the client.
@@ -217,7 +233,7 @@ The client responds with the list of revisions that it wants to receive.
 
 NOTE: Measuring time from the `/_changes` response means that this stat will vary significantly depending on the changes batch size.
 A larger batch size will result in a spike of this stat, even if the processing time per revision is unchanged.
-A more useful stat might be the average processing time per revision.
+A more useful stat might be the average processing time per revision (xref:#rev_processing_time[rev_processing_time] / xref:#rev_send_count[rev_send_count]).
 
 ==== database
 
