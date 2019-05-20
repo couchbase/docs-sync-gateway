@@ -13,12 +13,12 @@ A document which contains user properties with a leading underscore will be reje
 This rule applies to writes performed through Couchbase Lite SDKs and Sync Gateway REST APIs.
 And to writes performed through Couchbase SDKs when xref:shared-bucket-access.adoc[Mobile-Web Data Sync] is enabled.
 
-This may be an issue in the following scenarios:
+If you encounter this error, it is recommended to rename the property without a leading underscore, or to wrap the property prefixed with an underscore in another object whose key isn't prefixed with an underscore.
 
-* In a deployment with Mobile-Web Data Sync and Field Level Encryption enabled, this rule conflicts with the default xref:java-sdk::encryption.adoc#format[field encryption format].
-* http://ottomanjs.com/[Ottoman.js] adds an `_type` attribute to the root of the document.
-So if you are using Ottoman within your app, then you would encounter this issue.
+More specifically, you may encounter the error in the following deployment configurations:
 
-=== Workaround
-
-The recommended workaround in these scenarios is to wrap the property prefixed with an underscore in another object whose key isn't prefixed with an underscore.
+* With Mobile-Web Data Sync and Field Level Encryption enabled.
+This rule conflicts with the default xref:java-sdk::encryption.adoc#format[field encryption format].
+* With Mobile-Web Data Sync enabled, the xref:nodejs-sdk::start-using-sdk.adpc[Node.js Server SDK], and http://ottomanjs.com/[Ottoman.js] (the Node.js ODM for Couchbase).
+This rule conflicts with the `+_type+` property that is automatically added by Ottoman.js.
+A suggested workaround in this scenario is to fork the Ottoman.js library, perform a search-replace for the `+_type+` property and to rename it without a leading underscore.
