@@ -9,10 +9,10 @@ This page documents various implementation details and functionalities to consid
 Prior to 2.1, Sync Gateway used system views for a variety of internal operations, including authentication and replication.
 Starting in 2.1, Sync Gateway will use GSI and N1QL to perform those tasks.
 
-The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 node in a cluster that was previously using views.
+The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 or above node in a cluster that was previously using views.
 
 Use of GSI requires Couchbase Server 5.5, with at least one node running the Query and Index Services.
-Users wanting to run Sync Gateway 2.1 with an older version of Couchbase Server will need to continue to use views, by setting the `use_views` property.
+Users wanting to run Sync Gateway 2.1 or above with an older version of Couchbase Server will need to continue to use views, by setting the `use_views` property.
 
 == Configuration Changes
 
@@ -52,10 +52,10 @@ The tables below provide more detail for distinct upgrade scenarios.
 |===
 | From | To
 | *Sync Gateway 1.1, 1.2, 1.3, 1.4, 1.5, 2.0*
-| *Sync Gateway 2.1* (`use_views: false`)
+| *Sync Gateway 2.1, 2.5* (`use_views: false`)
 2+|No downtime in a rolling upgrade.
 2+a|
-The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 node in a cluster that was previously using views.
+The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 or above node in a cluster that was previously using views.
 By default, Sync Gateway requires the Couchbase Server cluster to be running Couchbase Server 5.5, with at least two nodes running the Index and Query Services.
 If this is not the case, users must configure the `use_views` and/or `num_index_replicas` properties in their Sync Gateway configuration during upgrade.
 
@@ -64,16 +64,15 @@ On startup, Sync Gateway will check for the existence of the required indexes, a
 
 Then, Sync Gateway will wait until indexes are available before starting to serve requests.
 
-Sync Gateway 2.1 will *not* automatically remove the previously used design documents.
+Sync Gateway 2.1 or above will *not* automatically remove the previously used design documents.
 Removal of the obsolete design documents is done via a call to the xref:admin-rest-api.adoc#/server/post__post_upgrade[+/_post_upgrade+] endpoint in Sync Gateway`'s Admin REST API.
 This endpoint can be run in preview mode (`?preview=true`) to see which design documents would be removed.
-To summarize, the steps to perform an upgrade to Sync Gateway 2.1 are:
+To summarize, the steps to perform an upgrade to Sync Gateway 2.1 or above are:
 
-. Upgrade one node in the cluster to 2.1, and wait for it to be reachable via the REST API (for example at \http://localhost:4985/).
+. Upgrade one node in the cluster, and wait for it to be reachable via the REST API (for example at \http://localhost:4985/).
 . Upgrade the rest of the nodes in the cluster.
 . Clean up obsolete views:
 ** *Optional* Issue a call to `/_post_upgrade?preview=true` on any node to preview which design documents will be removed.
-To upgrade to 2.1, expect to see "sync_gateway" and "sync_housekeeping" listed.
 ** Issue a call to `/post_upgrade` to remove the obsolete design documents.
 The response should indicate that "sync_gateway" and "sync_housekeeping" were removed.
 |===
