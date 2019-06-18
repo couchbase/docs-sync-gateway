@@ -55,14 +55,14 @@ The request will block until the replication has completed.
 }
 ----
 
-These parameters start a one-shot replication between one database on the local Sync Gateway instance and one on a remote Sync Gateway instance.
+These parameters start a one-shot replication between one database on the local Sync Gateway instance and one on a remote Sync Gateway instance, with user credentials.
 The request will return immediately and the replication will run asynchronously.
 
 [source,javascript]
 ----
 {
     "source": "db",
-    "target": "http://example.com:4985/db-copy",
+    "target": "http://user:password@example.com:4985/db-copy",
     "async":true
 }
 ----
@@ -75,7 +75,7 @@ The request will return immediately and the replication will run asynchronously.
 {
     "replication_id":"my-named-replication",
     "source": "db",
-    "target": "http://example.com:4985/db-copy",
+    "target": "http://user:password@example.com:4985/db-copy",
     "continuous":true
 }
 ----
@@ -88,7 +88,7 @@ Source database documents will be filtered so that only those tagged with the ch
 ----
 {
     "source": "db",
-    "target": "http://example.com:4985/db-copy",
+    "target": "http://user:password@example.com:4985/db-copy",
     "continuous":true,
     "changes_feed_limit":1000,
     "filter":"sync_gateway/bychannel",
@@ -108,12 +108,14 @@ The `_replicate` JSON Object supports the following properties.
 |URL
 |_Required._ A URL pointing to the source database for the replication, the URL may be relative i.e. just the name of a local database on the Sync Gateway instance.
 The URL may point to the Admin REST API which will replicate all documents in the DB, or it may point to the public REST API which will only copy documents in the users assigned channels.
+When specifying credentials, the URL must be of the form `user:password@host`.
 |none
 
 |`target`
 |URL
 |_Required._ A URL pointing to the target database for the replication, the URL may be relative i.e. just the name of a local database on the Sync Gateway instance.
 The URL may point to the Admin REST API or it may point to the public REST API, this will impact the behavior of the target database sync function.
+When specifying credentials, the URL must be of the form `user:password@host`.
 |none
 
 |`continuous`
@@ -175,18 +177,18 @@ Replications defined in config may not contain the `cancel` property.
         },
         {
             "source": "db",
-            "target": "http://example.com:4985/db-copy"
+            "target": "http://user:password@example.com:4985/db-copy"
         },
         {
             "replication_id":"continuous-remote-local",
-            "source": "http://example.com:4985/db-backup",
+            "source": "http://user:password@example.com:4985/db-backup",
             "target": "db"
             "continuous":true
         },
         {
             "replication_id":"continuous-filtered",
             "source": "db",
-            "target": "http://example.com:4985/db-copy"
+            "target": "http://user:password@example.com:4985/db-copy"
             "continuous":true,
             "changes_feed_limit":1000,
             "filter":"sync_gateway/bychannel",
