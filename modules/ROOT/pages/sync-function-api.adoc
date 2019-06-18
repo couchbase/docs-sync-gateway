@@ -283,7 +283,6 @@ You can create a role after the fact; as soon as a role is created, any pre-exis
 === expiry(value)
 
 Calling `expiry(value)` from within the sync function will set the expiry value (TTL) on the document.
-When the expiry value is reached, the document will be purged from the database.
 
 [source,javascript]
 ----
@@ -296,13 +295,18 @@ Under the hood, the expiration time is set and managed on the Couchbase Server d
 * *as a numeric Couchbase Server expiry value:* Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server).
 The document expiration time is returned in the response of GET xref:rest-api.adoc#/document/get\__db___doc_[+/{db}/{doc}+] when `show_exp=true` is included in the querystring.
 
+The behavior on the resulting document when the expiry value is reached depends on the following:
+
+if xref:shared-bucket-access.adoc[Mobile-Web Data Sync] is enabled::
+The *active* revision of the document is tombstoned.
+If there is another non-tombstoned revision for this document (i.e a conflict) it will become the active revision.
+The tombstoned revision will be purged when the server's metadata purge interval is reached.
+if xref:shared-bucket-access.adoc[Mobile-Web Data Sync] is disabled::
+The document will be purged from the database.
+
 As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication.
 This expiration time is not propagated when the document is replicated.
 The purge of the document does not cause it to be deleted on any other database.
-
-If xref:shared-bucket-access.adoc[shared bucket access] is enabled (introduced in Sync Gateway 1.5), the behavior of the expiry feature changes in the following way: when the expiry value is reached, instead of getting purged, the *active* revision of the document is tombstoned.
-If there is another non-tombstoned revision for this document (i.e a conflict) it will become the active revision.
-The tombstoned revision will be purged when the server's metadata purge interval is reached.
 
 == Document Conflicts
 
