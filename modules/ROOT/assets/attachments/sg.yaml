@@ -200,11 +200,11 @@ properties:
           enable_shared_bucket_access:
             type: boolean
             description: |
-              Starting in Sync Gateway 1.5, Couchbase Server and Mobile applications can now read from and write to the same bucket.
+              Introduced in Sync Gateway 1.5, this property specifies whether to enable Mobile-Web Data Sync and works in conjunction with the [import_docs](#databases-foo_db-import_docs) property.
 
-              This property specifies whether to enable the interopability between Couchbase Mobile and Couchbase Server. On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
+              `enable_shared_bucket_access` needs to be `true` on all nodes participating in such a configuration where as `import_docs` can only be set to `true` on a single node.
 
-              Mobile applications require additional metadata in order to manage security and replication. In previous versions of Sync Gateway, this information has always been stored in the document body. Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (x-attributes) to store that metadata into an external document fragment.
+              On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
 
               #### Import process
 
@@ -239,6 +239,8 @@ properties:
               - Bucket endpoint [on the REST API](https://developer.couchbase.com/documentation/server/4.6/rest-api/rest-bucket-create.html)
 
               #### Implementation notes for XATTRs:
+
+              Mobile applications require additional metadata in order to manage security and replication. In previous versions of Sync Gateway, this information has always been stored in the document body. Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (x-attributes) to store that metadata into an external document fragment.
 
               Extended attributes (xattrs) are JSON objects that can be associated with Couchbase documents. Each document can be associated with zero or more extended attributes. There are currently three types (user, system, virtual). Mobile Convergence uses a system extended attribute, which has the following characteristics central to convergence:
 
