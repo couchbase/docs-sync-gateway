@@ -202,6 +202,12 @@ parameters:
     description: Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)
     type: string
     required: false
+  rev_get:
+    name: rev
+    in: query
+    description: Revision identifier of the revision to get. By default, Sync Gateway returns the current revision. This parameter is generally only needed for conflict resolution. For example where the app might need to retrieve a conflicting leaf revision that isn't the current revision.
+    type: string
+    required: false
   rev_put:
     name: rev
     in: query
@@ -787,11 +793,11 @@ paths:
     parameters:
     - $ref: '#/parameters/db'
     - $ref: '#/parameters/doc'
-    - $ref: '#/parameters/rev'
     get:
       tags:
       - document
       parameters:
+      - $ref: '#/parameters/rev_get'
       - $ref: '#/parameters/attachments'
       - $ref: '#/parameters/atts_since'
       - $ref: '#/parameters/open_revs'
