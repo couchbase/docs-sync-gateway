@@ -31,7 +31,7 @@ However, SG Replicate was designed specifically for a Couchbase Mobile deploymen
 * In deployments with multiple Sync Gateway nodes, only _one_ of the Sync Gateways should be configured for replications.
 If multiple Sync Gateways are configured for replications, it could substantially increase the amount of duplicate work, and therefore should be avoided.
 The limitation is that the system is not guaranteed to be Highly Available: if the Sync Gateway that is chosen to drive the replication goes down or is otherwise removed from the system, then the replications will stop.
-* When running two Sync Gateway clusters with `allow_conflicts: false`, cross-cluster document conflicts will result in that document no longer being replicated.
+* Replication between Sync Gateway databases doesn't support automatic conflict resolution even when the no-conflicts mode is enabled . When running two Sync Gateway clusters with `allow_conflicts: false`, cross-cluster document conflicts will result. Deployments  must implement custom conflict resolver in an external app as specified [here](https://docs.couchbase.com/sync-gateway/2.1/resolving-conflicts.html).
 To avoid this, the application must ensure concurrent, cross-cluster updates are not made to a given document.
 
 == Running replications via the REST API
