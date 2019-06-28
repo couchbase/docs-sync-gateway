@@ -755,9 +755,9 @@ paths:
       summary: Create or update document
       description: |
         This request creates a new document or creates a new revision of an existing document. It enables you to specify the identifier for a new document rather than letting the software create an identifier. If you want to create a new document and let the software create an identifier, use the POST /db request.
-        If the document specified by doc does not exist, a new document is created and assigned the identifier specified in doc. If the document already exists, the document is updated with the JSON document in the message body and given a new revision.
+        If the document specified by doc does not exist, a new document is created and assigned the identifier specified in doc. If the document already exists, the document is updated with the JSON document in the message body and given a new revision. The maximum size allowed for a document is 20MB.
 
-        The maximum size allowed for a document is 20MB.
+        Since Sync Gateway 1.3, an expiry property (`_exp`) can also be specified to purge the document after a given time. If **convergence** is enabled (introduced in Sync Gateway 1.5), the behaviour of the expiry feature changes in the following way: when the expiry value is reached, instead of getting purged, the **active** revision of the document is tombstoned. If there is another non-tombstoned revision for this document (i.e a conflict) it will become the active revision. The tombstoned revision will be purged when the server's metadata purge interval is reached.
       responses:
         200:
           description: The response is a JSON document that contains the following objects
