@@ -29,11 +29,9 @@ With multiple Sync Gateways, we recommend placing this cluster behind a load bal
 
 == Channel and Revision Cache
 
-Up until Sync Gateway 2.6, the xref:config-properties.adoc#databases-foo_db-cache[cache configuration] has successfully supported deployments with a small to moderate number of channels (in the order of hundreds to tens of thousands of channels).
+Up until Sync Gateway 2.6, the size of channel cache will grow unbounded with the number of channels, regardless of the number of active channels. A properly sized Sync Gateway can scale to deployments with a small to moderate number of channels (in the order of hundreds to tens of thousands of channels).However, since the channel cache can grow unbounded, the Sync Gateway can hit vertical scaling limits, especially as deployments grow in size, in the order of millions of channels.   as  in the xref:config-properties.adoc#databases-foo_db-cache[cache configuration] has successfully supported deployments with a small to moderate number of channels (in the order of hundreds to tens of thousands of channels).
 
-However, as deployments grow in size (in the order of millions of channels), those cache settings are not sufficient to manage memory allocation.
-
-In Sync Gateway 2.6, the configuration file provides more options to tune Sync Gateway caching, leading to improved memory allocation.
+In Sync Gateway 2.6, the xref:config-properties.adoc#databases-foo_db-cache[cache configuration] provides more options to tune Sync Gateway caching, enabling the Sync Gateway to vertically scale without potentially running into  Out-of-Memory issues.
 
 .Enterprise Edition only
 IMPORTANT: Tuning the channel and revision cache is an https://www.couchbase.com/products/editions[Enterprise Edition] feature.
