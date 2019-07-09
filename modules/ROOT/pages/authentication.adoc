@@ -8,7 +8,7 @@ Sync Gateway supports the following authentication methods:
 <<basic-authentication>>::
 Provide a username and password to authenticate users.
 <<auth-providers,Auth Providers>>::
-Sync Gateway provides a turn-key solution to authenticate with Facebook and Google.
+Sync Gateway provides a turn-key solution to authenticate with Facebook.
 For other providers we recommend to use Custom Authentication or OpenID Connect.
 <<custom-authentication>>::
 Use an App Server to handle the authentication yourself and create user sessions on the Sync Gateway Admin REST API.
@@ -64,11 +64,18 @@ Example:
 
 == Auth Providers
 
-Sync Gateway provides a turn-key solution to authenticate with Facebook and Google.
+Sync Gateway provides a turn-key solution to authenticate with Facebook.
 
-- xref:rest-api.adoc#/auth/post\_\_db\_\_\_facebook[+/{db}/_facebook+]
-- xref:rest-api.adoc#/auth/post__db___facebook[+/{db}/_google+]
+The app is responsible for retrieving the auth provider token and must send it to Sync Gateway which will return a session ID.
+The session ID can be used to configure the Couchbase Lite replicator or for other HTTP requests to the Sync Gateway REST API.
 
+The following diagram describes the sequence of steps.
+
+image::static-auth-provider.png[]
+
+API reference:
+
+- xref:rest-api.adoc#/auth/post\__db___facebook[/{db}/_facebook]
 
 For other providers we recommend to use Custom Authentication or OpenID Connect.
 
