@@ -226,12 +226,17 @@ properties:
 
                       The default value for this property is 50000. Along with the default channel `min_length` and `max_length` values, this would result in a memory usage under 1GB.
 
-                      The `max_number` value should be higher than the estimated number of replicating clients to optimize cache usage and minimize the number of cache misses.
+                      The `max_number` value can be tuned to optimize for cache hits (requests that are handled using the cache), as opposed to cache misses (requests that require a round-trip to Couchbase Server to fetch data). The cache hit/miss ratio can be obtained with the following:
+
+                      cache hit/miss ratio = `cache.chan_cache_hits` / `cache.chan_cache_misses`
+
+                      Increasing the `max_number` value can increase the cache hit/miss ratio, resulting in better cache utilization.
 
                       If the cache size grows to reach the high watermark (`compact_high_watermark_pct`), channels with no connected replications will be evicted before channels which are associated with an active pull replication (i.e a blip-based pull replication in Couchbase Lite 2.x, or an active `/{db}/_changes` request in Couchbase Lite 1.x).
 
-                      The minimum allowed value is 1.
-                      Setting the value to zero removes the limit to the number of channels being cached.
+                      The minimum allowed value is 100.
+
+                      It isn't possible to remove the limit altogether, users who wish to remove the limit would need to set `max_number` to an arbitrarily high value.
                     default: 50000
                   max_wait_pending:
                     type: integer
