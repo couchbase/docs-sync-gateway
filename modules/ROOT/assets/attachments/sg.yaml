@@ -203,12 +203,16 @@ properties:
                   compact_high_watermark_pct:
                     type: integer
                     description: |
-                      High watermark for channel cache eviction (percent)
+                      High watermark for channel cache eviction (percent).
+
+                      When the cache size, determined by `max_number`, reaches the high watermark, the eviction process iterates through the cache to remove inactive channels.
                     default: 80
                   compact_low_watermark_pct:
                     type: integer
                     description: |
-                      Low watermark for channel cache eviction (percent)
+                      Low watermark for channel cache eviction (percent).
+
+                      When the cache size, determined by `max_number` returns to a value lower than `compact_low_watermark_pct`, the cache eviction process is stopped.
                     default: 60
                   max_number:
                     type: integer
@@ -216,11 +220,21 @@ properties:
                       Tuning this property is an https://www.couchbase.com/products/editions[Enterprise Edition] feature.
                       The Community Edition is configured with the default value, and will ignore any value in the configuration file.
 
-                      Maximum number of channel caches which will exist at any one point.
+                      Maximum number of channel caches which will exist at any one point. This property is used to determine the cache size (and the associated eviction watermarks `compact_low_watermark_pct`/`compact_high_watermark_pct`).
 
-                      It should be set to equal the estimated number of replicating clients to avoid the impact of cache misses.
+                      The default value for this property is 50000. Along with the default channel `min_length` and `max_length` values, this would result in a memory usage under 1GB.
 
-                      The minimum allowed value is 1.
+                      The `max_number` value can be tuned to optimize for cache hits (requests that are handled using the cache), as opposed to cache misses (requests that require a round-trip to Couchbase Server to fetch data). The cache hit/miss ratio can be obtained with the following:
+
+                      cache hit/miss ratio = `cache.chan_cache_hits` / `cache.chan_cache_misses`
+
+                      Increasing the `max_number` value can increase the cache hit/miss ratio, resulting in better cache utilization.
+
+                      If the cache size grows to reach the high watermark (`compact_high_watermark_pct`), channels with no connected replications will be evicted before channels which are associated with an active pull replication (i.e a blip-based pull replication in Couchbase Lite 2.x, or an active `/{db}/_changes` request in Couchbase Lite 1.x).
+
+                      The minimum allowed value is 100.
+
+                      It isn't possible to remove the limit altogether, users who wish to remove the limit would need to set `max_number` to an arbitrarily high value.
                     default: 50000
                   max_wait_pending:
                     type: integer
