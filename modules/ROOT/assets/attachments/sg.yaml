@@ -279,16 +279,22 @@ properties:
                   size:
                     type: integer
                     description: |
-                      Tuning this property is an [Enterprise Edition](https://www.couchbase.com/products/editions) feature.
-                      The Community Edition is configured with the default value, and will ignore any value in the configuration file.
-
                       Size of the revision cache, specified as the total number of document revisions to cache in memory for all recently accessed documents. When the revision cache is full, Sync Gateway removes less recent document revisions to make room for new document revisions. Adjust this property to tune memory consumption by Sync Gateway, for example on servers with less memory and in cases when Sync Gateway creates many new documents and/or updates many documents relative to the number of read operations.
 
-                      Setting this property to 0 disables the revision cache entirely.
+                      ##### Disabling the revision cache
+
+                      Disabling the revision cache is an [Enterprise Edition](https://www.couchbase.com/products/editions) feature.
+
+                      To disable the revision entirely, set this property to 0. Setting this property to 0 on the Community Edition is ignored.
+
+                      Disabling the revision cache would be useful when there are very large documents or if you expect a very low cache hit rate. Otherwise it could negatively impact the latency of replications. It is generally not recommended to disable the revision cache, unless advised by Couchbase [Enterprise Support](https://www.couchbase.com/support-policy).
                     default: 5000
                   shard_count:
                     type: integer
                     description: |
+                      Tuning this property is an [Enterprise Edition](https://www.couchbase.com/products/editions) feature.
+                      The Community Edition is configured with the default value, and will ignore any value in the configuration file.
+
                       Number of shards the rev cache should be split into. More shards allows for lower cache contention when accessing distinct revisions, at the cost of some memory overhead per-shard. This generally should not greatly exceed the number of CPU threads available to Sync Gateway.
 
                       It is generally not recommended to set this property, unless advised by Couchbase [Enterprise Support](https://www.couchbase.com/support-policy).
@@ -497,7 +503,7 @@ properties:
             description: Couchbase pool name. The default is the string default.
           rev_cache_size:
             type: integer
-            description: (Deprecated) Size of the revision cache, specified as the total number of document revisions to cache in memory for all recently accessed documents. When the revision cache is full, Sync Gateway removes less recent document revisions to make room for new document revisions. Adjust this property to tune memory consumption by Sync Gateway, for example on servers with less memory and in cases when Sync Gateway creates many new documents and/or updates many documents relative to the number of read operations.
+            description: (Deprecated) Moved to [rev_cache.size](#databases-foo_db-cache-rev_cache-size). Size of the revision cache, specified as the total number of document revisions to cache in memory for all recently accessed documents. When the revision cache is full, Sync Gateway removes less recent document revisions to make room for new document revisions. Adjust this property to tune memory consumption by Sync Gateway, for example on servers with less memory and in cases when Sync Gateway creates many new documents and/or updates many documents relative to the number of read operations.
             default: 5000
           revs_limit:
             type: integer
