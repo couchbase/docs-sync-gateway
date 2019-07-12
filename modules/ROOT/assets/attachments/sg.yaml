@@ -169,31 +169,31 @@ properties:
             properties:
               max_wait_pending:
                 type: integer
-                description: (Deprecated) Maximum wait time in milliseconds for a pending sequence before skipping sequences.
+                description: (Deprecated) Moved to [channel_cache.max_wait_pending](#databases-foo_db-cache-channel_cache-max_wait_pending). Maximum wait time in milliseconds for a pending sequence before skipping sequences.
                 default: 5000
               max_num_pending:
                 type: integer
-                description: (Deprecated) Maximum number of pending sequences before skipping the sequence.
+                description: (Deprecated) Moved to [channel_cache.max_num_pending](#databases-foo_db-cache-channel_cache-max_num_pending). Maximum number of pending sequences before skipping the sequence.
                 default: 10000
               max_wait_skipped:
                 type: integer
-                description: (Deprecated) Maximum wait time in milliseconds for a skipped sequence before abandoning the sequence.
+                description: (Deprecated) Moved to [channel_cache.max_wait_skipped](#databases-foo_db-cache-channel_cache-max_wait_skipped). Maximum wait time in milliseconds for a skipped sequence before abandoning the sequence.
                 default: 3600000
               enable_star_channel:
                 type: boolean
-                description: (Deprecated) Enable the star (*) channel.
+                description: (Deprecated) Moved to [channel_cache.enable_star_channel](#databases-foo_db-cache-channel_cache-enable_star_channel). Enable the star (*) channel.
                 default: 'true'
               channel_cache_max_length:
                 type: integer
-                description: (Deprecated) Maximum number of entries maintained in cache per channel.
+                description: (Deprecated) Moved to [channel_cache.max_length](#databases-foo_db-cache-channel_cache-max_length). Maximum number of entries maintained in cache per channel.
                 default: 500
               channel_cache_min_length:
                 type: integer
-                description: (Deprecated) Minimum number of entries maintained in cache per channel.
+                description: (Deprecated) Moved to [channel_cache.min_length](#databases-foo_db-cache-channel_cache-min_length). Minimum number of entries maintained in cache per channel.
                 default: 50
               channel_cache_expiry:
                 type: integer
-                description: (Deprecated) Time (seconds) to keep entries in cache beyond the minimum retained.
+                description: (Deprecated) Moved to [channel_cache.expiry_seconds](#databases-foo_db-cache-channel_cache-expiry_seconds). Time (seconds) to keep entries in cache beyond the minimum retained.
                 default: 60
               channel_cache:
                 type: object
@@ -217,7 +217,7 @@ properties:
                   max_number:
                     type: integer
                     description: |
-                      Tuning this property is an https://www.couchbase.com/products/editions[Enterprise Edition] feature.
+                      Tuning this property is an [Enterprise Edition](https://www.couchbase.com/products/editions) feature.
                       The Community Edition is configured with the default value, and will ignore any value in the configuration file.
 
                       Maximum number of channel caches which will exist at any one point. This property is used to determine the cache size (and the associated eviction watermarks `compact_low_watermark_pct`/`compact_high_watermark_pct`).
@@ -279,15 +279,19 @@ properties:
                   size:
                     type: integer
                     description: |
+                      Tuning this property is an [Enterprise Edition](https://www.couchbase.com/products/editions) feature.
+                      The Community Edition is configured with the default value, and will ignore any value in the configuration file.
+
                       Size of the revision cache, specified as the total number of document revisions to cache in memory for all recently accessed documents. When the revision cache is full, Sync Gateway removes less recent document revisions to make room for new document revisions. Adjust this property to tune memory consumption by Sync Gateway, for example on servers with less memory and in cases when Sync Gateway creates many new documents and/or updates many documents relative to the number of read operations.
+
+                      Setting this property to 0 disables the revision cache entirely.
                     default: 5000
                   shard_count:
                     type: integer
                     description: |
-                      Tuning this property is an https://www.couchbase.com/products/editions[Enterprise Edition] feature.
-                      The Community Edition is configured with the default value, and will ignore any value in the configuration file.
-
                       Number of shards the rev cache should be split into. More shards allows for lower cache contention when accessing distinct revisions, at the cost of some memory overhead per-shard. This generally should not greatly exceed the number of CPU threads available to Sync Gateway.
+
+                      It is generally not recommended to set this property, unless advised by Couchbase [Enterprise Support](https://www.couchbase.com/support-policy).
                     default: 8
           certpath:
             type: string
