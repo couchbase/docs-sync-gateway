@@ -104,6 +104,7 @@ The response is a JSON object with the following schema.
     },
     "{xref-cb-config}per_replication[per_replication]": {
       "{xref-cb-config}replname[$replname]": {
+        "{xref-cb-config}sgr_active[sgr_active]": true,
         "{xref-cb-config}sgr_docs_checked_sent[sgr_docs_checked_sent]": 0,
         "{xref-cb-config}sgr_num_attachments_transferred[sgr_num_attachments_transferred]": 0,
         "{xref-cb-config}sgr_num_attachment_bytes_transferred[sgr_num_attachment_bytes_transferred]": 0,
@@ -484,6 +485,17 @@ Stats for each replication between Sync Gateway instances declared in the config
 ==== $replname
 
 Stats relative to a replication between two Sync Gateway instances declared in the config file.
+
+===== sgr_active
+
+Whether the replication is active at this time.
+
+This can be useful when analyzing replication history, and to filter by active replications.
+
+In a one-shot replication, the value is `true` for the duration of the replication, and then `false` when it has completed or if it is cancelled.
+
+In a continuous replication, the value is `true` for the duration of the replication, and also once it has caught up (i.e is in the idle state).
+The value is `false` if the replication is explicitly cancelled.
 
 ===== sgr_docs_checked_sent
 
