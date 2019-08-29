@@ -149,23 +149,33 @@ spec:
       labels:
         app: sync-gateway
     spec:
+      affinity: # <3>
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - sync-gateway
+            topologyKey: "kubernetes.io/hostname"
       containers:
         - name: sync-gateway
-          image: couchbase/sync-gateway:2.5.0-enterprise # <3>
-          args: ["/sync-gateway-config/sgw-config.json"] # <4>
-          volumeMounts: # <5>
+          image: couchbase/sync-gateway:2.6.0-enterprise # <4>
+          args: ["/sync-gateway-config/sgw-config.json"] # <5>
+          volumeMounts: # <6>
             - name: sgw-config-volume
               mountPath: /sync-gateway-config
               readOnly: true
           env:
-            - name: GOMAXPROCS # <6>
-              value: "2"
+            - name: GOMAXPROCS # <7>
+              value: "1"
           resources:
             requests:
-              cpu: "2"
+              cpu: 500m
             limits:
-              cpu: "2" # <7>
-      volumes: # <8>
+              cpu: 500m # <8>
+      volumes: # <9>
         - name: sgw-config-volume
           secret:
             secretName: sgw-config
@@ -176,16 +186,20 @@ spec:
 If high availability is important, you may want at least 2 Sync Gateway import nodes.
 However, given the overhead of redundant import docs processing by multiple nodes, this is not typically recommended.
 //* For replicator node deployment, this *must* be 1 because there can be at most 1 Sync Gateway import node in a cluster.
-<3> `containers[].image`: Points to the docker image for Sync Gateway.
-<4> `containers[].args`: Points to the Sync Gateway configuration file named "sgw-config-working.json" which is mounted at the path specified via the `volumeMounts` config.
+<3> `spec.template.spec.affinity`: Anti-affinity entry.
+* The "anti-affinity" setting will not schedule two Sync Gateway pods on the same node.
+This setting is recommended to enable high availability and to prevent "noisy neighbor" issues.
+* If you are on a test/development environment, you can remove this property to have all nodes on a single node.
+<4> `containers[].image`: Points to the docker image for Sync Gateway.
+<5> `containers[].args`: Points to the Sync Gateway configuration file named "sgw-config-working.json" which is mounted at the path specified via the `volumeMounts` config.
 If you are using the sample config files, this would be "sgw-config-import.json" for the import node.
-<5> `volumeMounts`: Specifies where to mount the volume into the container.
-<6> `GOMAXPROCS`: This GO runtime environment variable is used to limit the number of system threads that are allocated to Sync Gateway.
-<7> `containers[].resources.limits.cpu`: This is used to specify the CPU limit for the Sync Gateway pod.
+<6> `volumeMounts`: Specifies where to mount the volume into the container.
+<7> `GOMAXPROCS`: This GO runtime environment variable is used to limit the number of system threads that are allocated to Sync Gateway.
+<8> `containers[].resources.limits.cpu`: This is used to specify the CPU limit for the Sync Gateway pod.
 If you do not specify one, the Sync Gateway could spawn as many processes as CPU cores and potentially use up all CPU resources.
 You can learn more about CPU resource assignment https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/#if-you-do-not-specify-a-cpu-limit[here].
 We recommend a value of 2 but you should use what is suited for your environment.
-<8> `volumes`: Specifies what to mount.
+<9> `volumes`: Specifies what to mount.
 In our case, the "secret" with name "sgw-config" corresponding to the Sync Gateway configuration that was created in the previous step is mounted.
 Learn more about Kubernetes volumes https://kubernetes.io/docs/concepts/storage/volumes/[here].
 . Deploy the Sync Gateway cluster from the specified deployment controller file.
