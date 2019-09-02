@@ -23,9 +23,33 @@ Tasks to prepare release notes:
 
 Tasks for a minor release (*x.y*):
 
-. Create new branch `release/x.y`.
+. Clone repository
++
+[source,bash]
+----
+# replace *x.y* accordingly
+git clone git@github.com:couchbase/docs-sync-gateway.git sg-x.y
+cd sg-x.y
+----
+. Create new branch `release/x.y` and push to GitHub.
++
+[source,bash]
+----
+git checkout -b release/x.y
+git push
+----
 . Update metadata version.
 Example: https://github.com/couchbase/docs-sync-gateway/commit/42d68f04e88f7345d7a9f3d31cb01b6265b9d22e[42d68f0]
+. Update your local playbook.
+Example:
++
+[source,bash]
+----
+  ...
+- url: ./../cbl/cbl-x.y
+  branches: HEAD
+----
+. Verify it https://github.com/couchbase/docs-site#file-watcher-and-livereload[builds locally]
 . Update staging playbook.
 Example: https://github.com/couchbase/docs-site/commit/2d40527b17a8fe8f3648ff2b0610374a2f1bb7cb[2d40527]
 . Update production playbook.
