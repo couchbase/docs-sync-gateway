@@ -12,45 +12,105 @@ You use channels to:
 * Authorize users to access documents.
 * Minimize the amount of data synced down to devices.
 
-== Introduction to Channels
+== Add to Channel
 
-In Sync Gateway, a *channel* is like a combination of a tag and a message-queue.
-Channels have relationships to both documents and users:
+You assign documents to channels by writing a Sync Function in the configuration file (xref:config-properties.adoc#databases-foo_db-sync[databases.$db.sync]).
+The Sync Function is a JavaScript function that takes a document body as input and, based on the document content, decides what channels to assign the document to.
 
-* Every document is associated with a set of channels.
-From the document's perspectives, the channels are like tags that can be used to identify its type, purpose, accessibility, etc.
-The app-defined sync function is responsible for assigning every incoming document revision a set of channels as it's saved to the database.
-* Every user and role has a set of channels that they're allowed to read.
-A user can only read documents that are in at least one of the user's channels (or the channels of roles that user has.)
-User/role channel access can be assigned directly through the admin API, or via the sync function when a document is updated.
-* A Couchbase Lite "pull" replication can optionally specify what channels it wants to receive documents from.
-(If it doesn't, it gets all channels the user has access to.)
-Client apps can use this ability to intelligently sync with a subset of the available documents from the database.
+Based on the contents of the document, the Sync Function can call xref:sync-function-api.adoc#channelchannelname[channel()] to add the document to one or more channels.
+This makes it accessible to users who have access to those channels, and will cause the document to be pulled by users that are subscribed to those channels.
 
-There's not much to a channel besides its name.
+The following Sync Function routes incoming documents to a channel named `foo`.
+
+[source,javascript]
+----
+function (doc, oldDoc) {
+  channel("foo");
+}
+----
+
 Channels come into existence as documents are assigned to them.
-Channels with no documents assigned to them are empty.
+The Sync Function cannot reference any external state and must return the same results every time it's called on the same input.
 
 Valid channel names consist of text letters `[A–Z, a–z]`, digits `[0–9]`, and a few special characters `[= + / . , _ @]`.
 Channel names are case-sensitive.
+Channels with no documents assigned to them are empty.
 
-== Creating Channels
+If you don't supply a Sync Function in the configuration file, Sync Gateway uses the xref:config-properties.adoc#databases-foo_db-sync[default Sync Function].
+The default Sync Function is really only useful for experimentation and development, it is recommended to write a Sync Function which contains the appropriate Validation, and Read and Write access for your application.
 
-Now that you've learned what a channel is as a concept, let's put it to practice and see how a channel definition is applied and how it affects the system.
+== Remove from Channel
 
-You assign documents to `channels` either by adding a channels property to the document or by using a sync function.
-No matter which option you choose, the channel assignment is implicit--the content of the document determines what channels it belongs to.
+If the document was previously routed to a channel, but the current call to the sync function (for an updated revision) doesn't route it to that channel, the document is removed from the channel.
 
-* *Using the channels property*.
-Adding a `channels` property to each document is the easiest way to map documents to channels.
-The `channels` property is an array of strings that contains the names of the channels to which the document belongs.
-If you do not include a `channels` property in a document, the document does not appear in any channels.
-* *Using a sync function*.
-Creating a xref:sync-function-api.adoc[sync function] is a more flexible way to map documents to channels.
-A sync function is a JavaScript function that takes a document body as input and, based on the document content, decides what channels to assign the document to.
-The sync function cannot reference any external state and must return the same results every time it's called on the same input.
+This may cause users to lose access to that document.
+If that happens, the next time Couchbase Lite pulls changes from the gateway, it will purge the document from the database and trigger the document replication listener on Couchbase Lite with the `AccessRemoved` flag.
 
-== Channel Count
+xref:couchbase-lite::swift.adoc#replication-events[swift] | xref:couchbase-lite::java.adoc#replication-events[java] | xref:couchbase-lite::csharp.adoc#replication-events[c#] | xref:couchbase-lite::objc.adoc#replication-events[objective-c]
+
+== Inspect a Documents
+
+You can use the admin REST API to see the channels that documents are assigned to.
+Issue a xref:admin-rest-api.adoc#/database/get
+\__db___all_docs[/+{db}+/_all_docs] request, and add the query parameter `?channels=true` to the URL.
+Here's an example of what the response.
+The output shows that the document is in the channels `short` and `word`.
+
+[source,json]
+----
+{
+    "rows": [
+        {
+            "id": "foo",
+            "key": "foo",
+            "value": {
+                "channels": [
+                    "short",
+                    "word"
+                ],
+                "rev": "1-86effb929acbf953905dd0e3974f6051"
+            }
+        }
+    ],
+    "total_rows": 16,
+    "update_seq": 26
+}
+----
+
+== Public Channel
+
+The *public channel*, written as `!` in the sync function, is automatically created when Sync Gateway starts.
+Documents added to this channel are visible to any user (i.e all users are automatically granted access to the `!` channel).
+This channel can be used as a public distribution channel.
+
+The following Sync Function maps the document to the public channel if it contains an `isPublic` property set to true and grants users with the 'admin' role access to the all docs channel.
+
+[source,javascript]
+----
+function (doc, oldDoc) {
+    if (doc.isPublic) {
+        channel('!');
+    }
+    if (doc.type == 'user') {
+        requireRole('admin');
+        access(doc.username, '*');
+    }
+}
+----
+
+== Star Channel
+
+The *star* channel, written as `+*+` in the sync function, is automatically created when Sync Gateway starts.
+All documents are added to this channel.
+So any user that is granted access to the `+*+` channel can access all the documents in the database.
+A user can be given access to the *star* channel through the sync function or in the xref:config-properties.adoc#databases-foo_db-users-foo_user[configuration file].
+** *Note 1:* Sync Gateway automatically assigns documents to the all docs channel.
+Explicitly assigning a document to it in the Sync Function (i.e `channel('*')`) will result in unexpected behavior such as receiving the document twice on the client side.
+** *Note 2:* The *star* channel doesn't mean that the user is granted access to all channels.
+It is only being granted access to 1 channel which contains *all documents*.
+This distinction is important when using the xref:sync-function-api.adoc#requireaccess-channels[`requireAccess()`] Sync Function method.
+
+== Sync Metadata
 
 Every time a document is assigned to a new channel, the channel name is appended to that document's sync metadata.
 
@@ -75,205 +135,3 @@ In order to lower the sync metadata size per document, you can do one of the fol
 A shorter channel name will occupy less space ("customer==0030169303" vs "cs==0030169303").
 * Lower the xref:config-properties.adoc#databases-foo_db-revs_limit[revs_limit] value.
 Indeed, a copy of channel metadata is retained for each revision of a document.
-
-=== Replicating channels to Couchbase Lite
-
-By default, Couchbase Lite gets all the channels to which the configured user account has access.
-This behavior is suitable for most apps that rely on xref:sync-gateway::authentication.adoc[user authentication] and the xref:sync-gateway::sync-function-api.adoc[sync function] to specify which data to pull for each user.
-
-Optionally, it's also possible to specify a comma-separated list of channel names on Couchbase Lite's replicator configuration object.
-In this case, the replication from Sync Gateway will only pull documents tagged with those channels.
-
-Example:
-
-xref:couchbase-lite::swift.adoc#channels[swift]
-
-=== Removing a replicated document
-
-A document can be removed from a channel without being deleted.
-For example, this can happen when a new revision is not added to one or more channels that the previous revision was in.
-
-Subscribers (downstream databases pulling from this database) automatically handle the change.
-Sync Gateway's `_changes` feed includes one more revision of a document after it stops matching a channel.
-Couchbase Lite creates a special tombstone revision, adding `_removed:true` property to the entry when this happens.
-
-This algorithm ensures that any views running in Couchbase Lite do not include an obsolete revision.
-The app code should use views to filter the results rather than just assuming that all documents in its local database are relevant.
-
-If a user's access to a channel is revoked or Couchbase Lite stops syncing with a channel, documents that have already been synced are not removed from the user's device.
-
-=== Authorizing user access
-
-The `all_channels` property of a user account determines which channels the user can access.
-Its value is derived from the union of:
-
-* The user's `admin_channels` property, which is settable via the admin REST API.
-* The channels that user has been given access to by `access()` calls from sync functions invoked for current revisions of documents (see <<programmatic-authorization>>.
-* The `all_channels` properties of all roles the user belongs to, which are themselves computed according to the above two rules.
-
-The only documents a user can access are those whose current revisions are assigned to one or more channels the user has access to:
-
-* A GET request to a document not assigned to one or more of the user's available channels fails with a 403 error.
-* The `_all_docs` property is filtered to return only documents that are visible to the user.
-* The `_changes` property ignores requests (via the `channels` parameter) for channels not visible to the user.
-
-Write protection--access control of document PUT or DELETE requests--is done by document validation.
-This is handled in the sync function rather than a separate validation function.
-
-After a user is granted access to a new channel, the changes feed incorporates all existing documents in that channel, even those from earlier sequences than the current request's `since` parameter.
-That way the next pull request retrieves all documents to which the user now has access.
-
-==== Programmatic Authorization
-
-This section has moved to the xref:sync-function-api.adoc#read-access[Sync Function API page].
-
-==== Authorizing Document Updates
-
-Sync functions can also authorize document updates.
-A sync function can reject the document by throwing an exception:
-
-[source,javascript]
-----
-throw ({forbidden: "error message"})
-----
-
-A 403 Forbidden status and the given error string is returned to the client.
-
-To validate a document you often need to know which user is changing it, and sometimes you need to compare the old and new revisions.
-To get access to the old revision, declare the sync function like this:
-
-[source,javascript]
-----
-function(doc, oldDoc) { ... }
-----
-
-`oldDoc` is the old revision of the document (or empty if this is a new document).
-
-You can validate user privileges by using the helper functions: `requireUser`, `requireRole`, or `requireAccess`.
-Here's some examples of how you can use the helper functions:
-
-[source,javascript]
-----
-// throw an error if username is not "snej"
-requireUser("snej")
-// throw if username is not in the list
-requireUser(["snej", "jchris", "tleyden"])
-// throw an error unless the user has the "admin" role
-requireRole("admin")
-// throw an error unless the user has one of those roles
-requireRole(["admin", "old-timer"])
-// throw an error unless the user has access to read the "events" channel
-requireAccess("events")
-// throw an error unless the can read one of these channels
-requireAccess(["events", "messages"])
-----
-
-Here's a simple sync function that validates whether the user is modifying a document in the old document's `owner` list:
-
-[source,javascript]
-----
-function (doc, oldDoc) {
-    if (oldDoc) {
-        requireUser(oldDoc.owner); // may throw({forbidden: "wrong user"})
-    }
-}
-----
-
-== Special channels
-
-There are a two special channels that are automatically created when Sync Gateway starts:
-
-* The *public channel*, written as `!` in the sync function.
-Documents added to this channel are visible to any user (i.e all users are automatically granted access to the `!` channel).
-This channel can be used as a public distribution channel.
-* The *star* channel, written as `+*+` in the sync function.
-All documents are added to this channel.
-So any user that is granted access to the `+*+` channel can access all the documents in the database.
-A user can be given access to the *star* channel through the sync function or in the xref:config-properties.adoc#databases-foo_db-users-foo_user[configuration file].
-** *Note 1:* Sync Gateway automatically assigns documents to the all docs channel.
-Explicitly assigning a document to it in the Sync Function (i.e `channel('*')`) will result in unexpected behavior such as receiving the document twice on the client side.
-** *Note 2:* The *star* channel doesn't mean that the user is granted access to all channels.
-It is only being granted access to 1 channel which contains *all documents*.
-This distinction is important when using the xref:sync-function-api.adoc#requireaccess-channels[`requireAccess()`] Sync Function method.
-
-The following Sync Function maps the document to the public channel if it contains an `isPublic` property set to true and grants users with the 'admin' role access to the all docs channel.
-
-[source,javascript]
-----
-function (doc, oldDoc) {
-    if (doc.isPublic) {
-        channel('!');
-    }
-    if (doc.type == 'user') {
-        requireRole('admin');
-        access(doc.username, '*');
-    }
-}
-----
-
-== Troubleshooting channels
-
-=== Inspecting document channels
-
-You can use the admin REST API to see the channels that documents are assigned to.
-Issue an `_all_docs` request, and add the query parameter `?channels=true` to the URL.
-Here's a command-line example that uses the {url-httpie}[HTTPie] tool (like a souped-up curl) to look at the channels of the document `foo`:
-
-[source,bash]
-----
-$ http POST 'http://localhost:4985/db/_all_docs?channels=true' keys:='["foo"]'
-
-HTTP/1.1 200 OK
-Content-Encoding: gzip
-Content-Length: 150
-Content-Type: application/json
-Date: Wed, 07 May 2014 21:52:17 GMT
-Server: Couchbase Sync Gateway/1.00
-{
-    "rows": [
-        {
-            "id": "foo",
-            "key": "foo",
-            "value": {
-                "channels": [
-                    "short",
-                    "word"
-                ],
-                "rev": "1-86effb929acbf953905dd0e3974f6051"
-            }
-        }
-    ],
-    "total_rows": 16,
-    "update_seq": 26
-}
-----
-
-The output shows that the document is in the channels `short` and `word`.
-
-=== Inspecting user/role channels
-
-You can use the admin REST API to see what channels a user or role has access to:
-
-[source,javascript]
-----
-$ curl http://localhost:4985/db/_user/pupshaw
-
-{
-    "admin_channels": [
-        "all"
-    ],
-    "admin_roles": [
-        "froods"
-    ],
-    "all_channels": [
-        "all",
-        "hoopy"
-    ],
-    "name": "pupshaw",
-    "roles": [
-        "froods"
-    ]
-}
-----
-
-The output shows that the user `pupshaw` has access to channels `all` and `hoopy`.

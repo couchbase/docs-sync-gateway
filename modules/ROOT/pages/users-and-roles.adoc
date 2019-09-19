@@ -1,0 +1,26 @@
+= Users and Roles
+
+You can authorize users and control their access to your database by creating user accounts and assigning roles to users.
+This article focuses on how to authorize users to be able to access the Sync Gateway and their remote databases.
+
+NOTE: Sync Gateway users and roles have no relationship to xref:server:learn:security/authorization-overview.adoc[RBAC in Couchbase Server].
+
+== Users
+
+You manage accounts by using the Admin REST API.
+This interface is privileged and for administrator use only.
+To manage accounts, you need to have some other server-side mechanism that calls through to this API.
+
+You can create a new user by sending a PUT request to xref:admin-rest-api.adoc#/user/put\__db___user__name_[/{db}/\_user/{name}] or by sending a POST request to xref:admin-rest-api.adoc#/user/post\__db___user_[/{db}/_user], where `db` is the configured name of the database and `name` is the user name.
+
+== Roles
+
+Roles are named collections of channels.
+A user account can be assigned to zero or more roles.
+A user inherits the channel access of all roles it belongs to.
+This is very much like Unix groups, except that roles do not form a hierarchy.
+
+You access roles through the Admin REST API much like users are accessed, through URLs of the form xref:admin-rest-api.adoc#/role[/{db}/_role/{name}].
+Role resources have a subset of the properties that users do: `name`, `admin_channels`, `all_channels`.
+
+Roles have a separate namespace from users, so it's legal to have a user and a role with the same name.
