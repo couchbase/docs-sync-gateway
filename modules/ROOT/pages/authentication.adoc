@@ -3,8 +3,11 @@
 :idseparator: -
 :url-openid: https://openid.net/specs/openid-connect-core-1_0.html
 
+Authentication is the process of verifying the identity of a user.
 Sync Gateway supports the following authentication methods:
 
+<<anonymous-access>>::
+Sync Gateway does not allow anonymous or guest access by default, but it can be enabled by editing the configuration file or by using the Admin REST API.
 <<basic-authentication>>::
 Provide a username and password to authenticate users.
 <<auth-providers,Auth Providers>>::
@@ -15,6 +18,23 @@ Use an App Server to handle the authentication yourself and create user sessions
 <<openid-connect,OpenID Connect Authentication>>::
 Use OpenID Connect providers (Google+, Paypal, etc.) to authenticate users.
 Static providers: Sync Gateway currently supports authentication endpoints for Facebook, Google+ and OpenID Connect providers
+
+== Anonymous Access
+
+A special user account named `GUEST` applies to unauthenticated requests.
+Any request to the Public REST API that does not have an `Authorization` header or a session cookie is treated as coming from the `GUEST` account.
+This account and all anonymous access is disabled by default.
+
+To enable the GUEST account, set its `disabled` property to false.
+You might also want to give it access to some channels.
+If you don't assign some channels to the GUEST account, anonymous requests won't be able to access any documents.
+The following sample command enables the GUEST account and allows it access to a channel named public.
+
+[source,bash]
+----
+$ curl -X PUT localhost:4985/$DB/_user/GUEST --data \
+   '{"disabled":false, "admin_channels":["public"]}'
+----
 
 == User Registration
 

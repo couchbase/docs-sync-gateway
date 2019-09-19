@@ -2,31 +2,24 @@
 :idprefix:
 :idseparator: -
 
-The sync function is the core API you interact with on Sync Gateway.
+The Sync Function is the core API you interact with on Sync Gateway.
 This article explains its functionality, and how you write and configure it.
 
 For simple applications it might be the only server-side code you need to write.
 For more complex applications it is still a primary touchpoint for managing data routing and access control.
 
-The sync function is a JavaScript function whose source code is stored in the Sync Gateway's database configuration file.
+The Sync Function is a JavaScript function whose source code is stored in the Sync Gateway's database configuration file, on the xref:config-properties.adoc#databases-foo_db-sync[databases.$db.sync] property.
 The sync function is called every time a new revision/update is made to a document, and the changes to channels and access made by the sync function are _tied to that revision_.
 If the document is later updated, the sync function will be called again on the new revision, and the new channel assignments and user/channel access _replace_ the ones from the first call.
 
 It can do the following things:
 
-Validate the document::
-If the document has invalid contents, the sync function can throw an exception to reject it.
-The document won't be added to the database, and the client request will get an error response
-Authorize the change::
-The sync function can call `requireUser()` or `requireRole()` to specify what user(s) are allowed to modify the document.
-If the user making the change isn't in that list, an exception is thrown and the update is rejected with an error.
-Similarly, `requireAccess()` requires that the user making the change have access to any of the listed channels.
-Assign the document to channels::
-Based on the contents of the document, the sync function can call *channel()* to add the document to one or more channels.
-This makes it accessible to users who have access to those channels, and will cause the document to be pulled by users that are subscribed to those channels.
-Grant users access to channels::
-Calling `access(user, channel)` grants a user access to a channel.
-This allows documents to act as membership lists or access-control lists.
+- xref:write-security.adoc#data-validation[Validate the document]
+- xref:write-security.adoc#write-access[Authorize the change]
+- xref:data-routing.adoc#add-to-channel[Assign the document to channels]
+- xref:read-access.adoc#add-access[Grant users access to channels]
+
+== Function Definition
 
 *The sync function is crucial to the security of your application.*
 It's in charge of data validation, and of authorizing both read and write access to documents.
@@ -58,119 +51,13 @@ Your implementation of the sync function can omit the `oldDoc` parameter if you 
 
 If you don't supply a sync function, Sync Gateway uses the xref:config-properties.adoc#databases-foo_db-sync[default Sync Function].
 
-== Validation and Authorization
 
-The sync function API provides several methods that you can use to validate document creation, updates and deletions.
-For error conditions, you can simply call the built-in JavaScript `throw()` function.
-You can also enforce user access privileges by calling `requireUser()`, `requireRole()`, or `requireAccess()`.
+== channel(channelname)
 
-What happens to rejected documents? Firstly, they aren't saved to the Sync Gateway's database, so no access changes take effect.
-Instead an error code (usually 403 Forbidden) is returned to Couchbase Lite's replicator.
-
-Any other exception (including implicit ones thrown by the JavaScript runtime, like array bounds exceptions) will also prevent the document update, but will cause the gateway to return an HTTP 500 "Internal Error" status.
-
-=== throw()
-
-At the most basic level, the sync function can prevent a document from persisting or syncing to any other users by calling `throw()` with an error object containing a `forbidden`: property.
-You enforce the validity of document structure by checking the necessary constraints and throwing an exception if they're not met.
-
-Here is an example sync function that disallows all writes to the database it is in.
-
-[source,javascript]
-----
-function(doc) {
-   throw({forbidden: "read only!"})
-}
-----
-
-The document update will be rejected with an HTTP 403 "Forbidden" error code, with the value of the `forbidden:` property being the HTTP status message.
-This is the preferred way to reject an update.
-
-In validating a document, you'll often need to compare the new revision to the old one, to check for illegal changes in state.
-For example, some properties may be immutable after the document is created, or may be changeable only by certain users, or may only be allowed to change in certain ways.
-That's why the current document contents are given to the sync function, as the `oldDoc` parameter.
-
-We recommend that you not create invalid documents in the first place.
-As much as possible, your app logic and validation function should prevent invalid documents from being created locally.
-The server-side sync function validation should be seen as a fail-safe and a guard against malicious access.
-
-=== requireUser(username)
-
-The `requireUser()` function authorizes a document update by rejecting it unless it's made by a specific user or users, as shown in the following example:
-
-[source,javascript]
-----
-// Throw an error if username is not "snej":
-requireUser("snej");
-
-// Throw an error if username is not in the list:
-requireUser(["snej", "jchris", "tleyden"]);
-----
-
-The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
-All properties of the `doc` parameter should be considered _untrusted_, since this is after all the object that you're validating.
-This may sound obvious, but it can be easy to make mistakes, like calling `requireUser(doc.owners)` instead of `requireUser(oldDoc.owners)`.
-When using one document property to validate another, look up that property in `oldDoc`, not `doc`!
-
-=== requireRole(rolename)
-
-The `requireRole()` function authorizes a document update by rejecting it unless the user making it has a specific role or roles, as shown in the following example:
-
-[source,javascript]
-----
-// Throw an error unless the user has the "admin" role:
-requireRole("admin");
-
-// Throw an error unless the user has one or more of those roles:
-requireRole(["admin", "old-timer"]);
-----
-
-The argument may be a single role name, or an array of role names.
-In the latter case, the user making the change must have one or more of the given roles.
-
-The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
-
-=== requireAccess(channels)
-
-The `requireAccess()` function authorizes a document update by rejecting it unless the user making it has access to at least one of the given channels, as shown in the following example:
-
-[source,javascript]
-----
-// Throw an exception unless the user has access to read the "events" channel:
-requireAccess("events");
-
-// Throw an exception unless the user can read one of the channels in the
-// previous revision's "channels" property:
-if (oldDoc) {
-    requireAccess(oldDoc.channels);
-}
-----
-
-The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
-
-If a user was granted access to the xref:data-routing.adoc#special-channels[star channel] (noted `+*+`), a call to `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `+*+` channel). To allow a user to perform a document update in this case, you can specify multiple channel names (`requireAccess('any channel name', '*')'`)
-
-=== requireAdmin()
-
-The `requireAdmin()` function authorizes a document update by rejecting it unless it is being sent to the Sync Gateway Admin REST API.
-
-[source,javascript]
-----
-// Throw an exception unless the request is sent to the Admin REST API
-requireAdmin();
-----
-
-== Routing
-
-The sync function API provides several functions that you can use to route documents.
-The routing functions assign documents to channels, and enable user access to channels (which will route documents in those channels to those users.)
-
-Routing changes have no effect until the document is actually saved in the database, so if the sync function first calls `channel()` or `access()`, but then rejects the update, the channel and access changes will not occur.
-
-=== channel(name)
-
-The `channel()` function routes the document to the named channel(s). It accepts one or more arguments, each of which must be a channel name string, or an array of strings.
+The Sync Function provides the `channel()` function to route the document to the named channel(s).
+It accepts one or more arguments, each of which must be a channel name string, or an array of strings.
 The channel function can be called zero or more times from the sync function, for any document.
+
 Here is an example that routes all "published" documents to the "public" channel:
 
 [source,javascript]
@@ -181,6 +68,7 @@ function (doc, oldDoc) {
    }
 }
 ----
+Routing changes have no effect until the document is actually saved in the database, so if the sync function first calls `channel()` or `access()`, but then rejects the update, the channel and access changes will not occur.
 
 TIP: As a convenience, it is legal to call `channel` with a `null` or `undefined` argument; it simply does nothing.
 This allows you to do something like `channel(doc.channels)` without having to first check whether `doc.channels` exists.
@@ -188,15 +76,7 @@ This allows you to do something like `channel(doc.channels)` without having to f
 NOTE: Channels don't have to be predefined.
 A channel implicitly comes into existence when a document is routed to it.
 
-==== Document Access Removal Behavior
-
-If the document was previously routed to a channel, but the current call to the sync function (for an updated revision) doesn't route it to that channel, the document is removed from the channel.
-This may cause users to lose access to that document.
-If that happens, the next time Couchbase Lite pulls changes from the gateway, it will purge the document from the database and trigger the xref:couchbase-lite::swift.adoc#replication-events[document replication listener] with the `AccessRemoved` flag.
-
-== Read Access
-
-=== access(username, channelname)
+== access(username, channelname)
 
 Documents can grant users access to channels.
 The `access()` function grants access to a channel to a specified user.
@@ -224,37 +104,13 @@ access (null, "hbo");  // no-op
 access ("snej", null);  // no-op
 ----
 
-==== Channel Access Removal Behavior
+=== Channel Access Removal Behavior
 
 CAUTION: Revoking access to a channel can cause a user to lose access to documents, if s/he no longer has access to any channels those documents are in.
 However, the replicator does _not_ currently delete such documents that have already been synced to a user's device (although future changes to those documents will not be replicated.)
 This is a design limitation of Sync Gateway that may be resolved in the future.
 
-==== Example
-
-A typical example is a document that represents a shared resource (like a chat room or photo gallery).
-The document has a `members` property that lists the users who can access the resource.
-If the documents belonging to the resource are all tagged with a specific channel, then the following sync function can be used to detect the membership property and assign access to the users listed in it:
-
-[source,javascript]
-----
-function(doc) {
-    if (doc.type == "chatroom") {
-        access (doc.members, doc.channel_id)
-    }
-}
-----
-
-In the example, a chat room is represented by a document with a `type` property set to `chatroom`.
-The `channel_id` property names the associated channel (with which the actual chat messages are tagged) and the `members` property lists the users who have access.
-
-The `access()` function can also operate on roles.
-If a user name string begins with `role:` then the remainder of the string is interpreted as a role name.
-There's no ambiguity here, because ":" is an illegal character in a user or role name.
-
-Because anonymous requests are authenticated as the user "GUEST", you can make a channel and its documents public by calling `access` with a username of `GUEST`.
-
-=== role(username, rolename)
+== role(username, rolename)
 
 The `role()` function grants a user a role, indirectly giving them access to all channels granted to that role.
 It can also affect the user's ability to revise documents, if the access function requires role membership to validate certain types of changes.
@@ -278,9 +134,98 @@ So unlike channels, which come into existence simply by being named, you can't c
 Nonexistent roles don't cause an error, but have no effect on the user's access privileges.
 You can create a role after the fact; as soon as a role is created, any pre-existing references to it take effect.
 
-== Expiry
+== requireUser(username)
 
-=== expiry(value)
+The `requireUser()` function authorizes a document update by rejecting it unless it's made by a specific user or users, as shown in the following example:
+
+[source,javascript]
+----
+// Throw an error if username is not "snej":
+requireUser("snej");
+
+// Throw an error if username is not in the list:
+requireUser(["snej", "jchris", "tleyden"]);
+----
+
+The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
+All properties of the `doc` parameter should be considered _untrusted_, since this is after all the object that you're validating.
+This may sound obvious, but it can be easy to make mistakes, like calling `requireUser(doc.owners)` instead of `requireUser(oldDoc.owners)`.
+When using one document property to validate another, look up that property in `oldDoc`, not `doc`!
+
+== requireRole(rolename)
+
+The `requireRole()` function authorizes a document update by rejecting it unless the user making it has a specific role or roles, as shown in the following example:
+
+[source,javascript]
+----
+// Throw an error unless the user has the "admin" role:
+requireRole("admin");
+
+// Throw an error unless the user has one or more of those roles:
+requireRole(["admin", "old-timer"]);
+----
+
+The argument may be a single role name, or an array of role names.
+In the latter case, the user making the change must have one or more of the given roles.
+
+The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
+
+== requireAccess(channels)
+
+The `requireAccess()` function authorizes a document update by rejecting it unless the user making it has access to at least one of the given channels, as shown in the following example:
+
+[source,javascript]
+----
+// Throw an exception unless the user has access to read the "events" channel:
+requireAccess("events");
+
+// Throw an exception unless the user can read one of the channels in the
+// previous revision's "channels" property:
+if (oldDoc) {
+    requireAccess(oldDoc.channels);
+}
+----
+
+The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
+
+If a user was granted access to the xref:data-routing.adoc#special-channels[star channel] (noted `+*+`), a call to `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `+*+` channel). To allow a user to perform a document update in this case, you can specify multiple channel names (`requireAccess('any channel name', '*')'`)
+
+== requireAdmin()
+
+The `requireAdmin()` function authorizes a document update by rejecting it unless it is being sent to the Sync Gateway Admin REST API.
+
+[source,javascript]
+----
+// Throw an exception unless the request is sent to the Admin REST API
+requireAdmin();
+----
+
+== throw()
+
+At the most basic level, the sync function can prevent a document from persisting or syncing to any other users by calling `throw()` with an error object containing a `forbidden`: property.
+You enforce the validity of document structure by checking the necessary constraints and throwing an exception if they're not met.
+
+Here is an example sync function that disallows all writes to the database it is in.
+
+[source,javascript]
+----
+function(doc) {
+   throw({forbidden: "read only!"})
+}
+----
+
+The document update will be rejected with an HTTP 403 "Forbidden" error code, with the value of the `forbidden:` property being the HTTP status message.
+This is the preferred way to reject an update.
+
+In validating a document, you'll often need to compare the new revision to the old one, to check for illegal changes in state.
+For example, some properties may be immutable after the document is created, or may be changeable only by certain users, or may only be allowed to change in certain ways.
+That's why the current document contents are given to the sync function, as the `oldDoc` parameter.
+
+We recommend that you not create invalid documents in the first place.
+As much as possible, your app logic and validation function should prevent invalid documents from being created locally.
+The server-side sync function validation should be seen as a fail-safe and a guard against malicious access.
+
+== expiry(value)
 
 Calling `expiry(value)` from within the sync function will set the expiry value (TTL) on the document.
 

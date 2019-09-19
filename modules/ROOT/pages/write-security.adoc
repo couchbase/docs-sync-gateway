@@ -1,0 +1,76 @@
+= Write Security
+//:page-aliases: authorizing-users
+
+The sync function API provides several methods that you can use to validate document creation, updates and deletions.
+
+== Data Validation
+
+If the document has invalid contents, the Sync Function can throw an exception to reject it.
+
+For document schema validation, you can write your own rules in the Sync Function and when the document body is invalid, you can simply call the built-in JavaScript xref:sync-function-api.adoc#throw[throw()] function.
+
+What happens to rejected documents? Firstly, they aren't saved to the Sync Gateway's database, so no access changes take effect.
+Instead an error code (usually 403 Forbidden) is returned to Couchbase Lite's replicator.
+
+Any other exception (including implicit ones thrown by the JavaScript runtime, like array bounds exceptions) will also prevent the document update, but will cause the gateway to return an HTTP 500 "Internal Error" status.
+
+Sync functions can also authorize document updates.
+A sync function can reject the document by throwing an exception:
+
+[source,javascript]
+----
+throw ({forbidden: "error message"})
+----
+
+A 403 Forbidden status and the given error string is returned to the client.
+
+To validate a document you often need to know which user is changing it, and sometimes you need to compare the old and new revisions.
+To get access to the old revision, declare the sync function like this:
+
+[source,javascript]
+----
+function(doc, oldDoc) { ... }
+----
+
+`oldDoc` is the old revision of the document (or empty if this is a new document).
+
+
+== Write Access
+
+The Sync Function can call xref:sync-function-api.adoc#requireuserusername[requireUser()] or xref:sync-function-api.adoc#requirerolerolename[requireRole()] to specify what user(s) are allowed to modify the document.
+If the user making the change isn't in that list, an exception is thrown and the update is rejected with an error.
+
+Similarly, xref:sync-function-api.adoc#requireaccesschannels[requireAccess()] requires that the user making the change have access to any of the listed channels.
+
+Here are some examples of how you can use the helper functions:
+
+[source,javascript]
+----
+// throw an error if username is not "snej"
+requireUser("snej")
+// throw if username is not in the list
+requireUser(["snej", "jchris", "tleyden"])
+// throw an error unless the user has the "admin" role
+requireRole("admin")
+// throw an error unless the user has one of those roles
+requireRole(["admin", "old-timer"])
+// throw an error unless the user has access to read the "events" channel
+requireAccess("events")
+// throw an error unless the can read one of these channels
+requireAccess(["events", "messages"])
+----
+
+Here is a simple sync function that validates whether the user is modifying a document in the old document's `owner` list:
+
+[source,javascript]
+----
+function (doc, oldDoc) {
+  if (oldDoc) {
+    requireUser(oldDoc.owner); // may throw({forbidden: "wrong user"})
+  }
+}
+----
+
+When sending a change to Sync Gateway through the xref:admin-rest-api.adoc[Admin REST API], the Sync Function is executed with admin privileges: calls to `requireUser`, `requireAccess` and `requireRole` are no-ops (i.e will always be successful).
+
+To create and manage user accounts, refer to xref:users-and-roles.adoc[Users and Roles].

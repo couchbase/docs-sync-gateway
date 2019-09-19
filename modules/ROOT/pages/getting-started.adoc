@@ -518,7 +518,24 @@ The following table lists the ports used for different types of Sync Gateway net
 |Public port.
 External HTTP port used for replication with Couchbase Lite databases and other applications accessing the REST API on the Internet.
 
+The Public REST API is used for client replication. The default port for the Public REST API is 4984.
+
 |4985
 |Admin port.
 Internal HTTP port for unrestricted access to the database and to run administrative tasks.
+
+The Admin REST API is used to administer user accounts and roles. It can also be used to look at the contents of databases in superuser mode. The default port for the Admin REST API is 4985. By default, the Admin REST API is reachable only from localhost for safety reasons.
 |===
+
+The APIs are accessed on different TCP ports, which makes it easy to expose the Public REST API on port 4984 to endpoints while keeping the Admin REST API on port 4985 secure behind your firewall.
+
+If you want to change the ports, you can do that in the configuration file.
+
+* To change the Public REST API port, set the `interface` property in the configuration file.
+* To change the Admin REST API port, set the `adminInterface` property in the configuration file.
+
+The value of the property is a string consisting of a colon followed by a port number (for example, `:4985`).
+You can also prepend a host name or numeric IP address before the colon to bind only to the network interface with that address.
+
+As a useful special case, the IP address 127.0.0.1 binds to the loopback interface, making the port unreachable from any other host.
+This is the default setting for the admin interface.
