@@ -120,31 +120,42 @@ This method is used in the getting started xref:getting-started.adoc#start-sync-
 Sync Gateway 2.1 adds the ability to use X.509 certificates to authenticate against Couchbase Server 5.5 or higher.
 This functionality can be used instead or in addition to the existing authentication method which is to specify a username and password in the configuration file.
 
-To use x.509 authentication with Sync Gateway, you must first run through the following steps.
+To use X.509 certificate based authentication with Sync Gateway, you must first run through the following procedures.
 
-. Create x.509 certificates for Couchbase Server.
-See xref:server:manage:manage-security/configure-server-certificates.adoc#configure-server-side-certificates[instructions steps 1 - 10].
-. Configure each Couchbase Server node in the cluster.
- See xref:server:manage:manage-security/configure-server-certificates.adoc#configure-server-side-certificates[instructions steps 11 - 12].
-. Enable Client Certificate Authentication.
-See xref:server:manage:manage-security/configure-server-certificates.adoc#configure-server-side-certificates[instructions step 13].
+. xref:server:manage:manage-security/configure-server-certificates.adoc#root-and-node-certificates[Create a Root and Node Certificates].
+. xref:server:manage:manage-security/configure-server-certificates.adoc#client-certificate-enablement[Enable Client Certificate Authentication].
 
-After completing step 3, you will have multiple files generated in the current directory.
-From the generated files, you must copy `ca.pem`, `chain.pem` and `pkey.key` to the machine where Sync Gateway is running.
+Once the Couchbase Server cluster has been protected by the deployment of root and node certificates described above, a _client_ certificate can be signed by the root certificate, to allow Sync Gateway to access the cluster.
 
-To connect successfully, you must also ensure the following:
+To generate the _client_ certificate, make sure that the Couchbase Server cluster has the expected xref:server:manage:manage-security/configure-client-certificates.adoc#assumptions[bucket and RBAC user].
+Also refer to the xref:getting-started.adoc#configure-couchbase-server[Getting Started: Configure Couchbase Server] to configure the RBAC user with appropriate privileges for access by a Sync Gateway instance.
 
-. A bucket named *travel-sample* exists.
-See xref:getting-started.adoc#configure-couchbase-server[instructions].
-. The RBAC user with the name *travel-sample* exists has access permissions to the bucket.
-See xref:getting-started.adoc#configure-couchbase-server[instructions].
+Next, follow the instructions in xref:server:manage:manage-security/configure-client-certificates.adoc#client-certificate-authorized-by-a-root-certificate[Client Access: Root-Certificate Authorization] to create a client certificate that is authorized by the cluster’s root certificate.
 
-Then, x.509 can be enabled on Sync Gateway by specifying the absolute or relative path to each of those files in the configuration file.
+After completing the procedure, you will have multiple files generated in the current directory.
+You will use the following files to configure Sync Gateway:
+
+- `servercertfiles/ca.pem`
+- `servercertfiles/clientcertfiles/travel-sample.pem`
+- `servercertfiles/clientcertfiles/travel-sample.key`
+
+X.509 certificate based authentication is enabled on Sync Gateway by specifying the absolute or relative path to each of those files in the configuration file.
 
 [source,json]
 ----
 include::{examplesdir}/x509-config.json[]
 ----
+
+If the connection is successful, you should see the following in the logs.
+
+[source,text]
+----
+[INF] Starting admin server on 127.0.0.1:4985
+[INF] Starting server on :4984 ...
+[INF] Establishing TLS connection for DCP to destination 127.0.0.1:11207
+----
+
+If Sync Gateway cannot connect, you may refer to the xref:server:manage:manage-security/handle-certificate-errors.adoc#cluster-certificate-errors[Cluster Certificate Errors] table.
 
 More detail on the configuration properties for x.509 authentication can be found below.
 
