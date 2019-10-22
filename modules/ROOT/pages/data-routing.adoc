@@ -15,7 +15,7 @@ You use channels to:
 == Add to Channel
 
 You assign documents to channels by writing a Sync Function in the configuration file (xref:config-properties.adoc#databases-foo_db-sync[databases.$db.sync]).
-The Sync Function is a JavaScript function that takes a document body as input and, based on the document content, decides what channels to assign the document to.
+The Sync Function is a JavaScript function that takes a document body as input and, based on the document content, decides what channels to assign the document to (see the xref:sync-function-api.adoc#function-definition[Function Definition]).
 
 Based on the contents of the document, the Sync Function can call xref:sync-function-api.adoc#channelchannelname[channel()] to add the document to one or more channels.
 This makes it accessible to users who have access to those channels, and will cause the document to be pulled by users that are subscribed to those channels.
@@ -48,32 +48,32 @@ If that happens, the next time Couchbase Lite pulls changes from the gateway, it
 
 xref:couchbase-lite::swift.adoc#replication-events[swift] | xref:couchbase-lite::java.adoc#replication-events[java] | xref:couchbase-lite::csharp.adoc#replication-events[c#] | xref:couchbase-lite::objc.adoc#replication-events[objective-c]
 
-== Inspect a Documents
+== Inspect a Document
 
 You can use the admin REST API to see the channels that documents are assigned to.
 Issue a xref:admin-rest-api.adoc#/database/get
 \__db___all_docs[/+{db}+/_all_docs] request, and add the query parameter `?channels=true` to the URL.
-Here's an example of what the response.
+Here's an example of the response.
 The output shows that the document is in the channels `short` and `word`.
 
 [source,json]
 ----
 {
-    "rows": [
-        {
-            "id": "foo",
-            "key": "foo",
-            "value": {
-                "channels": [
-                    "short",
-                    "word"
-                ],
-                "rev": "1-86effb929acbf953905dd0e3974f6051"
-            }
-        }
-    ],
-    "total_rows": 16,
-    "update_seq": 26
+  "rows": [
+    {
+      "id": "foo",
+      "key": "foo",
+      "value": {
+        "channels": [
+          "short",
+          "word"
+        ],
+        "rev": "1-86effb929acbf953905dd0e3974f6051"
+      }
+    }
+  ],
+  "total_rows": 16,
+  "update_seq": 26
 }
 ----
 
@@ -103,10 +103,11 @@ function (doc, oldDoc) {
 The *star* channel, written as `+*+` in the sync function, is automatically created when Sync Gateway starts.
 All documents are added to this channel.
 So any user that is granted access to the `+*+` channel can access all the documents in the database.
-A user can be given access to the *star* channel through the sync function or in the xref:config-properties.adoc#databases-foo_db-users-foo_user[configuration file].
-** *Note 1:* Sync Gateway automatically assigns documents to the all docs channel.
+A user can be given access to the *star* channel through the sync function or in the configuration file (see xref:read-access.adoc#add-access[Add Access]).
+
+* *Note 1:* Sync Gateway automatically assigns documents to the all docs channel.
 Explicitly assigning a document to it in the Sync Function (i.e `channel('*')`) will result in unexpected behavior such as receiving the document twice on the client side.
-** *Note 2:* The *star* channel doesn't mean that the user is granted access to all channels.
+* *Note 2:* The *star* channel doesn't mean that the user is granted access to all channels.
 It is only being granted access to 1 channel which contains *all documents*.
 This distinction is important when using the xref:sync-function-api.adoc#requireaccess-channels[`requireAccess()`] Sync Function method.
 
