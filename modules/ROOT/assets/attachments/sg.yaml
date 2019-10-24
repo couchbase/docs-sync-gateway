@@ -144,8 +144,24 @@ properties:
             description: |
               This property works in conjunction with the [enable_shared_bucket_access](#databases-foo_db-enable_shared_bucket_access) property. When **shared bucket access** is enabled, setting this property to true (`"import_docs": true`) indicates that this Sync Gateway node should perform import processing.
 
-              `enable_shared_bucket_access` needs to be `true` on all nodes participating in such a configuration where as `import_docs` can only be set to `true` on a single node.
+              Starting in Sync Gateway 2.7, all Sync Gateway nodes can be configured as import nodes. This results in performance benefits as the import process is sharded accross all Sync Gateway nodes.
+
+              Prior to version 2.7, `import_docs` can only be set to `true` on a single node.
+
+              #### Workload Isolation
+
+              Starting in version 2.7, if `enable_shared_bucket_access` is set to `true` and `import_docs` is set to `false`, the node will not be participating in the import process.
+
+              This configuration is specifically recommended for workload isolation: to isolate import nodes from the client-facing nodes. Workload isolation is preferable in deployments with a large write throughput.
+
             default: false
+          import_partitions:
+            type: integer
+            description: |
+              Allows users to tune the number of import partitions.
+
+              This will allow users to optimize the number of go routines with the number of cores and number of nodes.
+            default: 16
           cacertpath:
             type: string
             description: |
