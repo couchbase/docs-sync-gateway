@@ -3,8 +3,11 @@
 :idseparator: -
 :url-openid: https://openid.net/specs/openid-connect-core-1_0.html
 
+Authentication is the process of verifying the identity of a user.
 Sync Gateway supports the following authentication methods:
 
+<<anonymous-access>>::
+Sync Gateway does not allow anonymous or guest access by default, but it can be enabled by editing the configuration file or by using the Admin REST API.
 <<basic-authentication>>::
 Provide a username and password to authenticate users.
 <<auth-providers,Auth Providers>>::
@@ -16,37 +19,21 @@ Use an App Server to handle the authentication yourself and create user sessions
 Use OpenID Connect providers (Google+, Paypal, etc.) to authenticate users.
 Static providers: Sync Gateway currently supports authentication endpoints for Facebook, Google+ and OpenID Connect providers
 
-== User Registration
+== Anonymous Access
 
-The user must be created on Sync Gateway before it can be used for authentication.
-Users can be created through the Sync Gateway Admin REST API or configuration file.
+A special user account named `GUEST` applies to unauthenticated requests.
+Any request to the Public REST API that does not have an `Authorization` header or a session cookie is treated as coming from the `GUEST` account.
+This account and all anonymous access is disabled by default.
 
-Admin REST API::
-The user credentials (**username**/**password**) are passed in the request body to the xref:admin-rest-api.adoc#/user/post\__db___user_[POST /+{db}+/_user] endpoint.
-+
+To enable the GUEST account, set its `disabled` property to false.
+You might also want to give it access to some channels.
+If you don't assign some channels to the GUEST account, anonymous requests won't be able to access any documents.
+The following sample command enables the GUEST account and allows it access to a channel named public.
+
 [source,bash]
 ----
-$ curl -vX POST "http://localhost:4985/justdoit/_user/" -H "accept: application/json" -H "Content-Type: application/json" -d '{"name": "john", "password": "pass"}'
-----
-+
-Note that the Admin REST API is *not* accessible from the clients directly.
-To allow users to sign up, it is recommended to have an app server sitting alongside Sync Gateway that performs the user validation, creates a new user on the Sync Gateway admin port and then returns the response to the application.
-
-Configuration file::
-User credentials are hardcoded in the configuration. This method is convenient for testing but we generally recommend to use the *Admin REST API* in a Sync Gateway deployment.
-+
-[source,javascript]
-----
-{
-    "databases": {
-        "mydatabase": {
-            "users": {
-                "GUEST": {"disabled": true},
-                "john": {"password": "pass"}
-            }
-        }
-    }
-}
+$ curl -X PUT localhost:4985/$DB/_user/GUEST --data \
+   '{"disabled":false, "admin_channels":["public"]}'
 ----
 
 == Basic Authentication
