@@ -60,6 +60,15 @@ When this feature is enabled, xref:glossary.adoc[mobile tombstones] are not reta
 They will be purged based on the server's metadata purge interval.
 To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
 
+== Workload Isolation
+
+Starting in version 2.7, if `import_docs` is set to `false`, the node will not be participating in the import process. This configuration is specifically recommended for workload isolation: to isolate import nodes from the client-facing nodes.
+Workload isolation is preferable in deployments with a large write throughput.
+
+The following diagram shows an example architecture of two Sync Gateway nodes handling the incoming client connections (`import_docs: false`) and two nodes sharing the import processing (`import_docs: true`).
+
+image:workload-isolation.png[]
+
 == FAQ
 
 === How do I query the document's sync metadata?
