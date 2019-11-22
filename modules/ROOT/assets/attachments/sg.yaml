@@ -506,17 +506,11 @@ properties:
           revs_limit:
             type: integer
             description: |
-              Maximum depth to which a document's revision tree can grow, this value governs the point at which to prune a document's revision tree.
+              Maximum depth to which a document's revision tree can grow. The default value for `revs_limit` is 100 if [allow_conflict](config-properties.html#databases-foo_db-allow_conflicts) is enabled (default) and 50 if `allow_conflict` is disabled. The minimum value is 20. Setting the `revs_limit` to a low value (typically below 100) can have adverse effects as described below.
 
-              Revision pruning is the process to remove obsolete revisions and runs every time a revision is added.
+              The value of `revs_limit` governs the point at which to prune a document's revision tree.
 
-              The default value for `revs_limit` is 100 if [allow_conflict](config-properties.html#databases-foo_db-allow_conflicts) is enabled (default) and 50 if `allow_conflict` is disabled. The minimum value is 20.
-
-              ##### Consideration with Conflicting Revisions
-
-              Setting `revs_limit` to a low value (typically below 100) when `allow_conflicts` is enabled can have adverse effects as described below.
-
-              Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite. On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
+              Indeed, the process to remove obsolete revisions is called pruning and runs automatically every time a revision is added. Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite. On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
 
               If there are conflicting revisions, the document may end up with **disconnected branches** after the pruning process. In the animation below, the document has a conflicting branch (revisions `4'` - `1001'`). When the shortest branch (in this case the conflicting branch) reaches the 1003rd update, it gets is cut off. The revision tree is not in a corrupted state and the logic that chooses the winning revision still applies. But it may make it impossible to do certain merges (n-way merge) to resolve conflicts and will occupy disk space that could have been free-ed if the conflict was resolved early on.<br><br>
 
