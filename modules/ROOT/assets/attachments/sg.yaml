@@ -506,7 +506,13 @@ properties:
           revs_limit:
             type: integer
             description: |
-              Maximum depth to which a document's revision tree can grow. In Sync Gateway 1.5, the `revs_limit` configuration cannot be set lower than 20. Setting the `revs_limit` to a low value (typically below 100) can have adverse effects as described below.
+              Maximum depth to which a document's revision tree can grow.
+
+              Starting in Sync Gateway 1.5, the `revs_limit` configuration cannot be set lower than 20.
+
+              Starting in Sync Gateway 2.6, the default value of `revs_limit` is lowered to 50 if [allow_conflict](config-properties.html#databases-foo_db-allow_conflicts) is disabled and remains 1000 otherwise.
+
+              Setting `revs_limit` to a low value (typically below 100) when `allow_conflicts` is enabled can have adverse effects as described below.
 
               The value of `revs_limit` governs the point at which to prune a document's revision tree.
 
@@ -521,7 +527,7 @@ properties:
               See also:
               - Sync Gateway purge endpoint [/{db}/_purge](admin-rest-api.html#/document/post__db___purge).
               - Sync Gateway [document TTLs](admin-rest-api.html#/document/put__db___doc_).
-            default: 50
+            default: 1000
           roles:
             type: object
             description: Initial roles.
