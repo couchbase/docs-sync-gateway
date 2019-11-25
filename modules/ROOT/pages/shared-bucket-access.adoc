@@ -1,17 +1,15 @@
 = Mobile-Web Data Sync
 :url-downloads: https://www.couchbase.com/downloads
 
-_(Introduced in Sync Gateway 1.5 and Couchbase Server 5.0)_
+The objective of Mobile-Web Data Sync is to ensure that the security and replication metadata needed by mobile applications is preserved
 
 Shared Bucket Access enables document changes made through Couchbase SDKs and N1QL queries to be synchronized to Couchbase Lite clients, and vice versa.
 The following diagram shows different clients (mobile, web, desktop) writing data to the same bucket in Couchbase Server.
 
 image::shared-bucket-access.png[]
 
-In previous releases, you either had to ensure all writes happened through Sync Gateway, or had to set up bucket shadowing to ensure that the security and replication metadata needed by mobile applications was preserved.
-
-In this release, the metadata created by the Sync Gateway is abstracted from applications reading and writing data directly to Couchbase Server.
-Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (e**X**tended **ATTR**ibutes) to store that metadata into an external document fragment.
+The metadata created by the Sync Gateway is abstracted from applications reading and writing data directly to Couchbase Server.
+Sync Gateway does this by utilizing a Couchbase Server feature called XATTRs (e**X**tended **ATTR**ibutes) to store that metadata into an external document fragment.
 
 == How to enable it
 
@@ -78,7 +76,7 @@ SELECT meta().xattrs._sync FROM `travel-sample` WHERE meta().id = "mydocId"
 Prior to 5.5, there is no way to query the mobile metadata with `shared_bucket_access_enabled: true`.
 
 WARNING: The sync metadata is maintained internally by Sync Gateway and its structure can change at any time.
-It should not be used to drive business logic of applications. The direct use of the N1QL query is *unsupported* and must not be used in production environments. 
+It should not be used to drive business logic of applications. The direct use of the N1QL query is *unsupported* and must not be used in production environments.
 
 === How do I access a blob stored in Couchbase Lite?
 
@@ -87,19 +85,3 @@ See the xref:couchbase-lite:ROOT:swift.adoc#blobs[Blob] example.
 === How do I access an attachment from a WebApp?
 
 Attachments can be accessed through Sync Gateway's REST API using the xref:rest-api.adoc#/attachment/get\__db___doc___attachment_[+/{db}/{doc}/{attachment}+] endpoint.
-
-== Migrating from Bucket Shadowing
-
-As of Sync Gateway 1.5, the Bucket Shadowing feature is deprecated and no longer supported.
-The following steps outline a recommended method for migrating from Bucket Shadowing to the latest version with interoperability between Couchbase Server SDKs and Couchbase Mobile.
-
-. Follow the recommendations in the xref:server:install:upgrade-online.adoc[Couchbase Server documentation] to upgrade all instances to 5.0.
-. Create a new bucket on Couchbase Server (*bucket 2*).
-. Install Sync Gateway 1.5 on a separate node with shared access enabled and connect it to the new bucket (*bucket 2*).
-. Setup a link:running-replications.html[push replication] from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.
-. Once the replication has completed, test your application is performing as expected.
-. Update the load balancer to direct incoming traffic to the Sync Gateway 1.5 instance when you are ready to upgrade.
-. Delete the first bucket (*bucket 1*).
-
-image:bucket-shadowing-migration.png[]
-
