@@ -46,13 +46,40 @@ Another example is presented below.
 From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
 The mobile metadata is no longer kept in the document, but in a system extended attribute in Couchbase Server.
 
-== Reference
+== Import Processing
 
-The reference to the configuration properties can be found below.
+Note that `import_docs` only takes effect if the `enabled_shared_bucket_access` is set to `true`.
 
-* link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
-* link:config-properties.html#databases-foo_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
-* link:config-properties.html#databases-foo_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+The following table describes the key behavior differences between Community Edition and Enterprise Edition when `import_docs` is enabled, disabled or not set at all.
+
+|===
+| `enabled_shared_bucket_access` | `import_docs` | Behavior (EE) | Behavior (CE)
+
+| true
+| not set
+| Assumes `import: true` by default
+| Assumes `import: false` by default
+
+| true
+| false
+| Node omitted from import processing (supported for workload isolation)
+| Node omitted from import processing (supported for workload isolation)
+
+| true
+| true
+| Same as default behavior. Node included in import processing
+| Node included in import processing
+|===
+
+== Workload Isolation
+
+As described in the table above, if `import_docs` is set to `false`, the node will not be participating in the import process.
+This configuration is specifically recommended for workload isolation: to isolate import nodes from the client-facing nodes.
+Workload isolation is preferable in deployments with a large write throughput.
+
+The following diagram shows an example architecture of two Sync Gateway nodes handling the incoming client connections (`import_docs: false`) and two nodes sharing the import processing (`import_docs: true`).
+
+image:workload-isolation.png[]
 
 == Metadata Purge Interval
 
@@ -60,14 +87,13 @@ When this feature is enabled, xref:glossary.adoc[mobile tombstones] are not reta
 They will be purged based on the server's metadata purge interval.
 To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
 
-== Workload Isolation
+== Reference
 
-Starting in version 2.7, if `import_docs` is set to `false`, the node will not be participating in the import process. This configuration is specifically recommended for workload isolation: to isolate import nodes from the client-facing nodes.
-Workload isolation is preferable in deployments with a large write throughput.
+The reference to the configuration properties can be found below.
 
-The following diagram shows an example architecture of two Sync Gateway nodes handling the incoming client connections (`import_docs: false`) and two nodes sharing the import processing (`import_docs: true`).
-
-image:workload-isolation.png[]
+* link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
+* link:config-properties.html#databases-foo_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+* link:config-properties.html#databases-foo_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
 
 == FAQ
 
