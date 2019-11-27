@@ -148,7 +148,7 @@ properties:
 
               `enable_shared_bucket_access` needs to be `true` on all nodes participating in such a configuration where as `import_docs` can only be set to `true` on a single node.
 
-              Starting Sync Gateway with `import_docs` enabled will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
+              Starting Sync Gateway with `import_docs` enabled will generate the mobile-specific metadata for all the existing documents in the Couchbase Server bucket. With shared_bucked_access enabled, documents can be mutated on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API and these changes will be seamlessly synchronized over to the connected Couchbase Lite enabled clients.
 
 
               #### Import process
@@ -336,7 +336,7 @@ properties:
 
               #### Tombstones
 
-              When `enable_shared_bucket_access` is enabled, mobile tombstones are now also server tombstones. The document body is deleted, and the information required to replicate the tombstone is retained in the mobile extended attribute.
+              When `enable_shared_bucket_access` is enabled, mobile tombstones are now also server tombstones. The document body is deleted, and only the mobile sync metadata required to replicate the tombstone is retained in the mobile extended attribute.
 
               The server's metadata purge interval becomes an important consideration for mobile deployments under convergence. When the server purges a tombstone (based on the metadata purge interval), that tombstone will no longer be replicated to mobile clients.
 
