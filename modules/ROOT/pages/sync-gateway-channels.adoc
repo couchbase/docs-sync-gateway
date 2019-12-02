@@ -1,0 +1,138 @@
+= Data Routing
+:idprefix:
+:idseparator: -
+:url-httpie: https://github.com/jakubroztocil/httpie
+
+Sync Gateway uses channels to make it easy to share a database between a large number of users and control access to the database.
+Channels are the intermediaries between documents and users.
+Every document in the database belongs to a set of channels, and every user is allowed to access a set of channels.
+You use channels to:
+
+* Partition the data set.
+* Authorize users to access documents.
+* Minimize the amount of data synced down to devices.
+
+== Add to Channel
+
+You assign documents to channels by writing a Sync Function in the configuration file (xref:config-properties.adoc#databases-foo_db-sync[databases.$db.sync]).
+The Sync Function is a JavaScript function that takes a document body as input and, based on the document content, decides what channels to assign the document to (see the xref:sync-function.adoc#function-definition[Function Definition]).
+
+Based on the contents of the document, the Sync Function can call xref:sync-function.adoc#channelchannelname[channel()] to add the document to one or more channels.
+This makes it accessible to users who have access to those channels, and will cause the document to be pulled by users that are subscribed to those channels.
+
+The following Sync Function routes incoming documents to a channel named `foo`.
+
+[source,javascript]
+----
+function (doc, oldDoc) {
+  channel("foo");
+}
+----
+
+Channels come into existence as documents are assigned to them.
+The Sync Function cannot reference any external state and must return the same results every time it's called on the same input.
+
+Valid channel names consist of text letters `[A–Z, a–z]`, digits `[0–9]`, and a few special characters `[= + / . , _ @]`.
+Channel names are case-sensitive.
+Channels with no documents assigned to them are empty.
+
+If you don't supply a Sync Function in the configuration file, Sync Gateway uses the xref:config-properties.adoc#databases-foo_db-sync[default Sync Function].
+The default Sync Function is really only useful for experimentation and development, it is recommended to write a Sync Function which contains the appropriate Validation, and Read and Write access for your application.
+
+== Remove from Channel
+
+If the document was previously routed to a channel, but the current call to the sync function (for an updated revision) doesn't route it to that channel, the document is removed from the channel.
+
+This may cause users to lose access to that document.
+If that happens, the next time Couchbase Lite pulls changes from the gateway, it will purge the document from the database and trigger the document replication listener on Couchbase Lite with the `AccessRemoved` flag.
+
+xref:couchbase-lite::swift.adoc#replication-events[swift] | xref:couchbase-lite::java.adoc#replication-events[java] | xref:couchbase-lite::csharp.adoc#replication-events[c#] | xref:couchbase-lite::objc.adoc#replication-events[objective-c]
+
+== Inspect a Document
+
+You can use the admin REST API to see the channels that documents are assigned to.
+Issue a xref:admin-rest-api.adoc#/database/get
+\__db___all_docs[/+{db}+/_all_docs] request, and add the query parameter `?channels=true` to the URL.
+Here's an example of the response.
+The output shows that the document is in the channels `short` and `word`.
+
+[source,json]
+----
+{
+  "rows": [
+    {
+      "id": "foo",
+      "key": "foo",
+      "value": {
+        "channels": [
+          "short",
+          "word"
+        ],
+        "rev": "1-86effb929acbf953905dd0e3974f6051"
+      }
+    }
+  ],
+  "total_rows": 16,
+  "update_seq": 26
+}
+----
+
+== Public Channel
+
+The *public channel*, written as `!` in the sync function, is automatically created when Sync Gateway starts.
+Documents added to this channel are visible to any user (i.e all users are automatically granted access to the `!` channel).
+This channel can be used as a public distribution channel.
+
+The following Sync Function maps the document to the public channel if it contains an `isPublic` property set to true and grants users with the 'admin' role access to the all docs channel.
+
+[source,javascript]
+----
+function (doc, oldDoc) {
+    if (doc.isPublic) {
+        channel('!');
+    }
+    if (doc.type == 'user') {
+        requireRole('admin');
+        access(doc.username, '*');
+    }
+}
+----
+
+== Star Channel
+
+The *star* channel, written as `+*+` in the sync function, is automatically created when Sync Gateway starts.
+All documents are added to this channel.
+So any user that is granted access to the `+*+` channel can access all the documents in the database.
+A user can be given access to the *star* channel through the sync function or in the configuration file (see xref:read-access.adoc#add-access[Add Access]).
+
+* *Note 1:* Sync Gateway automatically assigns documents to the all docs channel.
+Explicitly assigning a document to it in the Sync Function (i.e `channel('*')`) will result in unexpected behavior such as receiving the document twice on the client side.
+* *Note 2:* The *star* channel doesn't mean that the user is granted access to all channels.
+It is only being granted access to 1 channel which contains *all documents*.
+This distinction is important when using the xref:sync-function.adoc#requireaccess-channels[`requireAccess()`] Sync Function method.
+
+== Sync Metadata
+
+Every time a document is assigned to a new channel, the channel name is appended to that document's sync metadata.
+
+Therefore, a document's set of channels is bound by the allowed sync metadata size described in the following table.
+
+|===
+|`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
+ 2+a|*Sync metadata size limit*
+
+|20 MB per document
+|1 MB per document
+|===
+
+Sync Gateway will assign a document to a new channel as long as the sync metadata remains under the allowed limit.
+
+*What to do when your channel count exceeds the usable space for sync metadata?*
+
+In order to lower the sync metadata size per document, you can do one of the following:
+
+* Lower the number of channels per document.
+* Shorten the channel names.
+A shorter channel name will occupy less space ("customer==0030169303" vs "cs==0030169303").
+* Lower the xref:config-properties.adoc#databases-foo_db-revs_limit[revs_limit] value.
+Indeed, a copy of channel metadata is retained for each revision of a document.
