@@ -2,6 +2,7 @@
 :jira-url: https://issues.couchbase.com/browse
 :url-issues-sync: https://github.com/couchbase/sync_gateway/issues
 
+
 == 2.7.0
 
 *New Features*
@@ -9,7 +10,16 @@
 
 * The default behavior of `import_docs` has changed (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
 +
-This will provide the flexibility for "import heavy" use case users to be able to isolate the import nodes from the internet/client-facing nodes.
+This will provide the flexibility for "import heavy" use case users to be able to isolate the import nodes from the internet/client-facing nodes
+
+== 2.6.1
+
+*Fixed in this Release*
+
+- {jira-url}/CBG-530[*CBG-530*] New attachment metadata not preserved on CAS retry during document update
+- {jira-url}/CBG-514[*CBG-514*] running sgcollect_info on command with root privileges is overriding bin/sync_gateway file on MacOS
+- {jira-url}/CBG-502[*CBG-502*] x.509 broken due to deprecated CertificateAuthenticator
+
 
 == 2.6.0
 
@@ -38,15 +48,7 @@ xref:index.adoc[Read more]
 
 *Fixed in this Release*
 
-- {jira-url}/CBG-461[*CBG-461*] Cobalt - cache enhancements- 404 error while requesting doc from the second sgw node
-- {jira-url}/CBG-458[*CBG-458*] cobalt - error count stats does not get incremented
-- {jira-url}/CBG-455[*CBG-455*] Inconsistent delta sync behavior regarding deletion
 - {jira-url}/CBG-449[*CBG-449*] _removed entry not sent with delta sync
-- {jira-url}/CBG-434[*CBG-434*] Build 2.6.0-104: Existing SG WRITE test with 100% RYOW shows suboptimal throughout in 4 node cluster compared to single node
-- {jira-url}/CBG-428[*CBG-428*] Packaged SG config tries connecting to couchbase://localhost instead of walrus
-- {jira-url}/CBG-424[*CBG-424*] Create conflict throws 400 error
-- {jira-url}/CBG-406[*CBG-406*] sgw fails to start with ssl enabled
-- {jira-url}/CBG-373[*CBG-373*] SGW shows wrong version number
 - {jira-url}/CBG-370[*CBG-370*] Sync gateway fails to start
 - {jira-url}/CBG-364[*CBG-364*] Odd SG Installation errors
 - {jira-url}/CBG-363[*CBG-363*] Return HTTP 413 when server rejects document due to size
@@ -55,7 +57,6 @@ xref:index.adoc[Read more]
 - {jira-url}/CBG-342[*CBG-342*] GoCB Bucket Incr amt=0 logic not handling errors correctly
 - {jira-url}/CBG-324[*CBG-324*] Blip messages double-tagging user for redaction
 - {jira-url}/CBG-321[*CBG-321*] Improve sg-replicate logging integration
-- {jira-url}/CBG-319[*CBG-319*] Exit on error when retrieving ClusterCompatibility
 - {jira-url}/CBG-309[*CBG-309*] Don't log expected REST errors to sg_error.log
 - {jira-url}/CBG-306[*CBG-306*] Avoid panics as an error handling mechanism
 - {jira-url}/CBG-288[*CBG-288*] Investigate TestN1qlQuery failures
@@ -76,79 +77,3 @@ xref:index.adoc[Read more]
 - {jira-url}/CBG-463[*CBG-463*] Potential feedback loop when replicating large attachments
 - {jira-url}/CBG-317[*CBG-317*] network errors while getting bulk get with multi channel with server ssl enabled
 - {jira-url}/CBG-502[*CBG-502*] x.509 certificate authentication broken due to deprecated CertificateAuthenticator
-
-== 2.5.1
-
-*Bugs*
-
-- https://issues.couchbase.com/browse/CBG-430[*CBG-430*] Inconsistent handling between views and N1QL for tombstone removals.
-- https://issues.couchbase.com/browse/CBG-432[*CBG-432*] GoCB Bucket Incr amt=0 logic not handling errors correctly.
-- https://issues.couchbase.com/browse/CBG-450[*CBG-450*] _removed entry not sent with delta sync
-- https://issues.couchbase.com/browse/CBG-429[*CBG-429*] Verify attachment length and digest when downloading attachment
-- https://issues.couchbase.com/browse/CBG-299[*CBG-299*] Avoid unnecessary 'too late to disable compression' log warning
-- https://issues.couchbase.com/browse/CBG-300[*CBG-300*] go-blip leaks nextFrameToSend goroutine under aborted multi-frame send
-- https://issues.couchbase.com/browse/CBG-301[*CBG-301*] Avoid leaking goroutines on blip replication close
-- https://issues.couchbase.com/browse/CBG-244[*CBG-244*] Reduce disk space requirements when running sgcollect
-- https://issues.couchbase.com/browse/CBG-284[*CBG-284*] Retry loops for bucket update ops have no backoff and no max retry count
-- https://issues.couchbase.com/browse/CBG-431[*CBG-431*] Upgrade gocb to 1.6.1 to pick up GOCBC-413
-- https://issues.couchbase.com/browse/CBG-318[*CBG-318*] SUBDOC operation attempted when server doesn't support them
-
-*Known Issues*
-
-- https://issues.couchbase.com/browse/CBG-502[*CBG-502*] x.509 certificate authentication broken due to deprecated CertificateAuthenticator
-
-== 2.5.0
-
-*Deprecated Configs*
-
-* The following configuration properties are being deprecated in this release and will be removed in a future release:
-** `adminUI`
-** `configServer`
-** `databases.$db.feed_type`
-** `pretty`
-** `profileInterface`
-** `log` (superseded by `logging`)
-** `logFilePath` (superseded by `logging.log_file_path`)
-* The `walrus` value on the `databases.$db.bucket` property is being deprecated. Sync Gateway instances using `walrus` for development should connect to a running instance of Couchbase Server.
-
-*Performance Improvements*
-
-- https://github.com/couchbase/sync_gateway/issues/3662[*#3662*] Collate high-volume logs for improved throughput
-- https://github.com/couchbase/sync_gateway/issues/3667[*#3667*] Move _attachments metadata to _sync
-- https://github.com/couchbase/sync_gateway/issues/3766[*#3766*] Independent timing for skipped sequence processing and cache age-out process
-- https://github.com/couchbase/sync_gateway/issues/3823[*#3823*] Avoid CPU spikes when abandoning skipped sequences
-- https://github.com/couchbase/sync_gateway/issues/3862[*#3862*] Improve channel query queueing
-
-*Enhancements*
-
-- https://github.com/couchbase/sync_gateway/issues/3558[*#3558*] Initialize cache after DCP start
-- https://github.com/couchbase/sync_gateway/issues/3609[*#3609*] Add validation to limit log file max_size
-- https://github.com/couchbase/sync_gateway/issues/3677[*#3677*] Make bcrypt cost configurable
-- https://github.com/couchbase/sync_gateway/issues/3791[*#3791*] sgcollect_info: Proxy server support using --upload_proxy
-- https://github.com/couchbase/sync_gateway/issues/3792[*#3792*] Ensure consistent use of http.DefaultTransport
-- https://github.com/couchbase/sync_gateway/issues/3798[*#3798*] Report parameters on N1QL errors
-- https://github.com/couchbase/sync_gateway/issues/3815[*#3815*] Include db and handler context in all db-specific logging
-- https://github.com/couchbase/sync_gateway/issues/3833[*#3833*] CouchbaseServerVersion should use cluster_compat_version
-- https://issues.couchbase.com/browse/CBG-268[*CBG-268*] Limit DCP checkpoint persistency frequency
-- https://issues.couchbase.com/browse/CBG-247[*CBG-247*] Reduce CPU associated with large skipped sequence queue
-- https://issues.couchbase.com/browse/CBG-233[*CBG-233*] Improve efficiency of pending sequences processing
-
-*Bugs*
-
-- https://github.com/couchbase/sync_gateway/issues/3414[*#3414*] auth.Save() should be CAS safe
-- https://github.com/couchbase/sync_gateway/issues/3783[*#3783*] Large Number Handled Incorrectly
-- https://issues.couchbase.com/browse/MB-32044[*MB-32044*] cbdatasource workers retry removed nodes indefinitely
-- https://github.com/couchbase/sync_gateway/issues/3838[*#3838*] Failed resync doesn't revert db state to offline
-- https://github.com/couchbase/sync_gateway/issues/3839[*#3839*] n1ql query timeout should be set at both bucket and cluster level 
-- https://github.com/couchbase/sync_gateway/issues/3872[*#3872*] Channel cache prepend can fail for some seq, validFrom combinations
-- https://github.com/couchbase/sync_gateway/issues/3898[*#3898*] Avoid nested read locks on BucketLock
-- https://issues.couchbase.com/browse/CBG-282[*CBG-282*] Panic when putting document with duplicate non-imported doc ID
-- https://issues.couchbase.com/browse/CBG-278[*CBG-278*] Sync Gateway panic when stopping 2.0 pull replication with attachments
-- https://issues.couchbase.com/browse/CBG-230[*CBG-230*] `_changes` with `include_docs=true` errors on `_user` pseudo docs
-- https://issues.couchbase.com/browse/CBG-197[*CBG-197*] Change default console logging behaviour
-- https://issues.couchbase.com/browse/CBG-234[*CBG-234*] Prevent N1QL injection in Sync Gateway via `_all_docs` with `startkey` and `endkey` querystring options
-
-*Known Issues*
-
-- https://github.com/couchbase/sync_gateway/issues/1264[*#1264*] Sync Gateway memory usage can climb continously is scenarios with ever increasing numbers of channels
-- https://issues.couchbase.com/browse/CBG-394[*CBG-394*] Upgrade to `shared_bucket_access` with GSI can cause missed mutations
