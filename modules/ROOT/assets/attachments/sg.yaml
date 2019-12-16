@@ -149,26 +149,6 @@ properties:
               `enable_shared_bucket_access` needs to be `true` on all nodes participating in such a configuration where as `import_docs` can only be set to `true` on a single node.
 
               Starting Sync Gateway with `import_docs` enabled will generate the mobile-specific metadata for all the existing documents in the Couchbase Server bucket. With shared_bucked_access enabled, documents can be mutated on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API and these changes will be seamlessly synchronized over to the connected Couchbase Lite enabled clients.
-
-
-              #### Import process
-
-              Import is the name for the process by which non-Sync Gateway writes obtain mobile metadata. Any non-Sync Gateway write is eligible for import.
-
-              The document is first run through the Sync Function to compute read security and routing, with the following differences:
-
-              - The import is processed with an admin user context in the Sync Function, similar to writes made through the Sync Gateway Admin API. This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
-              - During import, `oldDoc` is `nil` when the Sync Function is executed.
-
-              Only one node in a Sync Gateway cluster should be configured for feed-based import - it processes the full DCP stream.
-
-              The [Import+](#1.5/log) log key can be used to troubleshoot the import process further in the logs.
-
-              A filter function can be specified using the [databases.foo_db.import_filter](#1.5/databases-foo_db-import_filter) property to only import specific documents.
-
-              ##### Import and Sync Gateway Accelerator
-
-              In a deployment with Sync Gateway Accelerator, feed-based import processing is performed by the Accelerator nodes. Import work is sharded across the Accelerator cluster, in the same way that indexing work is sharded today.
             default: 'false'
           cacertpath:
             type: string
@@ -319,11 +299,13 @@ properties:
           enable_shared_bucket_access:
             type: boolean
             description: |
-              Introduced in Sync Gateway 1.5, this property specifies whether to enable Mobile-Web Data Sync.
+              Introduced in Sync Gateway 1.5, this property specifies whether to enable Mobile-Server Data Sync (a.k.a _mobile convergence_). You can learn more about this functionality [here](https://docs.couchbase.com/sync-gateway/current/shared-bucket-access.html)
 
               This property works in conjunction with the [import_docs](#databases-foo_db-import_docs) property.
 
               `enable_shared_bucket_access` needs to be `true` on all nodes participating in such a configuration where as `import_docs` can only be set to `true` on a single node.
+
+              On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
 
               #### Tombstones
 
@@ -331,9 +313,9 @@ properties:
 
               The server's metadata purge interval becomes an important consideration for mobile deployments under convergence. When the server purges a tombstone (based on the metadata purge interval), that tombstone will no longer be replicated to mobile clients.
 
-              For most mobile deployments, users should set the server's metadata purge interval based on their expected client replication frequency, to ensure that clients are notified of the tombstone prior to that tombstone being purged.
+              Users should set the server's metadata purge interval based on their expected client replication frequency, to ensure that clients are notified of the tombstone prior to that tombstone being purged.
 
-              The default Metadata Purge Interval is set to 3 days which can potentially result in tombstones being purged before all clients have had a chance to get notified of it.
+              NOTE: The default Metadata Purge Interval is set to 3 days which can potentially result in tombstones being purged before all clients have had a chance to get notified of it.
 
               Ways to tune the Metadata Purge Interval on Couchbase Server:
 
@@ -356,7 +338,7 @@ properties:
               They are also accessible from N1QL in Couchbase Server 5.5 or above with the `().xattrs` property. For example, `SELECT meta().xattrs._sync from travel-sample where Meta().id = "user::demo";`.
 
               **WARNING:** The sync metadata is maintained internally by Sync Gateway and its structure can change at any time. It should not be used to drive business logic of applications. The direct use of the N1QL query is unsupported and must not be used in production environments.
-              The [/{db}/_raw/{id}](admin-rest-api.html#/document/get__db___raw__doc_) endpoint on Sync Gateway's Admin REST API returns both the document and it's associated mobile metadata.
+              The `raw` endpoint ([/db/_raw/{docid}](../../../references/sync-gateway/admin-rest-api/index.html#!/document/get_db_raw_doc)) on Sync Gateway's Admin REST API returns both the document and it's associated mobile metadata.
             default: 'false'
           event_handlers:
             type: object
@@ -774,7 +756,6 @@ properties:
               Available log key values include:
 
               - `Admin`: Admin processes in Sync Gateway.
-              - `Accel`: Sync Gateway Accelerator.
               - `Access`: Anytime an `access()` call is made in the sync function.
               - `Attach`: Attachment processing.
               - `Auth`: Authentication.
