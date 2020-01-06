@@ -1,12 +1,14 @@
-= Mobile-Web Data Sync
+= Mobile-Server Data Sync
 :url-downloads: https://www.couchbase.com/downloads
+== Shared Bucket Access
+:pageOriginRel: "sg=1.5, Cbs=5.0)_"
 
-The objective of Mobile-Web Data Sync is to ensure that the security and replication metadata needed by mobile applications is preserved
+The objective of Mobile-Web Data Sync is to ensure that the security and replication metadata needed by mobile applications is preserved.
 
-Shared Bucket Access enables document changes made through Couchbase SDKs and N1QL queries to be synchronized to Couchbase Lite clients, and vice versa.
+Sync Gateway uses the _Shared Bucket Access_ feature to synchronize document changes made through Couchbase SDKs and N1QL queries to be synchronized to Couchbase Lite clients, and vice versa.
+
 The following diagram shows different clients (mobile, web, desktop) writing data to the same bucket in Couchbase Server.
-
-image::shared-bucket-access.png[]
+Changes were made by James, but itimage::shared-bucket-access.png[]
 
 The metadata created by the Sync Gateway is abstracted from applications reading and writing data directly to Couchbase Server.
 Sync Gateway does this by utilizing a Couchbase Server feature called XATTRs (e**X**tended **ATTR**ibutes) to store that metadata into an external document fragment.
@@ -38,14 +40,32 @@ Another example is presented below.
     }
 }
 ----
-<1> The `enable_shared_bucket_access` property is used to enable Web-Mobile data sync.
-<2> The `import_docs` property is used to specify that this Sync Gateway node should perform import processing of incoming documents.
-`import_docs` can only be set to `true` on a single node.
-+
-`enable_shared_bucket_access` needs to be `true` on all nodes participating in such a configuration where as `import_docs` can only be set to `true` on a single node.
-+
+<1> The `enable_shared_bucket_access` property is used to enable Web-Server data sync and must be `_true_` on all nodes participating in such a configuration.
+<2> The `import_docs` property is used to specify that a Sync Gateway node should (only) import document changes using the <<Import process>>. But note that it can only be set to `true` on a single node.
+
 From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
 The mobile metadata is no longer kept in the document, but in a system extended attribute in Couchbase Server.
+
+== Import process
+
+The import process is a key part of mobile convergence.
+
+It is the means by which Sync Gateway becomes aware of non-Sync Gateway data changes and obtains the mobile metadata it requires to replicate changes.
+Any link:glossary.adoc#non-sync-gateway[non-Sync Gateway change] is eligible for import.
+
+NOTE: By default Sync Gateway distributes import processing across all nodes in the Sync Gateway cluster
+
+The document is first run through the Sync Function to compute read security and routing, with the following differences:
+
+- The import is processed with an admin user context in the Sync Function, similar to writes made through the Sync Gateway Admin API.
+This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
+- During import, `oldDoc` is `nil` when the Sync Function is executed.
+
+Only one node in a Sync Gateway cluster should be configured for feed-based import - it processes the full DCP stream.
+
+You can specify a filter function using the _[databases.foo_db.import_filter](#1.5/databases-foo_db-import_filter)_ property, which will only import specific documents.
+
+TIP: Use the [Import+](#1.5/log) log key to troubleshoot import processing issues in the logs.
 
 == Reference
 
@@ -57,8 +77,8 @@ The reference to the configuration properties can be found below.
 
 == Metadata Purge Interval
 
-When this feature is enabled, xref:glossary.adoc[mobile tombstones] are not retained indefinitely.
-They will be purged based on the server's metadata purge interval.
+When link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] is enabled, xref:glossary.adoc[mobile tombstones] are *not* retained indefinitely.
+They are purged based on the server's _metadata purge interval_.
 To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
 
 == FAQ
@@ -85,3 +105,4 @@ See the xref:couchbase-lite:ROOT:swift.adoc#blobs[Blob] example.
 === How do I access an attachment from a WebApp?
 
 Attachments can be accessed through Sync Gateway's REST API using the xref:rest-api.adoc#/attachment/get\__db___doc___attachment_[+/{db}/{doc}/{attachment}+] endpoint.
+
