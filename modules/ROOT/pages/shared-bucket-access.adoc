@@ -1,9 +1,9 @@
-= Mobile-Web Data Sync
+= Mobile-Server Data Sync
 :url-downloads: https://www.couchbase.com/downloads
+== Shared Bucket Access
+:pageOriginRel: "sg=1.5, Cbs=5.0)_"
 
-_(Introduced in Sync Gateway 1.5 and Couchbase Server 5.0)_
-
-Shared Bucket Access enables document changes made through Couchbase SDKs and N1QL queries to be synchronized to Couchbase Lite clients, and vice versa.
+Sync Gateway uses the _Shared Bucket Access_ feature to synchronize document changes made through Couchbase SDKs and N1QL queries to be synchronized to Couchbase Lite clients, and vice versa.
 The following diagram shows different clients (mobile, web, desktop) writing data to the same bucket in Couchbase Server.
 
 image::shared-bucket-access.png[]
@@ -40,13 +40,34 @@ Another example is presented below.
     }
 }
 ----
-<1> The `enable_shared_bucket_access` property is used to enable Web-Mobile data sync.
-<2> The `import_docs` property is used to specify that this Sync Gateway node should perform import processing of incoming documents.
-+
+<1> The `enable_shared_bucket_access` property is used to enable Web-Server data sync and must be `_true_` on all nodes participating in such a configuration.
+<2> The `import_docs` property is used to specify that a Sync Gateway node should (only) import document changes using the <<Import process>>. But note that it can only be set to `true` on a single node.
+
 From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
 The mobile metadata is no longer kept in the document, but in a system extended attribute in Couchbase Server.
 
-== Import Processing
+== Import process
+
+The import process is a key part of mobile convergence.
+
+It is the means by which Sync Gateway becomes aware of non-Sync Gateway data changes and obtains the mobile metadata it requires to replicate changes.
+Any link:glossary.adoc#non-sync-gateway[non-Sync Gateway change] is eligible for import.
+
+NOTE: By default Sync Gateway distributes import processing across all nodes in the Sync Gateway cluster
+
+The document is first run through the Sync Function to compute read security and routing, with the following differences:
+
+- The import is processed with an admin user context in the Sync Function, similar to writes made through the Sync Gateway Admin API.
+This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
+- During import, `oldDoc` is `nil` when the Sync Function is executed.
+
+Only one node in a Sync Gateway cluster should be configured for feed-based import - it processes the full DCP stream.
+
+You can specify a filter function using the _[databases.foo_db.import_filter](#1.5/databases-foo_db-import_filter)_ property, which will only import specific documents.
+
+TIP: Use the [Import+](#1.5/log) log key to troubleshoot import processing issues in the logs.
+
+== Reference
 
 Note that `import_docs` only takes effect if the `enabled_shared_bucket_access` is set to `true`.
 
@@ -83,8 +104,8 @@ image:workload-isolation.png[]
 
 == Metadata Purge Interval
 
-When this feature is enabled, xref:glossary.adoc[mobile tombstones] are not retained indefinitely.
-They will be purged based on the server's metadata purge interval.
+When link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] is enabled, xref:glossary.adoc[mobile tombstones] are *not* retained indefinitely.
+They are purged based on the server's _metadata purge interval_.
 To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
 
 == Reference
@@ -110,7 +131,7 @@ SELECT meta().xattrs._sync FROM `travel-sample` WHERE meta().id = "mydocId"
 Prior to 5.5, there is no way to query the mobile metadata with `shared_bucket_access_enabled: true`.
 
 WARNING: The sync metadata is maintained internally by Sync Gateway and its structure can change at any time.
-It should not be used to drive business logic of applications. The direct use of the N1QL query is *unsupported* and must not be used in production environments. 
+It should not be used to drive business logic of applications. The direct use of the N1QL query is *unsupported* and must not be used in production environments.
 
 === How do I access a blob stored in Couchbase Lite?
 
@@ -134,4 +155,3 @@ The following steps outline a recommended method for migrating from Bucket Shado
 . Delete the first bucket (*bucket 1*).
 
 image:bucket-shadowing-migration.png[]
-
