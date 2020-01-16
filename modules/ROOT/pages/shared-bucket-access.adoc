@@ -10,13 +10,12 @@ image::shared-bucket-access.png[]
 
 In previous releases, you either had to ensure all writes happened through Sync Gateway, or had to set up bucket shadowing to ensure that the security and replication metadata needed by mobile applications was preserved.
 
-In this release, the metadata created by the Sync Gateway is abstracted from applications reading and writing data directly to Couchbase Server.
+As of Sync Gateway 1.5, the metadata created by the Sync Gateway is abstracted from applications reading and writing data directly to Couchbase Server.
 Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (e**X**tended **ATTR**ibutes) to store that metadata into an external document fragment.
 
 == How to enable it
 
-This new feature was made opt-in primarily out of consideration for existing customers upgrading from Sync Gateway 1.4.
-It ensures that their existing configs will continue to work as-is, and supports upgrade without bringing down the entire Sync Gateway cluster.
+Shared bucket access is an opt-in feature, and can be enabled without bringing down the entire Sync Gateway cluster.
 
 The xref:getting-started.adoc[getting started] page includes step-by-step instructions to:
 
@@ -50,6 +49,8 @@ The mobile metadata is no longer kept in the document, but in a system extended 
 
 Note that `import_docs` only takes effect if the `enabled_shared_bucket_access` is set to `true`.
 
+In Enterprise Edition, import processing work is shared between all Sync Gateway nodes with import enabled. In Community Edition, each import node processes all server mutations.
+
 The following table describes the key behavior differences between Community Edition and Enterprise Edition when `import_docs` is enabled, disabled or not set at all.
 
 |===
@@ -63,19 +64,19 @@ The following table describes the key behavior differences between Community Edi
 | true
 | false
 | Node omitted from import processing (supported for workload isolation)
-| Node omitted from import processing (supported for workload isolation)
+| Node omitted from import processing
 
 | true
 | true
-| Same as default behavior. Node included in import processing
-| Node included in import processing
+| Node participates in import processing, and is assigned import partitions.
+| Node performs import processing for all server mutations.
 |===
 
 == Workload Isolation
 
 As described in the table above, if `import_docs` is set to `false`, the node will not be participating in the import process.
 This configuration is specifically recommended for workload isolation: to isolate import nodes from the client-facing nodes.
-Workload isolation is preferable in deployments with a large write throughput.
+Workload isolation may be preferable in deployments with high write throughput.
 
 The following diagram shows an example architecture of two Sync Gateway nodes handling the incoming client connections (`import_docs: false`) and two nodes sharing the import processing (`import_docs: true`).
 

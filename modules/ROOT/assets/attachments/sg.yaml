@@ -158,9 +158,9 @@ properties:
           import_partitions:
             type: integer
             description: |
-              Allows users to tune the number of import partitions.
+              Allows users to tune the number of partitions used for import processing. Partitions are distributed among all Sync Gateway nodes participating in import processing (import_docs:true), and each process a subset of the server's vbuckets.
 
-              This will allow users to optimize the number of go routines with the number of cores and number of nodes.
+              Each partition is processed by a separate goroutine, so import_partitions can be used to tune concurrency based on the number of Sync Gateway nodes, and the number of cores per node.
             default: 16
             
           cacertpath:
@@ -327,11 +327,11 @@ properties:
               - The import is processed with an admin user context in the Sync Function, similar to writes made through the Sync Gateway Admin API. This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
               - During import, `oldDoc` is `nil` when the Sync Function is executed.
 
-              Only one node in a Sync Gateway cluster should be configured for feed-based import - it processes the full DCP stream. The [Import+](#log) log key can be used to troubleshoot the import process further in the logs.
+              The [Import+](#log) log key can be used to troubleshoot the import process further in the logs.
 
-              ##### Import and Sync Gateway Accelerator
+              #### Import partitioning
 
-              In a deployment with Sync Gateway Accelerator, feed-based import processing is performed by the Accelerator nodes. Import work is sharded across the Accelerator cluster, in the same way that indexing work is sharded today.
+              Import processing is split into partitions, which can be configured using the [import_partitions](#databases-foo_db-import_partitions) property. Partitions are automatically distributed across all Sync Gateway nodes with import enabled.
 
               #### Tombstones
 
