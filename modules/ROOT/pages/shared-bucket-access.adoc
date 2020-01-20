@@ -52,25 +52,25 @@ The import process is a key part of mobile convergence.
 It is the means by which Sync Gateway becomes aware of non-Sync Gateway data changes and obtains the mobile metadata it requires to replicate changes.
 Any link:glossary.adoc#non-sync-gateway[non-Sync Gateway change] is eligible for import.
 
-NOTE: By default Sync Gateway distributes import processing across all nodes in the Sync Gateway cluster
-
 The document is first run through the Sync Function to compute read security and routing, with the following differences:
 
 - The import is processed with an admin user context in the Sync Function, similar to writes made through the Sync Gateway Admin API.
 This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
 - During import, `oldDoc` is `nil` when the Sync Function is executed.
 
-Only one node in a Sync Gateway cluster should be configured for feed-based import - it processes the full DCP stream.
+You can specify a filter function using the xref:config-properties.adoc#databases-foo_db_import_filter[import_filter]  property, which will only import specific documents.
 
-You can specify a filter function using the _[databases.foo_db.import_filter](#1.5/databases-foo_db-import_filter)_ property, which will only import specific documents.
+TIP: Use the xref:config-properties.adoc#log[Import+] log key to troubleshoot import processing issues in the logs.
 
-TIP: Use the [Import+](#1.5/log) log key to troubleshoot import processing issues in the logs.
-
-== Reference
+== Configuration
 
 Note that `import_docs` only takes effect if the `enabled_shared_bucket_access` is set to `true`.
 
-In Enterprise Edition, import processing work is shared between all Sync Gateway nodes with import enabled. In Community Edition, each import node processes all server mutations.
+Starting in Release 2.7, `import_docs` defaults to `true` for Enterprise Edition.
+This implies that by default, all Enterprise Edition nodes in a cluster will participate in import processing.
+In order to exclude a node, the `import_docs` flag must be `false`.
+This `import_docs` flag must be explicitly set to `true` in Community Edition.
+
 
 The following table describes the key behavior differences between Community Edition and Enterprise Edition when `import_docs` is enabled, disabled or not set at all.
 
@@ -91,7 +91,32 @@ The following table describes the key behavior differences between Community Edi
 | true
 | Node participates in import processing, and is assigned import partitions.
 | Node performs import processing for all server mutations.
+
+| false
+| not set
+| import docs is false by default
+| import docs is false by default
+
+| false
+| true
+| import docs property ignored, warning logged
+| import docs property ignored, warning logged
+
+| false
+| false
+| Import docs is false
+| Import docs is false
 |===
+
+== High Availability of Import processing
+
+In _Enterprise Edition_, import processing work is sharded across all Sync Gateway nodes with import enabled.
+This implies that if one of the nodes fail, the failed shard is automatically picked up by the remaining nodes in the cluster.
+This way, you get High Availability of import processing.
+
+In _Community Edition_, there is no sharding of import across the nodes participating in the import processing. Each import node processes all server mutations.
+
+
 
 == Workload Isolation
 
