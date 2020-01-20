@@ -3,15 +3,15 @@
 == Shared Bucket Access
 :pageOriginRel: "sg=1.5, Cbs=5.0)_"
 
-The objective of Mobile-Web Data Sync is to ensure that the security and replication metadata needed by mobile applications is preserved.
-
 Sync Gateway uses the _Shared Bucket Access_ feature to synchronize document changes made through Couchbase SDKs and N1QL queries to be synchronized to Couchbase Lite clients, and vice versa.
-
 The following diagram shows different clients (mobile, web, desktop) writing data to the same bucket in Couchbase Server.
-Changes were made by James, but itimage::shared-bucket-access.png[]
 
-The metadata created by the Sync Gateway is abstracted from applications reading and writing data directly to Couchbase Server.
-Sync Gateway does this by utilizing a Couchbase Server feature called XATTRs (e**X**tended **ATTR**ibutes) to store that metadata into an external document fragment.
+image::shared-bucket-access.png[]
+
+In previous releases, you either had to ensure all writes happened through Sync Gateway, or had to set up bucket shadowing to ensure that the security and replication metadata needed by mobile applications was preserved.
+
+In this release, the metadata created by the Sync Gateway is abstracted from applications reading and writing data directly to Couchbase Server.
+Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (e**X**tended **ATTR**ibutes) to store that metadata into an external document fragment.
 
 == How to enable it
 
@@ -106,3 +106,17 @@ See the xref:couchbase-lite:ROOT:swift.adoc#blobs[Blob] example.
 
 Attachments can be accessed through Sync Gateway's REST API using the xref:rest-api.adoc#/attachment/get\__db___doc___attachment_[+/{db}/{doc}/{attachment}+] endpoint.
 
+== Migrating from Bucket Shadowing
+
+As of Sync Gateway 1.5, the Bucket Shadowing feature is deprecated and no longer supported.
+The following steps outline a recommended method for migrating from Bucket Shadowing to the latest version with interoperability between Couchbase Server SDKs and Couchbase Mobile.
+
+. Follow the recommendations in the xref:server:install:upgrade-online.adoc[Couchbase Server documentation] to upgrade all instances to 5.0.
+. Create a new bucket on Couchbase Server (*bucket 2*).
+. Install Sync Gateway 1.5 on a separate node with shared access enabled and connect it to the new bucket (*bucket 2*).
+. Setup a link:running-replications.html[push replication] from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.
+. Once the replication has completed, test your application is performing as expected.
+. Update the load balancer to direct incoming traffic to the Sync Gateway 1.5 instance when you are ready to upgrade.
+. Delete the first bucket (*bucket 1*).
+
+image:bucket-shadowing-migration.png[]
