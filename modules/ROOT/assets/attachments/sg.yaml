@@ -142,7 +142,9 @@ properties:
           import_docs:
             type: boolean
             description: |
-              This property works in conjunction with the [enable_shared_bucket_access](#databases-foo_db-enable_shared_bucket_access) property. When **shared bucket access** is enabled, setting this property to true (`"import_docs": true`) indicates that this Sync Gateway node should perform import processing.
+              Introduced in Sync Gateway 1.5, this property specifies whether this Sync Gateway node should perform import processing.
+
+              This property works in conjunction with the [enable_shared_bucket_access](#databases-foo_db-enable_shared_bucket_access) property.
 
               Starting in Sync Gateway 2.7, all Sync Gateway nodes can be configured as import nodes. This results in performance benefits as the import process is shared across all Sync Gateway nodes.
 
@@ -162,7 +164,7 @@ properties:
 
               Each partition is processed by a separate goroutine, so import_partitions can be used to tune concurrency based on the number of Sync Gateway nodes, and the number of cores per node.
             default: 16
-            
+
           cacertpath:
             type: string
             description: |
@@ -312,43 +314,28 @@ properties:
           enable_shared_bucket_access:
             type: boolean
             description: |
-              Introduced in Sync Gateway 1.5, this property specifies whether to enable Mobile-Web Data Sync and works in conjunction with the [import_docs](#databases-foo_db-import_docs) property.
+              Introduced in Sync Gateway 1.5, this property specifies whether to enable Mobile-Server Data Sync (a.k.a _mobile convergence_). You can learn more about this functionality [here](https://docs.couchbase.com/sync-gateway/current/shared-bucket-access.html)
+
+              This property works in conjunction with the [import_docs](#databases-foo_db-import_docs) property.
 
               `enable_shared_bucket_access` needs to be `true` on all nodes participating in such a configuration where as `import_docs` can only be set to `true` on a single node.
 
               On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
 
-              #### Import process
-
-              Import is the name for the process by which non-Sync Gateway writes obtain mobile metadata. Any non-Sync Gateway write is eligible for import. A filter function can be specified using the [databases.foo_db.import_filter](#databases-foo_db-import_filter) property to only import specific documents.
-
-              The document is first run through the Sync Function to compute read security and routing, with the following specifics/differences:
-
-              - The import is processed with an admin user context in the Sync Function, similar to writes made through the Sync Gateway Admin API. This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
-              - During import, `oldDoc` is `nil` when the Sync Function is executed.
-
-              The [Import+](#log) log key can be used to troubleshoot the import process further in the logs.
-
-              #### Import partitioning
-
-              Import processing is split into partitions, which can be configured using the [import_partitions](#databases-foo_db-import_partitions) property. Partitions are automatically distributed across all Sync Gateway nodes with import enabled.
-
               #### Tombstones
 
-              When convergence is enabled, mobile tombstones are now also server tombstones. The document body is deleted, and the information required to replicate the tombstone is retained in the mobile extended attribute.
-
-              ##### Metadata Purge Interval
+              When `enable_shared_bucket_access` is enabled, mobile tombstones are now also server tombstones. The document body is deleted, and only the mobile sync metadata required to replicate the tombstone is retained in the mobile extended attribute.
 
               The server's metadata purge interval becomes an important consideration for mobile deployments under convergence. When the server purges a tombstone (based on the metadata purge interval), that tombstone will no longer be replicated to mobile clients.
 
-              For most mobile deployments, customers should set the server's metadata purge interval based on their expected client replication frequency, to ensure that clients are notified of the tombstone prior to that tombstone being purged.
+              Users should set the server's metadata purge interval based on their expected client replication frequency, to ensure that clients are notified of the tombstone prior to that tombstone being purged.
 
-              The default Metadata Purge Interval is set to 3 days which can potentially result in tombstones being purged before all clients have had a chance to get notified of it.
+              NOTE: The default Metadata Purge Interval is set to 3 days which can potentially result in tombstones being purged before all clients have had a chance to get notified of it.
 
               Ways to tune the Metadata Purge Interval on Couchbase Server:
 
-              - Bucket settings [on UI](https://developer.couchbase.com/documentation/server/5.0/settings/configure-compact-settings.html)
-              - Bucket endpoint [on the REST API](https://developer.couchbase.com/documentation/server/4.6/rest-api/rest-bucket-create.html)
+              - Bucket settings [on UI](https://developer.couchbase.com/documentation/server/current/settings/configure-compact-settings.html)
+              - Bucket endpoint [on the REST API](https://developer.couchbase.com/documentation/server/current/rest-api/rest-bucket-create.html)
 
               #### Implementation notes for XATTRs:
 
@@ -514,7 +501,7 @@ properties:
           revs_limit:
             type: integer
             description: |
-              Maximum depth to which a document's revision tree can grow. In Sync Gateway 1.5, the `revs_limit` configuration cannot be set lower than 20. Setting the `revs_limit` to a low value (typically below 100) can have adverse effects as described below.
+              Maximum depth to which a document's revision tree can grow. The default value for `revs_limit` is 100 if [allow_conflicts](config-properties.html#databases-foo_db-allow_conflicts) is enabled (default) and 50 if `allow_conflicts` is disabled. The minimum value is 20. Setting the `revs_limit` to a low value (typically below 100) can have adverse effects as described below.
 
               The value of `revs_limit` governs the point at which to prune a document's revision tree.
 
@@ -529,7 +516,7 @@ properties:
               See also:
               - Sync Gateway purge endpoint [/{db}/_purge](admin-rest-api.html#/document/post__db___purge).
               - Sync Gateway [document TTLs](admin-rest-api.html#/document/put__db___doc_).
-            default: 1000
+            default: 100
           roles:
             type: object
             description: Initial roles.
@@ -784,7 +771,6 @@ properties:
               Available log key values include:
 
               - `Admin`: Admin processes in Sync Gateway.
-              - `Accel`: Sync Gateway Accelerator.
               - `Access`: Anytime an `access()` call is made in the sync function.
               - `Attach`: Attachment processing.
               - `Auth`: Authentication.
