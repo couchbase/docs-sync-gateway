@@ -160,9 +160,9 @@ properties:
           import_partitions:
             type: integer
             description: |
-              Allows users to tune the number of import partitions.
+              Allows users to tune the number of partitions used for import processing. Partitions are distributed among all Sync Gateway nodes participating in import processing (import_docs:true), and each process a subset of the server's vbuckets.
 
-              This will allow users to optimize the number of go routines with the number of cores and number of nodes.
+              Each partition is processed by a separate goroutine, so import_partitions can be used to tune concurrency based on the number of Sync Gateway nodes, and the number of cores per node.
             default: 16
 
           cacertpath:

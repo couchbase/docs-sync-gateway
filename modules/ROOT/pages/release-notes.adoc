@@ -9,70 +9,58 @@ include::_attributesLocal.adoc[]
 *Config Changes*
 
 * Removed options (previously deprecated)
-** maxCouchbaseConnections
-** maxCouchbaseOverflow
-** SGAccel related options:
-*** skip_runmode_validation
-*** runmode
-*** channel_index
-*** channel_index.writer
-*** channel_index.num_shards
-*** channel_index.seq_hashing
-*** channel_index.seq_hashing.expiry
-*** channel_index.seq_hashing.hash_frequency
-*** channel_index.tombstone_compact_freq
+** `maxCouchbaseConnections`
+** `maxCouchbaseOverflow`
 
-** Bucket shadowing:
-*** shadow
-*** shadow.doc_id_regex
-*** shadow.feed_type
-*** deprecated.shadow
-*** deprecated.shadow.doc_id_regex
-*** deprecated.shadow.feed_type
+** Sync Gateway Accelerator options:
+*** `skip_runmode_validation`
+*** `runmode`
+*** `channel_index`
+*** `channel_index.writer`
+*** `channel_index.num_shards`
+*** `channel_index.seq_hashing`
+*** `channel_index.seq_hashing.expiry`
+*** `channel_index.seq_hashing.hash_frequency`
+*** `channel_index.tombstone_compact_freq`
 
-*Additional options*
-db.import_partitions - EE-only. Default: 16 - Valid range: 1-1024
-// unsupported.use_stdlib_json - Doesn't need documenting. Left in for Couchbase support-use if required. EE-only, Default: false. Uses Go's stdlib JSON library, instead of a faster third-party JSON library .
+** Bucket Shadowing options:
+*** `shadow`
+*** `shadow.doc_id_regex`
+*** `shadow.feed_type`
+*** `deprecated.shadow`
+*** `deprecated.shadow.doc_id_regex`
+*** `deprecated.shadow.feed_type`
 
-*Changed*
+* New options
+** `db.import_partitions` - Controls the number of partitions for import sharding (see xref:config-properties.adoc#databases-foo_db-import_partitions[databases.$db.import_partitions])
+// `unsupported.use_stdlib_json` - Couchbase support-use if required. EE-only, Default: false. Uses Go's stdlib JSON library, instead of a faster third-party JSON library
 
-* The default behavior of `db.import_docs` has changed (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
+* Changed Options
+
+** The default behavior of `db.import_docs` has changed (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
 +
 This will provide the flexibility for "import heavy" use case users to be able to isolate the import nodes from the internet/client-facing nodes
 
 
 *{ke}*
 
-- https://issues.couchbase.com/browse/CBG-502[*CBG-502*] x.509 broken due to deprecated CertificateAuthenticator
-- https://issues.couchbase.com/browse/CBG-463[*CBG-463*] Potential feedback loop when replicating large attachments
-- https://issues.couchbase.com/browse/CBG-317[*CBG-317*] network errors while getting bulk get with multi channel with server ssl enabled
-
+- {jira-url}/CBG-661[*CBG-661*] Errors from REST API produce invalid JSON
 
 *{fixed}*
 
-- https://issues.couchbase.com/browse/CBG-449[*CBG-449*] _removed entry not sent with delta sync
-- https://issues.couchbase.com/browse/CBG-370[*CBG-370*] Sync gateway fails to start
-- https://issues.couchbase.com/browse/CBG-364[*CBG-364*] Odd SG Installation errors
-- https://issues.couchbase.com/browse/CBG-363[*CBG-363*] Return HTTP 413 when server rejects document due to size
-- https://issues.couchbase.com/browse/CBG-362[*CBG-362*] Inconsistent handling between views and N1QL for tombstone removals
-- https://issues.couchbase.com/browse/CBG-357[*CBG-357*] GoCB Bucket Incr amt=0 logic not taking 'def' into account
-- https://issues.couchbase.com/browse/CBG-342[*CBG-342*] GoCB Bucket Incr amt=0 logic not handling errors correctly
-- https://issues.couchbase.com/browse/CBG-324[*CBG-324*] Blip messages double-tagging user for redaction
-- https://issues.couchbase.com/browse/CBG-321[*CBG-321*] Improve sg-replicate logging integration
-- https://issues.couchbase.com/browse/CBG-309[*CBG-309*] Don't log expected REST errors to sg_error.log
-- https://issues.couchbase.com/browse/CBG-306[*CBG-306*] Avoid panics as an error handling mechanism
-- https://issues.couchbase.com/browse/CBG-288[*CBG-288*] Investigate TestN1qlQuery failures
-- https://issues.couchbase.com/browse/CBG-286[*CBG-286*] SUBDOC operation attempted when server doesn't support them
-- https://issues.couchbase.com/browse/CBG-284[*CBG-284*] Retry loops for bucket update ops have no backoff and no max retry count
-- https://issues.couchbase.com/browse/CBG-280[*CBG-280*] Syncgateway doesn't import all documents while importing 50M docs ( build 2.1.3-4)
-- https://issues.couchbase.com/browse/CBG-279[*CBG-279*] go-blip leaks nextFrameToSend goroutine under aborted multi-frame send
-- https://issues.couchbase.com/browse/CBG-265[*CBG-265*] Post Upgrade fails to remove 2.0 era design docs
-- https://issues.couchbase.com/browse/CBG-264[*CBG-264*] Post Upgrade "fails" in a cluster with no query nodes
-- https://issues.couchbase.com/browse/CBG-253[*CBG-253*] Unused bulk_docs reserved sequences may not be released
-- https://issues.couchbase.com/browse/CBG-225[*CBG-225*] Unresponsive REST API on startup
-- https://issues.couchbase.com/browse/CBG-221[*CBG-221*] Admin/User views cannot handle both xattr and non-xattr simultaneously
-- https://issues.couchbase.com/browse/CBG-189[*CBG-189*] Compact() shouldn't trigger import errors
-- https://issues.couchbase.com/browse/CBG-159[*CBG-159*] CouchbaseServerVersion should use clusterCompatibility version
+- {jira-url}/CBG-669[*CBG-669*] Potential deadlock in sequenceAllocator
+- {jira-url}/CBG-620[*CBG-620*] Concurrent attempts to create indexes trigger SG restart
+- {jira-url}/CBG-549[*CBG-549*] sgcollect should pick up stderr output on all platforms
+- {jira-url}/CBG-523[*CBG-523*] Avoid race in TestSessionExtension
+- {jira-url}/CBG-522[*CBG-522*] DocumentChanged webhook sending incorrect revision
+- {jira-url}/CBG-520[*CBG-520*] Initialization race for channel cache validFrom
+- {jira-url}/CBG-519[*CBG-519*] TestWebhookBasic failing when re-enabled
+- {jira-url}/CBG-502[*CBG-502*] x.509 broken due to deprecated CertificateAuthenticator
+- {jira-url}/CBG-463[*CBG-463*] Potential feedback loop when replicating large attachments 
+- {jira-url}/CBG-439[*CBG-439*] Investigate incorrect CPU usage stats
+- {jira-url}/CBG-427[*CBG-427*] sgcollect_info tool failed to collect log when SG_SSL is enabled
+- {jira-url}/CBG-394[*CBG-394*] Upgrade to shared_bucket_access with GSI can cause missed mutations
+- {jira-url}/CBG-317[*CBG-317*] network errors while getting bulk get with multi channel with server ssl enabled
 
 == 2.6.1
 
