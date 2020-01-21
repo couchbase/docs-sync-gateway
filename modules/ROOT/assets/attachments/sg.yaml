@@ -295,24 +295,41 @@ properties:
           revs_limit:
             type: integer
             description: |
-              Maximum depth to which a document's revision tree can grow. In Sync Gateway 1.5, the `revs_limit` configuration cannot be set lower than 20. Setting the `revs_limit` to a low value (typically below 100) can have adverse effects as described below.
-              
-              The value of `revs_limit` governs the point at which to prune a document's revision tree.
-              
-              Indeed, the process to remove obsolete revisions is called pruning and runs automatically every time a revision is added. Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite. On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
-            
-              If there are conflicting revisions, the document may end up with **disconnected branches** after the pruning process. In the animation below, the document has a conflicting branch (revisions `4'` - `1001'`). When the shortest branch (in this case the conflicting branch) reaches the 1003rd update, it gets is cut off. The revision tree is not in a corrupted state and the logic that chooses the winning revision still applies. But it may make it impossible to do certain merges (n-way merge) to resolve conflicts and will occupy disk space that could have been free-ed if the conflict was resolved early on.<br><br>
-            
+              Maximum depth to which a document's revision tree can grow, it governs the point at which to prune a document's revision tree. Revision pruning is the process to remove obsolete parent revisions and runs every time a revision is added.
+
+              The minimum and default values that this property can take is dependent on the version of Sync Gateway 
+
+              ##### Consideration with Conflicting Revisions
+
+              The value of `revs_limit` has implications on how conflict resolution.  Setting it to a very low value can have adverse effects with conflicting revisions as discussed below. This is the reason for a min value requirement on this configuration
+
+              If there are conflicting revisions, the document may end up with **disconnected branches** after the pruning process. On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
+
+              On the example below, the document has a conflicting branch (revisions `4'` - `1001'`). When the shortest branch reaches the 1003rd update, it gets cut off. The revision tree is not in a corrupted state and the logic that chooses the winning revision still applies. But it may make it impossible to do certain merges (n-way merge) to resolve conflicts and will occupy disk space that could have been free-ed if the conflict was resolved early on.<br><br>
+
               ![](https://cl.ly/3C1G3t3R1v19/pruning-sg.gif)
-              
-              If the revision tree gets into this state then the only option to resolve the conflict is to pick a winning branch and tombstone all the non-winning conflicting branches. It should be noted that tuning the `revs_limit` to a lower value increases the likelyhood of this scenario happening.
-              
+
+              If the revision tree gets into this state then the only option to resolve the conflict is to pick a winning branch and tombstone all the non-winning conflicting branches. Tuning the `revs_limit` to a lower value increases the likelyhood of this scenario happening.
+
               See also:
-              - Couchbase Lite [pruning](../../couchbase-lite/native-api/revision/index.html#pruning).
-              - Sync Gateway purge endpoint [/{db}/_purge](references/sync-gateway/admin-rest-api/index.html#!/document/post_db_purge).
-              - Sync Gateway [document TTLs](references/sync-gateway/admin-rest-api/index.html#!/document/put_db_doc).
-            default: 1000
-          roles:
+              - Sync Gateway purge endpoint [/{db}/_purge](admin-rest-api.html#/document/post__db___purge).
+              - Sync Gateway [document TTLs](admin-rest-api.html#document/put__db___doc_).
+              - [Allow-Conflicts](config-properties.html#databases-foo_db-allow_conflicts).
+
+            Release 2.6+  | allow-conflicts = true | allow-conflicts = false   
+            --- | --- |---
+            default : | 100 | 50
+            minimum : | 20 | 1
+
+            Release 2.0 - 2.5 | allow-conflicts = true | allow-conflicts = false   
+            --- | --- |---
+            default : | 100 | 1000
+            minimum : | 50 | 1
+
+            Release 1.x
+            default: 1000 
+            minimum: 20 
+        roles:
             type: object
             description: Initial roles.
             properties:
