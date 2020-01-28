@@ -31,16 +31,18 @@ include::_attributesLocal.adoc[]
 *** `deprecated.shadow.doc_id_regex`
 *** `deprecated.shadow.feed_type`
 
-* New options
+* New and Changed options
 ** `db.import_partitions` - Controls the number of partitions for import sharding (see xref:config-properties.adoc#databases-foo_db-import_partitions[databases.$db.import_partitions])
 // `unsupported.use_stdlib_json` - Couchbase support-use if required. EE-only, Default: false. Uses Go's stdlib JSON library, instead of a faster third-party JSON library
-
-* Changed Options
 
 ** The default behavior of `db.import_docs` has changed (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
 +
 This will provide the flexibility for "import heavy" use case users to be able to isolate the import nodes from the internet/client-facing nodes
 
+*Enhancements*
+
+{jira-url}/CBG-584[*CBG-584*] SyncGateway now supports scenarios where alternate addresses are provided on Couchbase Server.
+This change adds overrides for `ConnectBucket` and `Connect` to remap _hostnames_ based on `AlternateAddress`.
 
 *{ke}*
 
@@ -48,13 +50,14 @@ This will provide the flexibility for "import heavy" use case users to be able t
 
 *{fixed}*
 
-- {jira-url}/CBG-669[*CBG-669*] Potential deadlock in sequenceAllocator
 - {jira-url}/CBG-620[*CBG-620*] Concurrent attempts to create indexes trigger SG restart
 - {jira-url}/CBG-549[*CBG-549*] sgcollect should pick up stderr output on all platforms
 - {jira-url}/CBG-522[*CBG-522*] DocumentChanged webhook sending incorrect revision
 - {jira-url}/CBG-520[*CBG-520*] Initialization race for channel cache validFrom
+- {jira-url}/CBG-514[*CBG-514*] Running `sgcollect_info` on command with root privileges is overriding `bin/sync_gateway` file on MacOS
 - {jira-url}/CBG-502[*CBG-502*] x.509 broken due to deprecated CertificateAuthenticator
-- {jira-url}/CBG-463[*CBG-463*] Potential feedback loop when replicating large attachments 
+- {jira-url}/CBG-500[*CBG-500*] Sync Gateway not handling graceful failover correctly
+- {jira-url}/CBG-463[*CBG-463*] Potential feedback loop when replicating large attachments
 - {jira-url}/CBG-439[*CBG-439*] Investigate incorrect CPU usage stats
 - {jira-url}/CBG-427[*CBG-427*] sgcollect_info tool failed to collect log when SG_SSL is enabled
 - {jira-url}/CBG-394[*CBG-394*] Upgrade to shared_bucket_access with GSI can cause missed mutations
