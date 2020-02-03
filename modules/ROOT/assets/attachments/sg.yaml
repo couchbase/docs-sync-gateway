@@ -119,48 +119,48 @@ properties:
               Mobile applications require additional metadata in order to manage security and replication. In previous versions of Sync Gateway, this information has always been stored in the document body. Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (x-attributes) to store that metadata into an external document fragment.
               
               #### Import process
-
+              
               Import is the name for the process by which non-Sync Gateway writes obtain mobile metadata. Any non-Sync Gateway write is eligible for import. A filter function can be specified using the [databases.foo_db.import_filter](#1.5/databases-foo_db-import_filter) property to only import specific documents.
-
+              
               The document is first run through the Sync Function to compute read security and routing, with the following specifics/differences:
-
+              
               - The import is processed with an admin user context in the Sync Function, similar to writes made through the Sync Gateway Admin API. This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
               - During import, `oldDoc` is `nil` when the Sync Function is executed.
-
+              
               Only one node in a Sync Gateway cluster should be configured for feed-based import - it processes the full DCP stream. The [Import+](#1.5/log) log key can be used to troubleshoot the import process further in the logs.
-
+              
               ##### Import and Sync Gateway Accelerator
-
+                  
               In a deployment with Sync Gateway Accelerator, feed-based import processing is performed by the Accelerator nodes. Import work is sharded across the Accelerator cluster, in the same way that indexing work is sharded today.
-
+              
               #### Tombstones
-
+              
               When convergence is enabled, mobile tombstones are now also server tombstones. The document body is deleted, and the information required to replicate the tombstone is retained in the mobile extended attribute.
-
+              
               ##### Metadata Purge Interval
-
+              
               The server's metadata purge interval becomes an important consideration for mobile deployments under convergence. When the server purges a tombstone (based on the metadata purge interval), that tombstone will no longer be replicated to mobile clients.
-
+              
               For most mobile deployments, customers should set the server's metadata purge interval based on their expected client replication frequency, to ensure that clients are notified of the tombstone prior to that tombstone being purged.
-
+              
               The default Metadata Purge Interval is set to 3 days which can potentially result in tombstones being purged before all clients have had a chance to get notified of it.
-
+              
               Ways to tune the Metadata Purge Interval on Couchbase Server:
-
+              
               - Bucket settings [on UI](https://developer.couchbase.com/documentation/server/5.0/settings/configure-compact-settings.html)
               - Bucket endpoint [on the REST API](https://developer.couchbase.com/documentation/server/4.6/rest-api/rest-bucket-create.html)
-
+              
               #### Implementation notes for XATTRs:
-
+              
               Extended attributes (xattrs) are JSON objects that can be associated with Couchbase documents. Each document can be associated with zero or more extended attributes. There are currently three types (user, system, virtual). Mobile Convergence uses a system extended attribute, which has the following characteristics central to convergence:
-
+              
                - Shares lifetime with the document metadata - when a document is deleted, system xattrs are preserved with the tombstone.
-               - Allocated 1MB of storage, independent of the 20MB available for the document
-
+               - Allocated 1MB of storage, independent of the 20MB available for the document 
+              
               Extended attributes are stored as part of the document, and are replicated with the document (both intra-cluster replication and XDCR).
-
+              
               Extended attributes can be accessed via the SDKs using the sub-document API, via command-line tools, and via views. They are not yet accessible via N1QL.
-
+              
               Since extended attributes are not yet available via N1QL or the Admin Console, obtaining a document's mobile metadata while troubleshooting is somewhat less straightforward than in 1.4. The `raw` endpoint ([/db/_raw/{docid}](../../../references/sync-gateway/admin-rest-api/index.html#!/document/get_db_raw_doc)) on Sync Gateway's Admin REST API returns both the document and it's associated mobile metadata.
             default: 'false'
           event_handlers:
@@ -204,7 +204,7 @@ properties:
             type: string
             description: |
               JavaScript filter function to determine if a document written to the Couchbase Server bucket should be made available to Couchbase Mobile clients (i.e imported). The filter function takes the document body as parameter and is expected to return a boolean to indicate whether the document should be imported.
-
+              
               ```json
               {
                 "databases": {
@@ -213,7 +213,7 @@ properties:
                     "bucket": "default",
                     "password": "password",
                     "import_docs": "continuous",
-                    "enable_shared_bucket_access": true,
+                    "enable_shared_bucket_access": true,  
                     "import_filter": `
               		function(doc) {
               		  if (doc.type != "mobile") {
@@ -307,11 +307,12 @@ properties:
 
               If the revision tree gets into this state then the only option to resolve the conflict is to pick a winning branch and tombstone all the non-winning conflicting branches. It should be noted that tuning the `revs_limit` to a lower value increases the likelyhood of this scenario happening.
 
-              See also:
+              See also -
               - Couchbase Lite [pruning](../../couchbase-lite/native-api/revision/index.html#pruning).
               - Sync Gateway purge endpoint [/{db}/_purge](references/sync-gateway/admin-rest-api/index.html#!/document/post_db_purge).
               - Sync Gateway [document TTLs](references/sync-gateway/admin-rest-api/index.html#!/document/put_db_doc).
             default: 1000
+            minimum: 20
           roles:
             type: object
             description: Initial roles.
@@ -329,13 +330,13 @@ properties:
             type: string
             description: |
               In Sync Gateway 1.5, we've added the ability to specify multiple hosts in the configuration. Sync Gateway supports both the `couchbase://` and `http://` schemes for specifying connection endpoints.
-
+              
               Sync Gateway 1.5 also supports SSL in the connection to Couchbase Server. The `couchbases://` scheme should be used. As with the Couchbase Server SDKs, the `https://` scheme is **not** supported.
-
+            
               Hostname(s) to the Couchbase Server nodes in the cluster.
-
+              
               The following are all valid `server` values:
-
+              
                 - `couchbase://host1`
                 - `couchbases://host1`
                 - `couchbase://host1,host2`
@@ -344,13 +345,13 @@ properties:
                 - `http://host1:8091`
                 - `http://host1,host2:8091`
                 - `http://foo:bar@host1:8091`
-
+                
               As with the SDK, when using the `couchbase://` or `couchbases://` schemes, the port is not required, but if specified should be the external/internal bucket ports (defaults are 11210 or 11207 respectively). Attempting to use the admin ports (8091/18091) will result in a startup error.
-
+              
               On startup, Sync Gateway will try each hostname that is provided until it is able to connect successfully.
-
+              
               If the connection to Couchbase Server is lost during normal operations, Sync Gateway will automatically re-connect to another node in the cluster. During that re-connection period, the Sync Gateway will appear [offline](../database-offline/index.html) and documents will not be replicated to mobile clients.
-
+                
               The default value is an in-memory bucket called **walrus** that is only used during development and prototyping.
             default: 'walrus:'
           sync:
@@ -376,9 +377,9 @@ properties:
                 type: boolean
                 description: |
                   Property to enable the replication protocol used in Couchbase Lite 2.0.
-
+                  
                   To use this protocol with Couchbase Lite 2.0, the replication URL should specify WebSockets as the URL scheme (see the [Replication](https://developer.couchbase.com/documentation/mobile/2.0/guides/couchbase-lite/native-api/replication/index.html) section). Mobile clients using Couchbase Lite 1.x can continue to use http as the URL scheme. Sync Gateway will automatically use the 1.x replication protocol when a Couchbase Lite 1.x client connects through "http://localhost:4984/db" and the 2.0 replication protocol when a Couchbase Lite 2.0 client connects through "ws://localhost:4984/db".
-
+                  
                   More details about the protocol can be found in the [Replication Protocol](https://github.com/couchbase/couchbase-lite-core/wiki/Replication-Protocol) wiki.
                 default: 'false'
           username:
@@ -423,7 +424,7 @@ properties:
   log:
     description: |
       Comma-separated list of log keys to enable for diagnostic logging. Use ["*"] to enable logging for all log keys.
-
+            
       - Access: Anytime an access() call is made in the sync function.
       - Attach: Attachment processing.
       - Auth: Authentication.
@@ -457,7 +458,7 @@ properties:
           logKeys:
             description: |
               Comma-separated list of log keys to enable for diagnostic logging. Use ["*"] to enable logging for all log keys.
-
+              
               - Access: Anytime an access() call is made in the sync function.
               - Attach: Attachment processing.
               - Auth: Authentication.
@@ -476,7 +477,7 @@ properties:
           logLevel:
             description: |
               The level of logging.
-
+              
               - debug: 'Print all debug messages. With this level of logging, logs are usually voluminous. This log level is usually disabled in production.'
               - info: 'Print all information messages.'
               - error: 'Print all errors. If an application is running smoothly it should not generate any error level logs.'
