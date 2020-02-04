@@ -15,9 +15,10 @@ Refer to xref:getting-started.adoc#creating-an-rbac-user[this section] for instr
 
 == Deploying a Sync Gateway Cluster
 
-The Sync Gateway nodes in a cluster have a homogeneous configuration with the exception of import node.
+The Sync Gateway nodes in a cluster have a homogeneous configuration with the exception of import node. The distinction between a "regular" and an "import" node is only relevant if you are deploying Community Edition of a Sync Gateway or Enterprise Edition that is  that is less than v2.7. 
 
-Import node:: Under xref:shared-bucket-access.adoc[convergence/shared bucket access], it is recommended that one Sync Gateway node in a cluster be configured for handling document import processing.
+Import node::  
+Prior to 2.7, xref:shared-bucket-access.adoc[convergence/shared bucket access], it was recommended that one Sync Gateway node in a cluster be configured for handling document import processing.
 For high availability, you can configure more than one Sync Gateway node in your cluster to be the import node, although it is strongly discouraged for multiple Sync Gateway nodes in the cluster to be configured for import processing.
 The configuration of the Sync Gateway import node is slightly different than the "regular" or "non-import" Sync Gateway nodes (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
 //Replicator node:: if you are using inter-cluster replication using sg-replicate then there will be one designated replicator node whose configuration is different than the rest of the nodes.
@@ -26,6 +27,8 @@ The following sections cover the steps to deploy regular or import Sync Gateway 
 // or a single replicator node.
 
 You will have to repeat the steps in this section once for the "regular" or non-import nodes and once for the "import" node. The difference is the  Sync Gateway configuration file and the Kubernetes Deployment Controller config file.
+
+*NOTE* : If you are running Enterprise Edition of Sync Gateway that is >= 2.7, then use the "Import Node" configuration for all nodes in your cluster. 
 
 === Sync Gateway Configuration File
 
