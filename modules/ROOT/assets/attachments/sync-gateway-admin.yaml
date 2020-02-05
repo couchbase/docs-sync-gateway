@@ -1270,7 +1270,20 @@ paths:
       - server
       summary: Remove obsolete design documents
       description: |
-        Starting in Sync Gateway 2.0, design documents used internally by Sync Gateway will include a version number in their name. After the upgrade is performed, previous design documents are not automatically removed since other Sync Gateway nodes may still be using them. This endpoint should be used to remove those previous design documents ([upgrade guide](upgrade.html#upgrade)). The `preview=true` query string option can be used to list design documents which would be removed.
+        Starting in Sync Gateway 2.0, design documents used internally by Sync Gateway will include a version number in their name.<br><br>
+
+        This version is incremented at each change, but the previous version of the design documents are retained, as they may be required by other nodes.<br><br>
+
+        Use this `_post_upgrade` endpoint to remove any obsolete design documents when you are sure they are no longer needed.<br><br>
+
+        *TIP:* Use the `preview=true` query string option to check which design documents will be removed.<br><br>
+
+        Typcal use cases for this end point include:<br>
+
+        - After upgrading Sync Gateway -- see ([upgrade guide](upgrade.html#upgrade)).
+
+        - After moving from *non-import-docs* to *import-docs* methods. That is, from `import-docs=False` to `import-docs=True`
+
       parameters:
       - $ref: '#/parameters/upgrade_preview'
       responses:
@@ -2161,7 +2174,7 @@ definitions:
                   properties:
                     crc32c_match_count:
                       type: integer
-                      description: Count of instances during import when the document cas had changed, but the document body was not changed. 
+                      description: Count of instances during import when the document cas had changed, but the document body was not changed.
                     dcp_caching_count:
                       type: integer
                       description: Count of DCP mutations added to Sync Gateway's channel cache.  Can be used with dcp_caching_time to monitor cache processing latency.
@@ -2173,7 +2186,7 @@ definitions:
                       description: Number of document mutations received by Sync Gateway over DCP.
                     dcp_received_time:
                       type: integer
-                      description: Time between document write and document being received by Sync Gateway over DCP.  If the document was written prior to Sync Gateway starting the feed, is measured as the time since the feed was started.  Can be used to monitor DCP feed processing latency.  
+                      description: Time between document write and document being received by Sync Gateway over DCP.  If the document was written prior to Sync Gateway starting the feed, is measured as the time since the feed was started.  Can be used to monitor DCP feed processing latency.
                     doc_reads_bytes_blip:
                       type: integer
                       description: Total number of bytes read via Couchbase Lite 2.x replication since Sync Gateway startup.
@@ -2200,7 +2213,7 @@ definitions:
                       description: Count of the number of replications created since Sync Gateway startup.
                     sequence_get_count:
                       type: integer
-                      description: Number of high sequence lookups. 
+                      description: Number of high sequence lookups.
                     sequence_released_count:
                       type: integer
                       description: Number of unused, reserved sequences released by Sync Gateway.
