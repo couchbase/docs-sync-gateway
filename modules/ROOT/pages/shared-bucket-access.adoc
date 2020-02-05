@@ -1,5 +1,10 @@
 = Mobile-Server Data Sync
 :url-downloads: https://www.couchbase.com/downloads
+:dbName: databases-foo
+:dbNamePrefix: {dbName}_db-
+:configPage: config-properties.html
+:dbConfig: {configPage}#{dbNamePrefix}
+
 == Shared Bucket Access
 :pageOriginRel: "sg=1.5, Cbs=5.0)_"
 
@@ -65,23 +70,23 @@ This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sy
 
 Only one node in a Sync Gateway cluster should be configured for feed-based import - it processes the full DCP stream.
 
-You can specify a filter function using the _[databases.foo_db.import_filter](#1.5/databases-foo_db-import_filter)_ property, which will only import specific documents.
+You can specify a filter function using the link:{dbConfig}import_filter[$dbname.import_filter] property, which will only import specific documents.
 
-TIP: Use the [Import+](#1.5/log) log key to troubleshoot import processing issues in the logs.
+TIP: Use link:{configPage}#logging-console-log_keys[logging.console.log keys] to troubleshoot import processing issues in the logs.
 
 == Reference
 
 The reference to the configuration properties can be found below.
 
-* link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
-* link:config-properties.html#databases-foo_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
-* link:config-properties.html#databases-foo_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+* link:{dbConfig}enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
+* link:{dbConfig}import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+* link:{dbConfig}import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
 
 == Metadata Purge Interval
 
-When link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] is enabled, xref:glossary.adoc[mobile tombstones] are *not* retained indefinitely.
+When link:{dbConfig}enable_shared_bucket_access[$dbname.enable_shared_bucket_access] is enabled, xref:glossary.adoc[mobile tombstones] are *not* retained indefinitely.
 They are purged based on the server's _metadata purge interval_.
-To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
+To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:{dbConfig}enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
 
 == FAQ
 
