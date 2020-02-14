@@ -2,19 +2,32 @@
 :idprefix:
 :idseparator: -
 
-A configuration file determines the runtime behavior of Sync Gateway, including server configuration and the database or set of databases with which a Sync Gateway instance can interact.
+Sync Gateway uses a JSON-like configuration file to define its runtime behavior.
+The file's contents include, for example:
 
-Using a configuration file is the recommended approach for configuring Sync Gateway, because you can provide values for all configuration properties and you can define configurations for multiple Couchbase Server databases.
+* Details of the connected Couchbase databases
+* How replications are conducted
+* What security is to be used
+* What logging options are to be applied, and
+* Any customization of import filtering and synchronization.
 
-When specifying a configuration file, the format to run Sync Gateway is:
+The majority of the configuration is achieved using standard JSON syntax -- see <<Configuration Reference>> for more.
 
-[source]
+[NOTE]
+====
+The `sync-gateway-config.json` file relies on the use of one _relaxed_ JSON feature; the use of back ticks  (`++`++`).
+Text between back ticks is treated as a string.
+It can span multiple lines and contain double-quotes.
+Those features make it ideal for the JavaScript used in `sync` and `import_filter` functions.
+====
+
+Use the following command to run Sync Gateway with a configuration file:
+
+[source, bashrc]
+
 ----
-$ sync_gateway sync-gateway-config.json
+sync_gateway sync-gateway-config.json
 ----
-
-Configuration files have one syntactic feature that is not standard JSON: any text between back ticks (`++`++`) is treated as a string, even if it spans multiple lines or contains double-quotes.
-This makes it easy to embed JavaScript code, such as the sync and filter functions.
 
 == Configuration Reference
 
