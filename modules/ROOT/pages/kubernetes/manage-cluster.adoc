@@ -1,15 +1,18 @@
 = Managing a Sync Gateway Cluster
+include::partial$_attributesLocal.adoc[]
+
+include::partial$cao2.0banner.adoc[]
 
 == Troubleshooting and Log Collection
 
 This section provides information about how to diagnose and troubleshoot problems with the Sync Gateway deployment.
 When troubleshooting, it is important to rule out Kubernetes itself as the root cause of the problem you are experiencing.
-See the https://kubernetes.io/docs/tasks/debug-application-cluster/troubleshooting/[Kubernetes Troubleshooting guide] for information about debugging applications within a Kubernetes cluster.
-For troubleshooting a Couchbase Server deployment using the Couchbase operator, please refer to our xref:operator::logs-troubleshooting.adoc[guide].
+See the https://kubernetes.io/docs/tasks/debug-application-cluster/troubleshooting/[Kubernetes Troubleshooting guide, window=_blank] for information about debugging applications within a Kubernetes cluster.
+For troubleshooting a Couchbase Server deployment using the Couchbase operator, please refer to our xref:{version_cao}@operator::logs-troubleshooting.adoc[guide].
 
 === Prerequisites
 
-* The location of the Sync Gateway logs within a pod is specified with the "logging" key in the Sync Gateway config file (see xref:logging.adoc#log-rotation-configuration[logging guide])
+* The location of the Sync Gateway logs within a pod is specified with the "logging" key in the Sync Gateway config file (see xref:{version}@logging.adoc#log-rotation-configuration[logging guide])
 * To view or fetch the logs from a Sync Gateway pod, you must first identify the Sync Gateway pods in your deployment using the following command.
 +
 [source,console]
@@ -29,13 +32,13 @@ kubectl logs -f <pod_id>
 
 ===  Using sgcollect_info
 
-xref:sgcollect-info.adoc[SGCollect Info] is a command line utility with detailed statistics for a specific Sync Gateway node.
+xref:{version}@sgcollect-info.adoc[SGCollect Info] is a command line utility with detailed statistics for a specific Sync Gateway node.
 This tool must be run on each node individually.
 The sgcollect-info tool is bundled as part of the Sync Gateway docker image.
 
 ==== Collecting logs on a pod
 
-To collect logs on a specific pod, run sgcollect_info using the kubectl https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#exec[exec command].
+To collect logs on a specific pod, run sgcollect_info using the kubectl https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#exec[exec command, window=_blank].
 The following command runs sgcollect_info on the specified pod and outputs the results to an *out.zip* file.
 [source,console]
 ----
@@ -44,7 +47,7 @@ kubectl exec <pod_id> -- /opt/couchbase-sync-gateway/tools/sgcollect_info /tmp/o
 
 ==== Coping log output from pod
 
-To copy the sgcollect_info generated output from the pod, use the kubectl https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#cp[cp command].
+To copy the sgcollect_info generated output from the pod, use the kubectl https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#cp[cp command, window=_blank].
 [source,console]
 ----
 kubectl cp <pod_id>:/tmp/out.zip .
@@ -100,4 +103,4 @@ kubectl rollout undo  deployment sync-gateway
 
 == Upgrading the Kubernetes Cluster
 
-You can refer to the following xref:operator::upgrading-kubernetes.adoc[Couchbase Operator guide] for a discussion about upgrading the Kubernetes cluster on which your Couchbase deployment resides.
+You can refer to the following xref:{version_cao}@operator::upgrading-kubernetes.adoc[Couchbase Operator guide] for a discussion about upgrading the Kubernetes cluster on which your Couchbase deployment resides.

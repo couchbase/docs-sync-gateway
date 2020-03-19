@@ -1,26 +1,32 @@
 = Deploying Sync Gateway cluster
+include::partial$_attributesLocal.adoc[]
 
+[abstract]
 This guide demonstrates how to deploy a Sync Gateway cluster on Kubernetes.
+
+include::partial$cao2.0banner.adoc[]
 
 == Prerequisites
 
 Before you begin, you must have the following:
 
 * A Couchbase Server cluster already running on Kubernetes.
-If you don't already have one, you can refer to xref:operator::install-kubernetes.adoc[this guide] for instructions.
+If you don't already have one, you can refer to xref:{version_cao}@operator::install-kubernetes.adoc[this guide, window=_blank] for instructions.
 * A Couchbase Server RBAC user with application access privileges.
 Sync Gateway will connect to the Couchbase Server as this RBAC user.
-Refer to xref:getting-started.adoc#creating-an-rbac-user[this section] for instructions.
-* If you have configured your Couchbase Server cluster to use link:https://docs.couchbase.com/operator/1.2/couchbase-cluster-config.html#exposedfeatures[exposedFeatures] then you *must* include "client" in the `exposedFeatures` list. This is required for Sync Gateway to be able to connect to the server. Alternatively, remove the exposedFeatures section altogether in the server configuration if you don't need it.
+Refer to xref:{version}@getting-started.adoc#creating-an-rbac-user[this section] for instructions.
+* If you have configured your Couchbase Server cluster to use xref:{version_cao}@operator:couchbase-cluster-config.adoc#exposedfeatures[exposedFeatures, window=_blank]
+//link:https://docs.couchbase.com/operator/1.2/couchbase-cluster-config.html#exposedfeatures[exposedFeatures]
+ then you *must* include "client" in the `exposedFeatures` list. This is required for Sync Gateway to be able to connect to the server. Alternatively, remove the exposedFeatures section altogether in the server configuration if you don't need it.
 
 == Deploying a Sync Gateway Cluster
 
-The Sync Gateway nodes in a cluster have a homogeneous configuration with the exception of import node. The distinction between a "regular" and an "import" node is only relevant if you are deploying Community Edition of a Sync Gateway or Enterprise Edition that is  that is less than v2.7. 
+The Sync Gateway nodes in a cluster have a homogeneous configuration with the exception of import node. The distinction between a "regular" and an "import" node is only relevant if you are deploying Community Edition of a Sync Gateway or Enterprise Edition that is  that is less than v2.7.
 
-Import node::  
-Prior to 2.7, xref:shared-bucket-access.adoc[convergence/shared bucket access], it was recommended that one Sync Gateway node in a cluster be configured for handling document import processing.
+Import node::
+Prior to 2.7, xref:{version}@shared-bucket-access.adoc[convergence/shared bucket access], it was recommended that one Sync Gateway node in a cluster be configured for handling document import processing.
 For high availability, you can configure more than one Sync Gateway node in your cluster to be the import node, although it is strongly discouraged for multiple Sync Gateway nodes in the cluster to be configured for import processing.
-The configuration of the Sync Gateway import node is slightly different than the "regular" or "non-import" Sync Gateway nodes (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
+The configuration of the Sync Gateway import node is slightly different than the "regular" or "non-import" Sync Gateway nodes (see xref:{version}@config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
 //Replicator node:: if you are using inter-cluster replication using sg-replicate then there will be one designated replicator node whose configuration is different than the rest of the nodes.
 
 The following sections cover the steps to deploy regular or import Sync Gateway nodes.
@@ -28,11 +34,11 @@ The following sections cover the steps to deploy regular or import Sync Gateway 
 
 You will have to repeat the steps in this section once for the "regular" or non-import nodes and once for the "import" node. The difference is the  Sync Gateway configuration file and the Kubernetes Deployment Controller config file.
 
-*NOTE* : If you are running Enterprise Edition of Sync Gateway that is >= 2.7, then use the "Import Node" configuration for all nodes in your cluster. 
+*NOTE* : If you are running Enterprise Edition of Sync Gateway that is >= 2.7, then use the "Import Node" configuration for all nodes in your cluster.
 
 === Sync Gateway Configuration File
 
-In this section, you will create a https://kubernetes.io/docs/concepts/configuration/secret/[Kubernetes secret] from a new or existing Sync Gateway configuration.
+In this section, you will create a https://kubernetes.io/docs/concepts/configuration/secret/[Kubernetes secret, window=_blank] from a new or existing Sync Gateway configuration.
 
 . Open the Sync Gateway configuration file corresponding to your deployment.
 If you don't have a configuration file you may also use our sample configuration shown below as a starting point.
@@ -73,9 +79,9 @@ The following example shows the configuration file for a regular node.
 ----
 <1> The server key should point to any pod in the  Couchbase Server cluster.
 This would typically be of the form `CB_SERVER_POD.CB_SERVER_SERVICE_NAME.NAMESPACE.svc:8091`.
-<2> The username/password keys should match what was setup in the <<pre-requisites, pre-requisites>> section when you configured the Sync Gateway RBAC user.
-. You will use a https://kubernetes.io/docs/concepts/configuration/secret/[Kubernetes Secret] to pass the configuration file to Sync Gateway on launch.
-Alternatively, you could use a https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/[Kubernetes configMap] if you are not concerned about security.
+<2> The username/password keys should match what was setup in the <<prerequisites>> section when you configured the Sync Gateway RBAC user.
+. You will use a https://kubernetes.io/docs/concepts/configuration/secret/[Kubernetes Secret, window=_blank] to pass the configuration file to Sync Gateway on launch.
+Alternatively, you could use a https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/[Kubernetes configMap, window=_blank] if you are not concerned about security.
 However, since the Sync Gateway contains sensitive information, it is recommended that you create a secret from the config file and pass that to the Sync Gateway.
 Run the following command to create a secret called "sgw-config" or "sgw-config-import" corresponding  to regular and import versions of Sync Gateway configuration file respectively
 +
@@ -201,11 +207,11 @@ If you are using the sample config files, this would be "sgw-config-import.json"
 <7> `GOMAXPROCS`: This GO runtime environment variable is used to limit the number of system threads that are allocated to Sync Gateway.
 <8> `containers[].resources.limits.cpu`: This is used to specify the CPU limit for the Sync Gateway pod.
 If you do not specify one, the Sync Gateway could spawn as many processes as CPU cores and potentially use up all CPU resources.
-You can learn more about CPU resource assignment https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/#if-you-do-not-specify-a-cpu-limit[here].
+You can learn more about CPU resource assignment https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/#if-you-do-not-specify-a-cpu-limit[here, window=_blank].
 We recommend a value of 2 but you should use what is suited for your environment.
 <9> `volumes`: Specifies what to mount.
 In our case, the "secret" with name "sgw-config" corresponding to the Sync Gateway configuration that was created in the previous step is mounted.
-Learn more about Kubernetes volumes https://kubernetes.io/docs/concepts/storage/volumes/[here].
+Learn more about Kubernetes volumes https://kubernetes.io/docs/concepts/storage/volumes/[here, window=_blank].
 . Deploy the Sync Gateway cluster from the specified deployment controller file.
 +
 [{tabs}]
@@ -259,7 +265,7 @@ kubectl get pods --watch
 The `--watch` option is optional but you use it to be asynchronously notified of  updates to status of the pods instead of having to repeatedly run the command.
 +
 If successful, you will see a listing of the Sync Gateway pods that were deployed.
-In the sample output below, we have Couchbase Server and Sync Gateway pods running in the same https://kubernetes.io/docs/tasks/administer-cluster/namespaces-walkthrough/[namespace].
+In the sample output below, we have Couchbase Server and Sync Gateway pods running in the same https://kubernetes.io/docs/tasks/administer-cluster/namespaces-walkthrough/[namespace, window=_blank].
 In a production deployment, you may have Couchbase Server deployed on a separate namespace.
 +
 [source,console]
@@ -277,14 +283,14 @@ Failure to do so will result in an "insufficient resource" exception when attemp
 
 == Deploying a Load Balancer
 
-In a production deployment, you will likely have one or more Sync Gateway nodes fronted by a xref:load-balancer.adoc[load balancer].
+In a production deployment, you will likely have one or more Sync Gateway nodes fronted by a xref:{version}@load-balancer.adoc[load balancer].
 
-You will deploy the load balancer using the https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/[Kubernetes Load Balancer service].
+You will deploy the load balancer using the https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/[Kubernetes Load Balancer service, window=_blank].
 The load balancer service provides an externally accessible IP address and routes traffic to the right ports in the cluster.
 
 NOTE: Load balancers only work on  Cloud Environments (e.g. AWS, GCP etc).
-So if you are deploying on premise or using something like https://github.com/kubernetes/minikube[minikube] for your test deployment, this option will not work.
-Please use a https://kubernetes.io/docs/concepts/services-networking/service/[service] such  as NodePort or Ingress instead.
+So if you are deploying on premise or using something like https://github.com/kubernetes/minikube[minikube, window=_blank] for your test deployment, this option will not work.
+Please use a https://kubernetes.io/docs/concepts/services-networking/service/[service, window=_blank] such  as NodePort or Ingress instead.
 
 Follow these steps to deploy a load balancer in front of the Sync Gateway cluster.
 
@@ -309,7 +315,7 @@ spec:
 <2> `spec.selector.app`: This value corresponds to the pods targeted by the load balancer.
 In this case, it targets any pods with the `app=sync-gateway` label which are the Sync Gateway nodes - this corresponds to what was specified in the deployment yaml file.
 <3> `spec.ports[].targetPort`: The load balancer service targets port 4984 on the Sync Gateway cluster.
-This is the Sync Gateway port corresponding to the xref:rest-api.adoc[REST API].
+This is the Sync Gateway port corresponding to the xref:{version}@rest-api.adoc[REST API].
 For security purposes, it is recommended that you do not expose the admin port (4985) over the Internet.
 . Deploy the load balancer.
 +
@@ -384,4 +390,4 @@ It should return the following.
 ----
 
 You have successfully deployed a Sync Gateway cluster on Kubernetes.
-The xref:kubernetes/manage-cluster.adoc[Manage a Cluster] page contains additional details related to the management of the cluster.
+The xref:{version}@kubernetes/manage-cluster.adoc[Manage a Cluster] page contains additional details related to the management of the cluster.
