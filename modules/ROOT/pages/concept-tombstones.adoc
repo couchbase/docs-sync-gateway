@@ -1,0 +1,94 @@
+= Tombstones
+include::partial$_attributesLocal.adoc[]
+
+[abstract]
+xref:glossary.adoc[Mobile tombstones] enable mobile clients to be notified when a document has been deleted.
+
+== What tombstones are
+
+A _tombstone_ is a persistent record that an item has been deleted.
+
+Sync Gateway creates tombstones to ensure all synchronizing devices can identify that a previously existing document has now been deleted, this is particularly necessary in the case of devices that may not be online continuously and therefore not syncing regularly.
+
+The actual tombstone artefact is a document revision comprising only:
+
+* the (deleted) document ID
+* a revision ID
+* a key value pair `deleted:true`.
+
+.Example tombstone artefact
+[source,json]
+----
+{
+  "_deleted": true,
+  "_id": "foobar",
+  "_rev": "3-db962c6d93c3f1720cc7d3b6e50ac9df"
+}
+----
+
+== How sync gateway uses tombstones
+
+
+
+
+
+== The tombstone lifecycle
+
+The storage location of tombstones differs slightly depending on whether the Shared Bucket Access feature is enabled (`enable_shared_bucket_access: true`).
+
+The table below describes those differences.
+
+|===
+|`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
+
+2+a|*Mobile metadata storage location*
+|Persisted on the document (`doc._sync`)
+|Persisted as system extended attributes (`xattr._sync`)
+
+2+a|*Tombstone storage location*
+|Persisted on the document
+|Persisted as system extended attributes (`xattr._sync`).
+
+2+a|*Additional user properties on a tombstone*
+|Persisted on the document
+|*Not persisted*
+
+2+a|*Additional system properties on a tombstone*
+|Persisted on the document
+|*Not persisted*
+|===
+
+Document operations also have a different impact on tombstones when Shared Bucket Access is enabled/disabled.
+
+|===
+|`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
+
+2+a|*Deleting a document through Sync Gateway*
+|Creates a tombstone
+|Creates a tombstone
+
+2+a|*Purging a document through Sync Gateway*
+|Removes the document and metadata
+|Removes the document and metadata
+
+2+a|*Deleting a document body in the bucket (SDK, N1QL, expiry)*
+|Removes the document and metadata
+|Creates a tombstone
+
+2+a|*Purging a document's metadata (on Couchbase Server)*
+|N/A
+|Removes the tombstone metadata
+|===
+
+== What you can do with tombstones
+
+Whether your synchronizations are purely sync gateway or you use Couchbase Lite, you wil need to manage tombstone artefacts (see xref:{version}@adv-working-with-tombstones.adoc[Working with tombstones]):
+
+* Remove tombstones -- you need to purge them, manually or automatically
+* Clear Sync Gateway's in-memory channel caches by ejecting
+
+== See also:
+* xref:adv-working-with-tombstones.adoc[Managing Tombstones]
+* xref:shared-bucket-access.adoc#metadata-purge-interval[Metadata Purge Interval]
+* xref:config-properties.adoc#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access]
+* xref:server:learn:buckets-memory-and-storage/storage.adoc#tombstones[Server Tombstones]

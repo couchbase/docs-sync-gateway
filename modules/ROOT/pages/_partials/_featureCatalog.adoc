@@ -1,0 +1,118 @@
+= Glossary terms -- partials source file
+
+ifndef::url-blog[]
+:url-blog: https://blog.couchbase.com/
+endif::url-blog[]
+
+ifndef::url-blog[]
+:url-tutorials: https://docs.couchbase.com/tutorials/
+endif::url-blog[]
+
+// BEGIN: STD TAG TEMPLATE FOR A FEATURE
+// tag::std-template-only[]
+// tag::std-template-only-name[]
+Insert Name Here::
+// end::std-template-only-name[]
+// tag::std-template-only-summ[]
+insert summary here
+// end::std-template-only-summ[]
++
+.Mentioned in
+// tag::std-template-only-usage[]
+
+* add links to related topics
+* as required
+// end::std-template-only-usage[]
+// end::std-template-only[]
+// END: STD TAG TEMPLATE FOR A FEATURE
+
+// -------
+
+// tag::access-control[]
+
+// tag::access-control-name[]
+Access Control in Sync Gateway
+// end::access-control-name[]
+
+// tag::access-control-summ[]
+User access to Sync Gateway and its connected databases is controlled by xref:{version}@:sync-gateway:user-and-roles.adoc#users[_User Accounts_], xref:{version}@:sync-gateway:user-and-roles.adoc#roles[_User Roles_] and xref:{version}@:sync-gateway:user-and-roles.adoc#users[_Sync Gateway Channels_].
+In this context a _user_ may be a person or an application
+// end::access-control-summ[]
+
+// tag::access-control-tutorials[]
+
+* {url-blog}/using-channels-in-sync-gateway/[Using channels in Sync Gateway]
+* {url-blog}/augment-your-sync-function-with-roles-in-couchbase-sync-gateway/[Augment your Sync Function with Roles]
+// end::access-control-tutorials[]
+
+// end::access-control[]
+
+
+// tag::auto-conflict-resolution[]
+// tag::auto-conflict-resolution-name[]
+Automatic conflict resolution::
+// end::auto-conflict-resolution-name[]
+// tag::auto-conflict-resolution-def[]
+The process by which conflicts are automatically resolved by the system.
+Optional feature in xref:couchbase-lite::swift.adoc#handling-conflicts[Couchbase Lite 2.0 and above].
+// end::auto-conflict-resolution-def[]
++
+.Mentioned in
+// tag::auto-conflict-resolution-usage[]
+* link 1
+* link 2
+
+// end::auto-conflict-resolution-usage[]
+// end::auto-conflict-resolution[]
+
+Leaf revision::
+The last Document Revision in a series of changes.
+Documents may have multiple Leaf Revisions (aka Conflict Revisions) due to concurrent updates.
+
+
+// LOGGING BEGIN
+// tag::logging[]
+// tag::logging-name[]
+Logging::
+// end::logging-name[]
+// tag::logging-summ[]
+Sync Gateway's _Continuous Logging_ feature delivers flexible log generation and retention, without compromising the availability of diagnostic information necessary to provide effective support and maintence .
+// end::logging-summ[]
++
+.Mentioned in
+// tag::logging-usage[]
+
+* xref:concept-logging.adoc[Logging (concept)]
+* xref:concept-logging.adoc[Logging (how-to)]
+// end::logging-usage[]
+// end::logging[]
+// LOGGING END
+
+
+
+Revision pruning::
+Pruning is the process that deletes the metadata and/or JSON bodies associated with old non-leaf revisions.
+Leaf revisions are not impacted.
+
+No conflicts mode::
+The process by which write operations that would result in a conflict are rejected by the system.
+Optional feature in xref:couchbase-lite::swift.adoc#handling-conflicts[Couchbase Lite 2.0 and above] and xref:config-properties.adoc#databases-foo_db-allow_conflicts[Sync Gateway 2.0 and above].
+
+Tombstone revision::
+A document revision that contains only the document ID, a revision ID and the `_deleted: true` key value pair.
+A tombstone revision acts as the record of a deleted item.
+Tombstone revisions are created to allow all devices to see that a document has been deleted - particularly in the case of devices that may not be online continuously and therefore not syncing regularly.
++
+[source,json]
+----
+{
+  "_deleted": true,
+  "_id": "foobar",
+  "_rev": "3-db962c6d93c3f1720cc7d3b6e50ac9df"
+}
+----
+Mentioned in:
+* xref:adv-working-with-tombstones.adoc[Managing Tombstones]
+* xref:shared-bucket-access.adoc#metadata-purge-interval[Metadata Purge Interval]
+* xref:config-properties.adoc#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access]
+* xref:server:learn:buckets-memory-and-storage/storage.adoc#tombstones[Server Tombstones]

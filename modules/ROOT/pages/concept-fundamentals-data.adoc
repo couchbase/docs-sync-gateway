@@ -1,0 +1,46 @@
+= Documents
+include::partial$_attributesLocal.adoc[]
+
+[abstract]
+Couchbase's unit of data is a document. Each document is stored as a key-value pair comprising a unique, immutable, _Id_ and a JSON-object (or binary blob) representing the users' data.
+
+== Document Structure
+
+Couchbase's unit of data is a document, this is the NOSQL equivalent of a row or record.
+Documents are stored as a key-value pair comprising a unique and immutable key, the _Id_, and either a JSON-object or binary blob representing the users' data.
+
+The document key, the _Id_, is:
+
+* A UTF-8 string with no spaces, although it may contain special characters, such as (, %, /, ", and _
+* No longer than 250 bytes
+* Unique within the bucket
+* Automatically generated (as a UUID) or be set by the user or application when saved
+* Immutable; that is, once saved the _Id_ cannot be changed.
+
+The document value is either:
+
+* a binary object
+Binary blobs provide a means to store large media files or any other non-textual data. Couchbase Lite supports blobs of unlimited size, although the Sync Gateway currently imposes a 20MB limit for attachments synced to it.
+* A JSON value, termed a _Document_.
+This JSON object is itself collection of key/value pairs.
+Here the values may be numbers, strings, arrays or even nested objects themselves.
+As a result documents are able to represent highly-complex data structures in a readily parsable and self-organising manner.
+
+A document has the following attributes:
+
+* A document ID
+* A current revision ID (which changes every time the document is updated)
+* A history of past revision IDs (usually linear, but will form a branching tree if the document has or has had conflicts)
+* A body in the form of a JSON object, i.e. a set of key/value pairs
+* Zero or more named binary attachments
+
+
+For more on document and data basics see: xref:server:learn:data/data.adoc[]
+
+
+== Document change history
+
+{cbl} tracks the change history of every document as a series of revisions, like version control systems such as Git or Subversion.
+Its main purpose being to enable the replicator to determine the data to sync and any conflicts arising.
+
+Each document change is assigned a unique revision ID. The IDs of past revisions are available. The content of past revisions may be available if the revision was created locally and the database has not yet been compacted.
