@@ -1,0 +1,61 @@
+= Inter-Cluster Replication
+:page-layout: article
+:page-status: {releaseStatus} -- {releaseComments}
+:page-roles:
+include::partial$_attributesLocal.adoc[]
+
+ifndef::releaseStatus[:releaseStatus!:]
+ifeval::["{releaseStatus}" == "beta"]
+[.pane__card--green]
+.Author's Notes
+--
+Create an overview of the Sync Gateway replication process
+--
+endif::[]
+
+[abstract]
+--
+Sync Gateway to Sync Gateway replication, or inter-cluster replication, uses SG Replicate protocol to enable replication between mobile clusters, or between a hub and its spoke clusters.
+--
+
+== Overview
+
+Couchbase Sync Gateway supports inter-cluster replication. That is, the ability to run replications between two Sync Gateway clusters.
+SG-Replicate 2.0 is the protocol that supports that replication.
+Documents go through the Sync Function on the target Sync Gateway instance, which ensures that access permissions are updated.
+On the architecture diagram below, any changes that users/systems make on either Sync Gateway instance will be replicated to the other Sync Gateway instance.
+
+
+.Inter-cluster replication architecture
+image::running-replications.png[]
+
+NOTE: A _Sync Gateway database_ can also be referred to as a namespace for documents, the data is *always* stored in Couchbase Server.
+
+== SG Replicate vs XDCR
+
+xref:server:manage:manage-xdcr/xdcr-management-overview.adoc[XDCR] (cross data centre replication) is the Couchbase Server API to replicate between Couchbase Server clusters.
+Both XDCR and SG Replicate can be used to keep clusters in different data centres in sync.
+However, SG Replicate was designed specifically for a Couchbase Mobile deployment and must be used for replication between mobile clusters.
+
+== Features
+
+* Replicates via the Sync Gateway REST API
+* JSON configuration to specify replications
+* Supports multiple replications running concurrently
+* Can run both OneShot and Continuous replications
+* Does not store anything persistently
+* Stateless -- can be interrupted/restarted anytime without negative side effects
+* Can specify which channel(s) to sync
+* Supports Primary/Primary and Primary/Secondary topologies
+
+== Limitations
+
+* Can only replicate SG databases that are hosted on recent versions of Sync Gateway (after commit 50d30eb3d on March 7, 2014)
+* In deployments with multiple Sync Gateway nodes, only _one_ of the Sync Gateways should be configured for replications.
+If multiple Sync Gateways are configured for replications, it could substantially increase the amount of duplicate work, and therefore should be avoided.
+The limitation is that the system is not guaranteed to be Highly Available: if the Sync Gateway that is chosen to drive the replication goes down or is otherwise removed from the system, then the replications will stop.
+* Replication between Sync Gateway databases doesn't support automatic conflict resolution even when the no-conflicts mode is enabled (i.e xref:config-properties.adoc#databases-foo_db-allow_conflicts["allow_conflicts": false]).
+When running two Sync Gateway clusters with the no-conflicts mode enabled, cross-cluster document conflicts will result in that document no longer being replicated.
+Deployments  must implement a custom conflict resolver in an external app as specified xref:resolving-conflicts.adoc[here].
+To avoid this, the application must ensure concurrent, cross-cluster updates are not made to a given document.
+
