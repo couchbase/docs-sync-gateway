@@ -5,6 +5,8 @@ include::partial$_attributesLocal.adoc[]
 :url-golang-memstats: https://golang.org/pkg/runtime/#MemStats
 :goto-url-golang-memstats: {url-golang-memstats}[Go memstats]
 
+== Introducing Sync Gateway Stats
+
 As deployments scale to support a large number of connected Couchbase Lite clients, Sync Gateway nodes are becoming increasingly important. So, effectively monitoring their performance and health is essential.
 
 Sync Gateway makes capturing that information easy, through its Admin REST API, which provides access to a number of useful metrics covering a node's:
@@ -20,11 +22,12 @@ You can request the monitoring stats, from the Admin REST API, using the `expvar
 curl -X GET "http://localhost:4985/_expvar" -H "accept: application/json"
 ----
 
-The response is a JSON object with this schema, use the links to find out more about each item.
+The response is a JSON object with the schema detailed in <<Sync Gateway Stats Schema>>, use the click-through links to find out more about each item.
 
-The statistics detailed in this schema are all reset at each node restart; that is they are not persisted. So all totals, counts and averages are the values accrured since the last node restart unless otherwise specified.
+== Sync Gateway Stats Schema
 
-.Sync Gateway stats schema
+The statistics detailed in this schema are reset at each node restart; that is they are not persisted. So all totals, counts and averages are the values accrued since the last node restart unless otherwise specified.
+
 [source,json,subs="normal"]
 ----
 {
@@ -74,6 +77,7 @@ The statistics detailed in this schema are all reset at each node restart; that 
           "{xref-cb-config}num_active_channels[num_active_channels]": 0,
           "{xref-cb-config}pending_seq_len[pending_seq_len]": 0,
           "{xref-cb-config}num_skipped_seqs[num_skipped_seqs]": 0,
+          "{xref-cb-config}rev_cache_hits[rev_cache_bypass]": 0,
           "{xref-cb-config}rev_cache_hits[rev_cache_hits]": 0,
           "{xref-cb-config}rev_cache_misses[rev_cache_misses]": 0,
           "{xref-cb-config}skipped_seq_len[skipped_seq_len]": 0
