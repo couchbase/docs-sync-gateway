@@ -1,522 +1,1299 @@
 = Monitoring
 include::partial$_attributesLocal.adoc[]
-:xref-cb-config: xref:{version}@sync-gateway:ROOT:stats-monitoring.adoc#
+:gotoIndex: <<Alphabetic Index, Back to Index Start>>
 
-Sync Gateway 2.5 includes a number of new metrics available through the Admin REST API (`/_expvars`).
-Those new metrics cover performance, resource utilization and health checks of the Sync Gateway nodes which are increasingly important as deployments scale to support a large number of connected Couchbase Lite clients.
+//:xref-cb-config: xref:{version}@sync-gateway:ROOT:stats-monitoring.adoc#
+:xref-cb-config: xref:#
+:url-golang-memstats: https://golang.org/pkg/runtime/#MemStats
+:goto-url-golang-memstats: {url-golang-memstats}[Go memstats]
 
-The following `curl` command requests the monitoring stats on the Admin REST API.
+:syncgateway: {xref-cb-config}#syncgateway[syncgateway]
+:global: {xref-cb-config}global[global]
+:resource_utilization: {xref-cb-config}resource_utilization[resource_utilization]
+:admin_net_bytes_recv: {xref-cb-config}admin_net_bytes_recv[admin_net_bytes_recv]
+:admin_net_bytes_sent: {xref-cb-config}admin_net_bytes_sent[admin_net_bytes_sent]
+:error_count: {xref-cb-config}error_count[error_count]
+:go_memstats_heapalloc: {xref-cb-config}go_memstats_heapalloc[go_memstats_heapalloc]
+:go_memstats_heapidle: {xref-cb-config}go_memstats_heapidle[go_memstats_heapidle]
+:go_memstats_heapinuse: {xref-cb-config}go_memstats_heapinuse[go_memstats_heapinuse]
+:go_memstats_heapreleased: {xref-cb-config}go_memstats_heapreleased[go_memstats_heapreleased]
+:go_memstats_pausetotalns: {xref-cb-config}go_memstats_pausetotalns[go_memstats_pausetotalns]
+:go_memstats_stackinuse: {xref-cb-config}go_memstats_stackinuse[go_memstats_stackinuse]
+:go_memstats_stacksys: {xref-cb-config}go_memstats_stacksys[go_memstats_stacksys]
+:go_memstats_sys: {xref-cb-config}go_memstats_sys[go_memstats_sys]
+:goroutines_high_watermark: {xref-cb-config}goroutines_high_watermark[goroutines_high_watermark]
+:num_goroutines: {xref-cb-config}num_goroutines[num_goroutines]
+:process_cpu_percent_utilization: {xref-cb-config}process_cpu_percent_utilization[process_cpu_percent_utilization]
+:process_memory_resident: {xref-cb-config}process_memory_resident[process_memory_resident]
+:pub_net_bytes_recv: {xref-cb-config}pub_net_bytes_recv[pub_net_bytes_recv]
+:pub_net_bytes_sent: {xref-cb-config}pub_net_bytes_sent[pub_net_bytes_sent]
+:system_memory_total: {xref-cb-config}system_memory_total[system_memory_total]
+:warn_count: {xref-cb-config}warn_count[warn_count]
+:per_db: {xref-cb-config}per_db[per_db]
+:dbname: {xref-cb-config}dbname[$dbname]
+:cache: {xref-cb-config}cache[cache]
+:abandoned_seqs: {xref-cb-config}abandoned_seqs[abandoned_seqs]
+:chan_cache_active_revs: {xref-cb-config}chan_cache_active_revs[chan_cache_active_revs]
+:chan_cache_bypass_count: {xref-cb-config}chan_cache_bypass_count[chan_cache_bypass_count]
+:chan_cache_channels_added: {xref-cb-config}chan_cache_channels_added[chan_cache_channels_added]
+:chan_cache_channels_evicted_inactive: {xref-cb-config}chan_cache_channels_evicted_inactive[chan_cache_channels_evicted_inactive]
+:chan_cache_channels_evicted_nru: {xref-cb-config}chan_cache_channels_evicted_nru[chan_cache_channels_evicted_nru]
+:chan_cache_compact_count: {xref-cb-config}chan_cache_compact_count[chan_cache_compact_count]
+:chan_cache_compact_time: {xref-cb-config}chan_cache_compact_time[chan_cache_compact_time]
+:chan_cache_hits: {xref-cb-config}chan_cache_hits[chan_cache_hits]
+:chan_cache_max_entries: {xref-cb-config}chan_cache_max_entries[chan_cache_max_entries]
+:chan_cache_misses: {xref-cb-config}chan_cache_misses[chan_cache_misses]
+:chan_cache_num_channels: {xref-cb-config}chan_cache_num_channels[chan_cache_num_channels]
+:chan_cache_pending_queries: {xref-cb-config}chan_cache_pending_queries[chan_cache_pending_queries]
+:chan_cache_removal_revs: {xref-cb-config}chan_cache_removal_revs[chan_cache_removal_revs]
+:chan_cache_tombstone_revs: {xref-cb-config}chan_cache_tombstone_revs[chan_cache_tombstone_revs]
+:high_seq_cached: {xref-cb-config}high_seq_cached[high_seq_cached]
+:high_seq_stable: {xref-cb-config}high_seq_stable[high_seq_stable]
+:num_active_channels: {xref-cb-config}num_active_channels[num_active_channels]
+:pending_seq_len: {xref-cb-config}pending_seq_len[pending_seq_len]
+:num_skipped_seqs: {xref-cb-config}num_skipped_seqs[num_skipped_seqs]
+:rev_cache_bypass: {xref-cb-config}rev_cache_bypass[rev_cache_bypass]
+:rev_cache_hits: {xref-cb-config}rev_cache_hits[rev_cache_hits]
+:rev_cache_misses: {xref-cb-config}rev_cache_misses[rev_cache_misses]
+:skipped_seq_len: {xref-cb-config}skipped_seq_len[skipped_seq_len]
+:cbl_replication_pull: {xref-cb-config}cbl_replication_pull[cbl_replication_pull]
+:attachment_pull_bytes: {xref-cb-config}attachment_pull_bytes[attachment_pull_bytes]
+:attachment_pull_count: {xref-cb-config}attachment_pull_count[attachment_pull_count]
+:max_pending: {xref-cb-config}max_pending[max_pending]
+:num_pull_repl_active_continuous: {xref-cb-config}num_pull_repl_active_continuous[num_pull_repl_active_continuous]
+:num_pull_repl_active_one_shot: {xref-cb-config}num_pull_repl_active_one_shot[num_pull_repl_active_one_shot]
+:num_pull_repl_caught_up: {xref-cb-config}num_pull_repl_caught_up[num_pull_repl_caught_up]
+:num_pull_repl_since_zero: {xref-cb-config}num_pull_repl_since_zero[num_pull_repl_since_zero]
+:num_pull_repl_total_continuous: {xref-cb-config}num_pull_repl_total_continuous[num_pull_repl_total_continuous]
+:num_pull_repl_total_one_shot: {xref-cb-config}num_pull_repl_total_one_shot[num_pull_repl_total_one_shot]
+:request_changes_count: {xref-cb-config}request_changes_count[request_changes_count]
+:request_changes_time: {xref-cb-config}request_changes_time[request_changes_time]
+:rev_processing_time: {xref-cb-config}rev_processing_time[rev_processing_time]
+:rev_send_count: {xref-cb-config}rev_send_count[rev_send_count]
+:rev_send_latency: {xref-cb-config}rev_send_latency[rev_send_latency]
+:cbl_replication_push: {xref-cb-config}cbl_replication_push[cbl_replication_push]
+:attachment_push_bytes: {xref-cb-config}attachment_push_bytes[attachment_push_bytes]
+:attachment_push_count: {xref-cb-config}attachment_push_count[attachment_push_count]
+:conflict_write_count: {xref-cb-config}conflict_write_count[conflict_write_count]
+:doc_push_count: {xref-cb-config}doc_push_count[doc_push_count]
+:propose_change_count: {xref-cb-config}propose_change_count[propose_change_count]
+:propose_change_time: {xref-cb-config}propose_change_time[propose_change_time]
+:sync_function_count: {xref-cb-config}sync_function_count[sync_function_count]
+:sync_function_time: {xref-cb-config}sync_function_time[sync_function_time]
+:write_processing_time: {xref-cb-config}write_processing_time[write_processing_time]
+:database: {xref-cb-config}database[database]
+:abandoned_seqs: {xref-cb-config}abandoned_seqs[abandoned_seqs]
+:cache_feed: {xref-cb-config}cache_feed[cache_feed]
+:crc32c_match_count: {xref-cb-config}crc32c_match_count[crc32c_match_count]
+:dcp_caching_count: {xref-cb-config}dcp_caching_count[dcp_caching_count]
+:dcp_caching_time: {xref-cb-config}dcp_caching_time[dcp_caching_time]
+:dcp_received_count: {xref-cb-config}dcp_received_count[dcp_received_count]
+:dcp_received_time: {xref-cb-config}dcp_received_time[dcp_received_time]
+:doc_reads_bytes_blip: {xref-cb-config}doc_reads_bytes_blip[doc_reads_bytes_blip]
+:doc_writes_bytes: {xref-cb-config}doc_writes_bytes[doc_writes_bytes]
+:doc_writes_bytes_blip: {xref-cb-config}doc_writes_bytes_blip[doc_writes_bytes_blip]
+:doc_writes_xattr_bytes: {xref-cb-config}doc_writes_xattr_bytes[doc_writes_xattr_bytes]
+:high_seq_feed: {xref-cb-config}high_seq_feed[high_seq_feed]
+:import_feed: {xref-cb-config}import_feed[import_feed]
+:num_doc_reads_blip: {xref-cb-config}num_doc_reads_blip[num_doc_reads_blip]
+:num_doc_reads_rest: {xref-cb-config}num_doc_reads_rest[num_doc_reads_rest]
+:num_doc_writes: {xref-cb-config}num_doc_writes[num_doc_writes]
+:num_replications_active: {xref-cb-config}num_replications_active[num_replications_active]
+:num_replications_total: {xref-cb-config}num_replications_total[num_replications_total]
+:sequence_assigned_count: {xref-cb-config}sequence_assigned_count[sequence_assigned_count]
+:sequence_get_count: {xref-cb-config}sequence_get_count[sequence_get_count]
+:sequence_incr_count: {xref-cb-config}sequence_incr_count[sequence_incr_count]
+:sequence_released_count: {xref-cb-config}sequence_released_count[sequence_released_count]
+:sequence_reserved_count: {xref-cb-config}sequence_reserved_count[sequence_reserved_count]
+:warn_channels_per_doc_count: {xref-cb-config}warn_channels_per_doc_count[warn_channels_per_doc_count]
+:warn_grants_per_doc_count: {xref-cb-config}warn_grants_per_doc_count[warn_grants_per_doc_count]
+:warn_xattr_size_count: {xref-cb-config}warn_xattr_size_count[warn_xattr_size_count]
+:delta_sync: {xref-cb-config}delta_sync[delta_sync]
+:delta_cache_hit: {xref-cb-config}delta_cache_hit[delta_cache_hit]
+:delta_cache_miss: {xref-cb-config}delta_cache_miss[delta_cache_miss]
+:delta_pull_replication_count: {xref-cb-config}delta_pull_replication_count[delta_pull_replication_count]
+:delta_push_docs_count: {xref-cb-config}delta_push_docs_count[delta_push_docs_count]
+:deltas_requested: {xref-cb-config}deltas_requested[deltas_requested]
+:deltas_sent: {xref-cb-config}deltas_sent[deltas_sent]
+:gsi_views: {xref-cb-config}gsi_views[gsi_views]
+:GSIs: {xref-cb-config}gsi[GSIs]
+:query_name_count: {xref-cb-config}query-name_count[{query name}_count]
+:query_name_error_count: {xref-cb-config}query-name_error_count[{query name}_error_count]
+:query_name_time: {xref-cb-config}query-name_time[{query name}_time]
+:design_doc_name_view_name_count: {xref-cb-config}design-doc-name-view-name_count[{design doc name}.{view name}_count]
+:design_doc_name_view_name_error_count: {xref-cb-config}design-doc-name-view-name_error_count[{design doc name}.{view name}_error_count]
+:design_doc_name_view_name_time: {xref-cb-config}design-doc-name-view-name_time[{design doc name}.{view name}_time]
+:views: {xref-cb-config}views[Views (Design doc or view)]
+:num_access_errors: {xref-cb-config}num_access_errors[num_access_errors]
+:num_docs_rejected: {xref-cb-config}num_docs_rejected[num_docs_rejected]
+:total_auth_time: {xref-cb-config}total_auth_time[total_auth_time]
+:security: {xref-cb-config}security[security]
+:auth_failed_count: {xref-cb-config}auth_failed_count[auth_failed_count]
+:auth_success_count: {xref-cb-config}auth_success_count[auth_success_count]
+:num_access_errors: {xref-cb-config}num_access_errors[num_access_errors]
+:num_docs_rejected: {xref-cb-config}num_docs_rejected[num_docs_rejected]
+:total_auth_time: {xref-cb-config}total_auth_time[total_auth_time]
+:shared_bucket_import: {xref-cb-config}shared_bucket_import[shared_bucket_import]
+:import_cancel_cas: {xref-cb-config}import_cancel_cas[import_cancel_cas]
+:import_count: {xref-cb-config}import_count[import_count]
+:import_error_count: {xref-cb-config}import_error_count[import_error_count]
+:import_high_seq: {xref-cb-config}import_high_seq[import_high_seq]
+:import_partitions: {xref-cb-config}import_partitions[import_partitions]
+:import_processing_time: {xref-cb-config}import_processing_time[import_processing_time]
+:per_replication: {xref-cb-config}per_replication[per_replication]
+:replname: {xref-cb-config}replname[$replname]
+:sgr_active: {xref-cb-config}sgr_active[sgr_active]
+:sgr_docs_checked_sent: {xref-cb-config}sgr_docs_checked_sent[sgr_docs_checked_sent]
+:sgr_num_attachment_bytes_transferred: {xref-cb-config}sgr_num_attachment_bytes_transferred[sgr_num_attachment_bytes_transferred]
+:sgr_num_attachments_transferred: {xref-cb-config}sgr_num_attachments_transferred[sgr_num_attachments_transferred]
+:sgr_num_docs_failed_to_push: {xref-cb-config}sgr_num_docs_failed_to_push[sgr_num_docs_failed_to_push]
+:sgr_num_docs_pushed: {xref-cb-config}sgr_num_docs_pushed[sgr_num_docs_pushed]
 
-[source,java]
+
+
+== Introducing Sync Gateway Stats
+
+Deployments are increasingly scaling to support large numbers of connected Couchbase Lite clients. This places added emphasis on the effective  monitoring of the health and performance of Sync Gateway nodes.
+
+Sync Gateway's _Admin REST API_ facilitates the process of gathering this essential data by providing access to node metrics covering:
+
+* Performance
+* Resource utilization
+* Health
+
+Use the _Admin REST API's_, *_expvars_* method to request these metrics, as shown in this `curl` command:
+
+[source,console]
 ----
 curl -X GET "http://localhost:4985/_expvar" -H "accept: application/json"
 ----
 
-The response is a JSON object with the following schema.
+The response is a JSON object with the schema detailed in <<Sync Gateway Stats Schema>>, use the click-through links to find out more about each item.
 
-[source,json,subs="normal"]
+== Sync Gateway Stats Schema
+
+The statistics detailed in this schema are reset at each node restart; that is they are not persisted. So all totals, counts and averages are the values accrued since the last node restart unless otherwise specified.
+
+[source,json,subs="normal, attributes"]
 ----
 {
-  "{xref-cb-config}syncgateway[syncgateway]": {
-    "{xref-cb-config}global[global]": {
-      "{xref-cb-config}resource_utilization[resource_utilization]": {
-        "{xref-cb-config}admin_net_bytes_recv[admin_net_bytes_recv]": 0,
-        "{xref-cb-config}admin_net_bytes_sent[admin_net_bytes_sent]": 0,
-        "{xref-cb-config}error_count[error_count]": 0,
-        "{xref-cb-config}go_memstats_heapalloc[go_memstats_heapalloc]": 0,
-        "{xref-cb-config}go_memstats_heapidle[go_memstats_heapidle]": 0,
-        "{xref-cb-config}go_memstats_heapinuse[go_memstats_heapinuse]": 0,
-        "{xref-cb-config}go_memstats_heapreleased[go_memstats_heapreleased]": 0,
-        "{xref-cb-config}go_memstats_pausetotalns[go_memstats_pausetotalns]": 0,
-        "{xref-cb-config}go_memstats_stackinuse[go_memstats_stackinuse]": 0,
-        "{xref-cb-config}go_memstats_stacksys[go_memstats_stacksys]": 0,
-        "{xref-cb-config}go_memstats_sys[go_memstats_sys]": 0,
-        "{xref-cb-config}goroutines_high_watermark[goroutines_high_watermark]": 0,
-        "{xref-cb-config}num_goroutines[num_goroutines]": 0,
-        "{xref-cb-config}process_cpu_percent_utilization[process_cpu_percent_utilization]": 0,
-        "{xref-cb-config}process_memory_resident[process_memory_resident]": 0,
-        "{xref-cb-config}pub_net_bytes_recv[pub_net_bytes_recv]": 0,
-        "{xref-cb-config}pub_net_bytes_sent[pub_net_bytes_sent]": 0,
-        "{xref-cb-config}system_memory_total[system_memory_total]": 0,
-        "{xref-cb-config}warn_count[warn_count]": 0
+  "{syncgateway}": {
+    "{global}": {
+      "{resource_utilization}": {
+      "{admin_net_bytes_recv}": 0,
+      "{admin_net_bytes_sent}": 0,
+      "{error_count}": 0,
+      "{go_memstats_heapalloc}": 0,
+      "{go_memstats_heapidle}": 0,
+      "{go_memstats_heapinuse}": 0,
+      "{go_memstats_heapreleased}": 0,
+      "{go_memstats_pausetotalns}": 0,
+      "{go_memstats_stackinuse}": 0,
+      "{go_memstats_stacksys}": 0,
+      "{go_memstats_sys}": 0,
+      "{goroutines_high_watermark}": 0,
+      "{num_goroutines}": 0,
+      "{process_cpu_percent_utilization}": 0,
+      "{process_memory_resident}": 0,
+      "{pub_net_bytes_recv}": 0,
+      "{pub_net_bytes_sent}": 0,
+      "{system_memory_total}": 0,
+      "{warn_count}": 0
+    }
+  },
+  "{per_db}": {
+    "{dbname}": {
+      "{cache}": {
+        "{abandoned_seqs}":0,
+        "{chan_cache_active_revs}": 0,
+        "{chan_cache_bypass_count}": 0,
+        "{chan_cache_channels_added}": 0,
+        "{chan_cache_channels_evicted_inactive}": 0,
+        "{chan_cache_channels_evicted_nru}": 0,
+        "{chan_cache_compact_count}": 0,
+        "{chan_cache_compact_time}": 0,
+        "{chan_cache_hits}": 0,
+        "{chan_cache_max_entries}": 0,
+        "{chan_cache_misses}": 0,
+        "{chan_cache_num_channels}": 0,
+        "{chan_cache_pending_queries}":0,
+        "{chan_cache_removal_revs}": 0,
+        "{chan_cache_tombstone_revs}": 0,
+        "{high_seq_cached}": 0,
+        "{high_seq_stable}": 0,
+        "{num_active_channels}": 0,
+        "{pending_seq_len}": 0,
+        "{num_skipped_seqs}": 0,
+        "{rev_cache_bypass}": 0,
+        "{rev_cache_hits}": 0,
+        "{rev_cache_misses}": 0,
+        "{skipped_seq_len}": 0
+      },
+      "{cbl_replication_pull}": {
+        "{attachment_pull_bytes}": 0,
+        "{attachment_pull_count}": 0,
+        "{max_pending}": 0,
+        "{num_pull_repl_active_continuous}": 0,
+        "{num_pull_repl_active_one_shot}": 0,
+        "{num_pull_repl_caught_up}": 0,
+        "{num_pull_repl_since_zero}": 0,
+        "{num_pull_repl_total_continuous}": 0,
+        "{num_pull_repl_total_one_shot}": 0,
+        "{request_changes_count}": 0,
+        "{request_changes_time}": 0,
+        "{rev_processing_time}": 0,
+        "{rev_send_count}": 0,
+        "{rev_send_latency}": 0
+      },
+      "{cbl_replication_push}": {
+        "{attachment_push_bytes}": 0,
+        "{attachment_push_count}": 0,
+        "{conflict_write_count}": 0,
+        "{doc_push_count}": 0,
+        "{propose_change_count}": 0,
+        "{propose_change_time}": 0,
+        "{sync_function_count}": 0,
+        "{sync_function_time}": 0,
+        "{write_processing_time}": 0
+      },
+      "{database}": {
+        "{abandoned_seqs}": 0,
+        "{cache_feed}": 0,
+        "{crc32c_match_count}": 0,
+        "{dcp_caching_count}": 0,
+        "{dcp_caching_time}": 0,
+        "{dcp_received_count}": 0,
+        "{dcp_received_time}": 0,
+        "{doc_reads_bytes_blip}": 0,
+        "{doc_writes_bytes}": 0,
+        "{doc_writes_bytes_blip}": 0,
+        "{doc_writes_xattr_bytes}":0,
+        "{high_seq_feed}":0,
+        "{import_feed}":0,
+        "{num_doc_reads_blip}": 0,
+        "{num_doc_reads_rest}": 0,
+        "{num_doc_writes}": 0,
+        "{num_replications_active}": 0,
+        "{num_replications_total}": 0,
+        "{sequence_assigned_count}": 0,
+        "{sequence_get_count}": 0,
+        "{sequence_incr_count}":0,
+        "{sequence_released_count}": 0,
+        "{sequence_reserved_count}": 0,
+        "{warn_channels_per_doc_count}": 0,
+        "{warn_grants_per_doc_count}": 0,
+        "{warn_xattr_size_count}": 0
+      },
+      "{delta_sync}": {
+        "{delta_cache_hit}": 0,
+        "{delta_cache_miss}": 0,
+        "{delta_pull_replication_count}": 0,
+        "{delta_push_docs_count}": 0,
+        "{deltas_requested}": 0,
+        "{deltas_sent}": 0
+      },
+      "{gsi_views}": {
+        "{GSIs}": 0,
+          "{query_name_count}": 0,
+          "{query_name_error_count}": 0,
+          "{query_name_time}": 0,
+        "{Views}": 0,
+          "{design_doc_name_view_name_count}": 0,
+          "{design_doc_name_view_name_error_count}": 0,
+          "{design_doc_name_view_name_time}": 0,
+      },
+      "{security}": {
+        "{auth_failed_count}": 0,
+        "{auth_success_count}": 0,
+        "{num_access_errors}": 0,
+        "{num_docs_rejected}": 0,
+        "{total_auth_time}": 0
+      },
+      "{shared_bucket_import}": {
+        "{import_cancel_cas}": 0,
+        "{import_count}": 0,
+        "{import_error_count}": 0,
+        "{import_high_seq}": 0,
+        "{import_partitions}": 0,
+        "{import_processing_time}": 0
       }
-    },
-    "{xref-cb-config}per_db[per_db]": {
-      "{xref-cb-config}dbname[$dbname]": {
-        "{xref-cb-config}cache[cache]": {
-          "{xref-cb-config}chan_cache_active_revs[chan_cache_active_revs]": 0,
-          "{xref-cb-config}chan_cache_hits[chan_cache_hits]": 0,
-          "{xref-cb-config}chan_cache_max_entries[chan_cache_max_entries]": 0,
-          "{xref-cb-config}chan_cache_misses[chan_cache_misses]": 0,
-          "{xref-cb-config}chan_cache_num_channels[chan_cache_num_channels]": 0,
-          "{xref-cb-config}chan_cache_removal_revs[chan_cache_removal_revs]": 0,
-          "{xref-cb-config}chan_cache_tombstone_revs[chan_cache_tombstone_revs]": 0,
-          "{xref-cb-config}num_skipped_seqs[num_skipped_seqs]": 0,
-          "{xref-cb-config}rev_cache_hits[rev_cache_hits]": 0,
-          "{xref-cb-config}rev_cache_misses[rev_cache_misses]": 0
-        },
-        "{xref-cb-config}cbl_replication_pull[cbl_replication_pull]": {
-          "{xref-cb-config}attachment_pull_bytes[attachment_pull_bytes]": 0,
-          "{xref-cb-config}attachment_pull_count[attachment_pull_count]": 0,
-          "{xref-cb-config}dcp_caching_count[dcp_caching_count]": 0,
-          "{xref-cb-config}dcp_caching_time[dcp_caching_time]": 0,
-          "{xref-cb-config}max_pending[max_pending]": 0,
-          "{xref-cb-config}num_pull_repl_active_continuous[num_pull_repl_active_continuous]": 0,
-          "{xref-cb-config}num_pull_repl_active_one_shot[num_pull_repl_active_one_shot]": 0,
-          "{xref-cb-config}num_pull_repl_caught_up[num_pull_repl_caught_up]": 0,
-          "{xref-cb-config}num_pull_repl_since_zero[num_pull_repl_since_zero]": 0,
-          "{xref-cb-config}num_pull_repl_total_continuous[num_pull_repl_total_continuous]": 0,
-          "{xref-cb-config}num_pull_repl_total_one_shot[num_pull_repl_total_one_shot]": 0,
-          "{xref-cb-config}request_changes_count[request_changes_count]": 0,
-          "{xref-cb-config}request_changes_time[request_changes_time]": 0,
-          "{xref-cb-config}rev_processing_time[rev_processing_time]": 0,
-          "{xref-cb-config}rev_send_count[rev_send_count]": 0,
-          "{xref-cb-config}rev_send_latency[rev_send_latency]": 0
-        },
-        "{xref-cb-config}database[database]": {
-          "{xref-cb-config}crc32c_match_count[crc32c_match_count]": 0,
-          "{xref-cb-config}dcp_caching_count[dcp_caching_count]": 0,
-          "{xref-cb-config}dcp_caching_time[dcp_caching_time]": 0,
-          "{xref-cb-config}dcp_received_count[dcp_received_count]": 0,
-          "{xref-cb-config}dcp_received_time[dcp_received_time]": 0,
-          "{xref-cb-config}doc_reads_bytes_blip[doc_reads_bytes_blip]": 0,
-          "{xref-cb-config}doc_writes_bytes[doc_writes_bytes]": 0,
-          "{xref-cb-config}doc_writes_bytes_blip[doc_writes_bytes_blip]": 0,
-          "{xref-cb-config}num_doc_reads_blip[num_doc_reads_blip]": 0,
-          "{xref-cb-config}num_doc_reads_rest[num_doc_reads_rest]": 0,
-          "{xref-cb-config}num_doc_writes[num_doc_writes]": 0,
-          "{xref-cb-config}num_replications_active[num_replications_active]": 0,
-          "{xref-cb-config}num_replications_total[num_replications_total]": 0,
-          "{xref-cb-config}sequence_get_count[sequence_get_count]": 0,
-          "{xref-cb-config}sequence_released_count[sequence_released_count]": 0,
-          "{xref-cb-config}sequence_reserved_count[sequence_reserved_count]": 0,
-          "{xref-cb-config}warn_channels_per_doc_count[warn_channels_per_doc_count]": 0,
-          "{xref-cb-config}warn_grants_per_doc_count[warn_grants_per_doc_count]": 0,
-          "{xref-cb-config}warn_xattr_size_count[warn_xattr_size_count]": 0
-        },
-        "{xref-cb-config}security[security]": {
-          "{xref-cb-config}auth_failed_count[auth_failed_count]": 0,
-          "{xref-cb-config}auth_success_count[auth_success_count]": 0,
-          "{xref-cb-config}num_access_errors[num_access_errors]": 0,
-          "{xref-cb-config}num_docs_rejected[num_docs_rejected]": 0,
-          "{xref-cb-config}total_auth_time[total_auth_time]": 0
-        }
-      }
-    },
-    "{xref-cb-config}per_replication[per_replication]": {
-      "{xref-cb-config}replname[$replname]": {
-        "{xref-cb-config}sgr_active[sgr_active]": true,
-        "{xref-cb-config}sgr_docs_checked_sent[sgr_docs_checked_sent]": 0,
-        "{xref-cb-config}sgr_num_attachments_transferred[sgr_num_attachments_transferred]": 0,
-        "{xref-cb-config}sgr_num_attachment_bytes_transferred[sgr_num_attachment_bytes_transferred]": 0,
-        "{xref-cb-config}sgr_num_docs_failed_to_push[sgr_num_docs_failed_to_push]": 0,
-        "{xref-cb-config}sgr_num_docs_pushed[sgr_num_docs_pushed]": 0
+    }
+  },
+  "{per_replication}": {
+      "{replname}": {
+          "{sgr_active}": true,
+          "{sgr_docs_checked_sent}": 0,
+          "{sgr_num_attachment_bytes_transferred}": 0,
+          "{sgr_num_attachments_transferred}": 0,
+          "{sgr_num_docs_failed_to_push}": 0,
+          "{sgr_num_docs_pushed}": 0
       }
     }
   }
 }
 ----
 
-== syncgateway
+== Global stats
 
-Monitoring stats
+=== syncgateway
+
+Monitoring stats for Sync Gateway.
 
 === global
 
-Global Sync Gateway stats
+Global Sync Gateway stats.
 
-==== resource_utilization
+=== resource_utilization
 
-Resource utilization stats
+Resource utilization stats,
 
-===== admin_net_bytes_recv
+See: {url-golang-memstats} for more on memory allocator statistics.
 
-Total number of bytes received on the network interface that the Sync Gateway xref:config-properties.adoc#adminInterface[admin interface] is bound to, since start-up.
+==== admin_net_bytes_recv
+Description::
+The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway xref:config-properties.adoc#adminInterface[admin interface] is bound.
++
+By default, that is the number of bytes received on `127.0.0.1:4985` since node start-up.
+Use Case::
+This metric can be used to determine throughput on the admin interface:
++
+`throughput` = `admin_net_bytes_recv` / `admin_net_bytes_sent`
 
-By default, that is the number of bytes received on `127.0.0.1` since start-up.
+==== admin_net_bytes_sent
+Description::
+The total number of bytes sent (since node start-up) on the network interface to which the Sync Gateway xref:config-properties.adoc#adminInterface[admin interface] is bound.
++
+By default, that is the number of bytes sent on `127.0.0.1:4985` since node start-up.
 
-Throughput on admin interface = `admin_net_bytes_recv` / `admin_net_bytes_sent`
+Use Case::
+This metric can be useful in calculating the throughput on Sync Gateway's admin interface:
++
+`throughput` = `{admin_net_bytes_recv}` / `{admin_net_bytes_sent}`
 
-===== admin_net_bytes_sent
+==== error_count
 
-Total number of bytes sent on the network interface that the Sync Gateway xref:config-properties.adoc#adminInterface[admin interface] is bound to, since start-up.
+The total number of errors logged.
 
-By default, that is the number of bytes sent on `127.0.0.1` since start-up.
+==== memory allocator statistics
 
-Throughput on admin interface = `admin_net_bytes_recv` / `admin_net_bytes_sent`
-
-===== error_count
-
-Number of errors logged.
+See: {url-golang-memstats} for more on memory allocator statistics.
 
 ===== go_memstats_heapalloc
 
-Go memstats.HeapAlloc
+Go memstats.HeapAlloc -- {goto-url-golang-memstats}
 
 ===== go_memstats_heapidle
 
-Go memstats.HeapIdle
+Go memstats.HeapIdle -- {goto-url-golang-memstats}
 
 ===== go_memstats_heapinuse
 
-Go memstats.HeapInuse
+Go memstats.HeapInuse -- {goto-url-golang-memstats}
 
 ===== go_memstats_heapreleased
 
-Go memstats.HeapReleased
+Go memstats.HeapReleased -- {goto-url-golang-memstats}
 
 ===== go_memstats_pausetotalns
 
-Go memstats.PauseTotalNs
+Go memstats.PauseTotalNs -- {goto-url-golang-memstats}
 
 ===== go_memstats_stackinuse
 
-Go memstats.StackInuse
+Go memstats.StackInuse -- {goto-url-golang-memstats}
 
 ===== go_memstats_stacksys
 
-Go memstats.StackSys
+Go memstats.StackSys -- {goto-url-golang-memstats}
 
 ===== go_memstats_sys
 
-Go memstats.Sys
+Go memstats.Sys -- {goto-url-golang-memstats}
 
-===== goroutines_high_watermark
+==== goroutines_high_watermark
 
 Peak number of go routines since process start.
 
-===== num_goroutines
+==== num_goroutines
 
-Number of goroutines.
+The total number of _goroutines_.
 
-===== process_cpu_percent_utilization
+==== process_cpu_percent_utilization
 
-CPU utilization (%).
+Description::
+The CPU's utilization as percentage value.
+Derivation::
+The CPU usage calculation is performed based on _user_ and _system_ CPU time, but it doesn't include components such as `iowait`.
+Constraints::
+The derivation means that the values of `{process_cpu_percent_utilization}` and `%Cpu`, returned when running the `top` command, will *differ*.
 
-The CPU usage calculation is performed based on user and system CPU time and doesn't include components such as `iowait`.
-Therefore, `process_cpu_percent_utilization` differs from the `%Cpu` value returned when running the `top` command.
+==== process_memory_resident
 
-===== process_memory_resident
+The memory utilization (_Resident Set Size_) for the process, in bytes.
 
-Memory utilization (Resident Set Size) for the process in bytes.
+==== pub_net_bytes_recv
+Description::
+The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway xref:config-properties.adoc#interface[public interface] is bound.
++
+By default, that is the number of bytes received on `127.0.0.1:4984` since node start-up.
 
-===== pub_net_bytes_recv
+Use Case::
+The metric can be used to calculate throughput on the public interface:
++
+`throughput` = `{pub_net_bytes_recv}` / `{pub_net_bytes_sent}`
 
-Total number of bytes received on the network interface that the Sync Gateway xref:config-properties.adoc#interface[public interface] is bound to, since start-up.
+==== pub_net_bytes_sent
+Description::
+The total number of bytes sent (since node start-up) on the network interface to which Sync Gateway xref:config-properties.adoc#interface[public interface] is bound.
++
+By default, that is the number of bytes sent on `127.0.0.1:4984` since node start-up.
+Use Case::
+This metric can be used to calculate throughput on the public interface:
++
+`throughput` = `{pub_net_bytes_recv}` / `{pub_net_bytes_sent}`
 
-By default, that is the number of bytes received on `0.0.0.0` since start-up.
+==== system_memory_total
+Description::
+The total memory available on the system in bytes.
 
-Throughput on public interface = `pub_net_bytes_recv` / `pub_net_bytes_sent`
+==== warn_count
+Description::
+The total number of warnings logged.
 
-===== pub_net_bytes_sent
+== Metrics by Database
 
-Total number of bytes sent on the network interface that the Sync Gateway xref:config-properties.adoc#interface[public interface] is bound to, since start-up.
-
-By default, that is the number of bytes sent on `0.0.0.0` since start-up.
-
-Throughput on public interface = `pub_net_bytes_recv` / `pub_net_bytes_sent`
-
-===== system_memory_total
-
-Total memory available on the system in bytes.
-
-===== warn_count
-
-Number of warnings logged.
+.Quick Links
+[sidebar]
+{cache} | {cbl_replication_pull} | {cbl_replication_push} | {database} | {delta_sync} | {gsi_views} | {security} | {shared_bucket_import}
 
 === per_db
 
-Stats for each database declared in the config file
+The metrics for each {database} declared in the config file.
 
 === $dbname
 
-Stats relative to a database declared in the config file.
-
-==== cache
-
-Stats relative to caching
-
-===== abandoned_seqs
-
-The number of skipped sequences that were not found after 60 minutes and were abandoned.
-
-===== chan_cache_active_revs
-
-The number of active revisions in the channel cache.
-
-===== chan_cache_hits
-
-Channel cache requests fully served by the cache.
-
-Channel Cache Hit Ratio = `chan_cache_hits` / (`chan_cache_hits` + `chan_cache_misses`)
-
-===== chan_cache_max_entries
-
-Size of the largest channel cache.
-
-Helps with channel cache tuning, and as a hint on cache size variation (when compared to average cache size).
-
-===== chan_cache_misses
-
-Channel cache requests not fully served by the cache.
-
-Channel Cache Hit Ratio = `chan_cache_hits` / (`chan_cache_hits` + `chan_cache_misses`)
-
-===== chan_cache_num_channels
-
-Number of channels being cached.
-
-Insight into total number of channels being cached - provides insight into potential max cache size (num channels * max_cache_size), as well as node usage.
-
-===== chan_cache_removal_revs
-
-The number of removal revisions in the channel cache.
-
-Acts as a reminder that removals must be considered when tuning the channel cache size.
-Also helps users understand whether they should be tuning tombstone retention policy (metadata purge interval), and running compact.
-
-===== chan_cache_tombstone_revs
-
-The number of tombstone revisions in the channel cache.
-
-Acts as a reminder that tombstones and removals must be considered when tuning the channel cache size.
-Also helps users understand whether they should be tuning tombstone retention policy (metadata purge interval), and running compact.
-
-===== num_skipped_seqs
-
-Number of skipped sequences.
-
-Helps with channel cache tuning, and as a hint on cache size variation (when compared to average cache size).
-
-===== rev_cache_hits
-
-Revision cache hits.
-
-Rev Cache Hit Ratio = `rev_cache_hits` / (`rev_cache_hits` + `rev_cache_misses`)
-
-===== rev_cache_misses
-
-Revision cache misses.
-
-Rev Cache Hit Ratio = `rev_cache_hits` / (`rev_cache_hits` + `rev_cache_misses`)
-
-==== cbl_replication_pull
-
-===== attachment_pull_bytes
-
-Average size of attachments pulled.
-This is the pre-compressed size.
-
-===== attachment_pull_count
-
-Number of attachments pulled.
-
-===== dcp_caching_count
-
-This metric can be used to calculate the time between seeing a change on the DCP feed and when it's available in the channel cache.
-
-DCP cache latency = `dcp_caching_time` / `dcp_caching_count`
-
-===== dcp_caching_time
-
-This metric can be used to calculate the time between seeing a change on the DCP feed and when it's available in the channel cache.
-
-DCP cache latency = `dcp_caching_time` / `dcp_caching_count`
-
-===== max_pending
-
-High watermark for number of documents buffered during feed processing, waiting on a missing earlier sequence.
-
-===== num_pull_repl_active_continuous
-
-Gauge representing the number of continuous pull replications in the active state.
-
-===== num_pull_repl_active_one_shot
-
-Gauge representing the number of one-shot pull replications in the active state.
-
-===== num_pull_repl_caught_up
-
-Gauge representing the number of replications which have caught up to the latest changes.
-
-===== num_pull_repl_since_zero
-
-Number of new replications starting per second (`/_changes?since=0`).
-
-===== num_pull_repl_total_continuous
-
-Gauge representing the number of continuous pull replications.
-
-===== num_pull_repl_total_one_shot
-
-Gauge representing the number of one-shot pull replications.
-
-===== request_changes_count
-
-This metric can be used to calculate the latency of `_changes` request.
-
-`_changes` request latency = `request_changes_time` / `request_changes_count`
-
-===== request_changes_time
-
-This metric can be used to calculate the latency of `_changes` request.
-
-`_changes` request latency = `request_changes_time` / `request_changes_count`
-
-===== rev_processing_time
-
-The total amount of time processing revisions.
-
-This metric can be used with `rev_send_count` to calculate the average processing time per revision.
-
-average processing time per revision = `rev_processing_time` / `rev_send_count`.
-
-===== rev_send_count
-
-The total amount of time processing revisions.
-
-This metric can be used with `rev_send_count` to calculate the average processing time per revision.
-
-average processing time per revision = `rev_processing_time` / `rev_send_count`.
-
-===== rev_send_latency
-
-In a pull replication, Sync Gateway sends a `/_changes` request to the client.
-The client responds with the list of revisions that it wants to receive.
-
-`rev_send_latency` is measuring the time between the client asking for some revisions via the `/_changes` response, and Sync Gateway sending that revision to the client.
-
-NOTE: Measuring time from the `/_changes` response means that this stat will vary significantly depending on the changes batch size.
+The metrics relating to a {database} declared in the config file.
+
+=== cache
+
+These metrics relate to caching.
+
+==== abandoned_seqs
+Description::
+The total number of skipped sequences that were not found after 60 minutes and were abandoned.
+
+==== chan_cache_active_revs
+Description::
+The total number of active revisions in the channel cache.
+
+==== chan_cache_bypass_count
+Description::
+The total number of transient bypass channel caches created to serve requests when the channel cache was at capacity.
+
+==== chan_cache_channels_added
+Description::
+The total number of channel caches added.
+Constraints::
+The metric doesn't decrease when a channel is removed.
+That is, it is similar to {chan_cache_num_channels} but doesn't track removals.
+
+==== chan_cache_channels_evicted_inactive
+Description::
+The total number of channel cache channels evicted due to inactivity.
+
+==== chan_cache_channels_evicted_nru
+Description::
+The total number of active channel cache channels evicted, based on ‘not recently used’ criteria.
+
+==== chan_cache_compact_count
+Description::
+The total number of channel cache compaction runs.
+
+==== chan_cache_compact_time
+Description::
+The total amount of time taken by channel cache compaction across all compaction runs.
+
+==== chan_cache_hits
+Description::
+The total number of channel cache requests fully served by the cache.
+Use Case::
+This metric is useful in calculating the channel cache hit ratio:
++
+`channel cache hit ratio`  = `{chan_cache_hits}` / (`{chan_cache_hits}` + `{chan_cache_misses}`)
+
+==== chan_cache_max_entries
+Description::
+The total size of the largest channel cache.
+Use Case::
+This metric helps with channel cache tuning, and provides a hint on cache size variation (when compared to average cache size).
+
+==== chan_cache_misses
+Description::
+The total number of channel cache requests not fully served by the cache.
+Use Case::
+This metric is useful when calculating the channel cache hit ratio:
++
+`channel cache hit ratio`  = `{chan_cache_hits}` / (`{chan_cache_hits}` + `{chan_cache_misses}`)
+
+anchor:chan_cache_num_channels[]
+
+==== chan_cache_num_channels
+Description::
+The total number of channels being cached.
+Use Case::
+The total number of channels being cached provides insight into potential max cache size requirements and also node usage (for example, `{chan_cache_num_channels}` * `max_cache_size`).
+
+==== chan_cache_pending_queries
+Description::
+The total number of channel cache pending queries.
+
+==== chan_cache_removal_revs
+Description::
+The total number of removal revisions in the channel cache.
+Use Case::
+This metric acts as a reminder that removals must be considered when tuning the channel cache size and also helps users understand whether they should be tuning tombstone retention policy (metadata purge interval) and running compact.
+
+==== chan_cache_tombstone_revs
+Description::
+The total number of tombstone revisions in the channel cache.
+Use Case::
+This metric acts as a reminder that tombstones and removals must be considered when tuning the channel cache size and also helps users understand whether they should be tuning tombstone retention policy (metadata purge interval), and running compact.
+
+==== high_seq_cached
+Description::
+The highest sequence number cached.
+Constraints::
+There may be skipped sequences lower than high_seq_cached.
+
+==== high_seq_stable
+Description::
+The highest contiguous sequence number that has been cached.
+
+==== num_active_channels
+Description::
+The total number of active channels.
+
+==== num_skipped_seqs
+Description::
+The total number of skipped sequences.
+Use Case::
+This metric helps with channel cache tuning, and provides a hint on cache size variation (when compared to average cache size).
+
+==== pending_seq_len
+Description::
+The total number of pending sequences.
+These are out-of-sequence entries waiting to be cached.
+
+==== rev_cache_bypass
+Description::
+The total number of revision cache bypass operations performed.
+
+==== rev_cache_hits
+Description::
+The total number of revision cache hits.
+Use Case::
+This metric can be used to calculate the ratio of revision cache hits:
++
+`Rev Cache Hit Ratio` = `{rev_cache_hits}` / (`{rev_cache_hits}` + `{rev_cache_misses}`)
+
+==== rev_cache_misses
+Description::
+The total number of revision cache misses.
+Use Case::
+This metric can be used to calculate the ratio of revision cache misses:
++
+`Rev Cache Miss Ratio` = `{rev_cache_misses}` / (`{rev_cache_hits}` + `{rev_cache_misses}`)
+
+==== skipped_seq_len
+Description::
+The current length of the pending skipped sequence queue.
+
+=== cbl_replication_pull
+
+==== attachment_pull_bytes
+Description::
+The total size of attachments pulled.
+This is the *pre-compressed* size.
+
+==== attachment_pull_count
+Description::
+The total number of attachments pulled.
+
+==== max_pending
+Description::
+The high watermark for the number of documents buffered during feed processing, waiting on a missing earlier sequence.
+
+==== num_pull_repl_active_continuous
+Description::
+The total number of continuous pull replications in the active state.
+
+==== num_pull_repl_active_one_shot
+Description::
+The total number of one-shot pull replications in the active state.
+
+==== num_pull_repl_caught_up
+Description::
+The total number of replications which have caught up to the latest changes.
+
+==== num_pull_repl_since_zero
+Description::
+The total number of new replications started (`/_changes?since`=0).
+
+==== num_pull_repl_total_continuous
+Description::
+The total number of continuous pull replications.
+
+==== num_pull_repl_total_one_shot
+Description::
+The total number of one-shot pull replications.
+
+==== request_changes_count
+Description::
+The total number of changes requested.
+Use Case::
+This metric can be used to calculate the latency of requested changes:
++
+`changes request latency` = `{request_changes_time}` / `{request_changes_count}`
+
+==== request_changes_time
+Description::
+
+Use Case::
+This metric can be used to calculate the latency of requested changes:
++
+`changes request latency` = `{request_changes_time}` / `{request_changes_count}`
+
+==== rev_processing_time
+Description::
+The total amount of time processing rev messages (revisions) during pull revision.
+Use Case::
+This metric can be used with {rev_send_count} to calculate the average processing time per revision:
++
+`average processing time per revision` = `{rev_processing_time}` / `{rev_send_count}`
+
+==== rev_send_count
+Description::
+The total number of rev messages processed during replication.
+Use Case::
+This metric can be used with {rev_processing_time} to calculate the average processing time per revision:
++
+_average processing time per revision_ = `{rev_processing_time}` / `{rev_send_count}`.
+
+==== rev_send_latency
+Description::
+The total amount of time between Sync Gateway receiving a request for a revision and that revision being sent.
++
+In a pull replication, Sync Gateway sends a `/_changes` request to the client and the client responds with the list of revisions it wants to receive.
++
+So, `{rev_send_latency}` measures the time between the client asking for those revisions and Sync Gateway sending them to the client.
+
+Use Case::
+This metric gives the time taken to respond to a `/ changes` request.
+
+Constraints::
+--
+The derived value includes latency associated with processing other revisions in the same batch.
+
+Measuring time from the `/_changes` response means that this stat will vary significantly depending on the changes batch size
 A larger batch size will result in a spike of this stat, even if the processing time per revision is unchanged.
-A more useful stat might be the average processing time per revision (xref:#rev_processing_time[rev_processing_time] / xref:#rev_send_count[rev_send_count]).
 
-==== database
+A more useful stat might be the average processing time per revision:
+
+`average processing time per revision` = `{rev_processing_time}`] / `{rev_send_count}`
+--
+
+=== cbl_replication_push
+
+==== attachment_push_bytes
+Description::
+The total number of attachment bytes pushed.
+//Use Case::
+
+==== attachment_push_count
+Description::
+The total number of attachments pushed.
+// Use case(s)::
+
+==== conflict_write_count
+Description::
+The total number of writes that left the document in a conflicted state.
+Includes new conflicts, and mutations that don’t resolve existing conflicts.
+// Use case(s)::
+
+==== doc_push_count
+Description::
+The total number of documents pushed.
+// Use case(s)::
+
+==== propose_change_count
+Description::
+The total number of changes and-or proposeChanges messages processed since node start-up.
+
+Use Case::
+The {propose_change_count} stat can be useful when:
+
+* {empty}
++
+--
+Assessing the number of redundant requested changes being pushed by the client.
+
+Do this by comparing the {propose_change_count} value with the number of actual writes {num_doc_writes}, which could indicate that clients are pushing changes already known to Sync Gateway.
+--
+* Identifying situations where push replications are unexpectedly being restarted from zero.
++
+NOTE: P2P synchronizations will typically show a higher incidences of rejected proposed changes.
+
+==== propose_change_time
+Description::
+The total time spent processing changes and/or proposeChanges messages.
+
+Use Case::
+The {propose_change_time} stat can be useful in diagnosing push replication issues arising from potential bottlenecks changes and-or proposeChanges processing.
+
+Contraints::
+The {propose_change_time} is not included in the {write_processing_time}.
+
+==== sync_function_count
+Description::
+The total number of times that the sync_function is evaluated.
+Use Case::
+The {sync_function_count_ stat is useful in assessing the usage of the sync_function, when used in conjunction with the {sync_function_time}.
+
+==== sync_function_time
+Description::
+The total time spent evaluating the sync_function.
+Use Case::
+The {sync_function_time} stat can be useful when:
+
+* Troubleshooting excessively long push times, where it can help identify potential sync_function bottlenecks (for example, those arising from complex, or inefficient, sync_function design
+* Assessing the overall contribution of the sync_function processing to overall push replication write times.
+
+==== write_processing_time
+Description::
+Total time spent processing writes.
+Measures complete request-to-response time for a write.
+Use Case::
+The {write_processing_time} stat can be useful when:
+
+* Determining the average time per write:
++
+`average time per write` = {write_processing_time} / {num_doc_writes}
+ stat value
+* Assessing the benefit of adding additional Sync Gateway nodes, as it can point to SGW being a bottleneck
+* Troubleshooting slow push replication, in which case it ought to be considered in conjunction with {sync_function_time}.
+
+=== database
 
 Stats relative to the database
 
-===== crc32c_match_count
+==== abandoned_seqs
+Description::
+The total number of skipped sequences abandoned, based on `cache.channel_cache.max_wait_skipped`.
 
-Count of instances during import when the document cas had changed, but the document body was not changed.
+==== cache_feed
+Description::
+Contains low level dcp stats:
+* `dcp_backfill_expected` - the expected number of sequences in backfill
+* `dcp_backfill_completed` - the number of backfill items processed
+* `dcp_rollback_count` - the number of DCP rollbacks.
 
-===== dcp_caching_count
+==== crc32c_match_count
+Description::
+The total number of instances during import when the document cas had changed, but the document was not imported because the document body had not changed.
 
-Count of DCP mutations added to Sync Gateway's channel cache.  Can be used with dcp_caching_time to monitor cache processing latency.
+==== dcp_caching_count
+Description::
+The total number of DCP mutations added to Sync Gateway's channel cache.
+Use Case::
+Can be used with `{dcp_caching_time}` to monitor cache processing latency.
+That is, the time between seeing a change on the DCP feed and when it's available in the channel cache:
++
+`DCP cache latency` = `{dcp_caching_time}` / `{dcp_caching_count}`
 
-===== dcp_caching_time
+==== dcp_caching_time
+Description::
+The total time between a DCP mutation arriving at Sync Gateway and being added to channel cache.
 
-Time between DCP mutation arriving at Sync Gateway and being added to channel cache (aggregate).
+Use Case::
+This metric can be used with `{dcp_caching_count}` to monitor cache processing latency.
+That is, the time between seeing a change on the DCP feed and when it's available in the channel cache:
++
+`dcp_cache_latency` = `{dcp_caching_time}` / `{dcp_caching_count}`
 
-===== dcp_received_count
+==== dcp_received_count
+Description::
+The total number of document mutations received by Sync Gateway over DCP.
 
-Number of document mutations received by Sync Gateway over DCP.
+==== dcp_received_time
+Description::
+The time between a document write and that document being received by Sync Gateway over DCP.
+If the document was written prior to Sync Gateway starting the feed, it is recorded as the time since the feed was started.
+Use Case::
+This metric can be used to monitor DCP feed processing latency.
 
-===== dcp_received_time
+==== doc_reads_bytes_blip
+Description::
+The total number of bytes read via Couchbase Lite 2.x replication since Sync Gateway node startup.
 
-Time between document write and document being received by Sync Gateway over DCP.  If the document was written prior to Sync Gateway starting the feed, is measured as the time since the feed was started.  Can be used to monitor DCP feed processing latency.
+==== doc_writes_bytes
+Description::
+The total number of bytes written as part of document writes since Sync Gateway node startup.
 
-===== doc_reads_bytes_blip
+==== doc_writes_bytes_blip
+Description::
+The total number of bytes written as part of Couchbase Lite 2.x document writes since Sync Gateway node startup.
 
-Total number of bytes read via Couchbase Lite 2.x replication since Sync Gateway startup.
+==== doc_writes_xattr_bytes
+Description::
+The total size of xattrs written (in bytes).
 
-===== doc_writes_bytes
+==== high_seq_feed
+Description::
+Highest sequence number seen on the caching DCP feed.
 
-Total number of bytes written as part of document writes since Sync Gateway startup.
+==== import_feed
+Description::
+This metric contains low level dcp stats:
+* `dcp_backfill_expected` - the total expected number of sequences in backfill
+* `dcp_backfill_completed` - the total number of backfill items processed
+* `dcp_rollback_count` - the total number of rollbacks that occur.
 
-===== doc_writes_bytes_blip
+==== num_doc_reads_blip
+Description::
+The total number of documents read via Couchbase Lite 2.x replication since Sync Gateway node startup.
 
-Total number of bytes written as part of Couchbase Lite 2.x document writes since Sync Gateway startup.
+==== num_doc_reads_rest
+Description::
+The total number of documents read via the REST API since Sync Gateway node startup.
+Includes Couchbase Lite 1.x replication.
 
-===== num_doc_reads_blip
+==== num_doc_writes
+Description::
+The total number of documents written by any means (replication, rest API interaction or imports) since Sync Gateway node startup.
 
-Count of the number of documents read via Couchbase Lite 2.x replication since Sync Gateway startup.
+==== num_replications_active
+Description::
+The total number of active replications.
+Constraints::
+This metric only counts continuous pull replications.
 
-===== num_doc_reads_rest
+==== num_replications_total
+Description::
+The total number of replications created since Sync Gateway node startup.
 
-Count of the number of documents read via the REST API since Sync Gateway startup. Includes Couchbase Lite 1.x replication.
+==== sequence_assigned_count
+Description::
+The total number of sequence numbers assigned.
 
-===== num_doc_writes
+==== sequence_get_count
+Description::
+The total number of high sequence lookups.
 
-Count of the number of documents written via any means since Sync Gateway startup.
+==== sequence_incr_count
+Description::
+The total number of times the sequence counter document has been incremented.
 
-===== num_replications_active
+==== sequence_released_count
+Description::
+The total number of unused, reserved sequences released by Sync Gateway.
 
-Approximate number of active replications. Only counts continuous pull replications.
+==== sequence_reserved_count
+Description::
+The total number of sequences reserved by Sync Gateway.
 
-===== num_replications_total
+==== warn_channels_per_doc_count
+Description::
+The total number of warnings relating to the channel count exceeding the channel count threshold.
+Corresponding warning message::
+[source,console]
+----
+Doc id: {document id} channel count: {channel count} exceeds {channel count} for channels per doc warning threshold
+----
 
-Count of the number of replications created since Sync Gateway startup.
+==== warn_grants_per_doc_count
+Description::
+The total number of warnings relating to the grant count exceeding the grant count threshold.
 
-===== sequence_get_count
+Corresponding warning message::
+[source,console]
+----
+Doc id: {document id} access and role grants count: {grant count} exceeds {grant count} for grants per doc warning threshold
+----
 
-Number of high sequence lookups.
+==== warn_xattr_size_count
+Description::
+The total number of warnings relating to the xattr sync data being larger than a configured threshold.
 
-===== sequence_released_count
+Corresponding warning message::
+[source,console]
+----
+Doc id: {document id} sync metadata size: {xattr bytes} bytes exceeds {xattr bytes} bytes for sync metadata warning threshold
+----
 
-Number of unused, reserved sequences released by Sync Gateway.
+=== delta_sync
 
-===== sequence_reserved_count
+==== delta_cache_hit
+Description::
+The total number of requested deltas that were available in the revision cache.
 
-Number of sequences reserved by Sync Gateway.
+==== delta_cache_miss
+Description::
+The total number of requested deltas that were not available in the revision cache.
 
-==== Security
+==== delta_pull_replication_count
+Description::
+The number of delta replications that have been run.
 
-Stats relative to security
+==== delta_push_doc_count
+Description::
+The total number of documents pushed as a delta from a previous revision.
 
-===== auth_failed_count
+==== deltas_requested
+Description::
+The total number of times a revision is sent as delta from a previous revision.
 
-Number of unsuccessful authentications. Useful to monitor the number of authentication errors.
+==== deltas_sent
+Description::
+The total number of revisions sent to clients as deltas.
 
-===== auth_success_count
+=== gsi_views
 
-Number of successful authentications. Useful to monitor the number of authenticated requests.
+==== GSIs
 
-===== num_access_errors
+The GSI metrics are defined in this section, where {query name} is a placeholder representing a Valid Query Name from this list:
 
-Count of documents rejected by write access functions (requireAccess/requireRole/requireUser).
+Valid Query Names::
+* access
+* roleAccess
+* channels
+* channelsStar
+* sequences
+* principals
+* sessions
+* tombstones
+* resync
+* allDocs
 
-===== num_docs_rejected
+==== {query name}_count
+Description::
+The total number of queries performed.
 
-Count of documents rejected by the sync function. Useful to debug sync function issues and identify unexpected incoming documents.
+===== {query name}_error_count
+Description::
+The total number of errors that occurred when performing the query.
 
-===== total_auth_time
+===== {query name}_time
+Description::
+The total time taken to perform queries.
 
-Total time it took to authenticate the last incoming request.
+==== Views
 
-=== per_replication
+The View metrics are defined in this section, where {design doc name} and {view name} are placeholders representing a Valid Design Doc Name and a Valid View Name, as defined in these lists:
 
-Stats for each replication between Sync Gateway instances declared in the config file.
+Valid Design Doc Names::
+* sync_gateway
+* sync_housekeeping
 
-==== $replname
 
-Stats relative to a replication between two Sync Gateway instances declared in the config file.
+Valid View Names::
+* principals
+* channels
+* access
+* access_vbseq
+* role_access
+* role_access_vbseq
+* all_docs
+* import
+* sessions
+* tombstones
 
-===== sgr_active
+===== {design doc name}.{view name}_count
+Description::
+The total number of view queries performed.
 
+===== {design doc name}.{view name}_error_count
+Description::
+The total number of errors that occurred when performing the query.
+
+===== {design doc name}.{view name}_time
+Description::
+The total time taken to perform the view query.
+
+
+=== Security
+
+These metrics relate to security.
+
+==== auth_failed_count
+Description::
+The total number of unsuccessful authentications.
+Use Case::
+This metric is useful in monitoring the number of authentication errors.
+
+==== auth_success_count
+Description::
+The total number of successful authentications.
+Use Case::
+This metric is useful in monitoring the number of authenticated requests.
+
+==== num_access_errors
+Description::
+The total number of documents rejected by write access functions (requireAccess, requireRole, requireUser).
+
+==== num_docs_rejected
+Description::
+The total number of documents rejected by the sync_function.
+Use Case::
+This metric is useful in debugging sync_function issues and identify unexpected incoming documents.
+
+==== total_auth_time
+Description::
+The total time spent in authenticating all requests.
+Use Cases::
+This metric can be compared with `{auth_success_count}` and `{auth_failed_count}` to derive an average success and-or fail rate.
+
+=== shared_bucket_import
+
+==== import_cancel_cas
+Description::
+The total number of imports cancelled due to cas failure.
+
+==== import_count
+Description::
+The total number of docs imported.
+
+==== import_error_count
+Description::
+The total number of errors arising as a result of a document import.
+Corresponding Error Message::
+[source,console]
+----
+Error importing doc {document id}: {error}
+----
+
+==== import_high_seq
+Description::
+The highest sequence number value imported.
+
+==== import_partitions
+Description::
+The total number of import partitions.
+
+==== import_processing_time
+Description::
+The total time taken to process a document import.
+
+== Metrics by replication
+
+=== Per_replication
+
+This {per_replication} group header encompases all the  stats for each replication between Sync Gateway instances declared in the config file.
+It comprises one or more {replname} groups, replications, as introduced by the {replname} group header.
+
+NOTE: These metrics refer to Sync Gateway replications only; Couchbase Lite replications are not included.
+
+=== $replname
+
+This is the group header for the stats for each replication between two Sync Gateway instances declared in the config file.
+
+=== sgr_active
+Description::
 Whether the replication is active at this time.
 
-This can be useful when analyzing replication history, and to filter by active replications.
+=== sgr_docs_checked_sent
+Description::
+The total number of documents checked for changes since replication started.
+This represents the number of potential change notifications pushed by Sync Gateway.
 
-In a one-shot replication, the value is `true` for the duration of the replication, and then `false` when it has completed or if it is cancelled.
+Constraints::
+This is not necessarily the number of documents pushed, as a given target might already have the change.
 
-In a continuous replication, the value is `true` for the duration of the replication, and also once it has caught up (i.e is in the idle state).
-The value is `false` if the replication is explicitly cancelled.
+Values::
+* Continuous replication:
++
+The value is true for the duration of the replication, and also once it has caught up (i.e is in the idle state).
+  The value is false if the replication is explicitly cancelled.
 
-===== sgr_docs_checked_sent
+* One-shot replication
++
+The value is true for the duration of the replication, and then false when it has completed or if it is cancelled.
+Use Case::
+This metric can be useful when analyzing replication history, and to filter by active replications.
 
-Number of documents checked for changes since start-up (via `+/{db}/_revs_diff+`).
+=== sgr_num_attachments_transferred
+Description::
+The total number of attachments transferred since replication started.
 
-===== sgr_num_attachments_transferred
+=== sgr_num_attachment_bytes_transferred
+Description::
+The total number of attachment bytes transferred since replication started.
 
-Number of attachments transferred since start-up.
+=== sgr_num_docs_failed_to_push
+Description::
+The total number of documents that failed to be pushed since replication started.
 
-===== sgr_num_attachment_bytes_transferred
+=== sgr_num_docs_pushed
+Description::
+The total number of documents that were pushed since replication started.
 
-Number of attachment bytes transferred since start-up.
+== Alphabetic Index
 
-===== sgr_num_docs_failed_to_push
+.Quick Links
+[sidebar]
+<</$>> *|* <<A - C>> *|* <<D - G>> *|* <<H - N>> *|* <<P - Z>>
 
-Number of documents that failed to be pushed since start-up.
 
-===== sgr_num_docs_pushed
+=== $
+* {dbname}
+* {replname}
 
-Number of documents that were pushed since start-up.
+
+=== A - C
+* {abandoned_seqs}
+* {abandoned_seqs}
+* {admin_net_bytes_recv}
+* {admin_net_bytes_sent}
+* {attachment_pull_bytes}
+* {attachment_pull_count}
+* {attachment_push_bytes}
+* {attachment_push_count}
+* {auth_failed_count}
+* {auth_success_count}
+* {cache_compact_count}
+* {cache_feed}
+* {cache}
+* {cbl_replication_pull}
+* {cbl_replication_push}
+* {chan_cache_active_revs}
+* {chan_cache_bypass_count}
+* {chan_cache_channels_added}
+* {chan_cache_channels_evicted_inactive}
+* {chan_cache_channels_evicted_nru}
+* {chan_cache_hits}
+* {chan_cache_max_entries}
+* {chan_cache_misses}
+* {chan_cache_num_channels}
+* {chan_cache_pending_queries}
+* {chan_cache_removal_revs}
+* {chan_cache_tombstone_revs}
+* {conflict_write_count}
+* {crc32c_match_count}
+
+{gotoIndex}
+
+=== D - G
+
+* {database}
+* {dcp_caching_count}
+* {dcp_caching_time}
+* {dcp_received_count}
+* {dcp_received_time}
+* {delta_cache_hit}
+* {delta_cache_miss}
+* {delta_pull_replication_count}
+* {delta_push_docs_count}
+* {delta_sync}
+* {deltas_requested}
+* {deltas_sent}
+* {doc_push_count}
+* {doc_reads_bytes_blip}
+* {doc_writes_bytes_blip}
+* {doc_writes_bytes}
+* {doc_writes_xattr_bytes}
+* {error_count}
+* {global}
+* {go_memstats_heapalloc}
+* {go_memstats_heapidle}
+* {go_memstats_heapinuse}
+* {go_memstats_heapreleased}
+* {go_memstats_pausetotalns}
+* {go_memstats_stackinuse}
+* {go_memstats_stacksys}
+* {go_memstats_sys}
+* {goroutines_high_watermark}
+* {gsi_views}
+* {GSIs}
+
+{gotoIndex}
+
+=== H - N
+* {high_seq_cached}
+* {high_seq_feed}
+* {high_seq_stable}
+* {import_cancel_cas}
+* {import_count}
+* {import_error_count}
+* {import_feed}
+* {import_high_seq}
+* {import_partitions}
+* {import_processing_time}
+* {max_pending}
+* {num_access_errors}
+* {num_access_errors}
+* {num_active_channels}
+* {num_doc_reads_blip}
+* {num_doc_reads_rest}
+* {num_doc_writes}
+* {num_docs_rejected}
+* {num_docs_rejected}
+* {num_goroutines}
+* {num_pull_repl_active_continuous}
+* {num_pull_repl_active_one_shot}
+* {num_pull_repl_caught_up}
+* {num_pull_repl_since_zero}
+* {num_pull_repl_total_continuous}
+* {num_pull_repl_total_one_shot}
+* {num_replications_active}
+* {num_replications_total}
+* {num_skipped_seqs}
+
+{gotoIndex}
+
+=== P - Z
+
+* {pending_seq_len}
+* {per_db}
+* {per_replication}
+* {process_cpu_percent_utilization}
+* {process_memory_resident}
+* {propose_change_count}
+* {propose_change_time}
+* {pub_net_bytes_recv}
+* {pub_net_bytes_sent}
+* {request_changes_count}
+* {request_changes_time}
+* {resource_utilization}
+* {rev_cache_bypass}
+* {rev_cache_hits}
+* {rev_cache_misses}
+* {rev_processing_time}
+* {rev_send_count}
+* {rev_send_latency}
+* {security}
+* {sequence_assigned_count}
+* {sequence_get_count}
+* {sequence_incr_count}
+* {sequence_released_count}
+* {sequence_reserved_count}
+* {sgr_active}
+* {sgr_docs_checked_sent}
+* {sgr_num_attachment_bytes_transferred}
+* {sgr_num_attachments_transferred}
+* {sgr_num_docs_failed_to_push}
+* {sgr_num_docs_pushed}
+* {shared_bucket_import}
+* {skipped_seq_len}
+* {sync_function_count}
+* {sync_function_time}
+* {syncgateway}
+* {system_memory_total}
+* {total_auth_time}
+* {total_auth_time}
+* {Views}
+* {warn_channels_per_doc_count}
+* {warn_count}
+* {warn_grants_per_doc_count}
+* {warn_xattr_size_count}
+* {write_processing_time}
+
+{gotoIndex}
