@@ -38,7 +38,8 @@ include::partial$_attributesLocal.adoc[]
 :chan_cache_channels_added: {xref-cb-config}chan_cache_channels_added[chan_cache_channels_added]
 :chan_cache_channels_evicted_inactive: {xref-cb-config}chan_cache_channels_evicted_inactive[chan_cache_channels_evicted_inactive]
 :chan_cache_channels_evicted_nru: {xref-cb-config}chan_cache_channels_evicted_nru[chan_cache_channels_evicted_nru]
-:cache_compact_count: {xref-cb-config}cache_compact_count[cache_compact_count]
+:chan_cache_compact_count: {xref-cb-config}chan_cache_compact_count[chan_cache_compact_count]
+:chan_cache_compact_time: {xref-cb-config}chan_cache_compact_time[chan_cache_compact_time]
 :chan_cache_hits: {xref-cb-config}chan_cache_hits[chan_cache_hits]
 :chan_cache_max_entries: {xref-cb-config}chan_cache_max_entries[chan_cache_max_entries]
 :chan_cache_misses: {xref-cb-config}chan_cache_misses[chan_cache_misses]
@@ -116,6 +117,12 @@ include::partial$_attributesLocal.adoc[]
 :deltas_sent: {xref-cb-config}deltas_sent[deltas_sent]
 :gsi_views: {xref-cb-config}gsi_views[gsi_views]
 :GSIs: {xref-cb-config}gsi[GSIs]
+:query_name_count: {xref-cb-config}query-name_count[{query name}_count]
+:query_name_error_count: {xref-cb-config}query-name_error_count[{query name}_error_count]
+:query_name_time: {xref-cb-config}query-name_time[{query name}_time]
+:design_doc_name_view_name_count: {xref-cb-config}design-doc-name-view-name_count[{design doc name}.{view name}_count]
+:design_doc_name_view_name_error_count: {xref-cb-config}design-doc-name-view-name_error_count[{design doc name}.{view name}_error_count]
+:design_doc_name_view_name_time: {xref-cb-config}design-doc-name-view-name_time[{design doc name}.{view name}_time]
 :views: {xref-cb-config}views[Views (Design doc or view)]
 :num_access_errors: {xref-cb-config}num_access_errors[num_access_errors]
 :num_docs_rejected: {xref-cb-config}num_docs_rejected[num_docs_rejected]
@@ -203,7 +210,8 @@ The statistics detailed in this schema are reset at each node restart; that is t
         "{chan_cache_channels_added}": 0,
         "{chan_cache_channels_evicted_inactive}": 0,
         "{chan_cache_channels_evicted_nru}": 0,
-        "{cache_compact_count}": 0,
+        "{chan_cache_compact_count}": 0,
+        "{chan_cache_compact_time}": 0,
         "{chan_cache_hits}": 0,
         "{chan_cache_max_entries}": 0,
         "{chan_cache_misses}": 0,
@@ -286,10 +294,13 @@ The statistics detailed in this schema are reset at each node restart; that is t
       },
       "{gsi_views}": {
         "{GSIs}": 0,
+          "{query_name_count}": 0,
+          "{query_name_error_count}": 0,
+          "{query_name_time}": 0,
         "{Views}": 0,
-        "{num_access_errors}": 0,
-        "{num_docs_rejected}": 0,
-        "{total_auth_time}": 0
+          "{design_doc_name_view_name_count}": 0,
+          "{design_doc_name_view_name_error_count}": 0,
+          "{design_doc_name_view_name_time}": 0,
       },
       "{security}": {
         "{auth_failed_count}": 0,
@@ -638,19 +649,19 @@ The total number of one-shot pull replications.
 
 ==== request_changes_count
 Description::
-The total number of _changes requested.
+The total number of changes requested.
 Use Case::
-This metric can be used to calculate the latency of _changes requests:
+This metric can be used to calculate the latency of requested changes:
 +
-`_changes request latency` = `{request_changes_time}` / `{request_changes_count}`
+`changes request latency` = `{request_changes_time}` / `{request_changes_count}`
 
 ==== request_changes_time
 Description::
 
 Use Case::
-This metric can be used to calculate the latency of _changes requests:
+This metric can be used to calculate the latency of requested changes:
 +
-`_changes request latency` = `{request_changes_time}` / `{request_changes_count}`
+`changes request latency` = `{request_changes_time}` / `{request_changes_count}`
 
 ==== rev_processing_time
 Description::
@@ -716,7 +727,7 @@ The total number of documents pushed.
 
 ==== propose_change_count
 Description::
-The total number of _changes and-or proposeChanges messages processed since node start-up.
+The total number of changes and-or proposeChanges messages processed since node start-up.
 
 Use Case::
 The {propose_change_count} stat can be useful when:
@@ -724,7 +735,7 @@ The {propose_change_count} stat can be useful when:
 * {empty}
 +
 --
-Assessing the number of redundant change requests being pushed by the client.
+Assessing the number of redundant requested changes being pushed by the client.
 
 Do this by comparing the {propose_change_count} value with the number of actual writes {num_doc_writes}, which could indicate that clients are pushing changes already known to Sync Gateway.
 --
@@ -734,10 +745,10 @@ NOTE: P2P synchronizations will typically show a higher incidences of rejected p
 
 ==== propose_change_time
 Description::
-The total time spent processing _changes and/or proposeChanges messages.
+The total time spent processing changes and/or proposeChanges messages.
 
 Use Case::
-The {propose_change_time} stat can be useful in diagnosing push replication issues arising from potential bottlenecks _changes and-or proposeChanges processing.
+The {propose_change_time} stat can be useful in diagnosing push replication issues arising from potential bottlenecks changes and-or proposeChanges processing.
 
 Contraints::
 The {propose_change_time} is not included in the {write_processing_time}.
@@ -746,7 +757,7 @@ The {propose_change_time} is not included in the {write_processing_time}.
 Description::
 The total number of times that the sync_function is evaluated.
 Use Case::
-The {sync_function_count_ stat is useful in assessing the usage of the sync_function, when used in conjunction with the  {sync_function_time}.
+The {sync_function_count_ stat is useful in assessing the usage of the sync_function, when used in conjunction with the {sync_function_time}.
 
 ==== sync_function_time
 Description::
@@ -782,9 +793,9 @@ The total number of skipped sequences abandoned, based on `cache.channel_cache.m
 ==== cache_feed
 Description::
 Contains low level dcp stats:
-* dcp_backfill_expected - the expected number of sequences in backfill
-* dcp_backfill_completed - the number of backfill items processed
-* dcp_rollback_count - the number of DCP rollbacks.
+* `dcp_backfill_expected` - the expected number of sequences in backfill
+* `dcp_backfill_completed` - the number of backfill items processed
+* `dcp_rollback_count` - the number of DCP rollbacks.
 
 ==== crc32c_match_count
 Description::
@@ -949,18 +960,9 @@ The total number of revisions sent to clients as deltas.
 
 ==== GSIs
 
-{query name}_count::
-The total number of queries performed.
+The GSI metrics are defined in this section, where {query name} is a placeholder representing a Valid Query Name from this list:
 
-{query name}_error_count::
-The total number of errors occurred performing query.
-
-{query name}_time::
-The total time taken to perform queries.
-
-Where {query name} is a placeholder representing a Valid Query Name, as defined below:
-
-.Valid Query Names
+Valid Query Names::
 * access
 * roleAccess
 * channels
@@ -972,22 +974,28 @@ Where {query name} is a placeholder representing a Valid Query Name, as defined 
 * resync
 * allDocs
 
+==== {query name}_count
+Description::
+The total number of queries performed.
+
+===== {query name}_error_count
+Description::
+The total number of errors that occurred when performing the query.
+
+===== {query name}_time
+Description::
+The total time taken to perform queries.
+
 ==== Views
 
-{design doc name}.{view  name}_count::
-The total number of view queries performed
-{design doc name}.{view  name}_error_count::
-The total number of errors occurred performing query
-{design doc name}.{view  name}_time::
-The total time taken to perform view query
+The View metrics are defined in this section, where {design doc name} and {view name} are placeholders representing a Valid Design Doc Name and a Valid View Name, as defined in these lists:
 
-Where {design doc name} and {view name} are placeholders representing a Valid Design Doc Name and a Valid View Name, as defined below:
-
-.Valid Design Doc Names
+Valid Design Doc Names::
 * sync_gateway
 * sync_housekeeping
 
-.Valid View Names
+
+Valid View Names::
 * principals
 * channels
 * access
@@ -998,6 +1006,19 @@ Where {design doc name} and {view name} are placeholders representing a Valid De
 * import
 * sessions
 * tombstones
+
+===== {design doc name}.{view name}_count
+Description::
+The total number of view queries performed.
+
+===== {design doc name}.{view name}_error_count
+Description::
+The total number of errors that occurred when performing the query.
+
+===== {design doc name}.{view name}_time
+Description::
+The total time taken to perform the view query.
+
 
 === Security
 
@@ -1082,7 +1103,7 @@ Whether the replication is active at this time.
 === sgr_docs_checked_sent
 Description::
 The total number of documents checked for changes since replication started.
-This represents the number of potential _change notifications pushed by Sync Gateway.
+This represents the number of potential change notifications pushed by Sync Gateway.
 
 Constraints::
 This is not necessarily the number of documents pushed, as a given target might already have the change.
