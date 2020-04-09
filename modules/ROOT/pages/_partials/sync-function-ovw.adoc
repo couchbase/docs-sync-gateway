@@ -1,0 +1,15 @@
+// Inclusion for use in master topics
+The Sync Function is a JavaScript function whose source code is stored in the Sync Gateway's database configuration file. You can learn more about this property ($db.sync) in the Configuration Schema Reference (see: xref:config-properties.adoc#databases-foo_db-sync[databases.$db.sync] property).
+
+The sync function is called every time a new revision/update is made to a document, and the changes to channels and access made by the sync function are _tied to that revision_.
+If the document is later updated, the sync function will be called again on the new revision, and the new channel assignments and user/channel access _replace_ the ones from the first call.
+
+It can do the following things:
+
+- Validate documents -- see: xref:write-access.adoc#data-validation[Write Access -- data validation]
+- Authorize changes -- see: xref:write-access.adoc#write-access[Write Access -- authorize the change]
+- Grant user access to channels -- see: xref:read-access.adoc#add-access[Read Access -- add access]
+- Assign documents to channels -- see: xref:sync-gateway-channels.adoc#add-to-channel[Sync channels -- add to channel]
+
+For simple applications it might be the only server-side code you need to write.
+For more complex applications it is still a primary touchpoint for managing data routing and access control.

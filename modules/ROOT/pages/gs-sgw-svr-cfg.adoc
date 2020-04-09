@@ -1,0 +1,88 @@
+= Configure Server for Sync Gateway
+:page-layout: article
+include::partial$_attributes-local.adoc[]
+:xref-pfx: {xref-pfx-sgw}:
+
+:sg_download_link: {url-package-downloads}/{version-full}/
+:sg_package_name: couchbase-sync-gateway-community_{version-full}_x86_64
+:sg_package_name_ee: couchbase-sync-gateway-enterprise_{version-full}_x86_64
+:sg_accel_package_name: couchbase-sync-gateway-enterprise_{version-full}_x86_64
+:btn-pfx: Select btn:
+
+Assuming you have an operational Couchbase Server deployment then:
+
+== STEP 1 -- Create a bucket
+
+We will use this bucket to test the deployment of Sync Gateway, later in the Getting Started section.
+
+. Login to Couchbase Server's Admin Console
+.. Go to `+http://localhost:8091+`
+.. Enter your administrator credentials
+
+. Within the Admin Console's toolbar,
+.. Select the *Buckets* tab
+.. btn:[Add Bucket] to continue
++
+image::cb-create-bucket.png[]
+.. In the pop-up window, enter *getting-started-bucket* for the *name* and click *Add Bucket*.
+You can leave the other options to their defaults.
++
+image::cb-create-bucket-popup.png[]
+
+== STEP 2 -- Create RBAC user
+In order for Sync Gateway to connect to Couchbase Server, you must create an RBAC user.
+The RBAC user credentials will be used in a later section to start Sync Gateway.
+
+. Open the *Security* tab and click the *Add User* button.
++
+image::create-user.png[]
+
+. The steps to create the RBAC user differ slightly depending on the version of Couchbase Server that you have installed. We explain the differences below.
++
+[{tabs}]
+====
+Couchbase Server 5.5 or above::
++
+In the pop-up window, provide a *Username* (`sync_gateway`) and *Password* (`password`).
++
+These credentials are used by Sync Gateway to connect to Couchbase Server (see: {xref-pfx}gs-sgw-config.adoc#configure-sync-gateway[Configure Sync Gateway]).
++
+You must grant these RBAC roles to the user(as shown on the image below):
+
+* *Application Access*
+* *Read Only Admin* .
++
+image::user-settings-5-5.png[]
+
+Couchbase Server 5.1::
++
+In the pop-up window, provide a *Username* and *Password*, those credentials will be used by Sync Gateway to connect later on.
+Next, you must grant RBAC roles to that user.
+If you are using Couchbase Server 5.1, you must enable the *Bucket Full Access* and *Read Only Admin* roles.
++
+image::user-settings.png[]
+====
+
+== STEP 3 -- Set-up Network access
+
+When installing Couchbase Server on the cloud, ensure that network permissions (or firewall settings) allow incoming connections to Couchbase Server ports.
+
+Include::partials$sgw-svr-ports.adoc[]
+
+If this is not done, the Couchbase Server node can experience difficulty joining a cluster.
+
+You can refer to the {xref-pfx-svr}install:install-ports.adoc
+[Couchbase Server Network Configuration] guide to see the full list of available ports and their associated services.
+
+== Related Information
+
+.Next Steps
+* {xref-pfx}gs-sgw-install.adoc[Install Sync Gateway]
+
+.Learn more:
+* {xref-pfx}shared-bucket-access.adoc[About data synchronization]
+* {xref-pfx}conf-properties.adoc[Config Schema Reference]
+
+.Do more:
+** _Import Filters_: To use Sync Gateway on clusters with a large amount of data you can configure an _import filter_ (see: {xref-pfx}ad-sgw-cfg-import-filter.adoc[Configure import filter]).
+** _Sync Functions_: For finer gained control of document access, you can  {xref-pfx}ad-sgw-cfg-sync-function.adoc[Configure Sync Function].
