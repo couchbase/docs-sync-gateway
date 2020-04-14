@@ -1,74 +1,23 @@
-= Getting Started
-include::partial$_attributesLocal.adoc[]
-:idprefix:
-:idseparator: -
+= Installing Sync Gateway
+:page-aliases: getting-started
+:page-type: procedural
+include::partial$_attributes-local.adoc[]
+:xref-pfx: {xref-pfx-sgw}:
 
 :sg_download_link: {url-package-downloads}/{version-full}/
 :sg_package_name: couchbase-sync-gateway-community_{version-full}_x86_64
 :sg_package_name_ee: couchbase-sync-gateway-enterprise_{version-full}_x86_64
 :sg_accel_package_name: couchbase-sync-gateway-enterprise_{version-full}_x86_64
 
-== Install Couchbase Server
+[abstract]
+This content explains how to install a Sync Gateway instance
 
-Before installing Sync Gateway, you must install and configure Couchbase Server.
-
-{url-downloads}[Download] and install Couchbase Server.
-
-=== Creating a bucket
-
-. Open the Couchbase Server Admin Console on `+http://localhost:8091+` and log on using your administrator credentials.
-. In the toolbar, select the *Buckets* tab and click the *Add Bucket* button.
-+
-image::cb-create-bucket.png[]
-. In the pop-up window, enter *getting-started-bucket* for the *name* and click *Add Bucket*.
-You can leave the other options to their defaults.
-+
-image::cb-create-bucket-popup.png[]
-
-=== Creating an RBAC user
-
-In order for Sync Gateway to connect to Couchbase Server, you must create an RBAC user.
-The RBAC user credentials will be used in a later section to start Sync Gateway.
-
-. Open the *Security* tab and click the *Add User* button.
-+
-image::create-user.png[]
-
-. The steps to create the RBAC user differ slightly depending on the version of Couchbase Server that you have installed. We explain the differences below.
-+
-[{tabs}]
-====
-Couchbase Server 5.5 or above::
-+
-In the pop-up window, provide a *Username* (`sync_gateway`) and *Password* (`password`).
-Those credentials will be used by Sync Gateway to connect to Couchbase Server (in the <<configure-sync-gateway>> section).
-You must grant RBAC roles to that user.
-If you are using Couchbase Server 5.5 or above, you must enable the *Application Access* and *Read Only Admin* roles as shown on the image below.
-+
-image::user-settings-5-5.png[]
-
-Couchbase Server 5.1::
-+
-In the pop-up window, provide a *Username* and *Password*, those credentials will be used by Sync Gateway to connect later on.
-Next, you must grant RBAC roles to that user.
-If you are using Couchbase Server 5.1, you must enable the *Bucket Full Access* and *Read Only Admin* roles.
-+
-image::user-settings.png[]
-====
-
-=== Network access
-
-If you're installing Couchbase Server on the cloud, make sure that network permissions (or firewall settings) allow incoming connections to Couchbase Server ports.
-In a typical mobile deployment on premise or in the cloud (AWS, Red Hat, etc.), the following ports must be opened on the host for Couchbase Server to operate correctly: 8091, 8092, 8093, 8094, 11207, 11210, 11211, 18091, 18092, 18093.
-You must verify that any firewall configuration allows communication on the specified ports.
-If this is not done, the Couchbase Server node can experience difficulty joining a cluster.
-You can refer to the xref:server:install:install-ports.adoc[Couchbase Server Network Configuration] guide to see the full list of available ports and their associated services.
-
-== Install Sync Gateway
+.Preparatory Steps
+NOTE: Before starting ensure you have read and actioned the in steps in {xref-pfx}gs-sgw-prereqs.adoc[]
 
 Install Sync Gateway on the operating system of your choice:
 
-=== Enterprise Edition
+== Enterprise Edition
 
 [{tabs}]
 ====
@@ -271,9 +220,7 @@ The configuration file and logs are located in `/Users/sync_gateway`.
 --
 ====
 
-The following sections describe how to install and configure Sync Gateway to run with Couchbase Server.
-
-=== Community Edition
+== Community Edition
 
 [{tabs}]
 ====
@@ -474,95 +421,16 @@ The configuration file and logs are located in `/Users/sync_gateway`.
 --
 ====
 
-== Configure Sync Gateway
+== Related Information
 
-The following steps explain how to connect Sync Gateway to the Couchbase Server instance.
+.Next Steps
+* {xref-pfx}gs-sgw-config.adoc[Configure Sync Gateway]
 
-* Open a new file called *sync-gateway-config.json* with the following.
-+
-[{tabs}]
-====
-Default::
-+
---
-[source,javascript]
-----
-include::{examplesdir}/getting-started/sync-gateway-config.json[]
-----
-Configuration properties:
+.Learn more:
+* {xref-pfx}shared-bucket-access.adoc[About data synchronization]
+* {xref-pfx}sync-function.adoc[About Sync Functions]
+* {xref-pfx}config-properties.adoc[Config Schema Reference]
 
-<1> The user's username that you created on the Couchbase Server Admin Console.
-<2> The user's password that you created on the Couchbase Server Admin Console.
-<3> The xref:shared-bucket-access.adoc[shared bucket access] feature allows Couchbase Server SDKs to also perform operations on this bucket.
-<4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with xref:indexing.adoc[GSI/N1QL indexing].
-If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
---
-
-With Import Filter::
-+
---
-For clusters with a large amount of data, the initial import process can take considerable time to complete.
-Therefore, to get started with a cluster which contains a large number of pre-existing documents, we recommend to use an `import_filter` to reduce the initial import processing time.
-[source,javascript]
-----
-include::{examplesdir}/getting-started/sync-gateway-config-import-filter.json[]
-----
-Configuration properties:
-
-<1> The user's username that you created on the Couchbase Server Admin Console.
-<2> The user's password that you created on the Couchbase Server Admin Console.
-<3> The xref:shared-bucket-access.adoc[shared bucket access] feature allows Couchbase Server SDKs to also perform operations on this bucket.
-<4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with xref:indexing.adoc[GSI/N1QL indexing].
-If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
-<5> Only import documents which have a `type` property equal to `mobile`.
---
-====
-* Start Sync Gateway from the command line, or if Sync Gateway is running in a service replace the configuration file and restart the service.
-+
-[source,bash]
-----
-~/Downloads/couchbase-sync-gateway/bin/sync_gateway ~/path/to/sync-gateway-config.json
-----
-
-* Run the application where Couchbase Lite is installed.
-
-* To verify that documents have been replicated, you can:
-** Monitor the Sync Gateway sequence number returned by the database endpoint (xref:sync-gateway::rest-api.adoc#/database/get\__db__[`+GET /{db}/+`]).
-The sequence number increments for every change that happens on the Sync Gateway database.
-** Query a document by ID on the Sync Gateway REST API (xref:sync-gateway::rest-api.adoc#/document/get\__db___doc_[`+GET /{db}/{id}+`]).
-** Query a document from the Query Workbench on the Couchbase Server Console.
-
-== Network Ports
-
-Sync Gateway uses specific ports for communication with the outside world, mostly Couchbase Lite databases replicating to and from Sync Gateway.
-The following table lists the ports used for different types of Sync Gateway network communication:
-
-[cols="1,3"]
-|===
-|Port |Description
-
-|4984
-|Public port.
-External HTTP port used for replication with Couchbase Lite databases and other applications accessing the REST API on the Internet.
-
-The Public REST API is used for client replication. The default port for the Public REST API is 4984.
-
-|4985
-|Admin port.
-Internal HTTP port for unrestricted access to the database and to run administrative tasks.
-
-The Admin REST API is used to administer user accounts and roles. It can also be used to look at the contents of databases in superuser mode. The default port for the Admin REST API is 4985. By default, the Admin REST API is reachable only from localhost for safety reasons.
-|===
-
-The APIs are accessed on different TCP ports, which makes it easy to expose the Public REST API on port 4984 to endpoints while keeping the Admin REST API on port 4985 secure behind your firewall.
-
-If you want to change the ports, you can do that in the configuration file.
-
-* To change the Public REST API port, set the `interface` property in the configuration file.
-* To change the Admin REST API port, set the `adminInterface` property in the configuration file.
-
-The value of the property is a string consisting of a colon followed by a port number (for example, `:4985`).
-You can also prepend a host name or numeric IP address before the colon to bind only to the network interface with that address.
-
-As a useful special case, the IP address 127.0.0.1 binds to the loopback interface, making the port unreachable from any other host.
-This is the default setting for the admin interface.
+.Do more:
+** _Import Filters_: To use Sync Gateway on clusters with a large amount of data you can configure an _import filter_ (see: {xref-pfx}ad-sgw-cfg-import-filter.adoc[Configure import filter]).
+** _Sync Functions_: For finer gained control of document access, you can  {xref-pfx}ad-sgw-cfg-sync-function.adoc[Configure Sync Function].

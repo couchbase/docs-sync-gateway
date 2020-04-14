@@ -1,3 +1,4 @@
+
 {
   "log": ["*"],
   "databases": {
@@ -11,7 +12,12 @@
       "num_index_replicas": 0, // <4>
       "users": {
         "GUEST": { "disabled": false, "admin_channels": ["*"] }
-      }
+      },
+      "sync": `function (doc, oldDoc) { //<5>
+        if (doc.sdk) {
+          channel(doc.sdk);
+        }
+      }`
     }
   }
 }
