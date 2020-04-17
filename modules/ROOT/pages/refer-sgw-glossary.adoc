@@ -1,0 +1,70 @@
+= Glossary
+:page-role: -toc
+:page-layout: article
+:page-aliases: glossary
+:page-content-type: reference
+include::partial$_attributesLocal.adoc[]
+
+// Glosary entry name tag format:
+//  {component} = sgw-
+//  {namespace} = eg. access-control (acc) replication (repl), api, conflicts (conf), indexing (ndx) etc
+//  {sub-space} = eg. user, document, role, channel, sync
+//  {name} = free-from
+
+<<A>> | <<B>> | <<C>> | <<D>> | <<E>> | <<F>> | <<G>> | <<H>> | <<I>> | <<J>> | <<K>> | <<L>> | <<M>> | <<N>> | <<O>> | <<P>> | <<Q>> | <<R>> | <<S>> | <<T>> | <<U>> | <<V>> | <<W>> | <<X>> | <<Y>> | <<Z>>
+
+== A
+
+Automatic conflict resolution::
+// tag::sgw-conf-res-auto-resolution[]
+The process by which conflicts are automatically resolved by the system.
+Optional feature in xref:couchbase-lite::swift.adoc#handling-conflicts[Couchbase Lite 2.0 and above].
+// end::sgw-conf-res-auto-resolution[]
+
+== L
+
+Leaf revision::
+// tag::sgw-conf-res-leaf-revision[]
+A Leaf revision is the last Document Revision in a series of changes.
+Documents may have multiple Leaf Revisions (aka Conflict Revisions) due to concurrent updates.
+// end::sgw-conf-res-leaf-revision[]
+
+== N
+
+No conflicts mode::
+// tag::sgw-conf-res-no-conflicts[]
+No conflicts mode is the process by which write operations that would result in a conflict are rejected by the system.
+It is an optional feature in xref:couchbase-lite::swift.adoc#handling-conflicts[Couchbase Lite 2.0 and above] and xref:config-properties.adoc#databases-foo_db-allow_conflicts[Sync Gateway 2.0 and above].
+// end::sgw-conf-res-no-conflicts[]
+
+
+== R
+
+Revision pruning::
+// tag::sgw-conf-res-revision-pruning[]
+Revision Pruning is the process that deletes the metadata and/or JSON bodies associated with old non-leaf revisions.
+Leaf revisions are not impacted.
+// end::sgw-conf-res-revision-pruning[]
+
+== T
+
+Tombstone revision::
+// tag::sgw-conf-res-tombstone[]
+A Tombstone Revision is a document revision that contains only the document ID, a revision ID and the `_deleted: true` key value pair. It acts as the record of a deleted item.
++
+Tombstone revisions are created to allow all devices to see that a document has been deleted - particularly in the case of devices that may not be online continuously and therefore not syncing regularly.
++
+[source,json]
+----
+{
+  "_deleted": true,
+  "_id": "foobar",
+  "_rev": "3-db962c6d93c3f1720cc7d3b6e50ac9df"
+}
+----
+Mentioned in:
+* xref:managing-tombstones.adoc[Managing Tombstones]
+* xref:shared-bucket-access.adoc#metadata-purge-interval[Metadata Purge Interval]
+* xref:config-properties.adoc#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access]
+* xref:server:learn:buckets-memory-and-storage/storage.adoc#tombstones[Server Tombstones]
+// end::sgw-conf-res-tombstone[]
