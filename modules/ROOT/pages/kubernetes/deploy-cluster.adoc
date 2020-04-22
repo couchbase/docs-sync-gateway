@@ -1,437 +1,97 @@
-= Deploy Sync Gateway Clusters to Kubernetes
+= Deploying a Sync Gateway Cluster
+//Connect Sync Gateway to a Server Cluster Deployed with CAO 1.2.x
 include::partial$_attributes-local.adoc[]
-:hr: '''
+:page-status: beta
+:page-content: procedural
 :version-cao-1-x: 1.2
 :version-sgw: {version}
 :version-cbl: {version}
 :window-new: window=_blank
 :window-same: window=none
-:url-k8-nmspc-wlk-thru: https://kubernetes.io/docs/tasks/administer-cluster/namespaces-walkthrough/
-:url-k8-storage-vols: https://kubernetes.io/docs/concepts/storage/volumes/
-:url-k8-cpu-rsr-ass: https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/#if-you-do-not-specify-a-cpu-limit
-:url-k8-wkld-ctrl-deploy: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
-:url-k8-cfg-pod-cont: https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/
-:url-k8-networking-svc: https://kubernetes.io/docs/concepts/services-networking/service
-:url-k8-minikube: https://github.com/kubernetes/minikube
-:url-k8-cfg-secret: https://kubernetes.io/docs/concepts/configuration/secret
-:url-k8-load-balancer: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer
-:xref-comp-cao: xref:{version-cao-1-x}@operator
-:xref-pg-cao-install-k8: {xref-comp-cao}::install-kubernetes.adoc
-:xref-pg-cao-cb-cluster-cfg: {xref-comp-cao}::couchbase-cluster-config.adoc
-:xref-pg-gs-sgw-svr-cfg: xref:{version-sgw}@gs-sgw-svr-cfg.adoc
-:xref-pg-shared-bkt-access: xref:{version-sgw}@shared-bucket-access.adoc
-:xref-create-an-rbac-user: {xref-pg-gs-sgw-svr-cfg}#step-2create-rbac-user[Create an RBAC User, {window-new}]
-:xref-exposed-features: {xref-pg-cao-cb-cluster-cfg}#exposedfeatures[ Exposed Features, {window-new}]
-:xref-shared-bkt-access: {xref-pg-shared-bkt-access}[Shared Bucket Access, {window-new}]
+
+// CAO cross-reference destinations
+:cao-pg-cluster-cfg: couchbase-cluster-config.adoc
+:cao-pg-install-k8s: install-kubernetes.adoc
+
+:cao-pg-manage-sgw: tutorial-sync-gateway-manage.adoc
+:cao-pg-clients-sgw: tutorial-sync-gateway-clients.adoc
+:cao-pg-connect-sgw: tutorial-sync-gateway.adoc
+:cao-pg-connect-sgw--prereqs: {cao-pg-connect-sgw}#prerequisites
+:cao-pg-connect-sgw--deploy-sgw: {cao-pg-connect-sgw}#deploying-sync-gateway
+:cao-pg-connect-sgw--cfg-rbac-user-sgw: {cao-pg-connect-sgw}#configuring-rbac-user-for-sync-gateway
+:cao-pg-connect-sgw--enable-tls: {cao-pg-connect-sgw}#enabling-tls-connectivity-to-couchbase-server
+
+// SGW cross-reference targets
+:sgw-dir-k8s: kubernetes/
+
+:sgw-pg-cfg-props: config-properties.adoc
+:sgw-pg-cfg-props--import-docs: {sgw-pg-cfg-props}#databases-foo_db-import_docs
+
+:sgw-pg-expose: {sgw-dir-k8s}expose-cluster.adoc
+:sgw-pg-deploy: {sgw-dir-k8s}deploy-cluster.adoc
+:sgw-pg-gs-server-cfg: gs-sgw-svr-cfg.adoc
+:sgw-pg-manage: {sgw-dir-k8s}manage-cluster.adoc
+:sgw-pg-icr-replication: running-replications.adoc
+:sgw-pg-shared-bkt-access: shared-bucket-access.adoc
+:cao-pg-cluster-cfg--exposed-features: {cao-pg-cluster-cfg}#exposedfeatures
+
+:sgw-pg-gs-server-cfg--create-rbac-user: {sgw-pg-gs-server-cfg}#step-2create-rbac-user
+
+// XREF Prefixes
+:xref-pfx-sgw: {xref-pfx-sgw}:
+:xref-pfx-cbl: {xref-pfx-cbl}:
+:xref-pfx-svr: {xref-pfx-svr}:
+:xref-pfx-cao: xref:2.0@{component-cao}::
+
+// Complete XREFS
+
+:xref-sgw-pg-icr-replication: {xref-pfx-sgw}{sgw-pg-icr-replication}[Inter Cluster Replication]
+:xref-cao-pg-manage-sgw-cluster: {xref-pfx-cao}{cao-pg-manage-sgw}[Manage a Sync Gateway Cluster, {window-new}]
+:xref-cao-pg-expose-sgw-cbl: {xref-pfx-cao}{cao-pg-clients-sgw}[Expose Sync Gateway to Couchbase Lite clients, {window-new}]
+:xref-cao-pg-connect-sgw: {xref-pfx-cao}{cao-pg-connect-sgw}[Connect Sync Gateway to a Couchbase Cluster, {window-new}]
+:xref-cao-pg-connect-sgw--cfg-rbac-user-sgw: {xref-pfx-cao}{cao-pg-connect-sgw--cfg-rbac-user-sgw}[Configuring RBAC User for Sync Gateway, {window-new}]
+:xref-cao-pg-connect-sgw--enable-tls: {xref-pfx-cao}{cao-pg-connect-sgw--enable-tls}[Enabling TLS Connectivity to Couchbase Server, {window-new}]
+:xref-cao-pg-connect-sgw--prereqs: {xref-pfx-cao}{cao-pg-connect-sgw--prereqs}[Connecting SGW to Server (Prerequisites), {window-new}]
+:xref-cao-pg-connect-sgw--deploy-sgw: {xref-pfx-cao}{cao-pg-connect-sgw--deploy-sgw}[Deploying Sync Gateway, {window-new}]
+
+:xref-sgw-pg-gs-server-cfg--create-rbac-user: {xref-pfx-sgw}{sgw-pg-gs-server-cfg--create-rbac-user}[Create an RBAC User, {window-new}]
+:xref-sgw-pg-cfg-props: {xref-pfx-sgw}{sgw-pg-cfg-props}[Configuration Schema Reference]
+:xref-sgw-pg-cfg-props--import-docs: {xref-pfx-sgw}{sgw-pg-cfg-props--import-docs}[databases.$db.import_docs]
+:xref-cao-pg-cluster-cfg--exposed-features: {xref-pfx-cao}{cao-pg-cluster-cfg--exposed-features}[Exposed Features, {window-new}]
+
+
+
 
 [abstract]
-Deploy Sync Gateway to Kubernetes and connect with a Couchbase Server instance deployed using CAO {version-cao-1-x}.
+Provides access to instruction on deploying a Sync Gateway cluster on Kubernetes and connecting with a Couchbase Server cluster
 
+== How to
 
-== Before Starting
-include::partial$cao2.0banner.adoc[]
+Follow the instructions in this tutorial to connect Sync Gateway deployed on kubernetes to a Couchbase Server cluster -- {xref-cao-pg-connect-sgw}.
+See also the prerequisites in the tutorial's {xref-cao-pg-connect-sgw--prereqs} section.
 
-// * A Couchbase Server cluster already running on Kubernetes.
-// If you don't already have one, you can refer to xref:{version_cao}@operator::install-kubernetes.adoc[this guide, window=_blank] for instructions.
-* Ensure you have access to a Couchbase Server RBAC user, which has  _application access_ privileges. Sync Gateway requires it to connect to the Couchbase Server.
+*If the Couchbase Server was deployed using Couchbase Autonomous Operater 1.2*, then the following deviations from those instructions apply:
+
+* You cannot configure Mutual TLS (mTLS, or two-way TLS) to connect to the Couchbase Server, although you _can_ use one-way TLS (see: the tutorial's {xref-cao-pg-connect-sgw--enable-tls} section).
+
+* If you are using RBAC users to connect, you need to create the sync gateway user as shown in {xref-sgw-pg-gs-server-cfg--create-rbac-user}.
 +
-Refer to {xref-create-an-rbac-user} for instructions on setting-up this _RBAC_ user.
+This user is referenced in the tutorial's {xref-cao-pg-connect-sgw--cfg-rbac-user-sgw} section.
 
-* If you want to use {xref-exposed-features} on your Couchbase Server cluster, include the `client` option in the `exposedFeatures` list.
-This is necessary for Sync Gateway to connect to the client services so exposed.
-+
-If this feature is *not* required, simply remove the `exposedFeatures` section from the Couchbase Server configuration.
+== Related Information
 
+.Next Steps
+* {xref-cao-pg-connect-sgw--deploy-sgw}
 
-== About Import Nodes
-The Sync Gateway nodes in a cluster have a homogeneous configuration with the exception of import nodes, where the configuration differs slightly in both the _Sync Gateway_ and _Kubernetes Deployment Controller_ configuration files -- see xref:{version}@config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs].
+.Do More
+* {xref-cao-pg-expose-sgw-cbl}
+* {xref-cao-pg-manage-sgw-cluster}
 
+.Learn More
+* {xref-sgw-pg-icr-replication}
+* {xref-sgw-pg-cfg-props}
 
-.Sync Gateway 2.7
-[NOTE]
---
-This distinction between "regular" and "import" nodes is relevant only if you are deploying _Sync Gateway Community Edition_ or an _Enterprise Edition_ version less than 2.7.
+.Dive Deeper
+* Read more in our blog. See {url-cb-blog}couchbase-sync-gateway-on-kubernetes/[Deploy Sync Gateway Clusters on Kubernetes]
+* Checkout the {url-cb-forum--mobile}[Couchbase Forums]
 
-If you use _Enterprise Edition_ 2.7 and above, you can use the _Import Node_ configuration for all nodes in your cluster.
---
-
-Prior to Couchbase Mobile 2.7 {xref-shared-bkt-access}, it is recommended that (only) one Sync Gateway node in a cluster be configured for handling document import processing.
-
-_For high availability_: You can configure more than one Sync Gateway node in your cluster to be the import node, although it is strongly discouraged for multiple Sync Gateway nodes in the cluster to be configured (active) for import processing.
-
-//Replicator node:: if you are using inter-cluster replication using sg-replicate then there will be one designated replicator node whose configuration is different than the rest of the nodes.
-
-
-The following sections cover the deployment of regular and import Sync Gateway nodes. For Community Editions and Pre-2.7 Enterprise Editions you should follow these steps once for non-import nodes and once for the import node.
-
-== Step 1 - Create Kubernetes Secret
-In this section, you will create a {url-k8-cfg-secret}/[Kubernetes secret, {window-new}] from a new or existing Sync Gateway configuration.
-
-. Open the Sync Gateway configuration file corresponding to your deployment.
-+
-.No configuration file?
-[TIP]
---
-No problem -- use these sample configurations as a basis.
-
-|===
-| Regular Node | Import Node
-
-| link:{attachmentsdir}/kubernetes/sgw-config.json[sgw-config.json]
-| link:{attachmentsdir}/kubernetes/sgw-config-import.json[sgw-config-import.json]
-|===
---
-
-. Replace the `server` key with the addressable Couchbase Server hostname.
-+
-The following example shows the configuration file for a regular node.
-+
-[source,json]
-----
-{
-  "logging": {
-    "log_file_path": "/var/tmp/sglogs",
-    "console": {
-      "enabled": true,
-      "log_level": "info",
-      "log_keys": ["*"]
-    }
-  },
-  "databases": {
-    "db": {
-      "server": "cb-example-0000.cb-example.default.svc:8091", // <1>
-      "bucket": "default",
-      "username": "admin", // <2>
-      "password": "password",
-      "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
-      "allow_conflicts": false,
-      "revs_limit": 20,
-      "enable_shared_bucket_access": true
-    }
-  }
-}
-----
-<1> The server key should point to any pod in the Couchbase Server cluster, typically in the form:
-`CB_SERVER_POD.CB_SERVER_SERVICE_NAME.NAMESPACE.svc:8091`
-+
-<2> The username and password keys should match those defined in the <<before-starting>> section ({xref-create-an-rbac-user}) when you configured the Sync Gateway RBAC user.
-
-. Create the {url-k8-cfg-secret}/[Kubernetes Secret, {window-new}] from the appropriate Sync Gateway configuration file.
-+
-.Alternative Method
-[NOTE]
---
-You could use a {url-k8-cfg-pod-cont}[Kubernetes configMap, window=_blank] if security is not a concern ... but as Sync Gateway contains sensitive information, the recommendation is to pass it a secret created from the config file.
---
-
-+
-[{tabs}]
-====
-
-Import node::
-+
---
-
-To create a secret called `sgw-config-import` use:
-
-[source,console]
-----
-kubectl create secret generic sgw-config-import --from-file sgw-config-import.json
-----
-
-If successful, you will see the following.
-
-[source,console]
-----
-secret "sgw-config-import" created
-----
---
-Regular node::
-+
---
-To create a secret called `sgw-config` use:
-
-[source,console]
-----
- kubectl create secret generic sgw-config --from-file sgw-config.json
-----
-
-If successful, you will see the following.
-
-[source,console]
-----
-secret "sgw-config" created
-----
---
-
-====
-
-== Step 2 - Deploy Sync Gateway
-In this section you will deploy the Sync Gateway cluster using the configuration file created in <<step-1-create-kubernetes-secret>>.
-
-To do this, use {url-k8-wkld-ctrl-deploy}[Kubernetes Deployments, {window-new}].
-The _deployment_ configuration file enables you to define the number of Sync Gateway replicas and the other parameters identified below (in _Key to example_).
-
-. Open the _deployment_ configuration file corresponding to your node type.
-+
-|===
-| Regular Node | Import Node
-
-| link:{attachmentsdir}/kubernetes/sgw-deployment.yaml[sgw-deployment.yaml]
-| link:{attachmentsdir}/kubernetes/sgw-deployment-import.yaml[sgw-deployment-import.yaml]
-|===
-
-. Set your required _deployment_ configuration parameters.
-+
-.Deployment file for a regular node.
-[source,yaml]
-----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  name: sync-gateway # <1>
-spec:
-  replicas: 2 # <2>
-  template:
-    metadata:
-      labels:
-        app: sync-gateway
-    spec:
-      affinity: # <3>
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - sync-gateway
-            topologyKey: "kubernetes.io/hostname"
-      containers:
-        - name: sync-gateway
-          image: couchbase/sync-gateway:2.6.0-enterprise # <4>
-          args: ["/sync-gateway-config/sgw-config.json"] # <5>
-          volumeMounts: # <6>
-            - name: sgw-config-volume
-              mountPath: /sync-gateway-config
-              readOnly: true
-          env:
-            - name: GOMAXPROCS # <7>
-              value: "1"
-          resources:
-            requests:
-              cpu: 500m
-            limits:
-              cpu: 500m # <8>
-      volumes: # <9>
-        - name: sgw-config-volume
-          secret:
-            secretName: sgw-config
-----
-+
-*Key to example:*
-+
-<1> `metadata.name`: The name of the deployment is "sync-gateway".
-<2> `spec.replicas`: Deploy a maximum of two Sync Gateway replicas.
- are to be deployed.
-* For import node deployment, one node *is recommended*
-* If _high availability_ is important, you may want at least two Sync Gateway import nodes.
-But *note* this is not typically recommended because of the overhead of redundant import docs processing by multiple nodes
-//* For replicator node deployment, this *must* be 1 because there can be at most 1 Sync Gateway import node in a cluster.
-<3> `spec.template.spec.affinity`: Anti-affinity entry.
-* The "anti-affinity" setting will not schedule two Sync Gateway pods on the same node.
-This setting is recommended to enable high availability and to prevent "noisy neighbor" issues.
-* If you are on a test/development environment, you can remove this property to have all nodes on a single node.
-<4> `containers[].image`: Points to the docker image for Sync Gateway.
-<5> `containers[].args`: Points to the Sync Gateway configuration file named "sgw-config-working.json" which is mounted at the path specified via the `volumeMounts` config.
-If you are using the sample config files, this would be "sgw-config-import.json" for the import node.
-<6> `volumeMounts`: Specifies where to mount the volume into the container.
-<7> `GOMAXPROCS`: This GO runtime environment variable is used to limit the number of system threads that are allocated to Sync Gateway.
-<8> `containers[].resources.limits.cpu`: This is used to specify the CPU limit for the Sync Gateway pod.
-If you do not specify one, the Sync Gateway could spawn as many processes as CPU cores and potentially use up all CPU resources.
-We recommend a value of 2 but you should use what is suited for your environment.
-+
-Learn more about {url-k8-cpu-rsr-ass}[Kubernetes CPU resource assignment, {window-new}].
-+
-<9> `volumes`: Specifies what to mount.
-In our case, the "secret" with name "sgw-config" corresponding to the Sync Gateway configuration that was created in the previous step is mounted.
-+
-Learn more about {url-k8-storage-vols}/[Kubernetes Storage Volumes, {window-new}].
-
-. Deploy the Sync Gateway cluster using the _deployment_ configuration file created above.
-+
-[{tabs}]
-====
-Import node::
-+
---
-[source,console]
-----
-kubectl create -f sgw-deployment-import.yaml
-----
-
-If successful, you will see the following.
-
-[source,console]
-----
-deployment.extensions "sync-gateway" created
-----
---
-
-Regular node::
-+
---
-[source,console]
-----
-kubectl create -f sgw-deployment.yaml
-----
-
-If successful, you will see the following.
-
-[source,console]
-----
-deployment.extensions "sync-gateway" created
-----
---
-====
-
-. Check the status of the deployment until all the pods corresponding to the Sync Gateway are in the "Ready" state, with a status of "Running".
-+
-Do this using:
-+
-[source,console]
-----
-kubectl get pods --watch
-----
-+
-TIP: Use the `--watch` option to be asynchronously notified of updates to status of the pods instead of having to repeatedly run the command.
-+
-If successful, you will see a listing of the deployed pods.
-+
-In this sample output Couchbase Server and Sync Gateway pods are running in the same {url-k8-nmspc-wlk-thru}[namespace, {window-new}].
-In a production deployment, you may have Couchbase Server deployed on a separate namespace.
-+
-[source,console]
-----
-NAME                                 READY     STATUS    RESTARTS   AGE
-cb-example-0000                      1/1       Running   0          3d
-cb-example-0001                      1/1       Running   0          3d
-cb-example-0002                      1/1       Running   0          3d
-couchbase-operator-fd8db588b-9fzsw   1/1       Running   1          3d
-sync-gateway-7474f5df4b-c29xw        1/1       Running   2          18m
-sync-gateway-7474f5df4b-p98sq        1/1       Running   0          18m
-----
-+
-NOTE: Make sure that you have sufficient CPU resources on the node on which the pods are being deployed.
-Failure to do so will result in an "insufficient resource" exception when attempting to deploy the pods.
-
-== Step 3 - Deploy Load Balancer
-
-In a production deployment, you will likely have one or more Sync Gateway nodes fronted by a xref:{version}@load-balancer.adoc[load balancer].
-
-You will deploy the load balancer using the {url-k8-load-balancer}/[Kubernetes Load Balancer service, {window-new}].
-The load balancer service provides an externally accessible IP address and routes traffic to the right ports in the cluster.
-
-NOTE: Load balancers only work on  Cloud Environments (e.g. AWS, GCP etc).
-So if you are deploying on premise or using something like {url-k8-minikube}[minikube, {window-new}] for your test deployment, this option will not work.
-Please use a {url-k8-networking-svc}/[service, {window-new}] such  as NodePort or Ingress instead.
-
-Follow these steps to deploy a load balancer in front of the Sync Gateway cluster.
-
-. Create a new file called *sgw-load-balancer.yaml* with the following.
-+
-[source,yaml]
-----
-kind: Service
-apiVersion: v1
-metadata:
-  name: sgw-load-balancer <1>
-spec:
-  selector:
-    app: sync-gateway <2>
-  ports:
-  - protocol: TCP
-    port: 4984 <3>
-    targetPort: 4984
-  type: LoadBalancer
-----
-<1> `metadata.name`: The name of the load balancer is "sgw-load-balancer".
-<2> `spec.selector.app`: This value corresponds to the pods targeted by the load balancer.
-In this case, it targets any pods with the `app=sync-gateway` label which are the Sync Gateway nodes - this corresponds to what was specified in the deployment yaml file.
-<3> `spec.ports[].targetPort`: The load balancer service targets port 4984 on the Sync Gateway cluster.
-This is the Sync Gateway port corresponding to the xref:{version}@rest-api.adoc[REST API].
-For security purposes, it is recommended that you do not expose the admin port (4985) over the Internet.
-. Deploy the load balancer.
-+
-[source,console]
-----
-kubectl create -f sgw-load-balancer.yaml
-----
-If successful, you will see the following.
-+
-[source,console]
-----
-service "sgw-load-balancer" created
-----
-. Verify the status of the service creation with the following.
-+
-[source,console]
-----
-kubectl get services
-----
-If successful, you will see a new service corresponding to the load balancer.
-In the sample output below, we have the `sgw-load-balancer` service.
-+
-[source,console]
-----
-NAME                TYPE           CLUSTER-IP     EXTERNAL-IP
-cb-example          ClusterIP      None           <none>
-cb-example-srv      ClusterIP      None           <none>
-cb-example-ui       NodePort       10.3.246.239   <none>
-kubernetes          ClusterIP      10.3.240.1     <none>
-sgw-load-balancer   LoadBalancer   10.3.253.17    35.184.19.17
-----
-The *sgw-load-balancer*'s `EXTERNAL-IP` is the load balancer's publicly accessible hostname.
-. Verify the pods that the load balancer is targeting.
-+
-[source,console]
-----
-kubectl describe service sgw-load-balancer
-----
-You should see the equivalent of the following.
-+
-[source,console]
-----
-Name:                     sgw-load-balancer
-Namespace:                default
-Labels:                   <none>
-Annotations:              <none>
-Selector:                 app=sync-gateway
-Type:                     LoadBalancer
-IP:                       10.3.253.17
-LoadBalancer Ingress:     35.184.19.17
-Port:                     <unset>  4984/TCP
-TargetPort:               4984/TCP
-NodePort:                 <unset>  32397/TCP
-Endpoints:                10.0.0.34:4984,10.0.0.35:4984
-Session Affinity:         None
-External Traffic Policy:  Cluster
-Events:
-----
-Notice the "endpoints" field and confirm that it corresponds to the Sync Gateway nodes.
-In this example, we have 2 Sync Gateway nodes.
-. Verify the Sync Gateway cluster is accessible with the following command; where `EXTERNAL-IP` is the IP that was copied in step 3.
-+
-[source,console]
-----
-curl  http://EXTERNAL-IP:4984
-----
-It should return the following.
-+
-[source,console]
-----
-{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":"2.1"},"version":"Couchbase Sync Gateway/2.1.1(17;fea9947)"}
-----
-
-You have successfully deployed a Sync Gateway cluster on Kubernetes.
-The xref:{version}@kubernetes/manage-cluster.adoc[Manage a Cluster] page contains additional details related to the management of the cluster.
