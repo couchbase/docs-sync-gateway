@@ -1,0 +1,136 @@
+// tag::logging[]
+= Logging
+include::partial$_attributesLocal.adoc[]
+
+// tag::logging-tagline
+[abstract]
+Introducing Sync Gateway's logging functionality and options
+// end::logging-tagline
+
+// tag::logging-summ[]
+include::partial$_featureCatalog.adoc[tag=logging-summ]
+// end::logging-summ[]
+
+== Log Levels
+
+SGW logs at one (or more) of six defined _log levels_: none; error; warn; info; debug and trace.
+
+You can set individual retention policies for each <<log-levels, log level>>, with logs for each level being written to <<log-file-outputs, separate files>>.
+
+Set log levels in your configuration file (see the xref:config-properties.adoc#logging-$level[`logging.$level`] reference).
+
+NOTE: Log levels are additive, so if you enable `info` level, `warn` and `error` logs are also enabled.
+
+The configurable log levels comprise (ordered from least verbose, to most):
+[cols="1,1,2"]
+|===
+|Log Level |Appearance |Description
+
+|`none`
+|          -
+|Disables log output
+
+|`error`
+|`[ERR]`
+|Displays errors that need urgent attention
+
+|`warn`
+|`[WRN]`
+|Displays warnings that need some attention
+
+|`info`
+|`[INF]`
+|Displays information about normal operations that don't need attention
+
+|`debug`
+|`[DBG]`
+|Displays verbose output that might be useful when debugging
+
+|`trace`
+|`[TRC]`
+|Displays extremely verbose output that might be useful when debugging
+|===
+
+== Log Keys
+
+Log keys provide fine-grained control over the information to be logged.
+By default, only `HTTP` is enabled, other available keys include: Auth; Bucket; CRUD; DCP and Import.
+
+See the xref:config-properties.adoc#logging-console-log_keys[`logging.console.log_level`] property reference for a comprehensive list of available keys.
+
+== Console Log Output
+
+You can configure _console logging_ independently, providing additional flexibility, without impacting the continuous logging output.
+For example, System administrators running Sync Gateway at the console may:
+
+* tweak log level and <<log-keys>> to suit their needs,
+* filter console output by log levels and log keys
+* set a color for log output based on log level if xref:config-properties.adoc#logging-console-color_enabled[`logging.console.color_enabled`] is set to `true`
++
+NOTE: This setting is always disabled on Windows for compatibility reasons.
+
+== Log File Outputs
+
+NOTE: Log files are intended for the use of _Couchbase Support_. If you require special log handling then use the <<output-log-redirection, console log output stream>>.
+
+Use xref:sgcollect-info.adoc[SGCollect Info] to collect diagnostic log data for analysis by Couchbase Support.
+
+The log files are split by log level, with a guaranteed retention period for each.
+
+[cols="1,1,1,1"]
+|===
+|Log File |Default enabled |Default max_age |Minimum max_age
+
+|`sg_error.log`
+|`true`
+|360 Days
+|180 Days
+
+|`sg_warn.log`
+|`true`
+|180 Days
+|90 Days
+
+|`sg_info.log`
+|`true`
+|6 Days
+|3 Days
+
+|`sg_debug.log`
+|`false`
+|2 Days
+|1 Day
+|===
+
+TIP: Each log level and its parameters are described in the xref:config-properties.adoc#logging-$level[logging.$level] property reference.
+
+== Output Redirection
+
+Address specialized logging requirements, such as centralized logging, by redirecting the console log output to a file. Then you can apply your own log collection mechanism to feed that data elsewhere.
+
+.Redirect console log output
+====
+[source]
+----
+# Start Sync Gateway and redirect console output to a file
+./sync-gateway > my_sg_logs.txt 2>&1
+
+# Start log collection to send to a centralized log aggregator.
+logcollector my_sg_logs.txt
+----
+====
+
+== Log File Rotation
+
+Log files are _rotated_ once each exceeds a threshold `max_size` in megabytes.
+Once rotated, the log files are compressed (gzip) to reduce the disk usage.
+Aged logs are cleaned up once their age exceeds `max_age` days.
+
+Configure log rotation using the xref:config-properties.adoc#logging-level-$rotation[logging.level.$rotation] property.
+
+== Log Redaction
+
+All log outputs can be redacted, removing any user-data considered private.
+Enable this feature by setting the xref:config-properties.adoc#logging-redaction_level[`logging.redaction_level`] property.
+
+// end::logging[]
