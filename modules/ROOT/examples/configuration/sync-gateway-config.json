@@ -1,0 +1,112 @@
+// tag::getting-started-config[]
+//
+{
+  //  ... additional configuration data as required ...
+  "log": ["*"],
+  "databases": {
+    "getting-started-db": {
+      "server": "http://localhost:8091",
+      "bucket": "getting-started-bucket",
+      "username": "sync_gateway", // <1>
+      "password": "password", // <2>
+      "enable_shared_bucket_access": true, // <3>
+      "import_docs": true,
+      "num_index_replicas": 0, // <4>
+      "users": {
+        "GUEST": { "disabled": false, "admin_channels": ["*"] }
+      }
+    }
+    //  ... additional configuration data as required ...
+  }
+}
+//
+// end::getting-started-config[]
+
+// tag::icr-replication-config[]
+//
+{
+//  ... may be preceded by additional configuration data as required by the user ...
+
+"databases": {
+  "db": {
+    "replications": {
+      "repl_id_1": {
+        "remote": "https://remoteSG:4984/remoteDB",
+      	"direction": "pull",
+      	"purge_on_removal":true,
+      	"continuous":true,
+      	"filter":"sync_gateway/bychannel",
+      	"conflict_resolution_type":"custom",
+      	"custom_conflict_resolver": `func(local, remote) {...}`,
+      }
+
+    }
+  }
+  //  ... may be followed by additional configuration data as required by the user ...
+}
+//
+// end::icr-replication-config[]
+
+// tag::import-filter-config[]
+//
+{
+  //  ... may be preceded by additional configuration data as required by the user ...
+  "log": ["*"],
+  "databases": {
+    "getting-started-db": {
+      "server": "http://localhost:8091",
+      "bucket": "getting-started-bucket",
+      "username": "sync_gateway", // <1>
+      "password": "password", // <2>
+      "enable_shared_bucket_access": true, // <3>
+      "import_docs": true,
+      "num_index_replicas": 0, // <4>
+      "import_filter": `
+        function(doc) { // <5>
+          if (doc.type != "mobile") {
+            return false
+          }
+          return true
+        }`,
+      "users": {
+        "GUEST": { "disabled": false, "admin_channels": ["*"] }
+      },
+      "sync": `function (doc, oldDoc) {
+        if (doc.sdk) {
+          channel(doc.sdk);
+        }
+      }`
+    }
+  }
+  //  ... may be followed by additional configuration data as required by the user ...
+}
+//
+// end::import-filter-config[]
+
+// tag::sync-function-config[]
+//
+{
+  //  ... may be preceded by additional configuration data as required by the user ...
+  "databases": {
+    "getting-started-db": {
+      "server": "http://localhost:8091",
+      "bucket": "getting-started-bucket",
+      "username": "sync_gateway", // <1>
+      "password": "password", // <2>
+      "enable_shared_bucket_access": true, // <3>
+      "import_docs": true,
+      "num_index_replicas": 0, // <4>
+      "users": {
+        "GUEST": { "disabled": false, "admin_channels": ["*"] },
+      },
+      "sync": `function (doc, oldDoc) { //<5>
+        if (doc.sdk) {
+          channel(doc.sdk);
+        }
+        }`,
+        //  ... may be followed by additional configuration data as required by the user ...
+    }
+  }
+}
+//
+// end::sync-function-config[]
