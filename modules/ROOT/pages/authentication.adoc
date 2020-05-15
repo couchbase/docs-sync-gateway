@@ -1,16 +1,16 @@
 = Authentication
 
-Sync Gateway supports the following authentication methods: 
+Sync Gateway supports the following authentication methods:
 
-* link:authentication.html#basic-authentication[Basic Authentication]: provide a username and password to authenticate users. 
-* link:authentication.html#custom-authentication[Custom Authentication]: use an App Server to handle the authentication yourself and create user sessions on the Sync Gateway Admin REST API. 
+* link:authentication.html#basic-authentication[Basic Authentication]: provide a username and password to authenticate users.
+* link:authentication.html#custom-authentication[Custom Authentication]: use an App Server to handle the authentication yourself and create user sessions on the Sync Gateway Admin REST API.
 * link:authentication.html#openid-connect[OpenID Connect Authentication]: use OpenID Connect providers (Google+, Paypal, etc.) to authenticate users. Static providers: Sync Gateway currently supports authentication endpoints for Facebook, Google+ and OpenID Connect providers
 
 [[_user_registration]]
 == User Registration
 
 The user must be created on Sync Gateway before it can be used for authentication.
-Users can be created through the Sync Gateway Admin REST API or configuration file. 
+Users can be created through the Sync Gateway Admin REST API or configuration file.
 
 * *Admin REST API:* the user credentials (**username**/**password**) are passed in the request body to the link:admin-rest-api.html#/user/post__db___user_[POST /+{db}+/_user] endpoint.
 +
@@ -22,8 +22,8 @@ $ curl -vX POST "http://localhost:4985/justdoit/_user/" -H "accept: application/
 ----
 +
 Note that the Admin REST API is *not* accessible from the clients directly.
-To allow users to sign up, it is recommended to have an app server sitting alongside Sync Gateway that performs the user validation, creates a new user on the Sync Gateway admin port and then returns the response to the application. 
-* *Configuration file:* user credentials are hardcoded in the configuration. This method is convenient for testing but we generally recommend to use the *Admin REST API* in a Sync Gateway deployment. 
+To allow users to sign up, it is recommended to have an app server sitting alongside Sync Gateway that performs the user validation, creates a new user on the Sync Gateway admin port and then returns the response to the application.
+* *Configuration file:* user credentials are hardcoded in the configuration. This method is convenient for testing but we generally recommend to use the *Admin REST API* in a Sync Gateway deployment.
 +
 
 [source,javascript]
@@ -46,28 +46,28 @@ To allow users to sign up, it is recommended to have an app server sitting along
 
 Once the user has been created on Sync Gateway, you can provide the same **username**/**password** to the `BasicAuthenticator` class of Couchbase Lite.
 Under the hood, the replicator will send the credentials in the first request to retrieve a `SyncGatewaySession` cookie and use it for all subsequent requests during the replication.
-This is the recommended way of using basic authentication. 
+This is the recommended way of using basic authentication.
 
-Example: 
+Example:
 
-* xref:2.1@couchbase-lite:ROOT::swift.adoc#basic-authentication[Swift]
-* xref:2.1@couchbase-lite:ROOT::java.adoc#basic-authentication[Java]
-* xref:2.1@couchbase-lite:ROOT::csharp.adoc#basic-authentication[C#]
-* xref:2.1@couchbase-lite:ROOT::objc.adoc#basic-authentication[Objective-C]
+* xref:couchbase-lite::swift.adoc#basic-authentication[Swift]
+* xref:couchbase-lite::java.adoc#basic-authentication[Java]
+* xref:couchbase-lite::csharp.adoc#basic-authentication[C#]
+* xref:couchbase-lite::objc.adoc#basic-authentication[Objective-C]
 
 
 == Custom Authentication
 
 It's possible for an application server associated with a remote Couchbase Sync Gateway to provide its own custom form of authentication.
-Generally this will involve a particular URL that the app needs to post some form of credentials to; the App Server will verify those, then tell the Sync Gateway to create a new session for the corresponding user, and return session credentials in its response to the client app. 
+Generally this will involve a particular URL that the app needs to post some form of credentials to; the App Server will verify those, then tell the Sync Gateway to create a new session for the corresponding user, and return session credentials in its response to the client app.
 
 The following diagram shows an example architecture to support Google SignIn in a Couchbase Mobile application, the client sends an access token to the App Server where a server side validation is done with the Google API and a corresponding Sync Gateway user is then created if it's the first time the user logs in.
-The last request creates a session: 
+The last request creates a session:
 
 
 image::custom-auth-flow.png[]
 
-Given a user has already been created, the request to create a new session for that user name is the following: 
+Given a user has already been created, the request to create a new session for that user name is the following:
 
 [source,bash]
 ----
@@ -83,18 +83,18 @@ $ curl -vX POST -H 'Content-Type: application/json' \
 }
 ----
 
-The HTTP response body contains the credentials of the session. 
+The HTTP response body contains the credentials of the session.
 
 * *name* corresponds to the `cookie_name`
 * *value* corresponds to the `session_id`
-* *path* is the hostname of the Sync Gateway 
+* *path* is the hostname of the Sync Gateway
 * *expirationDate* corresponds to the `expires`
-* *secure* Whether the cookie should only be sent using a secure protocol (e.g. HTTPS) 
-* *httpOnly* Whether the cookie should only be used when transmitting HTTP, or HTTPS, requests thus restricting access from other, non-HTTP APIs 
+* *secure* Whether the cookie should only be sent using a secure protocol (e.g. HTTPS)
+* *httpOnly* Whether the cookie should only be used when transmitting HTTP, or HTTPS, requests thus restricting access from other, non-HTTP APIs
 
-It is recommended to return the session details to the client application in the same form and to use the `SessionAuthenticator` class to authenticate with that session id. 
+It is recommended to return the session details to the client application in the same form and to use the `SessionAuthenticator` class to authenticate with that session id.
 
-Example: 
+Example:
 
 * xref:2.1@couchbase-lite:ROOT::swift.adoc#session-authentication[Swift]
 * xref:2.1@couchbase-lite:ROOT::java.adoc#session-authentication[Java]
@@ -105,27 +105,27 @@ Example:
 == OpenID Connect
 
 Sync Gateway supports OpenID Connect.
-This allows your application to use Couchbase for data synchronization and delegate the authentication to a 3rd party server (known as the Provider). There are two implementation methods available with OpenID Connect: 
+This allows your application to use Couchbase for data synchronization and delegate the authentication to a 3rd party server (known as the Provider). There are two implementation methods available with OpenID Connect:
 
 * link:authentication.html#implicit-flow[Implicit Flow]: with this method, the retrieval of the ID token takes place on the device. You can then create a user session using the POST `/+{db}+/_session` endpoint on the Public REST API with the ID token.
-* link:authentication.html#authorization-code-flow[Authorization Code Flow]: this method relies on Sync Gateway to retrieve the ID token. 
+* link:authentication.html#authorization-code-flow[Authorization Code Flow]: this method relies on Sync Gateway to retrieve the ID token.
 
 
 [[_implicit_flow]]
 === Implicit Flow
 
 http://openid.net/specs/openid-connect-core-1_0.html#ImplicitFlowAuth[Implicit Flow] has the key feature of allowing clients to obtain their own Open ID token and use it to authenticate against Sync Gateway.
-The implicit flow with Sync Gateway is as follows: 
+The implicit flow with Sync Gateway is as follows:
 
-. The client obtains a *signed* Open ID token directly from an OpenID Connect provider. Note that only signed tokens are supported. To verify that the Open ID token being sent is indeed signed, you can use the https://jwt.io/#debugger-io[jwt.io Debugger]. In the algorithm dropdown, make sure to select `RS256` as the signing algorithm (other options such as `HS256` are not yet supported by Sync Gateway). 
-. The client includes the Open ID token as an `Authorization: Bearer <id_token>` header on requests made against the Sync Gateway REST API. 
-. Sync Gateway matches the token to a provider in its configuration file based on the issuer and audience in the token. 
-. Sync Gateway validates the token, based on the provider definition. 
-. Upon successful validation, Sync Gateway authenticates the user based on the subject and issuer in the token. 
+. The client obtains a *signed* Open ID token directly from an OpenID Connect provider. Note that only signed tokens are supported. To verify that the Open ID token being sent is indeed signed, you can use the https://jwt.io/#debugger-io[jwt.io Debugger]. In the algorithm dropdown, make sure to select `RS256` as the signing algorithm (other options such as `HS256` are not yet supported by Sync Gateway).
+. The client includes the Open ID token as an `Authorization: Bearer <id_token>` header on requests made against the Sync Gateway REST API.
+. Sync Gateway matches the token to a provider in its configuration file based on the issuer and audience in the token.
+. Sync Gateway validates the token, based on the provider definition.
+. Upon successful validation, Sync Gateway authenticates the user based on the subject and issuer in the token.
 
 Since Open ID tokens are typically large, the usual approach is to use the Open ID token to obtain a Sync Gateway session id (using the link:rest-api.html#!/session/post_db_session[POST /db/_session] endpoint), and then use the returned session id for subsequent authentication requests.
 
-Here is a sample Sync Gateway config file, configured to use the Implicit Flow. 
+Here is a sample Sync Gateway config file, configured to use the Implicit Flow.
 
 [source,javascript]
 ----
@@ -155,23 +155,23 @@ Here is a sample Sync Gateway config file, configured to use the Implicit Flow.
 
 With the implicit flow, the mechanism to refresh the token and Sync Gateway session must be handled in the application code.
 On launch, the application should check if the token has expired.
-If it has then you must request a new token (Google SignIn for iOS has a method called `signInSilently` for this purpose). By doing this, the application can then use the token to create a Sync Gateway session. 
+If it has then you must request a new token (Google SignIn for iOS has a method called `signInSilently` for this purpose). By doing this, the application can then use the token to create a Sync Gateway session.
 
 
 image::images.003.png[]
 
 
-. The Google SignIn SDK prompts the user to login and if successful it returns an ID token to the application. 
+. The Google SignIn SDK prompts the user to login and if successful it returns an ID token to the application.
 . The ID token is used to create a Sync Gateway session by sending a POST `/+{db}+/_session` request.
-. Sync Gateway returns a cookie session in the response header. 
-. The Sync Gateway cookie session is used on the replicator object. 
+. Sync Gateway returns a cookie session in the response header.
+. The Sync Gateway cookie session is used on the replicator object.
 
 Sync Gateway sessions also have an expiration date.
-The replication `lastError` property will return a *401 Unauthorized* when it's the case and then the application must retrieve create a new Sync Gateway session and set the new cookie on the replicator. 
+The replication `lastError` property will return a *401 Unauthorized* when it's the case and then the application must retrieve create a new Sync Gateway session and set the new cookie on the replicator.
 
-You can configure your application for Google SignIn by following https://developers.google.com/identity/[this guide]. 
+You can configure your application for Google SignIn by following https://developers.google.com/identity/[this guide].
 
 === Authorization Code Flow
 
 Whilst Sync Gateway supports http://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth[Authorization Code Flow], there is considerable work involved to implement the *Authorization Code Flow* on the client side.
-Couchbase Lite 1.x has an API to hide this complexity called `OpenIDConnectAuthenticator` but since it is not available in the 2.0 API we recommend to use the **Implicit Flow**. 
+Couchbase Lite 1.x has an API to hide this complexity called `OpenIDConnectAuthenticator` but since it is not available in the 2.0 API we recommend to use the **Implicit Flow**.
