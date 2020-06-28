@@ -9,7 +9,19 @@
 :page-role: panes
 :page-status: {releaseStatus} -- {releaseComments}
 :page-content: procedural
-include::partial_attributes-local.adoc[]
+:description: This page documents various implementation details and functionalities to consider when performing an upgrade to Sync Gateway {page-component-version}.
+
+include::partial$_std-hdr-sgw.adoc[]
+
+:sc1title: Continue with SGR-Replicate 1.0 (no conflict resolution)
+:sc2title: Continue with SGR-Replicate 1.0 (custom conflict resolution)
+:sc3title: Change to SGR-Replicate 2.0 (default conflict resolution)
+:sc4title: Change to SGR-Replicate 2.0 (custom conflict resolution)
+
+:param-abstract:
+:topic-group: Application Deployment
+:param-related: {xref-sgw-pg-gs-sgw-prereqs} | {xref-sgw-pg-gs-sgw-install} | {xref-sgw-pg-release-notes}
+include::partial$block-abstract.adoc[]
 
 ifeval::["{releaseStatus}" == "gamma"]
 [.pane__frame--orange]
@@ -37,10 +49,6 @@ endif::[]
 
 
 
-[abstract]
-This page documents various implementation details and functionalities to consider when performing an upgrade to Sync Gateway {page-component-version}.
-
-== Moving to SG Replicate 2.0
 .Points to cover incude:
 * See: https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e7cd22f#heading=h.4s8odjf16mf1
 * https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e873940#heading=h.r4o6xoe8671e
@@ -54,6 +62,176 @@ See: https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE
 Specifically, comment: https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?disco=AAAAGVLwKIY
 
 --
+
+== Moving to SG-Replicate 2.0
+Out of the box behavior::
++
+--
+Any {xref-sgw-pg-config-properties-db-replications} ({xref-sgw-pg-config-properties-db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {xref-sgw-pg-config-properties-databases} section will run using the SG-Replicate 1.0 protocol.
+This is subject to any compatibility constraints defined in the {xref-sgw-pg-compatibility}.
+
+Existing replications implementing custom {xref-sgw-pg-resolving-conflicts} strategies (via the REST endpoint) will continue to function in the same manner as for SG-Replicate 1.0 replications after upgrade
+--
+
+Upgrading existing replications::
++
+--
+To upgrade existing SG-Replicate 1.0 replications to SG-Replicate 2.0, reconfigure them using SG-Replicate 2.0's {xref-sgw-pg-config-properties-db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
+--
+
+Post-upgrade behavior::
++
+--
+* Restarting Replications
++
+The `replicationId` is used to ensure that any replications previously setup with SG-Replicate 1.0, automatically restart using SG-Replicate 2.0.
+The restart point will be the last checkpoint used, unless over-ridden.
+
+* Over-riding restart point
++
+To restart a sync from zero: After the upgrade  reconfigure the SG-Replicate 2.0 {xref-sgw-pg-config-properties-db-replications} to use a different {xref-sgw-pg-config-properties-db-rep-id}
+--
+
+
+=== Upgrade Strategies
+:save-title: {example-caption}
+:save-num: {example-number}
+:example-caption: Scenario
+:example-number: 0
+
+This section describes recommended upgrade strategies for implementing SG-Replicate 2.0
+
+* <<sc1>> -- {sc1title}
+* <<sc2>> -- {sc2title}
+* <<sc3>> -- {sc3title}
+* <<sc4>> -- {sc4title}
+
+[{tabs}]
+=====
+<<sc1>>::
++
+--
+
+[#sc1]
+.{sc1title}
+====
+From::
+* Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
+* Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
+* Replication -- cSG-Replicate 1.0 onfigured in continuous or one-shot mode
+* Conflict resolution -- Not implemented
+
+To::
+* Source Cluster -- Active node running Sync Gateway 2.8+
+* Target Cluster -- Passive node running Sync Gateway 2.8+
+* Replication -- SG-Replicate 1.0 configured in continuous or one-shot mode
+* Conflict resolution -- Not implemented
+
+Strategy::
+* Upgrade sequence -- Either cluster can be upgraded first
+* Restart point -- When the active node restarts it will use SG-Replicate 1.0 and will continue from where it last left off
+* Upgrade Constraint -- Replication will be down for the duration of the active node restart
+====
+--
+
+<<sc2>>::
++
+--
+
+[#sc2]
+.{sc2title}
+====
+From::
+* Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
+* Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
+* Replication -- SG-Replicate 1.0 configured in continuous or one-shot mode
+* Conflict resolution -- Custom conflict resolution with `allow_conflicts=true`
+
+To::
+* Source Cluster -- Active node running Sync Gateway 2.8+
+* Target Cluster -- Passive node running Sync Gateway 2.8+
+* Replication -- SG-Replicate 1.0 configured in continuous or one-shot mode
+* Conflict resolution -- Custom conflict resolution with `allow_conflicts=true`
+
+Strategy::
+* Upgrade sequence -- Either cluster can be upgraded first
+* Restart point -- When the active node restarts it will use SG-Replicate 1.0 and will continue from where it last left off
+* Conflict Resolution -- Will continue to be handled by the app
+* Upgrade Constraints
+** Replication will be down for the duration of the active node restart
+** The `allow-conflicts` flag is ignored for any SG-Replicate 2.0 replications configured.
+====
+--
++
+<<sc3>>::
++
+--
+
+[#sc3]
+.{sc3title}
+====
+From::
+* Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
+* Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
+* Replication -- SG-Replicate 1.0 configured in continuous or one-shot mode
+* Conflict resolution -- Not implemented
+
+To::
+* Source Cluster -- Active node running Sync Gateway 2.8+
+* Target Cluster -- Passive node running Sync Gateway 2.8+
+* Replication -- SG-Replicate 2.0 configured in continuous or one-shot mode
+* Conflict resolution -- Not implemented
+
+Strategy::
+* Upgrade sequence
+.. Stop SG-Replicate 1.0 replications
+.. Remove the SG-Replicate 1.0 replication configuration and replace it with SG-Replicate 2.0 equivalent.
+.. Upgrade each cluster to Hydrogen.
+* Restart Outcomes
+** When The active cluster is restarted it will automatically switch to Sg-Replicate 2.0
+** Replication will continue from the last checkpoint, unless over-ridden.
+** {enterprise} The replication will distribute automatically
+* Conflict resolution -- Default
+* Upgrade Constraint -- The `allow-conflicts` flag is ignored for any SG-Replicate 2.0 replications configured.
+
+====
+--
++
+<<sc4>>::
++
+--
+
+[#sc4]
+.{sc4-title}
+====
+From::
+* Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
+* Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
+* Replication -- SG-Replicate 1.0 configured in continuous or one-shot mode
+* Conflict resolution -- Custom conflict resolution with `allow_conflicts=true`
+
+
+To::
+* Source Cluster -- Active node running Sync Gateway 2.8+
+* Target Cluster -- Passive node running Sync Gateway 2.8+
+* Replication -- SG-Replicate 2.0 configured in continuous or one-shot mode
+* Conflict resolution -- Apply custom conflict resolution
+
+Strategy::
+* Upgrade sequence
+.. Stop SG-Replicate 1.0 replications
+.. Remove the SG-Replicate 1.0 replication configuration
+.. Add the SG-Replicate 2.0 replication configuration, including Javascript function as {xref-sgw-pg-config-properties-db-rep-resolver}
+.. Upgrade each cluster to Hydrogen
+* Restart Outcomes
+** When The active cluster is restarted it will automatically switch to Sg-Replicate 2.0
+** Replication will continue from the last checkpoint, unless over-ridden.
+** {enterprise} The replication will distribute automatically
+* Conflict resolution -- Conflicts will be handled by the function  specified as the as {xref-sgw-pg-config-properties-db-rep-resolver}
+* Upgrade Constraint -- The `allow-conflicts` flag is ignored for any SG-Replicate 2.0 replications configured.
+====
+--
+=====
 
 
 == Views to GSI
@@ -302,33 +480,4 @@ Caveats:
 * Bring Sync Gateway online
 |===
 
-
-== Related Content
-
-[.pane__frames]
-
-* *How-to*
-+
---
-include how-to links as relevant,
-
-include how-to links as relevant,
---
-
-* *Learn more*
-+
---
-include any related concept links
-
-include tutorial links as relevant
-
-include blog links as relevant
---
-
-* *Reference material*
-+
---
-include any reference docs
-
-(eg config file or api)
---
+include::partial$block-related-content-deploy.adoc[]
