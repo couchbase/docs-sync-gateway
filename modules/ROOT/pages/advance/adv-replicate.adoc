@@ -1,0 +1,104 @@
+= REST API Client
+:page-layout: article
+:page-role:
+:page-status: {releaseStatus} -- {releaseComments}
+:page-content: procedural
+:description: Working with Sync Gateway Replications - examples of usage
+
+include::partial$_std-hdr-sgw.adoc[]
+
+:param-abstract: {url-api-references} | {xref-sgw-pg-config-properties}
+:topic-group: Replication
+include::partial$block-abstract.adoc[]
+
+ifeval::["{releaseStatus}" == "gamma"]
+[.pane__frame--orange]
+.Author's Notes
+--
+Document relevant aspects of _USING Replication's .
+NEEDS UPDATING TO REFLECT SG REPLICATE 2.0 CHANGES and
+MAYBE Refactor this document as a _Get Started_ for the Rest API
+
+Information sources include:
+
+* https://issues.couchbase.com/browse/DOC-6463
+* https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e77c903#heading=h.i1nbf1ox8o1w
+
+--
+endif::[]
+
+== Overview
+
+
+For more configuration options see {xref-sgw-pg-config-properties}.
+
+== Replicate using Configuration File
+
+=====
+[{tabs}]
+====
+Example 1::
++
+--
+some stuff
+
+--
+
+Example 2::
++
+--
+more stuff
+--
+====
+=====
+
+
+
+
+.Start Sync Gateway using Configuration File
+====
+--
+From the command line enter:
+[source,bash]
+----
+~/Downloads/couchbase-sync-gateway/bin/sync_gateway sync-gateway-config.json
+----
+====
+
+== Replicate using REST API
+
+=====
+[{tabs}]
+====
+Continuous Pull::
++
+--
+// tag::repleg-pull-continuous[]
+[source, json]
+----
+{
+  "direction": "pull",
+  "purge_on_removal":true,
+  "remote": "http://priya:password@35.202.126.6:4984/travel-sample",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+      "channels":["channel.priya"]
+  },
+  "continuous": true
+ }
+----
+// end::repleg-pull-continuous[]
+
+--
+
+Example 2::
++
+--
+more stuff
+--
+====
+=====
+
+
+
+include::partial$block-related-content-api.adoc[]
