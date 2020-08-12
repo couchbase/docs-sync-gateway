@@ -33,39 +33,69 @@ image::cb-create-bucket-popup.png[]
 
 // tag::create-rbac-user[]
 
-In order for Sync Gateway to connect to Couchbase Server, you must create an RBAC user.
-The RBAC user credentials will be used in a later section to start Sync Gateway.
+To connect to Couchbase Server, you must create an RBAC user.
+These user credentials are used in a later section to start Sync Gateway.
 
 . Open the *Security* tab and click the *Add User* button.
 +
 image::create-user.png[]
 
-. The steps to create the RBAC user differ slightly depending on the version of Couchbase Server that you have installed. We explain the differences below.
+. Create the RBAC user with appropriate access roles.
 +
+The steps to do thia differ depending on Couchbase Server version deployed. See below:
++
+.Select RBAC roles
+=====
 [{tabs}]
 ====
-Couchbase Server 5.5 or above::
+Couchbase Server 6.6+::
 +
-In the pop-up window, provide a *Username* (`sync_gateway`) and *Password* (`password`).
-+
-These credentials are used by Sync Gateway to connect to Couchbase Server (see: {xref-pfx}gs-sgw-config.adoc#configure-sync-gateway[Configure Sync Gateway]).
-+
-You must grant these RBAC roles to the user(as shown on the image below):
+--
+. In the pop-up window, provide
+** A Username (`sync_gateway`)
+** A Password (`password`).
 
-* *Application Access*
-* *Read Only Admin* .
+. Assign the _Sync Gateway_ role to the user
 +
-image::user-settings-5-5.png[]
+xref:server:modules:learn/pages/security/roles.adoc#sync-gateway[Sync Gateway RBAC Role Description]
++
+image::user-settings-6-6.png[,300]
+
++
+NOTE: Users are encouraged to move away from using the _Application Access_ and _Read-Only Admin_ roles for this purpose.
+
+--
+
+Couchbase Server 5.5 - 6.5::
++
+--
+. In the pop-up window, provide:
+** A Username (`sync_gateway`)
+** A Password (`password`).
+
+. Assign these RBAC roles to the user(as shown on the image below):
+
+** Application Access
+** Read Only Admin
++
+image::user-settings-5-5.png[,300]
+--
 
 Couchbase Server 5.1::
 +
-In the pop-up window, provide a *Username* and *Password*, those credentials will be used by Sync Gateway to connect later on.
-Next, you must grant RBAC roles to that user.
-If you are using Couchbase Server 5.1, you must enable the *Bucket Full Access* and *Read Only Admin* roles.
-+
-image::user-settings.png[]
-====
+--
+. In the pop-up window, provide:
+** A Username (`sync_gateway`)
+** A Password* (`password`).
 
+. Assign these RBAC roles to the user:
+** Bucket Full Access
+** Read Only Admin
+
+image::user-settings.png[,300]
+--
+====
+=====
 // end::create-rbac-user[]
 
 == STEP 3 -- Set-up Network access
