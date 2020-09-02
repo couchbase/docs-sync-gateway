@@ -1,9 +1,26 @@
 = High-Availability Replication
+:page-partial:
 :page-layout: article
-:page-status: {releaseStatus} -- {releaseComments}
-:page-role: panes
-:page-content: conceptual
-include::partial$_attributes-local.adoc[]
+:page-status: {release-status-sgw} -- {release-comments-sgw}
+:page-edition: enterprise
+:page-role:
+:page-content-type: conceptual
+:description: High availability and Inter-sync-gateway replication (Sync Gateway to Sync Gateway)
+:keywords: replication edge-to-cloud sync 'high availability' edge nosql api synchronization replication
+
+include::partial$_std-hdr-sgw.adoc[]
+include::partial$block-authors-notes.adoc[tag=wip]
+:topic-group: Inter-sync-gateway Replication
+:param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-admin}
+:param-abstract: This content provides an overview of Inter-sync-gateway replication high-availability
+include::partial$block-abstract.adoc[]
+
+// End of Page Definition Statements
+
+// include::shared-mobile::partial$_attributes-shared.adoc[]
+// include::partial$_attributes-local.adoc[]
+// :xref-pfx-sgw: {xref-pfx-sgw}:
+// include::partial$_page-index.adoc[]
 
 ifeval::["{releaseStatus}" == "gamma"]
 [.pane__frame--orange]
@@ -16,89 +33,49 @@ Information sources include:
 * Ticket: https://issues.couchbase.com/browse/DOC-6494[DOC-6494]
 * https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e7cd22f#heading=h.dee3943zlt52
 
-
---
-endif::[]
-
-[abstract]
-Covers the topic of high-availability replication.
-
-== Overview
-
 .Points to cover include:
 
 * {empty}
-+
---
+
 Sync Gateway by default must support  High Availability of a replication.
 While a  given replication will only run on one node at any given time but when that node fails, the system will automatically elect another node for replication.
 
 Recommendation : To get HA, Users must be configure at least two nodes to run a given replication.
 
-This will apply to SG-Replicate 2
-
+This will apply to Inter-sync-gateway Replication (v2)
 
 Impl note: Based on set of replications defined, system will have a node election process/ heartbeat process to detect if a node is up or not)
 
 Note : This requirement is true only for EE. In case of CE, Sync Gateway will behave as it does today. The replicator will run on the nodes that the users designate in their configuration.
---
-* {empty}
-+
---
+
 In case of multiple  replications, Sync Gateway by default must distribute the set of replications across all available sync gateway nodes (on which the replications are configured). Even if a replication is configured on multiple nodes, a given replication will only run on one node at any given time.
 
-
-This will apply to SG-Replicate 2
+This will apply to Inter-sync-gateway Replication (v2)
 
 This will provide the following -
 Improved throughput by distributing the replications
 By ensuring that a replicator only runs on one node even if configured to run on multiple nodes, the system  redundant exchange of data as a result of redundant replications. This will reduce the processing load on the sync gateway and reduce bandwidth usage
 This will allow us to deploy a truly homogenous cluster even in SG-replicate based environment where every SGW node in cluster has an identical configuration. This will enable future platform architectural enhancements around mobile manageability .
 
-Impl note: Based on set of replications defined, system will have a node election process/ heartbeat process
+Impl note: Based on set of replications d
 
-Note : This requirement is true only for EE. In case of CE, Sync Gateway will behave as it does today. The replicator will run on the nodes that the users designate in their configuration. This implies that in case of a homogeneous cluster with every node having identical configuration , the replication will run on all nodes.
---
-* {empty}
-+
---
 In EE, replications will get automatically get redistributed as more Sync Gateways are added to the cluster or removed from cluster
---
-* {empty}
-+
---
+
 Expected behavior
 https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit#heading=h.vwjngb7h5lpm
 --
+endif::[]
 
 
+include::partial$incpg-icr-availability.adoc[tags=!in-this-section]
 
-== Related Content
+// check these points covered
 
-[.pane__frames]
+In clusters containing multiple Sync Gateway nodes, only _one_ of the Sync Gateways should be configured fas the replicating node.
 
-* *How-to*
-+
---
-include how-to links as relevant,
+Configuring multiple Sync Gateways as replicating nodes can substantially increase the amount of duplicate work, and therefore should be avoided.
 
-include how-to links as relevant,
---
+This limitation means the system cannot be guaranteed as Highly Available.
+If the replicating Sync Gateway fails or is otherwise removed from the system, then the replications will stop.
 
-* *Learn more*
-+
---
-include any related concept links
-
-include tutorial links as relevant
-
-include blog links as relevant
---
-
-* *Reference material*
-+
---
-include any reference docs
-
-(eg config file or api)
---
+include::partial$block-related-content-icr.adoc[]

@@ -1,7 +1,20 @@
-= Sync Function
+= Defining Sync Functions
+:page-aliases: sync-function-api, sync-function
+:page-layout: article
+:page-status:
+:page-edition:
+:page-role:
+:description: Defining sync functions for effective data access control
 :idprefix:
 :idseparator: -
-:page-aliases: sync-function-api
+
+include::partial$_std-hdr-sgw.adoc[]
+
+:topic-group: {tg-sgw-cfg}
+:param-related: {xref-sgw-pg-config-properties}  |  {xref-sgw-pg-rest-api-admin} |    {xref-sgw-pg-config-properties-databases}  |  {xref-sgw-pg-config-properties-databases-sync}
+:param-abstract: This content provides an overview of sync function definition describing th options and providing a working example.
+include::partial$block-abstract.adoc[]
+
 
 == Sync Function Basics
 include::partial$sync-function-ovw.adoc[]
@@ -53,7 +66,7 @@ function (doc, oldDoc) {
    }
 }
 ----
-Routing changes have no effect until the document is actually saved in the database, so if the sync function first calls `channel()` or `access()`, but then rejects the update, the channel and access changes will not occur.
+Routing changes has no effect until the document is actually saved in the database, so if the sync function first calls `channel()` or `access()`, but then rejects the update, the channel and access changes will not occur.
 
 TIP: As a convenience, it is legal to call `channel` with a `null` or `undefined` argument; it simply does nothing.
 This allows you to do something like `channel(doc.channels)` without having to first check whether `doc.channels` exists.
@@ -217,7 +230,7 @@ Under the hood, the expiration time is set and managed on the Couchbase Server d
 
 * *ISO-8601 format:* for example the 6th of July 2016 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`;
 * *as a numeric Couchbase Server expiry value:* Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server).
-The document expiration time is returned in the response of GET xref:rest-api.adoc#/document/get\__db___doc_[+/{db}/{doc}+] when `show_exp=true` is included in the querystring.
+The document expiration time is returned in the response of GET xref:rest-api.adoc#/document/get\__db___doc_[+/{tkn-db}/{doc}+] when `show_exp=true` is included in the querystring.
 
 The behavior on the resulting document when the expiry value is reached depends on the following:
 
@@ -256,34 +269,34 @@ The requirements are:
 [source,javascript]
 ----
 function (doc, oldDoc) {
-        if (doc._deleted) {
-                // Only editors with write access can delete documents:
-                requireRole("role:editor");
-                requireUser(oldDoc.writers);
-                // Skip other validation because a deletion has no other properties:
-                return;
-        }
-        // Required properties:
-        if (!doc.title || !doc.creator || !doc.channels || !doc.writers) {
-                throw({forbidden: "Missing required properties"});
-        } else if (doc.writers.length == 0) {
-                throw({forbidden: "No writers"});
-        }
-        if (oldDoc == null) {
-                // Only editors can create documents:
-                requireRole("role:editor");
-                // The 'creator' property must match the user creating the document:
-                requireUser(doc.creator)
-        } else {
-                // Only users in the existing doc's writers list can change a document:
-                requireUser(oldDoc.writers);
-                // The "creator" property is immutable:
-                if (doc.creator != oldDoc.creator) {
-                        throw({forbidden: "Can't change creator"});
-                }
-        }
-        // Finally, assign the document to the channels in the list:
-        channel(doc.channels);
+  if (doc._deleted) {
+    // Only editors with write access can delete documents:
+    requireRole("role:editor");
+    requireUser(oldDoc.writers);
+    // Skip other validation because a deletion has no other properties:
+    return;
+  }
+  // Required properties:
+  if (!doc.title || !doc.creator || !doc.channels || !doc.writers) {
+    throw({forbidden: "Missing required properties"});
+  } else if (doc.writers.length == 0) {
+    throw({forbidden: "No writers"});
+  }
+  if (oldDoc == null) {
+    // Only editors can create documents:
+    requireRole("role:editor");
+    // The 'creator' property must match the user creating the document:
+    requireUser(doc.creator)
+  } else {
+    // Only users in the existing doc's writers list can change a document:
+    requireUser(oldDoc.writers);
+    // The "creator" property is immutable:
+    if (doc.creator != oldDoc.creator) {
+            throw({forbidden: "Can't change creator"});
+    }
+  }
+  // Finally, assign the document to the channels in the list:
+  channel(doc.channels);
 }
 ----
 
@@ -297,12 +310,12 @@ To update the Sync Function, it is recommended to follow the steps outlined belo
 
 . Update the configuration file of the Sync Gateway instance.
 . Restart Sync Gateway.
-. Take the database offline using the xref:admin-rest-api.adoc#/database/post\__db___offline[+/{db}/_offline+] endpoint.
+. Take the database offline using the xref:admin-rest-api.adoc#/database/post\__db___offline[+/{tkn-db}/_offline+] endpoint.
 . Call the re-sync endpoint on the Admin REST API. The message body of the response contains the number of changes that were made as a result of calling re-sync.
-. Bring the database back online using the xref:admin-rest-api.adoc#/database/post\__db___online[+/{db}/_online+] endpoint.
+. Bring the database back online using the xref:admin-rest-api.adoc#/database/post\__db___online[+/{tkn-db}/_online+] endpoint.
 
 This is an expensive operation because it requires every document in the database to be processed by the new function.
-The database can't accept any requests until this process is complete (because no user's full access privileges are known until all documents have been scanned). Therefore the Sync Function update will result in application downtime between the call to the `+/{db}/_offline+` and `+/{db}/_online+` endpoints as mentioned above.
+The database can't accept any requests until this process is complete (because no user's full access privileges are known until all documents have been scanned). Therefore the Sync Function update will result in application downtime between the call to the `+/{tkn-db}/_offline+` and `+/{tkn-db}/_online+` endpoints as mentioned above.
 
 === When should you run a re-sync?
 
@@ -322,6 +335,9 @@ Running a re-sync operation does not revoke access to that document.
 If you need to ensure access to the database during the update, you can create a read-only backup of the Sync Gateway's bucket beforehand, then run a secondary Sync Gateway on the backup bucket, in read-only mode.
 After the update is complete, switch to the main Gateway and bucket.
 
-In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the xref:admin-rest-api.adoc#/database/post\__db___offline[+/{db}/_offline+] endpoint.
+In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the xref:admin-rest-api.adoc#/database/post\__db___offline[+/{tkn-db}/_offline+] endpoint.
 After the configuration is updated, *one* instance should be brought up so it can update the database--if more than one is running at this time, they'll conflict with each other.
 After the first instance finishes opening the database, the others can be started.
+
+include::partial$block-related-content-sync.adoc[]
+

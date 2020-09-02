@@ -1,0 +1,60 @@
+= Error Handling in Inter-sync-gateway Replication
+:page-partial:
+:page-layout: article
+:page-status: {release-status-sgw} -- {release-comments-sgw}
+:page-edition: Under Development
+:page-role: panes
+:description: This content covers error handling in inter-sync-gateway replication (replication between Sync Gateway clusters)
+:keywords:
+
+include::partial$_std-hdr-sgw.adoc[]
+include::partial$block-authors-notes.adoc[tag=wip]
+:topic-group: Inter-sync-gateway Replication
+:param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-admin} | {xref-sgw-pg-icr-conflict}
+:param-abstract: Inter-sync-gateway replication error handling approaches and behaviors.
+include::partial$block-abstract.adoc[]
+
+ifeval::["{releaseStatus}" == "gamma"]
+[.pane__frame--orange]
+.Author's Notes
+--
+
+--
+endif::[]
+
+== Overview
+// tag::overview[]
+
+
+// end::overview[]
+You should consult the log files when troubleshooting conflict resolution errors in order to identify the document id and revision sequence in error.
+
+Unexpected data in the remote document::
+You should update the remote document to fix the issue.
+Doing so will cause replication of the update.
+
+Unexpected data in the local document::
+You should update the local document to fix the issue.
+This will not trigger a pull-replication.
+Do a <<no-op-update>> of the remote document, which will trigger replication and conflict resolution.
+
+Fault in conflict resolution javascript function::
++
+--
+Fix the Javascript logic and then either:
+
+* Do a <<no-op-update, 'no op update'>> of the remote document.
+This triggers a pull replication and subsequent conflict resolution.
+
+* Reset the replication (using `_replicationstatus/reset` endpoint). Not recommended as it introduces significant duplicate processing in re-syncing previously synced documents.
+
+--
+
+[#no-op-update, No op updates]
+“No-op update”:   This refers to a change to the document body that has no impact on the app logic but will trigger an import by the Sync Gateway. One option could be to include a property used specifically for this purpose (i.e. a counter that can be incremented in response to conflict resolver errors).
+
+
+
+
+
+include::partial$block-related-content-icr.adoc[]

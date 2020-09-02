@@ -1,48 +1,160 @@
 = Release Notes
+:page-status: {release-status-sgw} -- {release-comments-sgw}
+:page-edition: Under development
 :page-layout: article
-:page-status: beta
-:page-roles: -toc
+:page-content-type: reference
+:page-role:
 :page-aliases: release-notes
+:description: Sync Gateway Product Release and Support Documentation
+:keywords: edge nosql api synchronization replication
+// End of Page Definition Statements
 
-include::partial$_attributes-local.adoc[]
-
-:jira-url: {url-jira}
-:natt: None at this time
-:ke: Known issues
-:fixed: Fixed at this Release
-:enh: Enhancements
-:nftr: New Features
-:api: API Changes
-
-{component-sgw}
+include::shared-mobile::partial$_attributes-shared.adoc[]
+include::ROOT:partial$_attributes-local.adoc[]
+include::ROOT:partial$_page-index.adoc[]
 
 [abstract]
 --
 This content provides release information pertaining to Sync Gateway {page-component-version} and subsequent maintenance releases.
 --
 
-== 2.8.0 -- 99 month 2020
-<<Enhancements>> *|* <<Congiguration Changes,Config Changes>> *|* <<Support Notices>> *|* <<Known issues, Known Issues>> *|* <<Fixed at this Release,Fixed>>
+[.pane__frames]
+== Version {page-component-version}
 
+[.pane__frame--blue]
+[.narrow]
+.{empty}
+* Original Release Date: *{version-date}*
+* This Patch Version: *unpatched*
+* This Patch Version Date: n/a
+//* This Patch Version: *{version-maint}*
+//* This Patch Version Date: *{version-maint-date}*
 
-=== Enhancements
+[.no-color]
+.Quick Links
+* <<Enhancements>> *|* <<Major Changes,Major Changes>> *|* <<Support Notices>>  *|*  <<known-errors-and-resolved-issues, Issues>> *|* <<Upgrading>> *|* <<Compatibility>>
+* <<Related Content>>
+
+== Enhancements
+
+NOTE: Still to be added
 
 Excepteur eiusmod est aliqua est non quis id sint. Incididunt in deserunt ex sint. Laboris proident ea qui deserunt sint sint sunt minim sit. Id anim occaecat culpa non amet duis cupidatat sit sint cillum cillum pariatur mollit.
 
 Occaecat consequat occaecat do velit nostrud cupidatat ex exercitation nostrud anim reprehenderit qui aute. Sunt nisi excepteur est esse enim excepteur ipsum laboris non nostrud consequat sunt ex duis. Amet veniam irure pariatur consequat deserunt quis ad irure incididunt ea. Consequat aliqua quis esse ex mollit do cillum reprehenderit dolor est et elit cupidatat. Minim aliquip Lorem exercitation sint esse commodo aliquip id eiusmod.
 
-Anim deserunt id ex pariatur labore reprehenderit exercitation amet reprehenderit ea sint. Ipsum excepteur sunt nisi nulla quis id adipisicing est in ea ullamco. Laborum quis nisi et ut dolore ullamco do. Minim adipisicing aliquip sunt officia commodo mollit non velit. Deserunt duis velit pariatur aliqua. Qui laborum dolor enim sit nulla in velit dolor sit adipisicing.
+== Major Changes
+
+
+=== Behavioral Changes
+
+Content describes thing you need to do differently.
+
+=== API Changes
+
+Content describes API differences.
+
 
 === Configuration Changes
-Sint id esse consectetur voluptate minim dolor pariatur anim culpa adipisicing sint aliqua ullamco sunt. Aliquip aliquip anim id sit incididunt nisi. Eu quis labore elit ad laboris proident ea cillum esse laborum. Culpa voluptate est excepteur mollit et esse incididunt ea nulla dolore. Minim quis exercitation in in exercitation nulla fugiat in incididunt velit elit est.
+This section identifies the changes to the Sync Gateway Configuration Schema for Release {page-component-version}
 
-Amet labore tempor dolor amet anim do laboris. Ex ut consectetur consectetur aliqua aliqua reprehenderit sint laborum proident ex voluptate. Sunt deserunt sunt nisi anim minim ipsum sunt esse minim pariatur eiusmod exercitation ullamco. Ullamco officia commodo adipisicing velit nulla aliqua. Nulla ullamco in reprehenderit id commodo minim do id commodo id reprehenderit. Non sit pariatur amet ad sint irure officia. Occaecat aliqua et eu pariatur tempor.
+include::partial$config-changes.adoc[tag=2-8-0,leveloffset=2]
+=== Constraints
 
-=== Compatibility
+* In order to support Inter-sync-gateway Replication (v2), all active nodes in active cluster must have min release version of Hydrogen.
++
+Documentation: Need to call this out
+* Sync Gateway (Hydrogen) will only  support 2.x versions of SG-Replicate.
 
+
+When SGR-1 replication is between two remote databases::
++
+--
+Replication between two remote databases is no longer supported.
+
+Sync Gateway will log an error and fail to start if a replication defined at the configuration's root level does not involve at least one local database (source or target).
+--
+
+When SGR-2 is targeting a pre-2.8 Sync Gateway::
++
+--
+// tag:rn-con-pre2-8-tgt[]
+// https://issues.couchbase.com/browse/DOC-7056
+* Push replications do not support a pre-2.8 target with `"allow_conflicts": false` set.
++
+The target must have that configuration set to true for a replication to work.
+* Push replications do not use Delta Sync when pushing to a pre-2.8 target
+// end:rn-con-pre2-8-tgt[]
+--
+
+== Support Notices
+
+NOTE: Section not yet updated, may become an include from pn-supported-os.adoc
+
+// https://issues.couchbase.com/browse/DOC-6462 Support Notices
+
+//==== Sync Gateway
+
+== Deprecation Notices
+
+// tag::dnsgw-28[] all deprecations for the release
+// tag::dnsgw-28-001-sgr1[]
+=== DNSGW-2.8/001 Inter-sync-gateway Replication (v1) replication protocol
+// tag::dnsgw-28-001-sgr1-announce[]
+Inter-sync-gateway Replication (v1) (SGR-1) is deprecated in Sync Gateway versions starting with version {version}. You should plan your transition to SGR-2 now to avoid potential issues when this functionality is removed.
+// end::dnsgw-28-001-sgr1-announce[]
+
+// tag::dnsgw-28-001-sgr1-impact[]
+The functionality of Inter-sync-gateway Replication (v1) remains unchanged, unless explicitly stated in these release notes and-or in the appropriate documentation section.
+Specifically, replications are scheduled on the node on which they are created.
+
+Refer to {xref-sgw-pg-upgrade} for more information on moving from SGR-1 to SGR-2.
+// end::dnsgw-28-001-sgr1-impact[]
+
+// tag::dnsgw-28-001-sgr1-specifics[]
+Configuration deprecations::
++
+--
+// tag::dnsgw-28-001-sgr1-cfg[]
+The SGR-1 replication configuration method is deprecated at version 2.8.
+
+Whilst replications configured at the root level will continue to function, you should configure new replications under the database in the `databases.{dbname}.replications.{replication_id}` property.
+// end::dnsgw-28-001-sgr1-cfg[]
+--
+
+REST API Deprecations::
+// tag::dnsgw-28-001-sgr1-endpoints[]
+These SGR-1 replication REST endpoints are deprecated:
+
+* _active_tasks_ -- which is superseded by new monitoring endpoint
+* __replicate_ which is  superseded by new replication endpoint
+
+// end::dnsgw-28-001-sgr1-endpoints[]
+// end::dnsgw-28-001-sgr1-specifics[]
+// end::dnsgw-28-001-sgr1
+
+// end::dnsgw-28[]
+
+
+== End of Life Notices
+
+SG Replicate 1.0 https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e7cd22f#heading=h.nwllc3an70af
+
+
+== Known Errors
+* Enim ipsum duis cillum pariatur.
+* Enim ipsum duis cillum pariatur.
+* Enim ipsum duis cillum pariatur.
+
+== Resolved Issues
+* Enim ipsum duis cillum pariatur.
+* Enim ipsum duis cillum pariatur.
+* Enim ipsum duis cillum pariatur.
+
+== Upgrading
 
 .Include notes on upgrading:
-* In order to support SG-Replicate 2.0, all active nodes in active cluster must  have min release version of Hydrogen.
+* In order to support Inter-sync-gateway Replication (v2), all active nodes in active cluster must have min release version of Hydrogen.
 +
 Documentation: Need to call this out
 * Sync Gateway (Hydrogen) will only  support 2.x versions of SG-Replicate.
@@ -52,67 +164,35 @@ Documentation: Need to call this out
 https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e7cd22f#heading=h.nf0vv4c38gr
 
 
-=== Support Notices
-// https://issues.couchbase.com/browse/DOC-6462 Support Notices
+== Compatibility
 
-==== Sync Gateway
+NOTE: Section not yet updated, will likely be an include from compatibility.adoc
 
-*Deprecation Notices*
-
-.points to cover, include:
-* {empty}
-+
---
-// https://issues.couchbase.com/browse/DOC-6461 Deprecation notices
---
-* {empty}
-+
---
-Deprecate pre-H2 replication DB config method https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e7cd22f#heading=h.u10lcuiyz5d0
---
-* {empty}
-+
---
-*End of Life Notices*
-
-* SG Replicate 1.0 https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e7cd22f#heading=h.nwllc3an70af
---
-* {empty}
-+
---
-*Constraints*
-
-// https://issues.couchbase.com/browse/DOC-6462 Support Notices
-
-* Replication between two remote databases https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e7cd22f#heading=h.nwllc3an70af
-
---
-
-=== {ke}
-
-* Enim ipsum duis cillum pariatur.
-* Enim ipsum duis cillum pariatur.
-* Enim ipsum duis cillum pariatur.
+In order to support Inter-sync-gateway Replication (v2), all active nodes in active cluster must  have min release version of Hydrogen.
 
 
 
-=== {fixed}
-
-* Enim ipsum duis cillum pariatur.
-* Enim ipsum duis cillum pariatur.
-* Enim ipsum duis cillum pariatur.
-
-
+[.pane__frames.cols-3]
 == Related Content
-====
-* How-to:
-** xref:{component-sgw}::upgrade.adoc[Upgrading to {page-component-version}]
-* Learn more:
-** xref:{component-sgw}::pn-compatibility.adoc[Compatibility]
-** xref:{component-sgw}::pn-supported-os.adoc[Supported OS]
-** xref:{component-sgw}::pn-release-notes-archive.adoc[Release Note Archives]
-** link:{url-cb-tutorials}[Couchbase Tutorials]
-** link:{url-cb-blog-sgw}[Couchbase Blog]
-====
+
+.How-to:
+* {xref-sgw-pg-gs-sgw-install}
+* {xref-sgw-pg-gs-sgw-config}
+* {xref-sgw-pg-upgrade}
+
+.Learn more:
+* {xref-sgw-pg-compatibility}
+* {xref-sgw-pg-supported-os}
+* {xref-sgw-pg-release-notes-archive}
+
+.Dive Deeper ...
+* Reference
+** {xref-sgw-pg-refer-sgw-glossary}
+
+* Community
+** link:{url-cb-tutorials}[Tutorials]
+** link:{url-cb-blog-sgw}[Blog]
+** link:{url-cb-Forum}[Forum]
+
 
 

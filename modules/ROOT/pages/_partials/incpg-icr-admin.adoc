@@ -1,0 +1,368 @@
+// = ICR Administration and Management
+// tag::in-this-section[]
+*_In this Section_*: <<getting-replication-details>>  |  <<updating-a-replication>>  |  <<removing-a-replication>>  |  <<canceling-a-replication>>
+// end::in-this-section[]
+
+== Admin capabilities
+// tag::overview[]
+The Admin REST API provides two endpoints to assist in the monitoring, administration and management of replications.
+These enable users to examine, update, start and stop replications:
+
+You can use the endpoints manually or by using automation (for example, scripts or a container orchestration system such as  Kubernetes).
+
+The available endpoints used for admin tasks are:
+
+* `_replication`
+-- Retrieve, Update or Remove a __replication definition__
+* `_replicationStatus` -- Stop, Start or Reset a replication
+
+include::partial$block-caveats.adoc[tags=community-only-rep-same-node]
+
+== Getting Replication Details
+
+You can view the current definition details of a replication.
+This includes replications configured in the `JSON` file and those initialized using the Admin REST API.
+You can do this for:
+
+* Individual replications (<<get-replication-definition>>)
+* All replications defined for a specified database (<<get-replication-definition-all>>)
+
+The details are returned a a JSON string or as an arrays of JSON strings.
+
+// _Action_: Use a `GET` request on the `_replications` endpoint to return replication definition details.
+
+[#get-replication-definition]
+.Get a replication definition
+=====
+
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replications-req]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replications-resp]
+----
+--
+====
+=====
+
+The following example retrieves definitions for all replications on a specified database, regardless of the node on which it was configured.
+The results are returned in an array; one entry per replication.
+
+[#get-replication-definition-all]
+.Get all replication definitions (for a database)
+=====
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replications-req-all-for-db]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replications-resp-all-for-db]
+----
+--
+====
+=====
+
+== Updating a Replication
+
+You can update an existing replication's definition, whether configured or initialized by Admin Rest API, by providing the details you want to change in an API call  (<<update-replication-definition>>).
+Changes will only be made to those parameters provided in the call.
+To reset a parameter to its default, specify the appropriate value.
+
+If you change the remote URI it must be to a valid URI.
+
+// :tip-caption: Action!
+[TIP]
+.How do I change an existing replication's definition details?
+====
+Send a `PUT` request to the `_replication` endpoint.
+Specify just the changed items in the JSON body.
+====
+
+[#update-replication-definition]
+.Update a replication's details
+=====
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-update-replications-req]
+----
+--
++
+Response::
++
+--
+A successful update will return a 200 response, with the following body:
+
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-update-replications-resp-200]
+----
+
+If the `replication_id` in the body does not match that quoted in the URI you will see a 400 response as below.
+
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-update-replications-resp-400]
+----
+--
+====
+=====
+
+See: {xref-sgw-pg-admin-rest-api}  |  Endpoint {xref-sgw-ep-admin-api-replication-put}
+
+== Removing a Replication
+
+Removing a replication will delete:
+
+* The persisted replication definition
+* All checkpoints associated with the replication
+* All replication status information associated with the replication
+
+To find the replication_id of an existing replication see <<getting-replication-status-data>>.
+
+_Action_: Send a `DELETE` request to the `replication` endpoint specifying the replication_id to remove
+
+.Removing a replication
+=====
+[{tabs}]
+====
+
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-remove-replications-req]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-remove-replications-resp]
+----
+
+--
+====
+=====
+
+See: {xref-sgw-pg-admin-rest-api}  |  Endpoint {xref-sgw-ep-admin-api-replication-delete}
+
+== Canceling a Replication
+
+You can cancel an existing active replication using `"cancel": true`; see <<canceling-replication>>
+
+The JSON object's body must contain the parameter `"cancel": true` and a valid `replication_id`.
+The details within the body of the request must be identical to the original replication for the cancellation request to be honoured.
+
+Note: If you omit the `continuous` property its value defaults to *false*; so only one-shot replications will match.
+
+When you cancel an active replication, the response returns the stats of the replication up to the point when it was stopped.
+
+To find the replication_id of an existing replication see <<getting-replication-status-data>>.
+
+_Action_: Send a `PUT` request to the `_replication` endpoint, with a JSON object containing the replication definition and the additional `"cancel": true` parameter
+
+[#canceling-replication]
+.Canceling a replication
+=====
+
+[{tabs}]
+====
+Request::
++
+--
+This example cancels an active replication with a `replication_id` of "db1-rep-id1-pull".
+
+[source,javascript]
+----
+include::{example-restapi}[tag=icr-rep-cancel-replications-req]
+----
+--
++
+// Without replication_id::
+// +
+// --
+// This cancels a replication that was started with the same values as those in the cancel request.
+// Note: If you omit the `continuous` property its value defaults to *false*; so only one-shot replications will match.
+//
+// [source,javascript]
+// ----
+// include::{example-restapi}[tag=icr-rep-cancel-replications-body-no-id]
+// ----
+// --
+//
+Response::
++
+--
+
+[source,javascript]
+----
+include::{example-restapi}[tag=icr-rep-cancel-replications-resp]
+----
+--
+====
+=====
+
+== Getting Replication Status Data
+
+include::partial$icr-replicationStatus-GET.adoc[tag=overview]
+
+For more information on monitoring see: {xref-sgw-pg-icr-monitoring}
+
+.For a Single Replication
+=====
+This example targets a known `replication-id` and returns its status data.
+
+[{tabs}]
+====
+
+include::partial$icr-replicationStatus-GET.adoc[tag=example-specific]
+
+====
+=====
+
+.For All Replications
+=====
+
+This example targets all replications across all nodes.
+It filters the results using a query string -- see:
+{xref-sgw-pg-icr-monitoring} for more on using this option.
+
+[{tabs}]
+====
+
+include::partial$icr-replicationStatus-GET.adoc[tag=example-all]
+
+====
+=====
+
+== Starting a Replication
+
+You can start a persistent or ad hoc replication not already in the running state.
+You need to specify the `replication_id`.
+
+If the replication is resetting it cannot be started until the reset is complete.
+
+_Action_: Send a `POST` request to the `_replicationStatus` endpoint with `action=start`
+
+.Start a replication
+=====
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-start-replications-req]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-start-replications-resp]
+----
+--
+
+====
+=====
+
+== Stopping a Replication
+
+You can stop a persistent or ad hoc replication not already in the stopped state.
+You can use this, for example, to offline an edge cluster without waiting for a long replication to complete.
+
+_Action_: Send a `POST` request to the `_replicationStatus` endpoint with `action=stop`
+
+.Stopping replications
+=====
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-stop-replications-req]
+
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-stop-replications-resp]
+----
+--
+
+====
+=====
+
+== Resetting a Replication
+
+You can reset a persistent replication not in the running state.
+This can be useful to escape a system state where one or more documents have failed to sync but where resuming from previous synced checkpoint would skip over those documents.
+You need to specify the `replication_id`.
+
+If the replication is resetting it cannot be started until the reset is complete. The replication must be stopped before it can be reset.
+
+_Action_: Send a `POST` request to the `_replicationStatus` endpoint with `action=reset`
+
+.Reset a replication
+=====
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-reset-replications-req]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-reset-replications-resp]
+----
+--
+====
+=====
