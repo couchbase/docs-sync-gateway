@@ -1,0 +1,334 @@
+// https://issues.couchbase.com/browse/DOC-6460 Upgrading
+
+// https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e77c903#heading=h.4s8odjf16mf1
+// icr-conflict-resolution.adoc
+
+
+= Upgrade
+:page-layout: article
+:page-role: panes
+:page-status: {releaseStatus} -- {releaseComments}
+:page-content: procedural
+include::partial_attributes-local.adoc[]
+
+ifeval::["{releaseStatus}" == "gamma"]
+[.pane__frame--orange]
+.Author's Notes
+--
+Document relevant aspects of _Upgrading Sync Gateway_.
+Specifically, any aspect pertaining to moving to SGR-2.
+
+Information sources include:
+
+* https://issues.couchbase.com/browse/DOC-6459
+* https://issues.couchbase.com/browse/DOC-6460 Upgrading
+* https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e77c903#heading=h.4s8odjf16mf1
+* icr-conflict-resolution.adoc
+
+Highlight breaking change in release notes:
+
+With Hydrogen, replication configuration is defined within database section. Pre-Hydrogen, the configuration is defined within global section. When upgrading a cluster with a replication defined to Hydrogen, the behavior is as follows
+See: https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e77c903#bookmark=id.99mstdrd57v
+Specifically, comment: https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?disco=AAAAGVLwKIY
+
+
+--
+endif::[]
+
+
+
+[abstract]
+This page documents various implementation details and functionalities to consider when performing an upgrade to Sync Gateway {page-component-version}.
+
+== Moving to SG Replicate 2.0
+.Points to cover incude:
+* See: https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e7cd22f#heading=h.4s8odjf16mf1
+* https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e873940#heading=h.r4o6xoe8671e
+* {empty}
++
+--
+Highlight breaking change in release notes:
+
+With Hydrogen, replication configuration is defined within database section. Pre-Hydrogen, the configuration is defined within global section. When upgrading a cluster with a replication defined to Hydrogen, the behavior is as follows
+See: https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e77c903#bookmark=id.99mstdrd57v
+Specifically, comment: https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?disco=AAAAGVLwKIY
+
+--
+
+
+== Views to GSI
+
+Prior to 2.1, Sync Gateway used system views for a variety of internal operations, including authentication and replication.
+Starting in 2.1, Sync Gateway will use GSI and N1QL to perform those tasks.
+
+The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 or above node in a cluster that was previously using views.
+
+Use of GSI requires Couchbase Server 5.5, with at least one node running the Query and Index Services.
+Users wanting to run Sync Gateway 2.1 or above with an older version of Couchbase Server will need to continue to use views, by setting the `use_views` property.
+
+== Configuration Changes
+
+|===
+| Before | After
+| *Sync Gateway 1.5 or above*
+`shared_bucket_access: false`
+| *Sync Gateway 1.5 or above*
+`shared_bucket_access: true`
+2+a|
+After restarting Sync Gateway with the updated configuration file, the mobile metadata for existing documents is automatically migrated.
+To enable shared bucket on incoming documents, one Sync Gateway node in the cluster must also have the `import_docs: continuous` property in the configuration file.
+
+Enabling shared bucket access on your existing deployment is *not* reversible.
+It is recommended to test the upgrade on a staging environment before upgrading the production environment.
+
+Known issue: enabling shared bucket access on your existing deployment if it's already running with GSI indexing will require downtime (xref:release-notes.adoc#2-5-0[known issues CBG-394]).
+| *Sync Gateway 2.1 or above*
+`num_index_replicas: 1`
+| *Sync Gateway 2.1 or above*
+`num_index_replicas: 2` (or n)
+2+|
+After restarting Sync Gateway with the updated configuration file, the number of Index Replicas in the Couchbase Server cluster is automatically updated.
+|===
+
+== Upgrade
+
+A rolling upgrade is the recommended method to upgrade a Sync Gateway cluster.
+At a high level, a rolling upgrade consists of the following steps:
+
+. The load balancer configuration is updated to stop any HTTP traffic going to the node that will be upgraded.
+. The upgrade is performed on the given node
+. The load balancer configuration is updated to re-balance the HTTP traffic across all nodes.
+
+Those steps are then repeated for each node in the Sync Gateway cluster.
+
+The tables below provide more detail for distinct upgrade scenarios.
+
+|===
+| From | To
+| *Sync Gateway 1.x, 2.0*
+| *Sync Gateway 2.1+ (`use_views: false`)*
+2+|No downtime in a rolling upgrade.
+2+a|
+The upgrade, from using views to using Global Secondary Indexes and N1QL, happens automatically when starting a Sync Gateway 2.1 or above node in a cluster that was previously using views.
+By default, Sync Gateway requires the Couchbase Server cluster to be running Couchbase Server 5.5, with at least two nodes running the Index and Query Services.
+If this is not the case, users must configure the `use_views` and/or `num_index_replicas` properties in their Sync Gateway configuration during upgrade.
+
+Installation follows the same general approach used in 2.0.
+On startup, Sync Gateway will check for the existence of the required indexes, and only attempt to create them if they do not already exist.
+
+Then, Sync Gateway will wait until indexes are available before starting to serve requests.
+
+Sync Gateway 2.1 or above will *not* automatically remove the previously used design documents.
+Removal of the obsolete design documents is done via a call to the xref:admin-rest-api.adoc#/server/post__post_upgrade[+/_post_upgrade+] endpoint in Sync Gateway`'s Admin REST API.
+This endpoint can be run in preview mode (`?preview=true`) to see which design documents would be removed.
+To summarize, the steps to perform an upgrade to Sync Gateway 2.1 or above are:
+
+. Upgrade one node in the cluster, and wait for it to be reachable via the REST API (for example at \http://localhost:4985/).
+. Upgrade the rest of the nodes in the cluster.
+. Clean up obsolete views:
+** *Optional* Issue a call to `/_post_upgrade?preview=true` on any node to preview which design documents will be removed.
+** Issue a call to `/post_upgrade` to remove the obsolete design documents.
+The response should indicate that "sync_gateway" and "sync_housekeeping" were removed.
+|===
+
+|===
+| From | To
+| *Sync Gateway 1.x*
+| *Sync Gateway 2.0, 2.1+ (`use_views: true`)*
+2+|No downtime in a rolling upgrade.
+2+a|
+In 2.0, Sync Gateway's design documents include the version number in the design document name.
+In this release for example, the design documents are named `_design/sync_gateway_2.0` and `_design/sync_housekeeping_2.0`.
+
+On startup, Sync Gateway will check for the existence of these design documents, and only attempt to create them if they do not already exist.
+Then, Sync Gateway will wait until views are available and indexed before starting to serve requests.
+To evaluate this, Sync Gateway will issue a `stale=false&limit=1` query against the Sync Gateway views (channels, access and role_access).
+
+If the view request exceeds the default timeout of 75s (which would be expected when indexing large buckets), Sync Gateway will log additional messages and retry.
+The logging output will look like this:
+
+[source,bash]
+----
+14:26:41.039-08:00 Design docs for current SG view version (2.0) found.
+14:26:41.039-08:00 Verifying view availability for bucket default...
+14:26:42.045-08:00 Timeout waiting for view "access" to be ready for bucket "default" - retrying...
+14:26:42.045-08:00 Timeout waiting for view "channels" to be ready for bucket "default" - retrying...
+14:26:42.045-08:00 Timeout waiting for view "role_access" to be ready for bucket "default" - retrying...
+14:26:44.065-08:00 Timeout waiting for view "access" to be ready for bucket "default" - retrying...
+14:26:44.065-08:00 Timeout waiting for view "role_access" to be ready for bucket "default" - retrying...
+14:26:44.065-08:00 Timeout waiting for view "channels" to be ready for bucket "default" - retrying...
+14:26:44.072-08:00 Views ready for bucket default.
+----
+
+Sync Gateway 2.0 will *not* automatically remove the previous design documents.
+Removal of the obsolete design documents is done via a call to the new xref:admin-rest-api.adoc#/server/post\__post_upgrade[`_post_upgrade`] endpoint in Sync Gateway's Admin REST API.
+This endpoint can be run in preview mode (`?preview=true`) to see which design documents would be removed.
+To summarize, the steps to perform an upgrade to Sync Gateway 2.0 are:
+
+. Upgrade one node in the cluster to 2.0, and wait for it to be reachable via the REST API (for example at \http://localhost:4985/).
+. Upgrade the rest of the nodes in the cluster.
+. Clean up obsolete views:
+** *Optional* Issue a call to `_post_upgrade?preview=true` on any node to preview which design documents will be removed.
+To upgrade to 2.0, expect to see "sync_gateway" and "sync_housekeeping" listed.
+** Issue a call to `_post_upgrade` to remove the obsolete design documents.
+The response should indicate that "sync_gateway" and "sync_housekeeping" were removed.
+|===
+
+|===
+| From | To
+| *Sync Gateway 1.1, 1.2, 1.3, 1.4*
+| *Sync Gateway 1.5*
+2+|Possible downtime in a rolling upgrade. Follow the steps below to avoid any downtime.
+2+a|
+In this upgrade path, the upgrade process will trigger views in Couchbase Server to be re-indexed.
+During the re-indexing, operations that are dependent on those views will not be available.
+The main operations relying on views to be indexed are:
+
+* A user requests data that doesn't reside in the xref:config-properties.adoc#databases-foo_db-cache-channel_cache_max_length[channel cache].
+* A new channel or role is granted to a user in the xref:sync-function.adoc[Sync Function].
+
+The unavailability of those operations may result in some requests not being processed.
+The duration of the downtime will depend on the data set and frequency of replications with mobile clients.
+To avoid this downtime, it is possible to pre-build the view index before directing traffic to the upgraded node.
+
+Sync Gateway uses Couchbase Server views to index and query documents.
+When Sync Gateway starts, it will publish a Design Document which contains the View definitions (map/reduce functions).
+For example, the Design Document for Sync Gateway is the following:
+
+[source,json]
+----
+{
+   "views":{
+      "access":{
+         "map":"function (doc, meta) { ... }"
+      },
+      "channels":{
+         "map":"function (doc, meta) { ... }"
+      },
+      ...
+   },
+   "index_xattr_on_deleted_docs":true
+}
+----
+
+Following the Design Document creation, it must run against all the documents in the Couchbase Server bucket to build the index which may result in downtime.
+During a Sync Gateway upgrade, the index may also have to be re-built if the Design Document definition has changed.
+To avoid this downtime, you can publish the Design Document and build the index before starting Sync Gateway by using the Couchbase Server REST API.
+The following curl commands refer to a Sync Gateway 1.3 -> Sync Gateway 1.4 upgrade but they apply to any upgrade of Sync Gateway or Accelerator.
+
+. Start Sync Gateway 1.4 with Couchbase Server instance that *isn't* your production environment.
+Then, copy the Design Document to a file with the following.
++
+[source,bash]
+----
+$ curl localhost:8092/<BUCKET_NAME>/_design/sync_gateway/ > ddoc.json
+----
+
+. Create a Development Design Document on the cluster where Sync Gateway is going to be upgraded from 1.3:
++
+--
+[source,bash]
+----
+$ curl -X PUT http://localhost:8092/<BUCKET_NAME>/_design/dev_sync_gateway/ -d @ddoc.json -H "Content-Type: application/json"
+----
+
+This should return:
+
+[source,bash]
+----
+{"ok":true,"id":"_design/dev_sync_gateway"}
+----
+--
+
+. Run a View Query against the Development Design Document.
+By default, a Development Design Document will index one vBucket per node, however we can force it to index the whole bucket using the `full_set` parameter:
++
+--
+[source,bash]
+----
+$ curl "http://localhost:8092/sync_gateway/_design/dev_sync_gateway/_view/role_access_vbseq?full_set=true&stale=false&limit=1"
+----
+
+This may take some time to return, and you can track the index's progress in the Couchbase Server UI.
+Note that this will consume disk space to build an almost duplicate index until the switch is made.
+--
+
+. Upgrade Sync Gateway. When Sync Gateway 1.4 starts, it will publish the new Design Document to Couchbase Server.
+This will match the Development Design Document we just indexed, so will be available immediately.
+|===
+
+== Couchbase Server
+
+All of the different upgrade paths mentioned above assume that Couchbase Server is running a xref:compatibility-matrix.adoc[compatible version] for Sync Gateway.
+There are 3 commonly used upgrade paths for Couchbase Server.
+Depending on the one you choose, there may be additional consideration to keep in mind when using Sync Gateway:
+
+[cols="1,1,1,6a"]
+|===
+|Upgrade Strategy |Downtime |Additional Machine Requirements |Impact when using Sync Gateway
+
+|Rolling Online Upgrade
+|None
+|Low
+|*Potential transient connection errors:* The Couchbase Server re-balance operations can result in transient connection errors between Couchbase Server and Sync Gateway, which could result in Sync Gateway performance degradation.
+
+*Potential for unexpected server errors during re-balance:* There is an increased potential to lose in-flight ops during a fail-over.
+
+|Upgrade Using Inter-sync-gateway Replication
+|Small amount during switchover
+|High - duplicate entire cluster
+|Using an XDCR (Cross Data Center Replication) approach will have incur some Sync Gateway downtime, but less downtime than other approaches where Sync Gateway is shutdown during the entire Couchbase Server upgrade.
+
+It's important to note that the XDCR replication must be a *one way* replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster, and that no other writes can happen on the new (target) Couchbase Server cluster other than the writes from the XDCR replication, and no Sync Gateway instances should be configured to use the new (target) Couchbase Server cluster until the last step in the process.
+
+. Start XDCR to do a one way replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster running the newer version.
+. Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster.
+. Shutdown Sync Gateway to prevent any new writes from coming in.
+. Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster -- this should happen very quickly, since it will only be the residual writes in transit before the Sync Gateway shutdown.
+. Reconfigure Sync Gateway to point to the target cluster.
+. Restart Sync Gateway.
+
+Caveats:
+
+* *Small amount of downtime during switchover:* Since there may be writes still in transit after Sync Gateway has been shutdown, there will need to be some downtime until the target Couchbase Server cluster is completely caught up.
+* *XDCR should be monitored:* Make sure to monitor the XDCR relationship as per xref:server:xdcr:xdcr-intro.adoc[XDCR docs].
+
+|Offline Upgrade
+|During entire upgrade
+|None
+|
+* Take Sync Gateway offline
+* Upgrade Couchbase Server using any of the options mentioned in the xref:server:install:upgrade.adoc[Upgrading Couchbase Server] documentation.
+* Bring Sync Gateway online
+|===
+
+
+== Related Content
+
+[.pane__frames]
+
+* *How-to*
++
+--
+include how-to links as relevant,
+
+include how-to links as relevant,
+--
+
+* *Learn more*
++
+--
+include any related concept links
+
+include tutorial links as relevant
+
+include blog links as relevant
+--
+
+* *Reference material*
++
+--
+include any reference docs
+
+(eg config file or api)
+--

@@ -1,0 +1,177 @@
+= Replication Monitoring and Statistics
+:page-partial:
+:page-layout: article
+:page-status: {release-status-sgw} -- {release-comments-sgw}
+:page-edition: Under Development
+:page-role:
+:description: This content covers the retrieval of status and statistical data relating to Sync Gateway inter-sync-gateway replication (SGR-2)
+
+
+include::partial$_std-hdr-sgw.adoc[]
+include::partial$block-authors-notes.adoc[tag=wip]
+:topic-group: Inter-sync-gateway Replication
+:param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-admin}
+:param-abstract: Use this content to understand the status and statistical data available in Sync Gateway and how to access it.
+include::partial$block-abstract.adoc[]
+
+ifeval::["{releaseStatus}" == "gamma"]
+[.pane__frame--orange]
+.Author's Notes
+--
+Document relevant aspects of _replication monitoring_.
+
+Information sources include:
+
+*  https://issues.couchbase.com/browse/DOC-6493
+* https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e7cd22f#heading=h.b2gu37hg0ou0
+--
+endif::[]
+
+include::partial$_stats-item-names.adoc[]
+
+== Overview
+
+// tag::overview[]
+// tag::overview-status[]
+=== Status Information
+
+Sync Gateway provides a replication status Admin REST API endpoint to enable effective monitoring of replications.
+
+Use the {xref-sgw-ep-admin-api-replication-repstatus} endpoint to check the status of individual replications and-or the {xref-sgw-ep-admin-api-replication-repstatus-query} endpoint to get status information on all replications, filtered by the querystring criteria.
+
+// end::overview-status[]
+// tag::overview-stats[]
+
+=== Sync Gateway Statistics
+
+Sync Gateway maintains a comprehensive set of statistics, including a replication-specific subset.
+
+You can access these statistics using the `_expvars`  endpoint.
+
+// end::overview-stats[]
+// end::overview[]
+
+== Retrieving Replication Status Data
+<<retrieving-status-data-for-a-specific-replication>>  | <<retrieving-status-data-for-all-replications>>
+
+include::partial$icr-replicationStatus-GET.adoc[tags=overview]
+
+
+=== Retrieving Status Data for a Specific Replication
+
+include::partial$icr-replicationStatus-GET.adoc[tags=rep-status-specific]
+
+=== Retrieving Status Data for All Replications
+
+include::partial$icr-replicationStatus-GET.adoc[tags=rep-status-all]
+
+// [{tabs}]
+// ====
+
+// Request::
+// +
+// --
+// [source, console]
+// ----
+// curl -X GET "http://localhost:4985/travel-sample/_replicationStatus/pull-from-target-continuous-2" -H "accept: application/json"
+// ----
+// --
+
+// Response::
+// +
+// --
+// [source, json]
+// ----
+// {
+//   "replication_id": "string",
+//   "continuous": true,
+//   "source": "string",
+//   "target": "string",
+//   "status": "string",
+//   "docs_read": 0,
+//   "docs_written": 0,
+//   "doc_write_failures": 0,
+//   "rejected_by_remote": 0,
+//   "rejected_by_local": 0,
+//   "error_message": "string",
+//   "delta_enabled": true,
+//   "last_seq_pull": "string",
+//   "last_seq_push": "string"
+// }
+// ----
+// --
+
+// ====
+
+== Retrieving Sync Gateway Statistics
+
+Sync Gateway maintains a comprehensive set of metrics covering performance and resource utilization.
+
+The statistics schema includes replication metrics collected on a per-replication basis.
+These can be especially useful in monitoring the health of Sync Gateway nodes. An increasingly important activity as deployments scale to support cloud-to-edge use cases.
+
+Access to this data is provided through the Admin REST API endpoint `/_expvars`.
+
+See: {xref-sgw-pg-stats-monitoring} for a full description of the available metrics.
+
+=== Available Replication Metrics
+
+The metrics specifically related to replication are introduced in: <<metrics-item-descriptions>>, with the schema shown in <<per-replication-metrics-schema>>.
+
+For how to retrieve the metrics see: <<retrieve-the-metrics>>.
+
+=== Metrics item descriptions
+
+[#per-replication-metrics-schema]
+.Per-replication metrics schema
+====
+
+[source,json,subs="normal, attributes"]
+----
+
+include::partial$stats-schema-per-replication.adoc[]
+
+----
+
+====
+
+include::partial$stats-schema-descriptions.adoc[tags=per-replication]
+
+
+=== Retrieve the metrics
+
+.Using expvars
+=====
+
+
+[{tabs}]
+
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-cfg}[tags=icr-rep-stats-req]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+// . . . other metrics items
+
+include::{example-cfg}[tags=icr-rep-stats-resp]
+
+// . . . other metrics items
+----
+--
+
+====
+
+=====
+
+
+include::partial$block-related-content-icr.adoc[]

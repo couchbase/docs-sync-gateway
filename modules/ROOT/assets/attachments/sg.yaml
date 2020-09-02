@@ -1,7 +1,3 @@
-# https://issues.couchbase.com/browse/DOC-6464
-# https://docs.google.com/document/d/13E6JOq8u_AaUd_t8FZEPCAuq7jfkjryecjBQBHE3pG8/edit?ts=5e77c903#heading=h.k07058a23ez5# Move replicator settings under `Database' and deprecate 'preH2' settings
-#
-
 type: object
 properties:
   adminInterface:
@@ -35,9 +31,8 @@ properties:
           type: string
       Headers:
         type: array
-        description: |
-          List of HTTP headers that can be used by domains specified in the `Origin` and `LoginOrigin` properties.
-
+        description: |+
+          List of HTTP headers that can be used by domains specified in the `Origin` and `LoginOrigin` properties.<br>
           A common value is `["Content-Type"]` as clients use the `Content-Type: application/json` header when sending data as JSON in the body of POST/PUT requests.
         items:
           type: string
@@ -51,13 +46,13 @@ properties:
     description: Database settings.
     type: object
     properties:
-      foo_db:
+      this_db:
         type: object
         description: The database name is stored as a key.
         properties:
           allow_conflicts:
             type: boolean
-            description: |
+            description: |+
               Introduced in Sync Gateway 2.0, this property can be used to disable Sync Gateway's handling of conflicts.
 
               Setting to `false` will cause Sync Gateway to reject any attempt to write conflicting revisions (returning a `409` HTTP status code). It will be up to the client to resolve the conflict. Restarting Sync Gateway with this property enabled will not automatically result in disk space savings (compaction on a document won't occur until a document is updated).
@@ -70,24 +65,24 @@ properties:
             default: 'false'
           bucket:
             type: string
-            description: |
+            description: |+
               Bucket name on Couchbase Server. The value **walrus** is **deprecated**.
 
               The default is the database name.
             default: the database name
           bucket_op_timeout_ms:
             type: integer
-            description: |
+            description: |+
               Configures how long Sync Gateway should wait for a bucket operation to complete before timing out and trying again. The value can be increased in scenarios where there is a heavy load on Couchbase Server and operations are likely to take more than 2.5 seconds to complete. The default value is 2500 milliseconds.
             default: 2500
           delta_sync:
             type: object
-            description: |
+            description: |+
               *NOTE:* Delta Sync is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
 
               Delta Sync is the ability to replicate only parts of the Couchbase mobile document that have changed. This can result in significant savings in bandwidth consumption as well as throughput improvements, especially when network bandwidth is typically constrained.
 
-              Delta Sync incurs additional bucket storage requirements which can be tuned with the [`rev_max_age_seconds`](#databases-foo_db-delta_sync-rev_max_age_seconds) property.
+              Delta Sync incurs additional bucket storage requirements which can be tuned with the [`rev_max_age_seconds`](#databases-this_db-delta_sync-rev_max_age_seconds) property.
 
               Delta Sync does not apply to attachment contents.
 
@@ -121,7 +116,7 @@ properties:
               }
               ```
 
-              Foot notes:
+              Footnotes:
 
               - Delta Sync is automatically enabled for peer-to-peer sync between Couchbase Lite clients.
               - Delta sync is disabled for Couchbase Lite database replicas.
@@ -132,7 +127,7 @@ properties:
                 default: 'false'
               rev_max_age_seconds:
                 type: integer
-                description: |
+                description: |+
                   On a write operation, the revision body is backed up in the bucket and retained for `rev_max_age_seconds` to calculate future revision deltas.
                   As a result, new deltas can only be generated for read requests that come in within the `rev_max_age_seconds` time window.
                   The storage of backed up revision bodies for delta sync incurs additional bucket storage requirements.
@@ -145,10 +140,10 @@ properties:
                 default: 86400
           import_docs:
             type: boolean
-            description: |
+            description: |+
               Introduced in Sync Gateway 1.5, this property specifies whether this Sync Gateway node should perform import processing.
 
-              This property works in conjunction with the [enable_shared_bucket_access](#databases-foo_db-enable_shared_bucket_access) property.
+              This property works in conjunction with the [enable_shared_bucket_access](#databases-this_db-enable_shared_bucket_access) property.
 
               Starting in Sync Gateway 2.7, all Sync Gateway nodes can be configured as import nodes. This results in performance benefits as the import process is shared across all Sync Gateway nodes.
 
@@ -161,19 +156,17 @@ properties:
               This configuration is specifically recommended for workload isolation: to isolate import nodes from the client-facing nodes. Workload isolation is preferable in deployments with a large write throughput.
 
               Prior to Release 2.1 a value of 'continuous' was also allowed. This was deprecated at Release 2.1 and replaced with the boolean value True. There is no change to the behavior or functionality (that is, a value of 'continuous' was interpreted as True and had the same effect).
-
             default: false
           import_partitions:
             type: integer
-            description: |
+            description: |+
               Allows users to tune the number of partitions used for import processing. Partitions are distributed among all Sync Gateway nodes participating in import processing (import_docs:true), and each process a subset of the server's vbuckets.
 
               Each partition is processed by a separate goroutine, so import_partitions can be used to tune concurrency based on the number of Sync Gateway nodes, and the number of cores per node.
             default: 16
-
           cacertpath:
             type: string
-            description: |
+            description: |+
               Relative or absolute path to the root CA certificate to verify the certificate chain and hostname of the Couchbase Server cluster.
 
               This property is optional for X.509 authentication. If it isn't provided, Sync Gateway will accept any certificate provided by Couchbase Server.
@@ -183,54 +176,54 @@ properties:
             properties:
               max_wait_pending:
                 type: integer
-                description: (Deprecated) Moved to [channel_cache.max_wait_pending](#databases-foo_db-cache-channel_cache-max_wait_pending). Maximum wait time in milliseconds for a pending sequence before skipping sequences.
+                description: (Deprecated) Moved to [channel_cache.max_wait_pending](#databases-this_db-cache-channel_cache-max_wait_pending). Maximum wait time in milliseconds for a pending sequence before skipping sequences.
                 default: 5000
               max_num_pending:
                 type: integer
-                description: (Deprecated) Moved to [channel_cache.max_num_pending](#databases-foo_db-cache-channel_cache-max_num_pending). Maximum number of pending sequences before skipping the sequence.
+                description: (Deprecated) Moved to [channel_cache.max_num_pending](#databases-this_db-cache-channel_cache-max_num_pending). Maximum number of pending sequences before skipping the sequence.
                 default: 10000
               max_wait_skipped:
                 type: integer
-                description: (Deprecated) Moved to [channel_cache.max_wait_skipped](#databases-foo_db-cache-channel_cache-max_wait_skipped). Maximum wait time in milliseconds for a skipped sequence before abandoning the sequence.
+                description: (Deprecated) Moved to [channel_cache.max_wait_skipped](#databases-this_db-cache-channel_cache-max_wait_skipped). Maximum wait time in milliseconds for a skipped sequence before abandoning the sequence.
                 default: 3600000
               enable_star_channel:
                 type: boolean
-                description: (Deprecated) Moved to [channel_cache.enable_star_channel](#databases-foo_db-cache-channel_cache-enable_star_channel). Enable the star (*) channel.
+                description: (Deprecated) Moved to [channel_cache.enable_star_channel](#databases-this_db-cache-channel_cache-enable_star_channel). Enable the star (*) channel.
                 default: 'true'
               channel_cache_max_length:
                 type: integer
-                description: (Deprecated) Moved to [channel_cache.max_length](#databases-foo_db-cache-channel_cache-max_length). Maximum number of entries maintained in cache per channel.
+                description: (Deprecated) Moved to [channel_cache.max_length](#databases-this_db-cache-channel_cache-max_length). Maximum number of entries maintained in cache per channel.
                 default: 500
               channel_cache_min_length:
                 type: integer
-                description: (Deprecated) Moved to [channel_cache.min_length](#databases-foo_db-cache-channel_cache-min_length). Minimum number of entries maintained in cache per channel.
+                description: (Deprecated) Moved to [channel_cache.min_length](#databases-this_db-cache-channel_cache-min_length). Minimum number of entries maintained in cache per channel.
                 default: 50
               channel_cache_expiry:
                 type: integer
-                description: (Deprecated) Moved to [channel_cache.expiry_seconds](#databases-foo_db-cache-channel_cache-expiry_seconds). Time (seconds) to keep entries in cache beyond the minimum retained.
+                description: (Deprecated) Moved to [channel_cache.expiry_seconds](#databases-this_db-cache-channel_cache-expiry_seconds). Time (seconds) to keep entries in cache beyond the minimum retained.
                 default: 60
               channel_cache:
                 type: object
-                description: |
+                description: |+
                   Channel cache configuration
                 properties:
                   compact_high_watermark_pct:
                     type: integer
-                    description: |
+                    description: |+
                       High watermark for channel cache eviction (percent).
 
                       When the cache size, determined by `max_number`, reaches the high watermark, the eviction process iterates through the cache to remove inactive channels.
                     default: 80
                   compact_low_watermark_pct:
                     type: integer
-                    description: |
+                    description: |+
                       Low watermark for channel cache eviction (percent).
 
                       When the cache size, determined by `max_number` returns to a value lower than `compact_low_watermark_pct`, the cache eviction process is stopped.
                     default: 60
                   max_number:
                     type: integer
-                    description: |
+                    description: |+
                       Tuning this property is an [Enterprise Edition](https://www.couchbase.com/products/editions) feature.
                       The Community Edition is configured with the default value, and will ignore any value in the configuration file.
 
@@ -252,47 +245,47 @@ properties:
                     default: 50000
                   max_wait_pending:
                     type: integer
-                    description: |
+                    description: |+
                       Maximum wait time in milliseconds for a pending sequence before skipping sequences.
                     default: 5000
                   max_num_pending:
                     type: integer
-                    description: |
+                    description: |+
                       Maximum number of pending sequences before skipping the sequence.
                     default: 10000
                   max_wait_skipped:
                     type: integer
-                    description: |
+                    description: |+
                       Maximum wait time in milliseconds for a skipped sequence before abandoning the sequence.
                     default: 3600000
                   enable_star_channel:
                     type: boolean
-                    description: |
+                    description: |+
                       Enable the star (*) channel.
                     default: 'true'
                   max_length:
                     type: integer
-                    description: |
+                    description: |+
                       Maximum number of entries maintained in cache per channel.
                     default: 500
                   min_length:
                     type: integer
-                    description: |
+                    description: |+
                       Minimum number of entries maintained in cache per channel.
                     default: 50
                   expiry_seconds:
                     type: integer
-                    description: |
+                    description: |+
                       Time (seconds) to keep entries in cache beyond the minimum retained.
                     default: 60
               rev_cache:
                 type: object
-                description: |
+                description: |+
                   Revision cache configuration
                 properties:
                   size:
                     type: integer
-                    description: |
+                    description: |+
                       Size of the revision cache, specified as the total number of document revisions to cache in memory for all recently accessed documents. When the revision cache is full, Sync Gateway removes less recent document revisions to make room for new document revisions. Adjust this property to tune memory consumption by Sync Gateway, for example on servers with less memory and in cases when Sync Gateway creates many new documents and/or updates many documents relative to the number of read operations.
 
                       ##### Disabling the revision cache
@@ -305,7 +298,7 @@ properties:
                     default: 5000
                   shard_count:
                     type: integer
-                    description: |
+                    description: |+
                       Tuning this property is an [Enterprise Edition](https://www.couchbase.com/products/editions) feature.
                       The Community Edition is configured with the default value, and will ignore any value in the configuration file.
 
@@ -315,14 +308,14 @@ properties:
                     default: 8
           certpath:
             type: string
-            description: |
+            description: |+
               Relative or absolute path to the client's certificate to authenticate against Couchbase Server 5.5 or higher. The private key must be specified with the `databases.$db.keypath` property.
           enable_shared_bucket_access:
             type: boolean
-            description: |
-              Introduced in Sync Gateway 1.5, this property specifies whether to enable Mobile-Server Data Sync (a.k.a _mobile convergence_). You can learn more about this functionality [here](https://docs.couchbase.com/sync-gateway/current/shared-bucket-access.html)
+            description: |+
+              Introduced in Sync Gateway 1.5, this property specifies whether to enable Mobile-Server Data Sync (a.k.a _mobile convergence_). You can learn more about this functionality in [Syncing Mobile and Server](./../shared-bucket-access.html)
 
-              This property works in conjunction with the [import_docs](#databases-foo_db-import_docs) property.
+              This property works in conjunction with the [import_docs](#databases-this_db-import_docs) property.
 
               `enable_shared_bucket_access` needs to be `true` on all nodes participating in such a configuration where as `import_docs` can only be set to `true` on a single node.
 
@@ -340,8 +333,8 @@ properties:
 
               Ways to tune the Metadata Purge Interval on Couchbase Server:
 
-              - Bucket settings [on UI](https://developer.couchbase.com/documentation/server/current/settings/configure-compact-settings.html)
-              - Bucket endpoint [on the REST API](https://developer.couchbase.com/documentation/server/current/rest-api/rest-bucket-create.html)
+              - Bucket settings [on UI](https://docs.couchbase.com/server/current/manage/manage-settings/configure-compact-settings.html)
+              - Bucket endpoint [on the REST API](https://docs.couchbase.com/server/current/rest-api/rest-bucket-create.html)
 
               #### Implementation notes for XATTRs:
 
@@ -366,7 +359,7 @@ properties:
             description: Webhooks in Sync Gateway are designed to minimize performance impacts on Sync Gateway's regular processing. Sync Gateway manages the number of processes that are spawned for webhook event handling, so that slow response times from the HTTP POST operations don't consume available CPU resources on Sync Gateway nodes. When a `webhook` event handler is defined, after Sync Gateway has updated a document, Sync Gateway adds a `document_changed` event to an asynchronous event-processing queue (the event queue). New processes are then spawned to apply the `filter` function to the documents and to perform the HTTP POST operations. When an event is not added to the event queue, but is instead discarded, a warning message is written to the the Sync Gateway log. You can configure Sync Gateway to log information about event handling, by including either the log key `Event` or `Events+` in the `Log` property in your Sync Gateway configuration file. `Events+` is more verbose.
             properties:
               document_changed:
-                description: The configuraton for the action to perform when a document change is detected.
+                description: The configuration for the action to perform when a document change is detected.
                 type: array
                 items:
                   type: object
@@ -400,7 +393,7 @@ properties:
             default: DCP
           import_filter:
             type: string
-            description: |
+            description: |+
               JavaScript filter function to determine if a document written to the Couchbase Server bucket should be made available to Couchbase Mobile clients (i.e imported). The filter function takes the document body as parameter and is expected to return a boolean to indicate whether the document should be imported.
 
               ```json
@@ -427,16 +420,16 @@ properties:
             default: function(doc) {return false;}
           keypath:
             type: string
-            description: |
+            description: |+
               Relative or absolute path to the client's private key to authenticate against Couchbase Server 5.5 or higher. The client certificate must be specified with the `databases.$db.certpath` property.
           local_doc_expiry_secs:
             type: integer
-            description: |
+            description: |+
               Starting in Sync Gateway 2.0, it is possible to set an expiry value for local documents managed on Sync Gateway. This property defaults to `7776000` (90 days) if not specified. Local documents are used by the Couchbase Lite replicator to track up to which sequence number a given client has synchronized and where it should resume the next time it connects to Sync Gateway. Clients that don't replicate within the expiry window will be forced to restart their replication from the beginning (sequence zero). This property is being introduced to prevent the accumulation of obsolete replication checkpoint documents in the Couchbase Server bucket.
             default: 7776000
           num_index_replicas:
             type: integer
-            description: |
+            description: |+
               Determines the number of index replicas used when creating the core Sync Gateway indexes. This property is only applicable if `databases.$db.use_views` is set to `false` (default value).
             default: 1
           oidc:
@@ -449,7 +442,7 @@ properties:
               providers:
                 type: object
                 properties:
-                  foo_provider:
+                  this_provider:
                     type: object
                     properties:
                       issuer:
@@ -502,14 +495,14 @@ properties:
             description: Couchbase pool name. The default is the string default.
           rev_cache_size:
             type: integer
-            description: (Deprecated) Moved to [rev_cache.size](#databases-foo_db-cache-rev_cache-size). Size of the revision cache, specified as the total number of document revisions to cache in memory for all recently accessed documents. When the revision cache is full, Sync Gateway removes less recent document revisions to make room for new document revisions. Adjust this property to tune memory consumption by Sync Gateway, for example on servers with less memory and in cases when Sync Gateway creates many new documents and/or updates many documents relative to the number of read operations.
+            description: (Deprecated) Moved to [rev_cache.size](#databases-this_db-cache-rev_cache-size). Size of the revision cache, specified as the total number of document revisions to cache in memory for all recently accessed documents. When the revision cache is full, Sync Gateway removes less recent document revisions to make room for new document revisions. Adjust this property to tune memory consumption by Sync Gateway, for example on servers with less memory and in cases when Sync Gateway creates many new documents and/or updates many documents relative to the number of read operations.
             default: 5000
           revs_limit:
             type: integer
-            description: |
+            description: |+
               This property defines the maximum depth to which a document's revision tree can grow; its value governs the point at which to prune a document's revision tree.
 
-              The default and minimum values of `revs_limit` are dependent on whether [allow_conflicts](config-properties.html#databases-foo_db-allow_conflicts) is set True or False -- see the *Default and Minimum Values* table below.
+              The default and minimum values of `revs_limit` are dependent on whether [allow_conflicts](config-properties.html#databases-this_db-allow_conflicts) is set True or False -- see the *Default and Minimum Values* table below.
 
               The process to remove obsolete revisions is called pruning and runs automatically every time a revision is added. Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite. On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
 
@@ -525,17 +518,17 @@ properties:
 
               **For Releases 2.6+**
 
-              allow_conflicts =| True | False
-               :--- | :-------: | :-------:
-              `revs_limit` default | 100 | 50 |
-              `revs_limit` minimum | 20 | 1 |
+              allow_conflicts =|+ True |+ False
+               :--- |+ :-------: |+ :-------:
+              `revs_limit` default |+ 100 |+ 50 |+
+              `revs_limit` minimum |+ 20 |+ 1 |+
 
               **For Releases 2.0 - 2.5**
 
-               allow_conflicts = | <-- True --> |<-- False -->
-               :--- | :-------: | :-------:
-               `revs_limit` default  | 100 | 1000
-               `revs_limit` minimum  | 50 | 1
+               allow_conflicts = |+ <-- True --> |+<-- False -->
+               :--- |+ :-------: |+ :-------:
+               `revs_limit` default  |+ 100 |+ 1000
+               `revs_limit` minimum  |+ 50 |+ 1
 
               **For Release 1.x**
               - `revs_limit` default = 1000
@@ -551,7 +544,7 @@ properties:
             type: object
             description: Initial roles.
             properties:
-              foo_role:
+              this_role:
                 type: object
                 description: The role name.
                 properties:
@@ -566,7 +559,7 @@ properties:
             default: 'true'
           server:
             type: string
-            description: |
+            description: |+
               The value of the *server* property specifies the Hostname(s) to the Couchbase Server node(s) in the cluster.
 
               Sync Gateway supports the ability to specify multiple hosts in the configuration.
@@ -587,21 +580,21 @@ properties:
 
               Examples of valid `server` values for *IPv6* include:
               - `http://[2001:db8::8811]:8091` *// single node IPv6 - http scheme with default server port*
-              - `couchbases://[2001:db8::8811]` *// single node SSL IPv6 - default port (ommitted)*
+              - `couchbases://[2001:db8::8811]` *// single node SSL IPv6 - default port (omitted)*
               - `couchbase://[2001:db8::8811],[2001:db8::8822]:888` *// node1 default port, node2 port 888*
 
               As with the SDK, when using the `couchbase://` or `couchbases://` schemes, the port is not required, but if specified should be the external/internal bucket ports (defaults are 11210 or 11207 respectively). Attempting to use the admin ports (8091/18091) will result in a startup error.
 
               On startup, Sync Gateway will try each hostname that is provided until it is able to connect successfully.
 
-              If the connection to Couchbase Server is lost during normal operations, Sync Gateway will automatically re-connect to another node in the cluster. During that re-connection period, the Sync Gateway will appear [offline](database-offline.html) and documents will not be replicated to mobile clients.
+              If the connection to Couchbase Server is lost during normal operations, Sync Gateway will automatically re-connect to another node in the cluster. During that re-connection period, the Sync Gateway will appear offline -- see [Taking Databases Offline](./../database-offline.html) -- and documents will not be replicated to mobile clients.
 
               The default value is an in-memory bucket called **walrus** that is only used during development and prototyping.
               Note that the **walrus** mode is being deprecated in Sync Gateway 2.5 and will be removed in a future release.
             default: 'walrus:'
           session_cookie_name:
             type: string
-            description: |
+            description: |+
               Starting in Sync Gateway 2.0, it is possible to customize the session cookie name that is used for this database. This configuration property is primarly used for web applications interacting with multiple Sync Gateway **databases**. Browsers typically have two methods of determining which cookie to use for a given request: the `URL` path or cookie name. With this property, you can use different cookie names for each database specified in the configuration file. Let's consider the following configuration file:
 
               ```json
@@ -638,10 +631,15 @@ properties:
               document.cookie = cookie1String;
               ```
             default: 'SyncGatewaySession'
+          sgreplicate_enabled:
+            type: boolean
+            default: true -- replication is enabled on this database
+            description:
+              If set to false, this Sync Gateway node will not participate in sg-replicate distribution.
           sync:
             type: string
-            description: |
-              The sync function is a JavaScript function whose source code is stored in the Sync Gateway's database configuration file. Every time a new document, revision or deletion is added to a database, the sync function is called and given a chance to examine the document (see the [Sync Function API guide](sync-function.html)).
+            description: |+
+              The sync function is a JavaScript function whose source code is stored in the Sync Gateway's database configuration file. Every time a new document, revision or deletion is added to a database, the sync function is called and given a chance to examine the document (see the [Sync Function API guide](./../advance/adv-sgw-cfg-sync-function.html)).
 
               If a document is in conflict there will be multiple current revisions. The default, the "winning" one is the one whose channel assignments and access grants take effect.
 
@@ -666,7 +664,7 @@ properties:
             type: object
             description: Initial user accounts.
             properties:
-              foo_user:
+              this_user:
                 type: object
                 description: The user's name.
                 properties:
@@ -688,14 +686,489 @@ properties:
                     description: Whether this user account is disabled.
           use_views:
             type: boolean
-            description: |
+            description: |+
               If set to `true`, Sync Gateway will use views instead of GSI for system functions like authentication and replication.
             default: 'false'
           view_query_timeout_secs:
             type: integer
-            description: |
+            description: |+
               The view query timeout in seconds. This property allows you to specify the time Sync Gateway should wait for a view query response from Couchbase Server before it times out. The timeout is used for both view and N1QL queries issued by Sync Gateway.
             default: 75
+          #
+          # END : Define Server
+
+          # container:
+          #   type: object
+          #   # description: described
+          #   properties:
+          #     this_rep:
+          #       type: object
+          #       # description: myrep
+          #       properties:
+          #         remote1:
+          #           type: string
+          #           # description: remote1
+          #         remote2:
+          #           type: string
+          #           # description: remote2
+          #         remote3:
+          #           type: string
+          #           # description: remote3
+
+          # BEGIN: Define sync-gateway replications
+          #
+          #  TODO cover issues in  CBG-975/976  uer/password separate items also redacted 'password'
+          #
+          replications:
+            type: object
+            description: |+
+              **About**
+
+              This **replications** property is where you configure all SG-Replicate 2.0 replications required for this database. It comprises one or more named replication definitions.
+
+              Add a *replication definition* object for each replication, allowing multiple replications to be defined for any given database.
+
+              **Options**
+
+              Your replications can be one of two available types -- see [replication types](./../learn/icr-replication-types.html) (not available in beta)
+
+              - Persistent -- the replication survives node restarts
+
+                It is recommended you configure persistent replications for production environments using the configuration file, although they can also be launched dynamically using the Rest API `_replication` endpoint (see -- [Admin Rest API](./../refer/rest-api-admin.html))
+
+              - Transient (`adhoc=true`) -- the replication runs once when created
+
+                Transient replications are initiated using the REST API's *_replication* endpoint.
+                These replications are not guaranteed to run on the initiating node and will instead be distributed across available nodes.
+
+              **Using**
+
+              To configure SG-Replicate 1.0 replications -- see [SG-Replicate 1.0 Replications](config-properties.html#replications).
+
+              For more on upgrading from SG-Replicate 1.0 -- see [Moving to SG-Replicate 2.](./../upgrade.html#moving-to-sg-replicate-2-0).
+
+              **Constraints**
+              - Replications are defined in the context of a local database, with the replication pulling-to or pushing-from this database. This change means that you cannot to set-up replication between two remote databases, as -- by definition -- at least one database **must** be local.
+
+              - The following REST API only parameters are omitted from this configuration schema -- refer to [Admin Rest API](./refer/rest-api-admin.adoc) for details:
+                - `adhoc=true` for transient replications
+                - `cancel=true` to cancel a replication
+            # items:
+              # type: object
+            properties:
+              this_rep:
+                type: object
+                description: |+
+                  **About**
+
+                  Use this replication definition object's name to specify this replication's `replication_id`.
+
+                  **Behavior**
+
+                  In use, this *replication definition* object will comprise all, or a subset, of its properties (defined below). It defines a single replication.
+
+                  The database under which it is defined may be associated with more than one replication. You should add a replication definition  object for each replication.
+
+                  Give each a unique name, which will serve as the `replication_id`. This is the ID by which Sync Gateway recognizes and utilizes a replication.
+
+                  **Constraints**
+                  - For new replications -- if no `replication_id` is specified, Sync Gateway will assign a random UUID
+
+                  - For `_replicate` REST API calls only -- If the 'cancel' property is true, this *replication_id* identifies which active replication task to cancel.
+
+                properties:
+                  adhoc:
+                    type: boolean
+                    default: false
+                    description: |+
+                      **About**
+
+                      Use the Admin REST API's `adhoc` parameter to specify that a replication is ad hoc rather than persistent.
+
+                      **Behavior**
+
+                      Ad hoc replications behave the same as normal replications, but they are automatically removed when their status changes to stopped.
+                      This will usually be on completion, but may also be as a result of user action.
+
+                      **Constraints**
+
+                      This parameter is **NOT** available in configured replications; only those initialized using the Admin REST API.
+
+                  batch_size:
+                    type: integer
+                    default: 200
+                    description: |+
+                      **About**
+
+                      Use `batch_size` to specify the number of changes to be included in a single batch during replication.
+
+                      **Behavior**
+
+                      Increasing this value above the default may reduce processing time, whilst also consuming more memory resource.
+                  cancel:
+                    type: boolean
+                    default: false
+                    description: |+
+                      **About**
+
+                      Use this parameter on,y when you want to want to cancel an existing active replication.
+
+                      **Constraints**
+
+                      - This parameter is **NOT** available in configured replications; only those initialized using the Admin REST API.
+
+                      - **NOTE** that the body of the request must be the same as the replication's replication definition for the cancellation request to be honoured.
+
+                      For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
+
+                  conflict_resolution_type:
+                    type: string
+                    default: default
+                    description: |+
+                      **About**
+
+                      Use `conflict_resolution_type` to specify how Sync Gateway should resolve conflicts. By default the automatic conflict resolution policy is applied.
+
+                      **Valid options**
+                        - `default`
+                        - `localWins`
+                        - `remoteWins`
+                        - `custom`
+
+                      **For Example**
+                      ```
+                        "conflict_resolution_type":"custom"
+                      ```
+
+                      **Behavior**
+
+                      The `conflict_resolution_type` defines the conflict resolution policy Sync Gateway applies to resolve conflicting revisions.
+
+                      - `default` -- the automatic conflict resolution policy is applied, that is --
+                        - Deletes always win (the delete with longest revision history wins if both revisions are deletes)
+                        - The revision with the longest revision history wins (so, the one with most changes and consequently the highest revision Id).
+
+                      - `localWins` -- Selecting `localWins` will result in local revisions always being the winner in any conflict.
+                      - `remoteWins` -- Selecting `remoteWins` will result in remote revisions always being the winner in any conflict.
+
+                      - `custom` -- Selecting `custom` specifies that you want to handle resolution with your own application logic. You **must** provide this logic as a Javascript function by specifying it using the a [custom-conflict-resolver](./../refer/config-properties.html#databases-this_db-replications-custom-conflict-resolver).
+
+                      **Constraints**
+                      - replications created prior to version 2.8 will default to `default`.
+
+                  continuous:
+                    type: boolean
+                    default: false -- non-continuous
+                    description: |+
+                      **About**
+
+                      Use `continuous` to specify whether this replication will run continuously, or be one-shot.
+
+                      **Behavior**
+
+                      - `continuous=true`-- In continuous mode, changes are immediately synced in accordance with the replication definition.
+                      - `continuous=false`-- In one-shot mode, detected changes are synced in accordance with the replication definition. The replication ceases once all revisions are processed.
+
+                      If omitted the replication defaults to one-shot mode.
+
+                      **Constraints**
+
+                      - Optional for stops and removes
+
+                  custom_conflict_resolver:
+                    type: string
+                    default: none
+                    description: |+
+                      **About**
+
+                      Use `custom_conflict_resolver` to provide the Javascript function used to resolve conflicts if `"conflict_resolution_type": "custom"`.
+
+
+                      **Valid Options**
+
+                      The property is *mandatory* when `"conflict_resolution_type": "custom"` and is ignored in all other cases.
+
+                      **Behavior**
+
+                      The optional `custom_conflict_resolver` property specifies the Javascript function that will be used to resolve conflicts. It is used only when `custom` is specified as the[conflict_resolution_type](./../refer/config-properties.html#databases-this_db-replications-conflict_resolution_type).
+
+                      Provide the required logic in a Javascript function, as a string within backticks (see also the description for the [sync function](./../refer/config-properties.html#databases-this_db-sync)).
+
+                      The function takes one parameter `struct` representing the conflict and comprising
+                      - the document id
+                      - the local document
+                      - the remote document
+
+                      The function returns a document `struct` representing the winning revision.
+
+                      **Example**
+                      ```
+                      "custom_conflict_resolver":`
+                        function(conflict) {
+                          console.log("full remoteDoc doc: "+JSON.stringify(conflict.RemoteDocument));
+                        return conflict.RemoteDocument;
+                      }`
+                      ```
+
+                      **Constraints**
+
+                      Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
+
+                  direction:
+                    type: string
+                    default: None - This is Mandatory
+                    description: |+
+                      **About**
+
+                      Use `direction` to specify the replication is *push*, *pull* or *pushAndPull* relative to this node.
+
+                      **Behavior**
+
+                      The property value is referenced by the [remote](config-properties.html#database-this_db-replications-remote) property.
+
+                      - `pull` -- changes are pulled from the `remote` database
+                      - `push` -- changes are pushed to the `remote` database
+                      - `pushAndPull` -- changes are both pushed-to and pulled-from the `remote` database
+
+                      **Constraints**
+
+                      Replications created prior to version 2.8 derive their *direction* from the [source](config-properties.html#replications-source) and [target](config-properties.html#replications-target) url of the replication.
+
+                  enable_delta_sync:
+                    type: boolean
+                    default: false -- delta sync is off
+                    description: |+
+                      **About**
+
+                      Use `enable_delta_sync` to specify use of delta sync for this replication.
+
+                      It works in conjunction with [database.this_db.delta_sync.enabled](config-properties.html#databases-this_db-delta_sync-enabled), which specifies whether the database can use delta sync or not.
+
+                      **Options**
+
+                      To use delta sync or not.
+
+                      - `"enable_delta_sync": true`, the replication can use delta sync (depending on `delta_sync.enabled` setting
+                      - `"enable_delta_sync": false` -- the replication cannot use delta sync
+
+                      **Behavior**
+
+                      The optional `enable_delta_sync` property works in conjunction with the database level [database.this_db.delta_sync.enabled](config-properties.html#databases-this_db-delta_sync-enabled) setting, to determine whether this replication uses delta sync.
+
+                      - **If** `"delta_sync.enabled": true` for both databases involved in the replication, then this parameter enables or disables its use for this specific replication.
+
+                      -  In all other cases it has no effect and the replication runs without delta-sync.
+
+                      **Constraints**
+
+                      - Requires *Enterprise Edition*
+                      - Depends upon setting of [database.this_db.delta_sync.enabled](config-properties.html#databases-this_db-delta_sync)
+                      - Replications created prior to version 2.8 run with `"enable_delta_sync": false`
+                  filter:
+                    type: string
+                    default: None - no filter function is used
+                    description: |+
+                      **About**
+
+                      Use `filter` to specify the name of the function to be used to filter documents.
+
+                      **Options**
+
+                      A common value used when replicating from Sync Gateway is `sync_gateway/bychannel`. This option limits the pull replication to a specific set of channels. You can specify the required channels using [query_params](config-properties.html#databases-this_db-replications-query_params).
+
+                      **Behavior**
+
+                      Works in conjunction with.[query_params](config-properties.html#databases-this_db-replications-query_params) to control the documents processed by the replication.
+
+                      **Example**
+
+                      ```
+                      "filter":"sync_gateway/bychannel"
+                      ```
+
+                      **Constraints**
+
+                      OPTIONAL for stops and removes (even if defined during creation)
+
+                  max_backoff_time:
+                    type: integer
+                    default: 5 - five minutes
+                    description: |+
+                      **About**
+
+                      Use `max_backoff_time` to specify the number of minutes Sync Gateway will spend trying to reconnect lost or unreachable `remote` targets.
+
+                      **Behavior**
+
+                      On disconnection Sync Gateway performs an exponential backoff up to `max_backoff_time` minutes. Thereafter, it will try to reconnect indefinitely every `max_backoff_time` minutes.
+
+                      If a zero value is specified, Sync Gateway does an exponential backoff for up to five minutes before stopping the replication.
+
+                      **Constraints**
+
+                      The value defaults to five minutes for replications created prior to version 2.8.
+
+                  password:
+                    type: string
+                    default: Mandatory
+                    description: |+
+                      **About**
+
+                        Use `password` to provide the login password value for the accredited user running this replication.
+
+                      **Behavior**
+
+                        These details are used to authenticate credentials and approve access to data.
+
+                        Once provided and recorded, the password data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
+
+                  perf_tuning_params:
+                    type: array
+                    description: |+
+                      The `perf_tuning_params` are not available in this release.
+
+                    items:
+                      type: string
+
+                  purge_on_removal:
+                    type: boolean
+                    default: false
+                    description: |+
+                      **About**
+
+                      Use `purge_on_removal` to specify (per replication) whether removing a `channel` should trigger a purge.
+
+                      **Options**
+                      - `true` or `false`
+                      - Default = false -- document removals are ignored by receiving end
+
+                      **Behavior**
+
+                      If `purge_on_removal=false`, then the removal of channels is ignored (not purged) by the receiving end.
+
+                      **Constraints**
+
+                      Replications created prior to version 2.8 *must* be run with `purge_on_removal=false`.
+
+                  query_params:
+                    type: array
+                    default: None - no query_params are used
+                    description: |+
+                      **About**
+
+                      Use `query_params` to specify the key/value pairs to be passed to the filter named in `filter`.
+
+                      **Behavior**
+
+                      This property works in conjunction with [filters](./../refer/config-properties.html#databases-this_db-replications-filter) and [channels](./../refer/config-properties.html#databases-this_db-replications-channels) to provide routing.
+
+                      **Using**
+
+                      You can use `query_params`' *channels* function to allow only a specific set of `channels` to pass.
+                      To do so, you would also need to set the `filter` to  `sync_gateway/bychannels`.
+
+                      For example :
+
+                      ```json
+                        "filter":"sync_gateway/bychannel",
+                        "query_params": {
+                          "channels":["channel.thisChannel"]
+                        },
+                      ```
+
+                      **Constraints**
+
+                      OPTIONAL for stops and removes (even if defined during creation)
+                    items:
+                      type: string
+
+                  remote:
+                    type: string
+                    default: mandatory
+                    description: |+
+                      **About**
+
+                      Use `remote` to specify the database endpoint on the remote Sync Gateway custer.
+
+                      **Options**
+
+                      The format can be one of --
+                      - a string containing a valid URL for a (remote) Sync Gateway database.
+                      - an object whose url property contains the Sync Gateway database URL.
+
+                      **Behavior**
+
+                      The `remote` property represents a database endpoint for the remote Sync Gateway cluster.
+                      That is, it identifies the remote cluster that is the subject of this replication's *push*, *pull* or *pushAndPull action*.
+
+                      The effect of this setting is dependent upon the setting of the [direction](./../refer/config-properties.html#databases-this_db-replications-direction) configuration property.
+
+                      If direction is :
+                      - `direction=pull`, then `remote` defines the remote cluster *from* which data is pulled
+                      - `direction=push`, then `remote` defines the remote cluster *to* which data is pushed
+                      - `direction=pushAndPull`, then `remote` defines the remote cluster *to* which data is pushed.
+
+                      **Example**
+
+                      ```
+                       "remote": "http://www.example.com:4984/db2name",
+                      ```
+
+                      **Constraints**
+
+                      - You must specify the 'remote' database's url even if it is located on the same cluster as the replication's database.
+                      - OPTIONAL for stops and removes
+
+                  replication_id:
+                    type: string
+                    description: |+
+                      **About**
+
+                      Use `replication_id` to specify an identifying name for the replication.
+
+                      **Behavior**
+
+                      The *replication_id* property specifies either:
+                      - For NEW replications, the ID to be assigned to the the replication. If no *replication_id* is specified, Sync Gateway will assign a random UUID to new replications.
+                      - For existing replications, this is the ID of the required replication.
+                      - If **cancel=true**, this is the id of the active replication task to be cancelled.
+
+                      **Constraints**
+
+                      - If specified in configuration, it must match the name of the replication definition object.
+                      - If specified in the body of an Admin REST API request, it must match the `replication_id` specified in the request URL.
+
+                  state:
+                    type: string
+                    default: running
+                    description: |+
+                      **About**
+
+                        Use `state` to specify the state in which to launch the replication.
+
+                      **Behavior**
+
+                      All replications are configured to auto-start on Sync Gateway launch. So, if omitted, the `state` defaults to ```running```.
+
+                      To prevent the auto-start behavior, include `state` with a value of `stopped` (```"state" "stopped"```)
+
+                      **Constraints**
+
+                      Replications created prior to version 2.8 will all default to a state of ```running```.
+
+                  username:
+                    type: string
+                    default: Mandatory
+                    description: |+
+                      **About**
+
+                        Use `username` to provide the name of the accredited user running this replication.
+
+                        **Behavior**
+
+                        These details are used to authenticate credentials and approve access to data
+
+                        Once provided and recorded, the username data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
   facebook:
     description: Configuration for Facebook Login authentication.
     type: object
@@ -720,7 +1193,7 @@ properties:
     type: string
     default: ':4984'
   log:
-    description: |
+    description: |+
       **NOTE:** This property is being deprecated in Sync Gateway 2.1 and replaced by the new [logging](#logging) property.
 
       Comma-separated list of log keys to enable for diagnostic logging. Use ["*"] to enable logging for all log keys.
@@ -742,7 +1215,7 @@ properties:
     type: string
     default: '["HTTP"]'
   logFilePath:
-    description: |
+    description: |+
       **NOTE:** This property is being deprecated in Sync Gateway 2.1 and replaced by the new [logging](#logging-log_file_path) property.
 
       Absolute or relative path on the filesystem to the log file. A relative path is from the directory that contains the Sync Gateway executable file.
@@ -756,7 +1229,7 @@ properties:
         description: Absolute or relative path on the filesystem to the log file. A relative path is from the directory that contains the Sync Gateway executable file.
         type: string
       redaction_level:
-        description: |
+        description: |+
           Optionally, log files can be redacted. This means that user-data, considered to be private, is removed. Such data includes:
             - Key/value pairs in JSON documents
             - Usernames
@@ -773,7 +1246,6 @@ properties:
             }
           }
           ```
-
         type: string
         default: 'none'
       console:
@@ -785,7 +1257,7 @@ properties:
             type: string
             default: 'info'
           log_keys:
-            description: |
+            description: |+
               List of log keys to enable for diagnostic logging. Example:
 
               ```json
@@ -834,22 +1306,22 @@ properties:
             default: 'false'
       default:
         type: string
-        description: |
+        description: |+
           Logging configuration. This property is being **deprecated** in Sync Gateway 2.1 and replaced with 4 different log levels.
 
           See the [`logging.$level`](#logging-$level) property for more detail.
         default: ''
         deprecated: true
       $level:
-        description: |
+        description: |+
           The level of logging as a key. Log levels accumulate as you read down the table (i.e log entries at WARN will also be included in the INFO and DEBUG logs).
 
-          |Level|Description|Minimum max_age|Log File Name|
-          |:---|:---|:---|:---|
-          |ERROR|Critical error messages.|180 days|sg_error.log|
-          |WARN|Something is wrong but SG can still service requests|90 days|sg_warn.log|
-          |INFO|Important diagnostics for support and customers|3 days|sg_info.log|
-          |DEBUG|Lower level development analysis|1 day|sg_debug.log|
+          |+Level|+Description|+Minimum max_age|+Log File Name|+
+          |+:---|+:---|+:---|+:---|+
+          |+ERROR|+Critical error messages.|+180 days|+sg_error.log|+
+          |+WARN|+Something is wrong but SG can still service requests|+90 days|+sg_warn.log|+
+          |+INFO|+Important diagnostics for support and customers|+3 days|+sg_info.log|+
+          |+DEBUG|+Lower level development analysis|+1 day|+sg_debug.log|+
 
           Each log level takes a dictionary as value and various properties can set for each log level. For example:
 
@@ -857,7 +1329,7 @@ properties:
           "logging": {
               "log_file_path": "/home/sync_gateway/logs", // Where to put log files
               "console": {
-                  "log_level": "info",  // What level to output to console - [error|warn|info|debug|none]
+                  "log_level": "info",  // What level to output to console - [error|+warn|+info|+debug|+none]
                   "log_keys": ["HTTP"], // What log keys to output to console (comma separated)
                   "color_enabled": true
               },
@@ -899,7 +1371,7 @@ properties:
         type: object
         properties:
           enabled:
-            description: |
+            description: |+
               Whether to enable this log level.
               The *error*, *warn* and *info* log levels are enabled by default.
               The *debug* log level is disabled by default.
@@ -922,7 +1394,7 @@ properties:
                 description: If true, it uses the computer's local time to format the backup timestamp. False uses UTC.
                 default: false
               rotated_logs_size_limit:
-                description: |
+                description: |+
                   Controls how much disk space the rotated (and compressed) log files for this level can take up.
 
                   The value is expressed in megabytes.
@@ -947,37 +1419,75 @@ properties:
   profileInterface:
     description: (**Deprecated**) TCP network address (IP address and the port) that the Go profile API listens on. You can obtain go profiling information from the interface. You can omit the IP address.
     type: string
+
   replications:
     type: array
+    description: |+
+      **Support Notice**
+      (**Deprecated**) This SG-Replicate 1.0 method of configuring replication is deprecated at version 2.8. For replication using the SG-Replicate 2.0 protocol configure the replication properties under _database.replications_ instead -- see [SG-Replicate 2.0 Replications](./../refer/config-properties.html#databases-this_db-replications).
+
+      **NOTE:** Sync Gateway will fail to start if any replications defined at this level do involve at least one local database (source and-or target); an error is recorder in the log.
+
+      **About**
+      SG-Replicate 1.0 replications :
+
+      - default to a 'Running' state
+      - do not support built-in, or custom, conflict resolution -- see [Resolving Conflicts](./../resolving-conflicts.html) and [SG-Replicate 2.0 Conflict Resolution](./../learn/icr-conflict-resolution.html)
+      - use `source` and `target` to derive replication direction
     items:
       type: object
       properties:
         replication_id:
           type: string
-          description: ID to assign this replication with. If no replication_id is given for a new replication it will be assigned a random UUID.
+          description:  |+
+            (**Deprecated**)
+            This is the ID to assign this replication with. If no replication_id is given for a new replication it is assigned a random UUID.
         source:
           type: string
-          description: Identifies the database to copy revisions from. Can be a string containing a local database name or a remote database URL, or an object whose url property contains the database name or URL. Also an object can contain headers property that contains custom header values such as a cookie.
+          description: |+
+            (**Deprecated**)
+            Identifies the database to copy revisions from.
+
+            Valid options:
+              - a string containing a local database name
+              - a remote database URL
+              - an object whose url property contains the database name or URL.
+                Also an object can contain a headers property that contains custom header values such as a cookie.
         target:
           type: string
-          description: Identifies the database to copy revisions to. Same format and interpretation as source.
+          description: |+
+            (**Deprecated**)
+            Identifies the database to copy revisions to. Same format and interpretation as source.
         continuous:
           type: boolean
-          description: Specifies whether the replication should be in continuous mode.
+          default: false
+          description:  |+
+            (**Deprecated**)
+            Specifies whether the replication should be in continuous mode.
         changes_feed_limit:
           type: integer
-          description: The maximum number of change entries to pull in each loop of a continous changes feed.
+          description: |+
+            (**Deprecated**)
+            The maximum number of change entries to pull in each loop of a continuos changes feed.
           default: 50
         filter:
           type: string
-          description: Indicates that the documents should be filtered using the specified filter function name. A common value used when replicating from Sync Gateway is sync_gateway/bychannel to limit the pull replication to a set of channels.
+          description:  |+
+            (**Deprecated**)
+            Indicates that the documents should be filtered using the specified filter function name. A common value used when replicating from Sync Gateway is sync_gateway/bychannel to limit the pull replication to a set of channels.
         query_params:
           type: array
-          description: A set of key/value pairs to use in the querystring of the replication. For example, the channels field can be used to pull from a set of channels (in this particular case, the filter key must be set for the channels field to work as expected).
+          description: |+
+            (**Deprecated**)
+            A set of key/value pairs to use in the querystring of the replication. For example, the channels field can be used to pull from a set of channels (in this particular case, the filter key must be set for the channels field to work as expected).
           items:
+            # type: object
+            # properties:
+            #   param-string-1:
             type: string
+            description: query parameter string
   replicator_compression:
-    description: |
+    description: |+
       This sets the 'deflate' compression level to use when compressing messages sent via the WebSocket protocol, where 0 means no compression, 1 means fastest (least) compression, and 9 means slowest (most) compression.
     type: integer
     default: 6
@@ -998,7 +1508,7 @@ properties:
     description: Absolute or relative path on the filesystem to the TLS private key file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
     type: string
   tls_minimum_version:
-    description: |
+    description: |+
       Enforce a minimum TLS version to be used in replications with Couchbase Lite.
 
       Possible values are:

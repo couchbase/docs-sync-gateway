@@ -1,9 +1,19 @@
 = Glossary
-:page-role: -toc
-:page-layout: article
 :page-aliases: glossary
+:page-partial:
+:page-layout: article
+:page-status: {release-status-sgw} -- {release-comments-sgw}
+:page-edition: Under development
+:page-role: -toc
+:description: Sync Gateway Glossary of Terms
+:keywords: edge nosql api synchronization replication
 :page-content-type: reference
-include::partial$_attributes-local.adoc[]
+// End of Page Definition Statements
+
+include::partial$_std-hdr-sgw.adoc[]
+include::partial$block-authors-notes.adoc[tag=wip]
+:topic-group: {tg-ref-info}
+include::partial$block-abstract.adoc[]
 
 // Glosary entry name tag format:
 //  {component} = sgw-
@@ -11,48 +21,396 @@ include::partial$_attributes-local.adoc[]
 //  {sub-space} = eg. user, document, role, channel, sync
 //  {name} = free-from
 
-<<A>> | <<B>> | <<C>> | <<D>> | <<E>> | <<F>> | <<G>> | <<H>> | <<I>> | <<J>> | <<K>> | <<L>> | <<M>> | <<N>> | <<O>> | <<P>> | <<Q>> | <<R>> | <<S>> | <<T>> | <<U>> | <<V>> | <<W>> | <<X>> | <<Y>> | <<Z>>
+:goto-index: Back to <<index>>
+
+
+[[index]]
+== Index
+[.pane__frame--blue]
+<<A>>  |  <<B>>  |  <<C>>  |  <<D>>  |  <<E>>  |  <<F>>  |  <<G>>  |  <<H>>  |  <<I>>  |  <<J>>  |  <<K>>  |  <<L>>  |  <<M>>  |  <<N>>  |  <<O>>  |  <<P>>  |  <<Q>>  |  <<R>>  |  <<S>>  |  <<T>>  |  <<U>>  |  <<V>>  |  <<W>>  |  <<X>>  |  <<Y>>  |  <<Z>>
 
 == A
 
+[[active-replicator]]
+Active replicator::
+// tag::sgw-icr-active-replicator-full[]
+// tag::sgw-icr-active-replicator[]
+The term _active replicator_, refers to the Sync Gateway endpoint that initiates the replication connection.
+That is, it s the Sync Gateway where the replicators are configured and from which the changes are pushed.
+// end::sgw-icr-active-replicator[]
++
+* _Synonym(s)_: active sync gateway
+* _SGW Component_: Inter-sync-gateway replication
+* _Related Term(s)_: <<passive-replicator, Passive replicator>>
+* _Read More_: {xref-sgw-pg-icr-overview}
+// end::sgw-icr-active-replicator-full[]
+
+[[adhoc-replication]]
+Adhoc Replication::
++
+--
+// tag::sgw-icr-adhoc-replication-full[]
+// tag::sgw-icr-adhoc-replication-def[]
+// tag::sgw-icr-adhoc-replication[]
+The term _adhoc replication_ refers to transient, one-shot, replications that run once and are removed when they stop.
+They are initialized using the Admin REST API.
+They do not survive Sync Gateway restarts.
+// end::sgw-icr-adhoc-replication[]
+
+Ad hoc replications are useful when it is necessary to do one off replication or for troubleshooting.
+
+Other useful use cases include:
+
+* Starting a replication on-demand, for instance a replication that needs to be scheduled to be run at midnight every Thursday. +
+In this case, it is likely that there is an automation script that schedules the adhoc replication on a predefined schedule.
+* Deploying an emergency one-time update that needs to be pushed out to all edge clusters from primary data clusters.
+// end::sgw-icr-adhoc-replication-def[]
+
+Context:
+
+* _Synonym(s)_: transient replication
+* _Related Term(s)_:
+** <<persistent-replication, Persistent replication>>
+** <<continuous-replication, Continuous replication>>
+* _SGW Component_: Inter-sync-gateway replication
+* _Read More_: {xref-sgw-pg-icr-overview}
+* _Related Config Elements_: {xref-sgw-pg-config-properties-db-rep-adhoc}  |  {xref-sgw-pg-config-properties-db-rep-continuous}
+// end::sgw-icr-adhoc-replication-full[]
+--
+
+[[auto-conflict-resolution]]
 Automatic conflict resolution::
-// tag::sgw-conf-res-auto-resolution[]
-The process by which conflicts are automatically resolved by the system.
-Optional feature in xref:couchbase-lite::swift.adoc#handling-conflicts[Couchbase Lite 2.0 and above].
-// end::sgw-conf-res-auto-resolution[]
++
+--
+include::{concepts}rep-auto-conflict-resolution.adoc[]
+--
+
+[[auto-conflict-resolution-policy]]
+Automatic conflict resolution policy::
++
+--
+include::{concepts}rep-auto-conflict-resolution-policy.adoc[]
+--
+
+{goto-index}
+
+== C
+
+// tag::conflict-resolver-policies-full[]
+[[conflict-resolver-policies]]
+Conflict Resolver Policies::
+// tag::conflict-resolver-policies-summary[]
+Inter-Sync-gateway Replications provides several predefined conflict resolver policies, which you can choose to apply.
+These include: `default; `localWins`, `remoteWins`; and `custom`.
+// end::conflict-resolver-policies-summary[]
++
+--
+// tag::conflict-resolver-policies-body[]
+Each conflict resolver policy applies a different strategy:
+
+Default::
+* Always applies Sync Gateway's <<auto-conflict-resolution-policy>>
+* Configured using: `"conflict_resolution_type": "default"`
+
+Local Wins::
+* Always considers the local change the winner.
+* Configured using: `"conflict_resolution_type": "localWins"`
+
+Remote Wins::
+* Always considers the remote change the winner.
+* Configured using: `"conflict_resolution_type": "remoteWins"`
+
+Custom::
++
+NOTE: {enterprise} Only
+
+--
+* Applies the policy defined in the function provided by the `custom_conflict_resolution` parameter
+* Configured using:
++
+[source: json]
+----
+"conflict_resolution_type": "custom",
+"custom_conflict_resolution": `function (local, remote) { //
+  return { //
+    body: winner.body,
+    meta: winner.meta
+  }; // Return winning revision
+}`
+----
+--
+// end::conflict-resolver-policies-body[]
+--
+// end::conflict-resolver-policies-full[]
+
+[[continuous]]
+[[rep-continuous]]
+Continuous replication mode::
+// tag::glos-term-rep-continuous[]
+A _continuous_ replication will sit in running state awaiting document changes to process in accordance to its _replication definiton_.
+// end::glos-term-rep-continuous[]
+
+[[cloud-to-edge]]
+Cloud-to-Edge Sync::
+// tag::sgw-cloud-to-edge-full[]
+// tag::sgw-cloud-to-edge-def[]
+// tag::sgw-cloud-to-edge[]
+The term _cloud-to-edge_ refers to the multi-cloud deployment mode commonly know as _ship-to-shore_ or _hub-and-spoke_.
+These typically involve a large number of edge clusters (mobiles,, tablets IoT) connected to one or more cloud data centers.
+// end::sgw-cloud-to-edge[]
++
+Each edge can operate autonomously without network connectivity to the cloud data centers.
+The _edge_ could be, for example a group of retail stores, ships at sea or distribution hubs.
+The number of edges can range from a few hundred to several thousand.
+// end::sgw-cloud-to-edge-def[]
++
+* _Synonym(s)_: ship-to-shore sync, hub-and-spoke sync
+* _SGW Component_: Inter-sync-gateway replication
+* _Related Term(s)_:
+* _Read More_: {xref-sgw-pg-icr-overview}
+// end::sgw-cloud-to-edge-full[]
+
+[[cloud-to-edge-synchronization]]
+[[cloud-to-edge-sync]]
+Cloud-to-Edge synchronization::
+// tag::sgw-cloud-to-edge-sync-full[]
+// tag::sgw-cloud-to-edge-sync-def[]
+// tag::sgw-cloud-to-edge-sync[]
+The term _cloud-to-edge synchronization_ refers to  scenarios typically involving a hierarchy of couchbase mobile clusters, within which a large number of edge clusters must synchronize data changes with each other and with one or more clusters in cloud data centers.
+// end::sgw-cloud-to-edge-sync-sync[]
++
+Each edge can operate autonomously without network connectivity to the cloud data centers.
+The _edge_ could be, for example a group of retail stores, ships at sea or distribution hubs.
+The number of edges can range from a few hundred to several thousand.
+// end::sgw-cloud-to-edge-def-sync[]
++
+* _Synonym(s)_: ship-to-shore sync, hub-and-spoke sync
+* _SGW Component_: Inter-sync-gateway replication
+* _Related Term(s)_:
+* _Read More_: {xref-sgw-pg-icr-overview}
+// end::sgw-cloud-to-edge-full-sync[]
+
+{goto-index}
+
+// == D
+
+// [[document]]
+
+
+
+
+// {goto-index}
+
+== I
+
+[#inter-sync-gateway-replication]
+[[inter-sync-gateway-replication]]
+Inter-sync-gateway Replication::
+// tag::sgw-inter-sync-gateway-replication-full[]
+// tag::sgw-inter-sync-gateway-replication-def[]
+// tag::sgw-inter-sync-gateway-replication[]
+The term _inter-sync-gateway replication_ refers to replication between
+two Sync Gateway clusters and-or between Active mobile clusters.
+// tag::sgw-inter-sync-gateway-replication[]
++
+Inter-sync-gateway replication within Sync Gateway is delivered by the Inter-sync-gateway Replication (v2) protocol, which enables a Sync Gateway replicator to act as the _{glos-term-active-replicator}_, pulling changes from a data source and pushing them to a target.
+// tag::sgw-inter-sync-gateway-replication-def[]
+// tag::sgw-inter-sync-gateway-replication-full[]
+
+{goto-index}
 
 == L
 
+[[leaf-revision]]
 Leaf revision::
 // tag::sgw-conf-res-leaf-revision[]
 A Leaf revision is the last Document Revision in a series of changes.
 Documents may have multiple Leaf Revisions (aka Conflict Revisions) due to concurrent updates.
 // end::sgw-conf-res-leaf-revision[]
 
+{goto-index}
+
 == N
 
+[[no-conflicts-mode]]
 No conflicts mode::
 // tag::sgw-conf-res-no-conflicts[]
 No conflicts mode is the process by which write operations that would result in a conflict are rejected by the system.
 It is an optional feature in xref:couchbase-lite::swift.adoc#handling-conflicts[Couchbase Lite 2.0 and above] and xref:config-properties.adoc#databases-foo_db-allow_conflicts[Sync Gateway 2.0 and above].
 // end::sgw-conf-res-no-conflicts[]
 
+[[no-op-updates]]
+No op updates::
++
+--
+// tag::sgw-conf-no-op-update-full[]
+// tag::sgw-conf-no-op-update[]
+The term _no-op update_ refers to a change made to the document body that does not impact application logic but does trigger a replication by the Sync Gateway.
+// end::sgw-conf-no-op-update[]
+
+For example, you may include an otherwise redundant _counter_ property, that you increment in response to conflict resolver errors.
+// tag::sgw-conf-no-op-update-context[]
+// end::sgw-conf-no-op-update-full-context[]
+// end::sgw-conf-no-op-update-full[]
+--
+
+{goto-index}
+
+== O
+
+[[rep-oneshot]]
+One-shot replication mode::
+// tag::glos-term-rep-oneshot[]
+A _one-shot_ replication will start, process all existing document changes in accordance to its _replication definition_ and then stop.
+
+Once finished, persistent _one-shot_ replications return to a 'stopped' state, but _adhoc_ _one-shot_ replications are removed.
+// end::glos-term-rep-oneshot[]
+
+{goto-index}
+
+== P
+
+[[passive-replicator]]
+Passive replicator::
++
+--
+// tag::sgw-icr-passive-replicator-full[]
+// tag::sgw-icr-passive-replicator[]
+The term _passive replicator_, refers to the Sync Gateway endpoint that receives an incoming replication connection.
+// end::sgw-icr-passive-replicator[]
+
+// tag::sgw-icr-passive-replicator-context[]
+
+Context
+
+* _Synonym(s)_: passive sync gateway
+* _Related Term(s)_: <<active-replicator, Active replicator>>
+* _SGW Component_: Inter-sync-gateway replication
+* _Read More_: {xref-sgw-pg-icr-overview}
+// end::sgw-icr-passive-replicator-context[]
+// end::sgw-icr-passive-replicator-full[]
+--
+
+
+[[persistent-exponential-backoff]]
+Persistent Exponential Backoff::
+The wait time between retry attempts is exponentially increased at each attempt, until it reaches a predetermined maximum limit.
+Subsequent retries may be made after the maximum limit time period has elapsed.
+
+
+[[persistent-replication]]
+Persistent Replication::
+// tag::sgw-icr-persistent-replication-full[]
+// tag::sgw-icr-persistent-replication-def[]
+// tag::sgw-icr-persistent-replication[]
+The term _Persistent replication_ refers to replications that survive Sync Gateway restarts.
+All replications are persisted by default unless explicitly flagged as not.
+// end::sgw-icr-persistent-replication[]
+Persistent replication is defined in the configuration file sync-gateway.json (see {xref-sgw-pg-cofig-properties}.
+It is started automatically and survives restarts.
+The recommended method of defining a persistent replication is by using the configuration file.
+With SG Replicate 2.0 you can configure all nodes with the replicators.
+// end::sgw-icr-persistent-replication-def[]
++
+* _Synonym(s)_: continuous replication
+* _Related Term(s)_:
+** <<transient-replication, Transient replication>>
+** <<transient-replication, Adhoc replication>>
+* _SGW Component_: Inter-sync-gateway replication
+* _Read More_: {xref-sgw-pg-icr-overview}
+// end::sgw-icr-persistent-replication-full[]
+
+{goto-index}
 
 == R
 
+[[replication-definition]]
+Replication definition::
++
+--
+// tag::glos-term-replication-definition-full[]
+// tag::glos-term-replication-definition[]
+The term _Replication definition_ refers to that set of elements (parameters or properties) that define a replication, dictating what will be replicated and how the replication will be conducted.
+// end::glos-term-replication-definition[]
+
+Replication definitions are provided to Sync Gateway in 'JSON' format through either:
+
+* The Sync Gateway configuration file  (`sync-gateway-config.json`)
+* The Admin REST API's `_replication` endpoint, using a utility such as `curl`, or an application such as _Postman_.
+
+_Replication definitions_ comprise the same elements in both the JSON configuration file and the Admin REST API; except configured replications cannot use `adhoc` or  `cancel`.
+
+
+// end::glos-term-replication-definition-full[]
+--
+
+[[revision-pruning]]
 Revision pruning::
 // tag::sgw-conf-res-revision-pruning[]
 Revision Pruning is the process that deletes the metadata and/or JSON bodies associated with old non-leaf revisions.
 Leaf revisions are not impacted.
 // end::sgw-conf-res-revision-pruning[]
 
+{goto-index}
+
+== S
+
+[[synchronized]]
+[[sync]]
+[[synchronization]]
+[[synchronizing]]
+Synchronization::
++
+--
+// tag::sgw-icr-sync-function-def[]
+// tag::sgw-icr-sync-function[]
+The term, _Synchronization_, refers to the process of replicating the changes made to documents on one database to the same documents in a second instance of that database.
+// end::sgw-icr-sync-function[]
+
+* Synonyms: _replication_, _sync_
+* _Related Term(s)_:
+** <<sync-function, Sync function>>
+** <<persistent-replication, Persistent replication>>
+** <<transient-replication, Adhoc replication>>
+* _SGW Component_: Inter-sync-gateway replication
+* _Read More_: {xref-sgw-pg-icr-overview}
+// end::sgw-icr-sync-function-def[]
+--
+
+
+[[sync-function]]
+Sync Function::
+// tag::sgw-icr-sync-function-full[]
+// tag::sgw-icr-sync-function[]
+// tag::sgw-icr-sync-function-def[]
+The Sync Function is a JavaScript function whose source code is stored in the Sync Gateway’s database configuration file. It is in charge of data validation, and of authorizing both read and write access to documents.
+// end::sgw-icr-sync-function-def[]
+
+// tag::sgw-icr-sync-function-rel[]
+ {xref-sgw-pg-config-properties-databases}  |  {xref-sgw-pg-config-properties-databases-sync}
+// end::sgw-icr-sync-function-rel[]
+// end::sgw-icr-sync-function[]
+// end::sgw-icr-sync-function-full[]
+
+[[sync-gateway-database]]
+Sync Gateway Database::
+// tag::sgw-icr-sync-gateway-database[]
+The term _Sync Gateway database_ refers to what you may consider a namespace for documents. It provides Sync Gateway with access to documents that are stored in Couchbase Server.
+// end::sgw-icr-sync-gateway-database[]
+
 == T
 
+[[tombstone-revision]]
 Tombstone revision::
 // tag::sgw-conf-res-tombstone[]
-A Tombstone Revision is a document revision that contains only the document ID, a revision ID and the `_deleted: true` key value pair. It acts as the record of a deleted item.
-+
-Tombstone revisions are created to allow all devices to see that a document has been deleted - particularly in the case of devices that may not be online continuously and therefore not syncing regularly.
+A tombstone revision is essentially a marker indicating that a document has been deleted.
+
+Each Tombstone Revision comprises: document ID, revision ID and a _deleted flag (value=true).
+They are created to allow all devices to see that a document has been deleted - particularly in the case of devices that may not be online continuously and therefore not syncing regularly.
+
+Every update -- including deletes -- creates a document revision.
+Deleted revisions are also known as _Tombstone_ revisions.
+They have the '“_deleted”: true' property, are replicated, but are not returned if you do a query using, for example, Couchbase Lite.
 +
 [source,json]
 ----
@@ -68,3 +426,11 @@ Mentioned in:
 * xref:config-properties.adoc#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access]
 * xref:server:learn:buckets-memory-and-storage/storage.adoc#tombstones[Server Tombstones]
 // end::sgw-conf-res-tombstone[]
+
+[[transient-replication]]
+Transient Replication::
+// tag::sgw-icr-transient-replication[]
+The term _transient replication_ refers to ad hoc replications -- see:  <<adhoc-replication, Adhoc Replication>>
+// end::sgw-icr-transient-replication[]
+
+{goto-index}

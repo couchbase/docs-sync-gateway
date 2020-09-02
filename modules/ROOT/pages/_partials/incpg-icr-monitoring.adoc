@@ -1,0 +1,149 @@
+// = Replication Monitoring and Statistics
+include::partial$_stats-item-names.adoc[]
+// tag::in-this-section[]
+*_In this Section_*: <<retrieving-replication-status-data>>  |  <<retrieving-sync-gateway-statistics>>
+// end::in-this-section[]
+
+// tag::overview[]
+== Overview
+
+// tag::overview-status[]
+=== Status Information
+
+Sync Gateway provides a replication status Admin REST API endpoint to enable effective monitoring of replications.
+
+Use the {xref-sgw-ep-admin-api-replication-repstatus} endpoint to check the status of individual replications and-or the {xref-sgw-ep-admin-api-replication-repstatus-query} endpoint to get status information on all replications, filtered by the querystring criteria.
+
+// end::overview-status[]
+// tag::overview-stats[]
+
+=== Sync Gateway Statistics
+
+Sync Gateway maintains a comprehensive set of statistics, including a replication-specific subset.
+
+You can access these statistics using the `_expvars`  endpoint.
+
+// end::overview-stats[]
+// end::overview[]
+
+== Retrieving Replication Status Data
+// <<retrieving-status-data-for-a-specific-replication>>  | <<retrieving-status-data-for-all-replications>>
+
+include::partial$icr-replicationStatus-GET.adoc[tags=overview]
+
+
+=== Retrieving Status Data for a Specific Replication
+
+include::partial$icr-replicationStatus-GET.adoc[tags=rep-status-specific]
+
+=== Retrieving Status Data for All Replications
+
+include::partial$icr-replicationStatus-GET.adoc[tags=rep-status-all]
+
+// [{tabs}]
+// ====
+
+// Request::
+// +
+// --
+// [source, console]
+// ----
+// curl -X GET "http://localhost:4985/travel-sample/_replicationStatus/pull-from-target-continuous-2" -H "accept: application/json"
+// ----
+// --
+
+// Response::
+// +
+// --
+// [source, json]
+// ----
+// {
+//   "replication_id": "string",
+//   "continuous": true,
+//   "source": "string",
+//   "target": "string",
+//   "status": "string",
+//   "docs_read": 0,
+//   "docs_written": 0,
+//   "doc_write_failures": 0,
+//   "rejected_by_remote": 0,
+//   "rejected_by_local": 0,
+//   "error_message": "string",
+//   "delta_enabled": true,
+//   "last_seq_pull": "string",
+//   "last_seq_push": "string"
+// }
+// ----
+// --
+
+// ====
+
+== Retrieving Sync Gateway Statistics
+
+Sync Gateway maintains a comprehensive set of metrics covering performance and resource utilization.
+
+The statistics schema includes replication metrics collected on a per-replication basis.
+These can be especially useful in monitoring the health of Sync Gateway nodes. An increasingly important activity as deployments scale to support cloud-to-edge use cases.
+
+Access to this data is provided through the Admin REST API endpoint `/_expvars`.
+
+See: {xref-sgw-pg-stats-monitoring} for a full description of the available metrics.
+
+=== Available Replication Metrics
+
+The metrics specifically related to replication are introduced in: <<metrics-item-descriptions>>, with the schema shown in <<per-replication-metrics-schema>>.
+
+For how to retrieve the metrics see: <<retrieve-the-metrics>>.
+
+=== Metrics item descriptions
+
+[#per-replication-metrics-schema]
+.Per-replication metrics schema
+====
+
+[source,json,subs="normal, attributes"]
+----
+
+include::partial$stats-schema-per-replication.adoc[]
+
+----
+
+====
+
+include::partial$stats-schema-descriptions.adoc[tags=per-replication]
+
+
+=== Retrieve the metrics
+
+.Using expvars
+=====
+
+
+[{tabs}]
+
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-cfg}[tags=icr-rep-stats-req]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+// . . . other metrics items
+
+include::{example-cfg}[tags=icr-rep-stats-resp]
+
+// . . . other metrics items
+----
+--
+
+====
+
+=====

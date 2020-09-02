@@ -5,6 +5,19 @@
 :page-content: conceptual
 include::partial$_attributes-local.adoc[]
 :pageOriginRel: "sg=1.5, Cbs=5.0)_"
+:description: Sync Gateway replication keeps distributed database changes in sync
+:keywords: sync gateway, replication, sync, synchronization, edge, cloud
+
+
+include::partial$_std-hdr-sgw.adoc[]
+include::partial$block-authors-notes.adoc[tag=wip]
+:topic-group: Replication
+:param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-admin}
+:param-abstract: This content describes how Sync Gateway synchronizes document changes made through Couchbase SDKs and N1QL queries.
+include::partial$block-abstract.adoc[]
+
+
+
 
 ifeval::["{releaseStatus}" == "gamma"]
 [.pane__frame--orange]
@@ -15,9 +28,6 @@ Documents the data synchronization process.
 This content is very important. Need to find a way of emphazisingit ... consider a way of pulling that up ... maybe include something in deploy section as well.
 --
 endif::[]
-
-[abstract]
-Sync Gateway uses the _Shared Bucket Access_ feature to synchronize document changes made through Couchbase SDKs and N1QL queries to be synchronized to Couchbase Lite clients, and vice versa.
 
 == Shared Bucket Access
 Sync Gateway uses the _Shared Bucket Access_ feature to synchronize document changes made through Couchbase SDKs and N1QL queries with Couchbase Lite clients, and vice versa.
@@ -75,7 +85,7 @@ The document is first run through the Sync Function to compute read security and
 This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
 - During import, `oldDoc` is `nil` when the Sync Function is executed.
 
-You can specify a filter function using the xref:config-properties.adoc#databases-foo_db_import_filter[import_filter]  property, which will only import specific documents.
+You can specify a filter function using the xref:config-properties.adoc#databases-this_db_import_filter[import_filter]  property, which will only import specific documents.
 
 TIP: Use the xref:config-properties.adoc#log[Import+] log key to troubleshoot import processing issues in the logs.
 
@@ -83,10 +93,11 @@ TIP: Use the xref:config-properties.adoc#log[Import+] log key to troubleshoot im
 
 Note that `import_docs` only takes effect if the `enabled_shared_bucket_access` is set to `true`.
 
-Starting in Release 2.7, `import_docs` defaults to `true` for Enterprise Edition.
-This implies that by default, all Enterprise Edition nodes in a cluster will participate in import processing.
-In order to exclude a node, the `import_docs` flag must be `false`.
-This `import_docs` flag must be explicitly set to `true` in Community Edition.
+{enterprise}::
+The `import_docs` parameter defaults to `true`, implying that, by default, all nodes in a cluster participate in import processing.
+To exclude a node, set `"import_docs": false`.
+{community}::
+The `import_docs` parameter defaults to false and must be explicitly set to `true`.
 
 
 The following table describes the key behavior differences between Community Edition and Enterprise Edition when `import_docs` is enabled, disabled or not set at all.
@@ -147,17 +158,17 @@ image:workload-isolation.png[]
 
 == Metadata Purge Interval
 
-When link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] is enabled, xref:glossary.adoc[mobile tombstones] are *not* retained indefinitely.
+When link:config-properties.html#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] is enabled, xref:glossary.adoc[mobile tombstones] are *not* retained indefinitely.
 They are purged based on the server's _metadata purge interval_.
-To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
+To ensure tombstones are replicated to clients, you should set the server's metadata purge interval based on your expected replication frequency (see the link:config-properties.html#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] reference).
 
 == Reference
 
 The reference to the configuration properties can be found below.
 
-* link:config-properties.html#databases-foo_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
-* link:config-properties.html#databases-foo_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
-* link:config-properties.html#databases-foo_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+* link:config-properties.html#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
+* link:config-properties.html#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+* link:config-properties.html#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
 
 == FAQ
 
@@ -182,7 +193,7 @@ See the xref:couchbase-lite:ROOT:swift.adoc#blobs[Blob] example.
 
 === How do I access an attachment from a WebApp?
 
-Attachments can be accessed through Sync Gateway's REST API using the xref:rest-api.adoc#/attachment/get\__db___doc___attachment_[+/{db}/{doc}/{attachment}+] endpoint.
+Attachments can be accessed through Sync Gateway's REST API using the xref:rest-api.adoc#/attachment/get\__db___doc___attachment_[+/{tkn-db}/{doc}/{attachment}+] endpoint.
 
 == Migrating from Bucket Shadowing
 
@@ -200,39 +211,4 @@ The following steps outline a recommended method for migrating from Bucket Shado
 image:bucket-shadowing-migration.png[]
 
 
-
-
-== Related Content
-
-[.pane__frames]
-
-* *How-to*
-+
---
-xref:sync-gateway::gs-configure-sgw.adoc[Configure]
-
-xref:sync-gateway::gs-before.adoc[Before You Start]
-
-xref:sync-gateway::getting-started[Installing Server]
---
-
-* *Learn more*
-+
---
-xref:sync-gateway::shared-bucket-access.adoc[Introducing Data Sync]
-
-xref:sync-gateway::rest-api-client.adoc[Introducing REST API]
-
-include tutorial links as relevant
-
-include blog links as relevant
---
-
-* *Reference material*
-+
---
-xref:sync-gateway::config-properties.adoc[Configuration Schema]
-
-(eg config file or api)
---
-
+include::partial$block-related-content-api.adoc[]

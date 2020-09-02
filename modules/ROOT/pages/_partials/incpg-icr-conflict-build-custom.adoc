@@ -1,0 +1,125 @@
+// Build a Conflict Resolution Strategy
+// tag::in-this-section[]
+_In this section_: <<conflict-resolution-approaches>>  |  <<approaches-to-error-handling>>  |  <<conflict-resolver-structure>>  |  <<sample-conflict-resolvers, Example Conflict Resolvers>>
+// end::in-this-section[]
+
+include::partial$block-caveats.adoc[tags=ee-only]
+
+Custom conflict resolution is handled by the _active_ Sync Gateway using a user-provided {glos-term-custom-conflict-resolver}. This Javascript function is embedded in the replication configuration.
+
+The predefined conflict resolver policies are also available as Javascript functions that you can call from within that _custom_conflict_resolver_ function
+
+You can invoke the non-custom built-in resolver policies from within your resolver function. This is useful when you want to apply greater selectivity to the automatic conflict resolution process. For example, you want to apply the `remoteWins` policy only for a specific type of document - see <<use-policies, Use Policies>> tab in <<simple-conflict-resolvers>>.
+
+== Conflict Resolution Approaches
+
+There are two ways to handle conflicts in your custom_conflict_resolver, you can either:
+
+* Choose a _winning_ revision from among the conflicting revisions (see <<simple-conflict-resolvers>>), or
+* Merge conflicting revision to create a new _winning_ revision; losing revisions are tomb-stoned.
++
+However, user are cautioned against using complex resolver logic as it can have a significant impact on performance.
+
+== Approaches to Error Handling
+
+// tag::overview-error-handling[]
+Your custom conflict resolver function should not terminate the replication when it encounters exceptions or errors.
+Instead, you should log sufficient information to aid troubleshooting and recovery.
+
+For example, your custom conflict resolver function should:
+
+* Skip the document causing the issue
+* Log a suitable warning level message.
+Include at least the skipped document's Id and the sequence Id of the revision in error.
+// end::overview-error-handling[]
+
+Refer to log files when troubleshooting conflict resolution errors, to identify the document id and revision sequence in error.
+
+.Some Error Scenarios and Recommended Resolutions
+===
+
+Unexpected data in the remote document::
+You should update the remote document to fix the issue.
+Doing so will cause replication of the update.
+
+Unexpected data in the local document::
+You should update the local document to fix the issue.
+This will not trigger a pull-replication.
+Do a no-op-update {fn-no-op-text} of the remote document, which will trigger replication and conflict resolution.
+
+Fault in conflict resolution javascript function::
++
+--
+Fix the Javascript logic and then either:
+
+* Do a _no op update_ {fn-no-op} of the remote document.
+This triggers a pull replication and subsequent conflict resolution.
+
+* Reset the replication (using `_replicationstatus/reset` endpoint). Not recommended as it introduces significant duplicate processing in re-syncing previously synced documents.
+
+--
+===
+
+
+== Conflict Resolver Structure
+
+This example shows the basic structure of the conflict resolver function as it would be defined in the configuration file.
+
+.Conflict resolver structure
+====
+[source, javascript]
+----
+include::{example-cfg}[tags=icr-conflict-resolver-structure, indent=0]
+----
+
+include::{example-cfg}[tags=icr-conflict-resolver-structure-callouts, indent=0]
+====
+
+== Sample Conflict Resolvers
+
+[#simple-conflict-resolvers]
+.Simple conflict resolvers
+=====
+[{tabs}]
+====
+[#use-policies]
+Use Build-in Policies::
++
+--
+This example uses the built-in resolver functions to resolve the conflict based-on the document type.
+
+So, documents of type `a-doc-type-1` are always resolved in favor of the remote revision. All other document types are resolved in accordance with the default resolver policy.
+
+[source,json]
+----
+include::{example-cfg}[tags=icr-simple-conflict-resolver, indent=0]
+----
+--
+
+Nominate a Winner::
++
+--
+This example selects a winner based on relative priorities and builds a return response of its own rather than using either the localWins or remoteWins policy, although it does rely on the default resolver policy as a backstop.
+
+[source,json]
+----
+include::{example-cfg}[tags=icr-simple-own-winner-conflict-resolver, indent=0]
+----
+--
+Merge a Winner::
++
+--
+This example creates a winner by merging changes from the local and remote documents to create a new document object, which is returned as the winner.
+
+If both document.types are non-null and the local document.type is `usedefault`, the merge path is overridden and the default resolver policy is applied.
+
+//- In the merge case, winner[revid] must be empty.
+//   - If an nil Body is returned, the conflict should be resolved as a deletion/tombstone.
+
+[source,json]
+----
+include::{example-cfg}[tags=icr-simple-merge-conflict-resolver, indent=0]
+----
+--
+====
+=====
