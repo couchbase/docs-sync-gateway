@@ -8,6 +8,11 @@ properties:
     description: (**Deprecated**) URL of the Sync Gateway Admin Console HTML page.
     type: string
     default: ':4985/_admin/'
+  metricsInterface:
+    description: Port or TCP network address (IP address and the port) which exposes the metrics endpoint.
+    type: string
+    default: none
+
   compressResponses:
     description: Whether to compress HTTP responses. Set to false to disable compression of HTTP responses.
     type: boolean
@@ -278,6 +283,10 @@ properties:
                     description: |+
                       Time (seconds) to keep entries in cache beyond the minimum retained.
                     default: 60
+                  query_limit:
+                    type: integer
+                    default: 5000
+                    description: Limit used for channel queries
               rev_cache:
                 type: object
                 description: |+
@@ -636,6 +645,23 @@ properties:
             default: true -- replication is enabled on this database
             description:
               If set to false, this Sync Gateway node will not participate in sg-replicate distribution.
+          sgreplicate_websocket_heartbeat_secs:
+            type: integer
+            default: 5
+            description: If set, this duration (in minutes) is used as a custom heartbeat interval for websocket ping frames
+          serve_insecure_attachment_types:
+            type: boolean
+            default: false
+            description: If an attachment has headers such as "text/html" where it would attempt to render in a browser Sync Gateway will force a download by sending content-disposition header. Setting this option to false will instead not set the content-disposition and allow a browser to render the attachment.
+          session_cookie_secure:
+            type: boolean
+            default: false (for ssl) otherwise true
+            description: Override secure cookie flag. ie disable secure cookies. Default depends on whether ssl is used. If ssl is used default is false, otherwise true.
+          session_cookie_http_only:
+            type: boolean
+            default: false
+            description:  This flag disallows cookies from being used by Javascript; by default javascript CAN use them
+
           sync:
             type: string
             description: |+
@@ -1491,6 +1517,14 @@ properties:
       This sets the 'deflate' compression level to use when compressing messages sent via the WebSocket protocol, where 0 means no compression, 1 means fastest (least) compression, and 9 means slowest (most) compression.
     type: integer
     default: 6
+  readHeaderTimeout:
+    description: Maximum duration (in seconds) allowed to read request Headers
+    type: integer
+    default: 5
+  idleHeaderTimeout:
+    description: Maximum duration (in seconds) to wait for the next request when keep-alives are enabled
+    type: integer
+    default: 90
   serverReadTimeout:
     description: Maximum duration in seconds before timing out the read of an HTTP(S) request. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
     type: integer

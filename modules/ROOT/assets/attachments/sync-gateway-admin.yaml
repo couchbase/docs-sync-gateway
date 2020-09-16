@@ -1594,6 +1594,33 @@ paths:
 # Replication endpoint path
 ################################################################################
   /{db}/_replication/:
+    post:
+      tags:
+      # - database
+      - replication
+      summary: Create a new replication definition
+      description: |+
+        The **_replication** endpoint is used to manage both *ad hoc* and *persistent* replication operations.
+
+        Using a POST request you can insert a new set of replication details.
+
+        <br>**To Cancel a Replication**
+        You can cancel continuous replications by adding the cancel field to the JSON request object and setting the value to true.
+        Note that the structure of the request must be identical to the original for the cancellation request to be honoured.
+        For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
+      parameters:
+      - $ref: '#/parameters/db-local'
+      # - $ref: '#/parameters/replication_id-upsert'
+      - $ref: '#/parameters/replication__replication-body'
+      responses:
+        200:
+          description: Replication successfully updated
+          schema:
+            $ref: '#/definitions/ReplicationResponse'
+        201:
+          description: Replication successfully inserted
+          schema:
+            $ref: '#/definitions/ReplicationResponse'
     get:
       tags:
       # - database
@@ -1653,35 +1680,6 @@ paths:
         - $ref: '#/parameters/db-local'
         - $ref: '#/parameters/replication_id-upsert'
         - $ref: '#/parameters/replication__replication-body'
-      responses:
-        200:
-          description: Replication successfully updated
-          schema:
-            $ref: '#/definitions/ReplicationResponse'
-        201:
-          description: Replication successfully inserted
-          schema:
-            $ref: '#/definitions/ReplicationResponse'
-    post:
-      tags:
-      # - database
-      - replication
-      summary: Create a replication definition
-      description: |+
-        The **_replication** endpoint is used to manage both *ad hoc* and *persistent* replication operations.
-
-        Using a POST request you can insert a new set of replication details.
-
-        <br>**To Cancel a Replication**
-        You can cancel continuous replications by adding the cancel field to the JSON request object and setting the value to true.
-
-        Note that the structure of the request must be identical to the original for the cancellation request to be honoured.
-
-        For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
-      parameters:
-      - $ref: '#/parameters/db-local'
-      - $ref: '#/parameters/replication_id-upsert'
-      - $ref: '#/parameters/replication__replication-body'
       responses:
         200:
           description: Replication successfully updated
