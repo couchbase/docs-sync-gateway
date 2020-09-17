@@ -642,7 +642,7 @@ properties:
             default: 'SyncGatewaySession'
           sgreplicate_enabled:
             type: boolean
-            default: true -- replication is enabled on this database
+            default: true -- this Sync Gateway node can be assigned sg-replicate replications for this database
             description:
               If set to false, this Sync Gateway node will not participate in sg-replicate distribution.
           sgreplicate_websocket_heartbeat_secs:
@@ -750,19 +750,17 @@ properties:
             description: |+
               **About**
 
-              This **replications** property is where you configure all SG-Replicate 2.0 replications required for this database. It comprises one or more named replication definitions.
+              This **replications** property is where you configure all SG-Replicate 2.0 replications associated with this database. It comprises one or more named replication definitions.
 
-              Add a *replication definition* object for each replication, allowing multiple replications to be defined for any given database.
+              Add a *replication definition* object for each replication to be associated with this database.
 
               **Options**
 
               Your replications can be one of two available types -- see [replication types](./../learn/icr-replication-types.html) (not available in beta)
 
-              - Persistent -- the replication survives node restarts
+              - Persistent -- the replication survives node restarts. These replications can also be launched dynamically using the Rest API `_replication` endpoint (see -- [Admin Rest API](./../refer/rest-api-admin.html))
 
-                It is recommended you configure persistent replications for production environments using the configuration file, although they can also be launched dynamically using the Rest API `_replication` endpoint (see -- [Admin Rest API](./../refer/rest-api-admin.html))
-
-              - Transient (`adhoc=true`) -- the replication runs once when created
+              - Ad-hoc -- the replication runs once and then the replication definition is removed when the replication is stopped. This includes when a one-shot replication completes, or a continuous replication is stopped via the _replicationStatus endpoint.
 
                 Transient replications are initiated using the REST API's *_replication* endpoint.
                 These replications are not guaranteed to run on the initiating node and will instead be distributed across available nodes.
@@ -1066,7 +1064,7 @@ properties:
 
                       **Options**
                       - `true` or `false`
-                      - Default = false -- document removals are ignored by receiving end
+                      - Default = false -- document removals are ignored
 
                       **Behavior**
 
@@ -1098,7 +1096,7 @@ properties:
                       ```json
                         "filter":"sync_gateway/bychannel",
                         "query_params": {
-                          "channels":["channel.thisChannel"]
+                          "channels":["thisChannel"]
                         },
                       ```
 
