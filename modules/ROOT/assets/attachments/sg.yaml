@@ -161,7 +161,7 @@ properties:
               This configuration is specifically recommended for workload isolation: to isolate import nodes from the client-facing nodes. Workload isolation is preferable in deployments with a large write throughput.
 
               Prior to Release 2.1 a value of 'continuous' was also allowed. This was deprecated at Release 2.1 and replaced with the boolean value True. There is no change to the behavior or functionality (that is, a value of 'continuous' was interpreted as True and had the same effect).
-            default: false
+            default: 'false'
           import_partitions:
             type: integer
             description: |+
@@ -642,24 +642,30 @@ properties:
             default: 'SyncGatewaySession'
           sgreplicate_enabled:
             type: boolean
-            default: true -- this Sync Gateway node can be assigned sg-replicate replications for this database
-            description:
+            default: 'true'
+            description: |+
+              By default, this Sync Gateway node can be assigned sg-replicate replications for this database
               If set to false, this Sync Gateway node will not participate in sg-replicate distribution.
           sgreplicate_websocket_heartbeat_secs:
             type: integer
-            default: 5
-            description: If set, this duration (in minutes) is used as a custom heartbeat interval for websocket ping frames
+            default: 300
+            description: If set, this duration (in seconds) is used as a custom heartbeat interval for websocket ping frames
           serve_insecure_attachment_types:
             type: boolean
-            default: false
+            default: 'false'
             description: If an attachment has headers such as "text/html" where it would attempt to render in a browser Sync Gateway will force a download by sending content-disposition header. Setting this option to false will instead not set the content-disposition and allow a browser to render the attachment.
           session_cookie_secure:
             type: boolean
-            default: false (for ssl) otherwise true
-            description: Override secure cookie flag. ie disable secure cookies. Default depends on whether ssl is used. If ssl is used default is false, otherwise true.
+            default: 'true'
+            description: |+
+              Override secure cookie flag (that is, disable secure cookies).
+
+              If SSLCert is set, then secure cookies are also used by default. However, this flag can be set `false` to override this behavior and allow insecure cookies to be used alongside SSL.
+
+              If SSLCert is not set then this flag defaults to false.
           session_cookie_http_only:
             type: boolean
-            default: false
+            default: 'false'
             description:  This flag disallows cookies from being used by Javascript; by default javascript CAN use them
 
           sync:
@@ -803,7 +809,7 @@ properties:
                 properties:
                   adhoc:
                     type: boolean
-                    default: false
+                    default: 'false'
                     description: |+
                       **About**
 
@@ -831,7 +837,7 @@ properties:
                       Increasing this value above the default may reduce processing time, whilst also consuming more memory resource.
                   cancel:
                     type: boolean
-                    default: false
+                    default: 'false'
                     description: |+
                       **About**
 
@@ -882,7 +888,7 @@ properties:
 
                   continuous:
                     type: boolean
-                    default: false -- non-continuous
+                    default: 'false'
                     description: |+
                       **About**
 
@@ -960,7 +966,7 @@ properties:
 
                   enable_delta_sync:
                     type: boolean
-                    default: false -- delta sync is off
+                    default: 'false'
                     description: |+
                       **About**
 
@@ -1056,7 +1062,7 @@ properties:
 
                   purge_on_removal:
                     type: boolean
-                    default: false
+                    default: 'false'
                     description: |+
                       **About**
 
@@ -1416,7 +1422,7 @@ properties:
               localtime:
                 type: boolean
                 description: If true, it uses the computer's local time to format the backup timestamp. False uses UTC.
-                default: false
+                default: 'false'
               rotated_logs_size_limit:
                 description: |+
                   Controls how much disk space the rotated (and compressed) log files for this level can take up.
@@ -1484,7 +1490,7 @@ properties:
             Identifies the database to copy revisions to. Same format and interpretation as source.
         continuous:
           type: boolean
-          default: false
+          default: 'false'
           description:  |+
             (**Deprecated**)
             Specifies whether the replication should be in continuous mode.
