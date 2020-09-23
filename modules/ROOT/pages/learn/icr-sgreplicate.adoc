@@ -1,35 +1,36 @@
-= An Introduction to Inter-sync-gateway Replication
-:page-aliases: icr-architecture.adoc
+= Inter-sync-gateway Replication
 :page-layout: article
-:page-status: {release-status-sgw} -- {release-comments-sgw}
-:page-edition: Under Development
-:page-role:
-:description: Introducing Inter-sync-gateway replication concepts
+:page-status:
+:page-edition:
+:page-role: conceptual
+:description: Couchbase inter-sync-gateway replication -- resilient, secure, scalable bidirectional synchronization of data between cloud and edge data centers.
 
 include::partial$_std-hdr-sgw.adoc[]
-include::partial$block-authors-notes.adoc[tag=wip]
 
 :topic-group: {tg-rep-icr}
 :param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-admin}
+:param-abstract: This content provides an introduction to, and overview of, Couchbase Sync Gateway's inter-sync-gateway replication feature
 include::partial$block-abstract.adoc[]
 
 // Footnotes
-:fn-icr: footnote:icr[As of Sync Gateway version 2.8]
 :fn-sgr1: footnote:sgr1[Inter-sync-gateway Replication (v1) only]
 :fn-sgr2: footnote:sgr2[Inter-sync-gateway Replication (v2) only]
 :fn-arch: footnote:arch[This architecture is also known as _ship-to-shore_ or _hub-and-spoke_.]
+:fn-icr: footnote:icr[As of Sync Gateway version 2.8]
 :fnref-icr: footnote:icr[]
 :fnref-arch: footnote:arch[]
 :fnref-sgr1: footnote:sgr1[]
 :fnref-sgr2: footnote:sgr2[]
 
-== Introduction
+include::partial$block-caveats.adoc[tags=sgr2-only]
 
+
+== Introduction
 // tag::intro-full[]
 // tag::intro[]
 
-Couchbase Sync Gateway supports _{glos-term-inter-sync-gateway-replication}_, {fn-icr} an increasingly important enterprise-level requirement that
-supports _{glos-term-cloud-to-edge} synchronization_ use cases, where data changes must be synchronized between a centralized cloud cluster and a large number of edge clusters whilst still enforcing fine grained access control.
+Couchbase Sync Gateway's _{glos-term-inter-sync-gateway-replication}_{fn-icr} feature supports _{glos-term-cloud-to-edge} synchronization_ use cases, where data changes must be synchronized between a centralized cloud cluster and a large number of edge clusters whilst still enforcing fine grained access control.
+This is an increasingly important enterprise-level requirement.
 
 In the architecture diagram (<<icr-architecture>>), the replicator on the active Sync Gateway node ensures that any database changes made to documents in either {glos-term-sync-gateway-database} instance are replicated to the other Sync Gateway instance, in accordance with the replication's configuration -- see {xref-sgw-pg-config-properties-db-replications} for configuration details.
 
@@ -37,8 +38,8 @@ In the architecture diagram (<<icr-architecture>>), the replicator on the active
 // tag::intro-img[]
 
 [[icr-architecture]]
-.Inter-sync-gateway replication
-image::inter-sync-gateway-replication-2.svg[Cloud-to-edge replication architecture,{img-max}]
+.Inter-sync-gateway replication architecture
+image::icr-replication-overview.svg[]
 
 // end::intro-img[]
 // end::intro-full[]
@@ -51,15 +52,6 @@ Cloud-to-edge synchronization::
 +
 --
 In this multi-cloud deployment mode large numbers of multiple edge clusters sync with one or more clusters in cloud data centers. Each edge can operate autonomously without network connectivity to the cloud data centers {fn-arch}.
-
-// Inter-sync-gateway Replication (v2) delivers bi-directional sync, which:
-
-// - is scalable
-// - has high availability
-// - features automatic and customizable conflict resolution options
-// - has end-to-end security with fine grained access control.
-
-// All very important considerations in this use case.
 
 A typical architecture for this use cases is shown in <<icr-cloud-to-edge>>
 
@@ -83,41 +75,45 @@ image::icr-active-mobile-sync200713.svg[,600]
 
 // end::use-cases[]
 
-== Protocol
-In inter-sync-gateway replication Sync Gateway acts as the {glos-term-active-replicator} in the replication process between Sync Gateway nodes.
-
-The replication is conducted using a proprietary Couchbase protocol, which delivers secure, network resilient replication using basic authentication over HTTP(s) (or optionally Websockets {fn-sgr2}).
-
-Unlike xref:server:manage:manage-xdcr/xdcr-management-overview.adoc[XDCR] (the API for replication between Server clusters), _Inter-Sync-Gateway replication(v2)_ was designed specifically for _{cbm}_ deployments.
-It *must* be used for replication between mobile clusters.
-
 == Replication Characteristics
+_In this section_:  <<context>>  |  <<protocol>>  |  <<types-of-replication>>  |  <<delta-sync>>  |  <<directionality>>  |  <<security>>
 
-=== General Characteristics
+=== Context
+Sync Gateway supports the ability to run replications between Sync Gateway clusters using Inter-sync-gateway Replication (v2), with the {glos-term-active-replicator} {glos-term-synchronizing} changes between two {glos-term-sync-gateway-databases}.
 
 All replications are based on a {glos-term-replication-definition} provided either to the Admin REST API or in Sync Gateway's configuration file (JSON).
-//  -- see: <<replication-definitions>>.
 
-Replications may be manually-assigned a user defined `replication_id`.
-Sync Gateway generates a random UUID if no `replication_id` is defined.
+Replications always involve at least one local database.
+Sync Gateway does not enable replication between two _remote_ nodes, because replications are defined at database level and so at least one database will be local.
+
+All replications take place at the document level (but see also, <<delta-sync>>).
+
+Sync Gateway nodes can opt-out of participating in the replication process using the database-level parameter {xref-sgw-pg-config-properties-databases-sgr-enabled}.
+
+_Related configuration elements_:  {xref-sgw-pg-config-properties-databases}  |  {xref-sgw-pg-config-properties-db-replications}  |  {xref-sgw-pg-config-properties-db-rep-remote} |  {xref-sgw-pg-config-properties-databases-sgr-enabled}
+
+=== Protocol
+
+Inter-sync-gateway Replication (v2), are websocket-based.
+
+NOTE: For users on releases prior to 2.8 only HTTP-based replication is possible. See the appropriate documentation here -- {xref-sgw-pg-icr-sgreplicate-sgr1}.
+
+The bi-directional, persistent, nature of websocket connections is ideal for applications such as a _continuous_ Sync Gateway replication, which is constantly waiting-for and synchronizing change events.
+
+// === General Characteristics
 
 === Types of Replication
 
-// tag::replication-types[]
-
-Sync Gateway supports two replication types
+Replications are either: {glos-term-adhoc-replication} (REST API only) or {glos-term-persistent-replication}.
+They can also be configured to run in one of two-modes:
+{glos-term-continuous} or {glos-term-oneshot}.
 
 * Persistent
 +
 --
 Persistent replications survive Sync Gateway node restarts and continue running automatically unless configured not to.
 They can be configured to run in either {glos-term-continuous} or {glos-term-oneshot} mode.
-
-// They are initialized by configuring them in the _sync-gateway-config.json file_.
-
-//  Inter-sync-gateway (v2) Only You can also create persistent replications by using the {xref-sgw-pg-rest-api-admin}.
 --
-
 * Ad hoc
 +
 --
@@ -127,91 +123,97 @@ They provide a convenient way to:
 * Run one off replications (for example, when troubleshooting)
 * Run on-demand replications after Sync Gateway is started.
 For instance a replication that needs to be to be run only periodically can be configured as an ad hoc replication by an automated script scheduled to run when needed.
-//  They are initialized and run using {xref-sgw-pg-rest-api-admin} requests.
-// Once created they start in the 'running' state. When they enter 'stopped', or 'error', state they are automatically removed.
 --
 
-// end::replication-types[]
+_Related configuration elements_:  {xref-sgw-pg-config-properties-db-replications}  |  {xref-sgw-pg-config-properties-db-rep-continuous} |  {xref-sgw-pg-config-properties-db-rep-adhoc}
 
-== Security
+=== Delta Sync
+include::partial$block-caveats.adoc[tag=ee-only-feature]
+
+With delta-sync enabled on the replication and both databases involved, only the changed data items are transferred.
+
+You can configure replications to use delta-sync by:
+
+* Setting `"enable_delta_sync": true` in the _replication definition_
+* Setting `"delta-sync": { "enabled": true}` on both databases in their respective _database definitions_.
+
+_Related configuration elements_:  {xref-sgw-pg-config-properties-databases}  |  {xref-sgw-pg-config-properties-db-replications}  |
+{xref-sgw-pg-config-properties-databases-delta-sync}  |  {xref-sgw-pg-config-properties-db-rep-delta}
+
+=== Directionality
+
+Replications are bi-directional.
+You can _push_, _pull_ or _push and pull_ between the two database endpoints.
+
+_Related configuration elements_:  {xref-sgw-pg-config-properties-db-replications}  |  {xref-sgw-pg-config-properties-db-rep-direction}
+
+
+=== Security
 // tag::security[]
-
 Transport level security is provided by HTTPS or WSS (for websockets{fnref-sgr2}).
 
 // end::security[]
 
-=== Authentication
+==== Authentication
 // tag::authentication[]
-
 Support for Basic Authentication using username and password credentials is provided (optional TLS Certificate authentications is also available {fnref-sgr2}).
 
 // end::authentication[]
 
-=== Access Control
+==== Access Control
 // tag::access-control[]
-
+// tag::access-control-full[]
 Data access control is provided by Sync Gateway's {glos-term-sync-function} and the username/password credentials.
 All replicated documents pass through this function ensuring that access permissions are adhered to.
 
 // end::access-control[]
-
-For more on authentication and security see: {xref-sgw-pg-icr-sgreplicate-sgr1}  |  {xref-sgw-pg-icr-sgreplicate-sgr2}
-
-
-== Availability and Resilience
-
-Inter-sync-gateway replication version 1, provides for high availability by enabling homogenous replication configurations to be deployed and run on multiple nodes within a cluster.
-Whilst this leads to some duplicate and redundant processing, it does mean that the replications can survive loss of some of the nodes, providing one remains available.
-
-More sophisticated automatic options are available in the {enterprise} at version 2.
-These address the issue of redundant processing by uniformly distributing replications across available nodes and ensuring that any given replication runs on only one node at a time.
-
-For more on availability see: {xref-sgw-pg-icr-sgreplicate-sgr1}  |  {xref-sgw-pg-icr-sgreplicate-sgr2}
-
-== Conflict Handling
-Conflict resolution is handled externally in Inter-sync-gateway (v1), but more extensive automatic and custom conflict handling options are available in Inter-sync-gateway (v2).
-
-For more on conflict resolution see: {xref-sgw-pg-icr-sgreplicate-sgr1}  |  {xref-sgw-pg-icr-sgreplicate-sgr2}
+_Related configuration elements_:  {xref-sgw-pg-config-properties-databases}  |  {xref-sgw-pg-config-properties-databases-sync} +
+_Related how-to_: {xref-sgw-pg-def-sync-function}  |  {xref-sgw-pg-adv-sgw-cfg-sync-function}
+// end::access-control-full[]
 
 
-== Initialization
-// tag::initialization[]
-Replications are initialized by submitting a {glos-term-replication-definition} using either:
+== Network Resilience
+// tag::network-resilience[]
+Persistent inter-sync-gateway replications will automatically attempt to restart whenever the node does.
 
-* A 'JSON' configuration file (`sync-gateway-config.json`)
-* The Admin REST API, using a utility such as `curl`, or an application such as _Postman_.
+Network resiliency is built-in for _continuous_ replications.
+They respond to network issues such as lost connections, by applying a {glos-term-persistent-exponential-backoff} policy to attempt reconnection.
 
-Wherever they are defined, the elements of a replication definition are the same, with the exception of these Admin REST API only elements:
+The {xref-sgw-pg-config-properties-db-rep-backoff} determines the maximum wait time between retries.
+When the limit is reached retries are made every `max_backoff_time` minutes.
+Set `"max_backoff_time": 0` to prevent indefinite retries. Exponential backoff retries will be attempted for up to 5 minutes and then stop if the connection has not been re-established
 
-* `adhoc` -- Use this to specify that the replication is ad hoc {fn-restonly-par}.
-* `cancel` -- Use this to cancel on-going replications {fnref-restonly}.
+.AD HOC Replications
+[NOTE]
+====
+No automatic reconnection attempts are made following network failures for ad hoc replications.
+The controlling user or application should apply the appropriate corrective action.
+====
+// end::network-resilience[]
 
-Sync Gateway supports the concurrent running of multiple inter-sync-gateway replications.
-
-Sync Gateway itself does not store anything persistently.
-Because it is stateless it can be interrupted and-or restarted at anytime without negative side effects.
-
-You can use the filers to selectively process specific channels and provide fine-grained routing capabilities.
-// end::initialization[]
-
-For more on initializing and running replications -- see: {xref-sgw-pg-icr-sgreplicate-sgr1}  |  {xref-sgw-pg-icr-sgreplicate-sgr2}
+{empty} +
+_Related replication definition elements_:  {xref-sgw-pg-config-properties-db-rep-backoff}
 
 
-== Monitoring and Administration
+== High Availability
 
-// tag::statistics[]
-Sync Gateway provides a comprehensive set of replication-related statistics using the `_expvars` REST API endpoint.
-// end::statistics[]
+include::partial$incpg-icr-availability.adoc[leveloffset=+1]
 
-// tag::monitor[]
-Admin REST API endpoints support the monitoring inter-sync-gateway replication tasks (for example, get replication definitions, get replication status information).
-// end::monitor[]
+== Conflict Resolution
 
-// tag::admin[]
-Admin REST API endpoints support the management and administration of replications (for example: to cancel or start a stopped task; or to update a replication definition).
-// end::admin[]
+include::partial$incpg-icr-conflict.adoc[leveloffset=+1]
 
-For more on management and administration see: {xref-sgw-pg-icr-sgreplicate-sgr1}  |  {xref-sgw-pg-icr-sgreplicate-sgr2}
-For more on monitoring and statistics see: {xref-sgw-pg-icr-sgreplicate-sgr1}  |  {xref-sgw-pg-icr-sgreplicate-sgr2}
+==  Replication Initialization
+
+include::partial$incpg-icr-initialization.adoc[leveloffset=+1]
+
+== Replication Management
+
+include::partial$incpg-icr-admin.adoc[leveloffset=+1]
+
+== Replication Monitoring
+
+include::partial$incpg-icr-monitoring.adoc[leveloffset=+1, tags=!overview]
+
 
 include::partial$block-related-content-icr.adoc[]
