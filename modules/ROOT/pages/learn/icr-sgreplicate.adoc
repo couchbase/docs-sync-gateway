@@ -1,5 +1,7 @@
 = Inter-sync-gateway Replication
 :page-layout: article
+:page-partials:
+:page-partial:
 :page-status:
 :page-edition:
 :page-role: conceptual
@@ -28,13 +30,12 @@ include::partial$block-caveats.adoc[tags=sgr2-only]
 == Introduction
 // tag::intro-full[]
 // tag::intro[]
-
 Couchbase Sync Gateway's _{glos-term-inter-sync-gateway-replication}_{fn-icr} feature supports _{glos-term-cloud-to-edge} synchronization_ use cases, where data changes must be synchronized between a centralized cloud cluster and a large number of edge clusters whilst still enforcing fine grained access control.
 This is an increasingly important enterprise-level requirement.
 
+// end::intro[]
 In the architecture diagram (<<icr-architecture>>), the replicator on the active Sync Gateway node ensures that any database changes made to documents in either {glos-term-sync-gateway-database} instance are replicated to the other Sync Gateway instance, in accordance with the replication's configuration -- see {xref-sgw-pg-config-properties-db-replications} for configuration details.
 
-// end::intro[]
 // tag::intro-img[]
 
 [[icr-architecture]]
@@ -136,6 +137,8 @@ You can configure replications to use delta-sync by:
 
 * Setting `"enable_delta_sync": true` in the _replication definition_
 * Setting `"delta-sync": { "enabled": true}` on both databases in their respective _database definitions_.
+
+NOTE: Push replications to pre-2.8 targets do not use Delta Sync
 
 _Related configuration elements_:  {xref-sgw-pg-config-properties-databases}  |  {xref-sgw-pg-config-properties-db-replications}  |
 {xref-sgw-pg-config-properties-databases-delta-sync}  |  {xref-sgw-pg-config-properties-db-rep-delta}
