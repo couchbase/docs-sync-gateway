@@ -62,7 +62,9 @@ properties:
 
               Setting to `false` will cause Sync Gateway to reject any attempt to write conflicting revisions (returning a `409` HTTP status code). It will be up to the client to resolve the conflict. Restarting Sync Gateway with this property enabled will not automatically result in disk space savings (compaction on a document won't occur until a document is updated).
 
-              Further documentation to use this feature whilst running replications between Sync Gateway instances can be found [here](running-replications.html#limitations).
+              *Constraints:*
+              - Push replications to pre-2.8 targets do not support the `"allow_conflicts": false` setting; the target must use `"allow_conflicts": true`.
+
             default: 'true'
           allow_empty_password:
             type: boolean
@@ -95,6 +97,8 @@ properties:
 
               If delta sync is enabled on Sync Gateway, then Couchbase Lite clients will switch to using delta sync automatically.
               Similarly, if delta sync is disabled on Sync Gateway, clients will switch to normal mode.
+
+              *Note:* Push replications do not use Delta Sync when pushing to a pre-2.8 target.
 
               The following configuration example enables delta sync.
 
@@ -993,7 +997,8 @@ properties:
 
                       - Requires *Enterprise Edition*
                       - Depends upon setting of [database.this_db.delta_sync.enabled](config-properties.html#databases-this_db-delta_sync)
-                      - Replications created prior to version 2.8 run with `"enable_delta_sync": false`
+                      - Replications created prior to version 2.8 must run with `"enable_delta_sync": false`
+                      - Push replications will not use Delta Sync when pushing to a pre-2.8 target
                   filter:
                     type: string
                     default: None - no filter function is used
