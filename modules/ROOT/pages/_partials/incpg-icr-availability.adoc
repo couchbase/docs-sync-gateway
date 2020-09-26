@@ -4,10 +4,16 @@
 *_In this section_*: <<node-distribution>>  | <<configuration-requirements>>  |  <<expected-failure-behavior>>  |  <<examples-of-expected-behavior>>  |  <<monitoring-node-distribution>>
 // end::in-this-section[]
 
-include::partial$block-caveats.adoc[tag=enterprise-only, subs=attributes]
+== Overview
+:param-edition: {enterprise}
+:param-intro: This content relates only to {enterprise}
+include::partial$block-caveats.adoc[tag=ee-only-feature, subs=attributes]
 
-== Introduction
-
+[tabs]
+====
+Enterprise::
++
+--
 // tag::overview[]
 Inter-Sync-Gateway Replication provides built-in High Availability (HA) support.
 It uses _node distribution_ to ensure all running replications are uniformly distributed across all available nodes, regardless of their originating node.
@@ -18,6 +24,28 @@ When a node fails, the system automatically distributes that node's replications
 TIP: To use high-availability, configure the same replication on at least two Sync Gateway nodes.
 
 // end::overview[]
+--
+
+Community::
++
+--
+// :param-edition: {community}
+// :param-intro: Even though automatic node-distribution is not available, you can make your replications more highly-available.
+// :param-body: Just define the same replication on multiple nodes. They will then run on each of those nodes. This redundancy provides some resiliency as, if a node fails, the duplicate replication(s) running on the other nodes may be able to continue. +
+// {empty} +
+// No automatic distribution of replications is done. If the replication is running on multiple nodes then it will continue running on any surviving nodes.
+Even though automatic node-distribution is not available in {community}, you can make your replications more highly-available.
+
+Simply define the same replication on multiple nodes. They will then run on each of those nodes.
+
+This redundancy provides some resiliency if a node fails.
+As, although no automatic distribution of replications is done,if the replication is running on multiple nodes then it will continue running on any surviving nodes.
+
+See also: <<examples-of-expected-behavior>> below.
+// include::partial$block-highlight.adoc[]
+--
+====
+
 
 == Node Distribution
 include::{concepts}isgw/concept-isgw-ha-node-dist.adoc[]
@@ -32,12 +60,11 @@ Alternatively, you can use the Admin REST API to initialize the replications on 
 
 Node distribution will automatically elect an appropriate node to run them on and take care of redistributing them if a node fails.
 
-:param-edition: {community}
-:param-intro: Even though automatic node-distribution is not available, you can make your replications more highly-available.
-:param-body: Just define the same replication on multiple nodes. They will then run on each of those nodes. This redundancy provides some resiliency as, if a node fails, the duplicate replication(s) running on the other nodes may be able to continue. +
-{empty}
-
-include::partial$block-highlight.adoc[]
+// :param-edition: {community}
+// :param-intro: Even though automatic node-distribution is not available, you can make your replications more highly-available.
+// :param-body: Just define the same replication on multiple nodes. They will then run on each of those nodes. This redundancy provides some resiliency as, if a node fails, the duplicate replication(s) running on the other nodes may be able to continue. +
+// {empty}
+// include::partial$block-highlight.adoc[]
 
 
 _Related configuration elements_`:  {xref-sgw-pg-config-properties}  |  {xref-sgw-pg-rest-api-admin}
@@ -47,8 +74,11 @@ _Related configuration elements_`:  {xref-sgw-pg-config-properties}  |  {xref-sg
 If a node fails, then Sync Gateway will take any replications configured on multiple nodes, redistribute them across all available remaining nodes and restart them.
 Node distribution will continually seek to maintain an optimal distribution of replications across available nodes.
 
-:param-msg: No automatic distribution of replications is done. If the replication is running on multiple nodes then it will continue running on any surviving nodes.
-include::partial$block-caveats.adoc[tag=ce-only]
+// :param-msg: No automatic distribution of replications is done. If the replication is running on multiple nodes then it will continue running on any surviving nodes.
+// include::partial$block-caveats.adoc[tag=ce-only]
+// :param-edition: {community}
+// :param-body: No automatic distribution of replications is done. If the replication is running on multiple nodes then it will continue running on any surviving nodes.
+// include::partial$block-highlight.adoc[]
 
 === Examples of Expected behavior
 
@@ -226,7 +256,3 @@ Use the __replicationStatus_ endpoint to access information about which replicat
   |  {xref-sgw-ep-admin-api-replication-repstatus-set}
 
 This information is also collected and available in the log files.
-
-
-
-
