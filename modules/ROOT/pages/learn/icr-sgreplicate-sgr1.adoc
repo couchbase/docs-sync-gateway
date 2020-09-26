@@ -42,6 +42,8 @@ However, SG Replicate was designed specifically for a Couchbase Mobile deploymen
 * Stateless -- can be interrupted/restarted anytime without negative side effects
 * Can specify which channel(s) to sync
 * Supports Primary/Primary and Primary/Secondary topologies
+* A warning message is logged whenever a version 1.0 inter-sync-gateway replication is initialized (either through config or REST end point). The message emphasizes that this feature is deprecated.
+
 
 == Limitations
 
@@ -49,10 +51,16 @@ However, SG Replicate was designed specifically for a Couchbase Mobile deploymen
 * In deployments with multiple Sync Gateway nodes, only _one_ of the Sync Gateways should be configured for replications.
 If multiple Sync Gateways are configured for replications, it could substantially increase the amount of duplicate work, and therefore should be avoided.
 The limitation is that the system is not guaranteed to be Highly Available: if the Sync Gateway that is chosen to drive the replication goes down or is otherwise removed from the system, then the replications will stop.
-* Replication between Sync Gateway databases doesn't support automatic conflict resolution even when the no-conflicts mode is enabled (i.e xref:config-properties.adoc#databases-foo_db-allow_conflicts["allow_conflicts": false]).
+* Replication between Sync Gateway databases doesn't support automatic conflict resolution even when the no-conflicts mode is enabled (i.e xref:config-properties.adoc#databases-foo_db-allow_conflicts["allow_conflicts": false]). Apps will continue to rely on the 1.x REST APIs to asynchronously detect and resolve conflicts.
+The `allow_conflicts` property must be true in both source and target sync gateways.
 When running two Sync Gateway clusters with the no-conflicts mode enabled, cross-cluster document conflicts will result in that document no longer being replicated.
 Deployments  must implement a custom conflict resolver in an external app as specified xref:resolving-conflicts.adoc[here].
 To avoid this, the application must ensure concurrent, cross-cluster updates are not made to a given document.
+* Delta-sync is disabled
+* Replication State is not configurable . It will default to running state.
+* Purge-on-removal -- document removals are ignored by target and not purged.
+* No exponential backoff is available -- replications will attempt to reconnect every 500 msec, indefinitely.
+* TLS -- there is no option to skip TLS certificate validation for self-signed certificates.
 
 == Running replications via the REST API
 
@@ -255,6 +263,10 @@ The list of returned stats and their meaning can be found on the API reference o
         "docs_written":0,
         "doc_write_failures":0,
         "end_last_seq":null
+        "is_persistent": true,
+        "status": "string",
+        "last_seq_push": 0,
+        "last_seq_pull": 0
     },
     {
         "type":"replication",
@@ -265,7 +277,12 @@ The list of returned stats and their meaning can be found on the API reference o
         "docs_read":1000,
         "docs_written":850,
         "doc_write_failures":10,
+        "doc_write_failures": 0,
         "end_last_seq":25680
+        "is_persistent": true,
+        "status": "string",
+        "last_seq_push": 0,
+        "last_seq_pull": 0
     }
 ]
 ----
