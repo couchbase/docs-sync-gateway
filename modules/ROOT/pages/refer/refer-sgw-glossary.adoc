@@ -124,24 +124,42 @@ Custom::
 +
 NOTE: {enterprise} Only
 
---
-* Applies the policy defined in the function provided by the `custom_conflict_resolution` parameter
-* Configured using:
 +
-[source: json]
-----
-"conflict_resolution_type": "custom",
-"custom_conflict_resolution": `function (local, remote) { //
-  return { //
-    body: winner.body,
-    meta: winner.meta
-  }; // Return winning revision
-}`
-----
+Applies the policy defined in the function provided by the `custom_conflict_resolver` parameter.
++
+See: <<custom-conflict-resolver>>
+
 --
 // end::conflict-resolver-policies-body[]
 --
 // end::conflict-resolver-policies-full[]
+
+
+// tag::custom-conflict-resolver[]
+[[custom-conflict-resolver]]
+Custom conflict resolver::
++
+--
+The custom_conflict_resolver property specifies a Javascript function used to resolve conflicting changes.
+
+This is an {enterprise} only feature and is configured like this:
+
+[source: json]
+----
+"conflict_resolution_type": "custom",
+"custom_conflict_resolver":`
+  function(conflict) {
+    // Always resolve in favor of remote
+    console.log("full remoteDoc doc: "+JSON.stringify(conflict.RemoteDocument));
+    return conflict.RemoteDocument;
+  }`
+----
+
+Configuration property: {xref-sgw-pg-config-properties-db-rep-resolver}
+--
+// end::custom-conflict-resolver[]
+
+
 
 [[continuous]]
 [[rep-continuous]]
