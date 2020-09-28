@@ -276,6 +276,13 @@ Existing replications implementing custom {xref-sgw-pg-resolving-conflicts} stra
 To upgrade existing Inter-sync-gateway Replication (v1) replications to Inter-sync-gateway Replication (v2), reconfigure them using Inter-sync-gateway Replication (v2)'s {xref-sgw-pg-config-properties-db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
 
 === Post-upgrade behavior
+
+General::
+* The system supports a rolling upgrade from pre-2.8 inter-sync-gateway (v1) to 2.8+ inter-sync-gateway (v2).
+* One-shot replications configured at database level will continue as v1 replications.
+* Any configured v1 replications that you want to upgrade to v2 must be re-configured using the v2 configuration (at database rather than global level) or REST API endpoint (`_replication`).
+* An pre-2.8 systems using their own custom resolution strategy (via the REST endpoint) will function as they did for v1 replications after upgrading.
+
 Restarting Replications::
 The `replicationId` is used to ensure that any replications previously setup with Inter-sync-gateway Replication (v1), automatically restart using Inter-sync-gateway Replication (v2).
 The restart point will be the last checkpoint used, unless over-ridden.
