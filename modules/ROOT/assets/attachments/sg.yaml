@@ -499,6 +499,26 @@ properties:
                       disable_cfg_validation:
                         type: string
                         description: Optional. Disables strict validation of the OpenID Connect configuration.
+                      username_claim:
+                        type: string
+                        default: 'optional'
+                        description: |+
+
+                          	You can use `username_claim` to specify a claim other than subject to use as the Sync Gateway username.
+
+                            The specified claim must be a string, as numeric claims may be un-marshalled inconsistently between Sync Gateway and the underlying OIDC library.
+
+                            When authenticating incoming OIDC tokens, Sync Gateway currently treats the username as [user_prefix]_[subject].
+                            By default user_prefix is the issuer, but can be customized in the Sync Gateway provider config.
+                            Subject is always the sub claim in the token.
+
+                            Behaviour:
+
+                            - If username_claim is set but user_prefix is not set, use that claim as the Sync Gateway username.
+                            - If username_claim is set and user_prefix is also set, use [user_prefix]_[username_claim] as the Sync Gateway username.
+                            - If username_claim is not set and user_prefix is set, use [user_prefix]_[subject] as the Sync Gateway username (existing behavior).
+                            - If neither username_claim nor user_prefix are set, use [issuer]_[subject] as the Sync Gateway username (existing behavior).
+
           offline:
             type: string
             description: Whether the database if kept offline when Sync Gateway starts. Specifying the value true results in the database being kept offline. The default (if the property is omitted) is to bring the database online when Sync Gateway starts. For more information, see Taking databases offline and bringing them online.
