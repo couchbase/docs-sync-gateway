@@ -1,17 +1,17 @@
-= Initializing Replications
+= Initialize Inter-Sync Gateway Replications
 :page-aliases: running-replications
 :page-layout: article
 :page-status:
 :page-edition:
 :page-role: panes
-:description: This content covers how to initialize and run inter-sync-gateway replication (replication between Sync Gateway clusters)
+:description: This content covers how to initialize and run Inter-Sync Gateway Replication (replication between Sync Gateway clusters)
 :keywords:
 
 include::partial$_std-hdr-sgw.adoc[]
 
 include::partial$block-authors-notes.adoc[tag=wip]
 
-:topic-group: Inter-sync-gateway Replication
+:topic-group: Inter-Sync Gateway Replication
 :param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-admin} | {xref-sgw-pg-icr-admin}
 :param-abstract:
 include::partial$block-abstract.adoc[]
@@ -44,136 +44,5 @@ endif::[]
 
 include::partial$incpg-icr-initialization.adoc[tags=!in-this-section]
 
-// :fn-restonly-par: footnote:fn-restonly[This parameter is not available in the configuration file.]
-// :fnref-restonly: footnote:fn-restonly[]
-
-
-// == Overview
-
-// Inter-custer replication supports both persistent and ad hoc replication types.
-
-// You can initialize a persistent inter-sync-gateway replication by using either of these methods:
-
-// * Configuring it in the node's configuration file (`sync-gateway-config.json`)
-// * Using {xref-sgw-pg-rest-api-admin} requests through a utility such as `curl`, or an application such as _Postman_
-
-// You can also initialize ad hoc inter-sync-gateway replications by using the
-//  {xref-sgw-pg-rest-api-admin}.
-
-
 include::partial$block-related-content-icr.adoc[]
 
-
-
-
-// == Configuration Properties
-
-// See: {xref-sgw-pg-config-properties} for a full description of the available configuration properties.
-
-// You will find the replication properties defined here: {xref-sgw-pg-config-properties-db-replications}.
-
-// The `_replicate` JSON Object supports the following properties.
-
-// [cols="1,1,3,1"]
-// |===
-// |Name |Type |Description |Default
-
-// |`source`
-// |URL
-// |_Required._ A URL pointing to the source database for the replication, the URL may be relative i.e. just the name of a local database on the Sync Gateway instance.
-// The URL may point to the Admin REST API which will replicate all documents in the DB, or it may point to the public REST API which will only copy documents in the users assigned channels.
-// When specifying credentials, the URL must be of the form `user:password@host`.
-// |none
-
-// |`target`
-// |URL
-// |_Required._ A URL pointing to the target database for the replication, the URL may be relative i.e. just the name of a local database on the Sync Gateway instance.
-// The URL may point to the Admin REST API or it may point to the public REST API, this will impact the behavior of the target database sync function.
-// When specifying credentials, the URL must be of the form `user:password@host`.
-// |none
-
-// |`continuous`
-// |Boolean
-// |_Optional._ Indicates whether the replication should be a one-shot or continuous replication.
-// |false
-
-// |`filter`
-// |String
-// |_Optional._ Passes the name of filter to apply to the source documents, currently the only supported filter is "sync_gateway/bychannel", this will replicate documents only from the set of named channels.
-// |none
-
-// |`query_params`
-// |Object
-// |_Optional._ Passes parameters to the filter, for the "sync_gateway/bychannel" filter the value should be an array or channel names (JSON strings).
-// |none
-
-// |`cancel`
-// |Boolean
-// |_Optional._ Indicates that a running replication task should be canceled, the running task is identified by passing its `replication_id` or by passing the original source and target values.
-// |false
-
-// |`replication_id`
-// |String
-// |_Optional._ If the cancel parameter is true then this is the id of the active replication task to be canceled, otherwise this is the `replication_id` to be used for the new replication.
-// If no replication_id is given for a new replication it will be assigned a random UUID.
-// |false
-
-// |`async`
-// |Boolean
-// |_Optional._ Indicates that a one-shot replication should be run asynchronously and the request should return immediately.
-// Replication progress can be monitored by using the `_active_tasks` resource.
-// |false
-
-// |`changes_feed_limit`
-// |Number
-// |_Optional._ The maximum number of change entries to pull in each loop of a continuous changes feed.
-// |50
-// |===
-
-
-
-
-// {
-//     "log":["*"],
-//     "replications":[
-//         {
-//             "source": "db",
-//             "target": "db-copy"
-//         },
-//         {
-//             "source": "db",
-//             "target": "http://user:password@example.com:4985/db-copy"
-//         },
-//         {
-//             "replication_id":"continuous-remote-local",
-//             "source": "http://user:password@example.com:4985/db-backup",
-//             "target": "db"
-//             "continuous":true
-//         },
-//         {
-//             "replication_id":"continuous-filtered",
-//             "source": "db",
-//             "target": "http://user:password@example.com:4985/db-copy"
-//             "continuous":true,
-//             "changes_feed_limit":1000,
-//             "filter":"sync_gateway/bychannel",
-//             "query_params":["channel1","channel2"]
-//         }
-//     ],
-//     "databases": {
-//         "db": {
-//             "server": "http://localhost:8091",
-//             "bucket": "db",
-//             "users": {
-//                 "GUEST": {"disabled": false, "admin_channels": ["*"]}
-//             }
-//         },
-//         "db-copy": {
-//             "server": "http://localhost:8091",
-//             "bucket": "db-copy",
-//             "users": {
-//                 "GUEST": {"disabled": false, "admin_channels": ["*"]}
-//             }
-//         }
-//     }
-// }
