@@ -61,10 +61,10 @@ Running highlights::
 +
 --
 * Multiple identical replicators can be initiated on a Sync Gateway node provided each has a unique `replication_Id`.
-* SGR-1 and SGR-2 replications can run on the same node, but you must ensure that they each have a different `replication_id`.
+* Inter-Sync{nbsp}Gateway Replication v1 and Inter-Sync{nbsp}Gateway Replication v2 replications can run on the same node, but you must ensure that they each have a different `replication_id`.
 * The user under which replication is being run must have read and write access to the data being replicated.
 * Exponential backoff when connection lost. Doesn't apply to `adhoc`.
-* SGR-2 will continue trying to connect for 30 minutes following authentication failure (including user-invalid/doesn't exist).
+* Inter-Sync{nbsp}Gateway Replication v2 will continue trying to connect for 30 minutes following authentication failure (including user-invalid/doesn't exist).
 * Running replications can be stopped. Stopped replications can be (re)Started.
 // [On disconnected replications, replication will it will do exponential backoff upto reconnect-interval and then attempt to reconnect indefinitely based on this value. If 0, it will do exponential backoff upto 5 min before stopping the replication]
 
@@ -92,7 +92,17 @@ Providing the replication definition parameters in the request body as a JSON st
 Both scenarios are covered in <<replication-properties>>.
 It summarizes the {glos-term-replication-definition} elements{fn-repdef-both}, which are covered in more detail in {xref-sgw-pg-config-properties}.
 
+=== Database-level Settings
+A number of database-level options are also especially relevant to Inter-Sync{nbsp}Gateway Replication, including:
 
+* {xref-sgw-pg-config-properties-databases-sgr-enabled} -- use this {enterprise} setting to allow the database to participate in Inter-Sync{nbsp}Gateway Replications.
+* {xref-sgw-pg-config-properties-databases-delta-sync} -- use this setting to enable delta-sync replication on the database, it must be set if you want to use delta-sync in your _replication definition_.
+* {xref-sgw-pg-config-properties-databases-sgr-ws-heartbeat} -- use this setting to override the default (5 minute) heartbeat interval for websocket ping frames for this database.
+* {xref-sgw-pg-config-properties-databases-sync} -- use this setting to specify the sync function logic -- this is an essential part of access-control.
+* {xref-sgw-pg-config-properties-databases-unsupp-sgr-tls-skip-verify} -- use this unsupported option to make development an testing easier by skipping verification of TLS certificates.
+
+
+=== Replication-level Settings
 include::partial$icr-repl-props-table-sgr2.adoc[]
 
 // The `replications` value is an array of objects.
@@ -114,7 +124,7 @@ include::partial$icr-repl-props-table-sgr2.adoc[]
 
 == Generic Constraints
 
-.To run SGR-2 replications
+.Replicating using Inter-Sync{nbsp}Gateway Replication v2
 [CAUTION]
 --
 All active nodes in active cluster must be running Sync Gateway version 2.8 or higher.
@@ -129,7 +139,7 @@ This is not enforced by the system.
 Use your `sync` function to ensure a consistent approach is applied across all clusters.
 
 Mixing Inter-Sync Gateway Replication Versions::
-Both version 1 and version 2 can legitimately be in use at the same time, especially during transition.
+Both version 1 and version 2 can legitimately be in used at the same time, especially during transition.
 However, you should avoid initializing identical version 1 and version 2 replications.
 
 == Running Configured Replications
