@@ -1,11 +1,11 @@
 = Release Notes
 :page-aliases: release-notes
+= Release Notes
 :page-layout: article
-:page-content-type: reference
 :page-status:
 :page-edition:
-:page-role:
-:description: Sync Gateway Product Release and Support Documentation
+:page-role: Reference
+:description: Couchbase Sync Gateway -- Product Release Notes
 :keywords: edge nosql api synchronization replication
 // End of Page Definition Statements
 // include::shared-mobile::partial$_attributes-shared.adoc[]
@@ -15,7 +15,7 @@ include::ROOT:partial$_std-hdr-sgw.adoc[]
 
 [abstract]
 --
-This content provides release information pertaining to Couchbase Sync Gateway {page-component-version} and subsequent maintenance releases.
+This content provides release information for Couchbase Sync Gateway {page-component-version}
 --
 
 :ns-this: {ns} for this release
@@ -59,7 +59,7 @@ This release introduces two new endpoints to the Admin Rest API.
 * `_replication` - used to initialize Inter-Sync Gateway Replication
 * `_replicationStatus` - used to set or query the status of a replication
 
-The `_replicate` and `_active-tasks` endpoints are both deprecated, as they are replaced by the above.
+The `_replicate` and `_active_tasks` endpoints are both deprecated, as they are replaced by the above.
 
 See: {xref-sgw-pg-rest-api-admin}
 
@@ -99,10 +99,10 @@ See: {xref-sgw-pg-rest-api-admin}
 * https://issues.couchbase.com/browse/CBG-581[CBG-581] -- Write simple JSON HTTP responses directly as raw bytes
 * https://issues.couchbase.com/browse/CBG-437[CBG-437] -- Return error when receiving deltas for deltaSrc revisions which are tombstoned
 
-== Known Errors
+== Known Issues
 https://issues.couchbase.com/browse/CBG-798?src=confmacro[CBG-798] -- Sync Gateway requires Couchbase Server nodes to use the same SSL memcached port
 
-== Resolved Issues
+== Fixed
 * https://issues.couchbase.com/browse/CBG-1072[CBG-1072] -- CAS race can result in unordered recentSequences
 * https://issues.couchbase.com/browse/CBG-983[CBG-983] -- _all_docs with keys parameter not returning revID
 * https://issues.couchbase.com/browse/CBG-951[CBG-951] -- Deleted documents should set _deleted:true for import filter function
@@ -117,7 +117,7 @@ https://issues.couchbase.com/browse/CBG-798?src=confmacro[CBG-798] -- Sync Gatew
 * https://issues.couchbase.com/browse/CBG-727[CBG-727] -- Panic when connecting to non-standard memcached port using couchbase(s):// scheme
 * https://issues.couchbase.com/browse/CBG-695[CBG-695] -- Alternate addresses are always used if defined instead of applying heuristic
 * https://issues.couchbase.com/browse/CBG-661[CBG-661] -- Errors from REST API produce invalid JSON
-* https://issues.couchbase.com/browse/CBG-594[CBG-594] -- Remove sequence dependency for TestQuerySequencesStats*
+// * https://issues.couchbase.com/browse/CBG-594[CBG-594] -- Remove sequence dependency for TestQuerySequencesStats*
 
 == Constraints
 Minimum Version for Inter-Sync Gateway Replication (v2)::
@@ -129,8 +129,7 @@ Replication between two remote databases::
 +
 --
 Replication between two remote databases is no longer supported.
-
-Sync Gateway will log an error and fail to start if a replication defined at the configuration's root level does not involve at least one local database (source or target).
+However, root level replications (which by definition, use SG-Replicate 1.x) will continue to support remote replications, albeit in the now deprecated feature.
 --
 
 Pushing to pre-2.8 targets::
@@ -198,25 +197,19 @@ In order to support Inter-Sync Gateway Replication (v2), all active nodes in an 
 
 The version of SG-Replicate useable depends on the Sync Gateway versions running on the active and passive nodes as shown in <<availability-of-sg-replicate-versions>>
 
-.Availability of SG-Replicate Versions
-[#availability-of-sg-replicate-versions, cols="2,3,5"]
-[cols="^1,1,2"]
-|===
-.2+h|Passive Node
-2+^h|Active Node
+[#availability-of-sg-replicate-versions]
+.Availability of Inter-Sync Gateway Replication versions
+====
+Inter-Sync Gateway Replication versions available for use on an active node::
 
-^h|Sync Gateway Pre-2.8 ^h|Sync Gateway 2.8+
+* Pre-Sync Gateway 2.8 -- only Inter-Sync Gateway Replication version 1 is available
+* For Pre-Sync Gateway 2.8+ -- you may run Inter-Sync Gateway Replication version 2 and Inter-Sync Gateway Replication version 1 (deprecated)
 
-|SGW 1.x
-|SG-Replicate 1 only
-a|* Can use SG-Replicate 2 if the replicator is created via the replication endpoint or specified under the replicator config within database
-* Must use SG-Replicate 1 if the replicator is created via the replicate endpoint or specified under the global replicator config section
+SG versions compatible as a passive node as part of SGR1/SGR2 replications::
 
-|SGW 2.x
-|SG-Replicate 1 only
-a|* Can use SG-Replicate 2 if the replicator is created via the replication endpoint or specified under the replicator config within database
-* Must use SG-Replicate 1 if replicator is created via the _replicate endpoint or specified under the global replicator config section
-
+* Inter-Sync Gateway Replication v1 can target any Inter-Sync Gateway Replication version
+* Inter-Sync Gateway Replication v2 can only target Inter-Sync Gateway Replication v2+
+====
 // end::upgrading[]
 
 |===
