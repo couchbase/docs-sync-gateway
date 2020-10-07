@@ -3,13 +3,15 @@
 _In this section_: <<conflict-resolution-approaches>>  |  <<approaches-to-error-handling>>  |  <<conflict-resolver-structure>>  |  <<sample-conflict-resolvers, Example Conflict Resolvers>>
 // end::in-this-section[]
 
+:fn-no-op-text: footnote:fn-1[No-op update -- refers to a change to the document body that has no impact on the app logic but will trigger an import by the Sync Gateway. One option could be to include a property used specifically for this purpose (i.e. a counter that can be incremented in response to conflict resolver errors).]
+:fnref-no-op: footnote:fn-1[]
+
 include::partial$block-caveats.adoc[tags=ee-only]
 
 Custom conflict resolution is handled by the _active_ Sync Gateway using a user-provided {glos-term-custom-conflict-resolver}. This Javascript function is embedded in the replication configuration.
 
 The predefined conflict resolver policies are also available as Javascript functions that you can call from within that _custom_conflict_resolver_ function
-
-You can invoke the non-custom built-in resolver policies from within your resolver function. This is useful when you want to apply greater selectivity to the automatic conflict resolution process. For example, you want to apply the `remoteWins` policy only for a specific type of document - see <<use-policies, Use Policies>> tab in <<simple-conflict-resolvers>>.
+This is useful when you want to apply greater selectivity to the automatic conflict resolution process. For example, you want to apply a 'remote wins' policy only for a specific type of document - see the 'Use Policies' tab in <<simple-conflict-resolvers>>.
 
 == Conflict Resolution Approaches
 
@@ -18,7 +20,7 @@ There are two ways to handle conflicts in your custom_conflict_resolver, you can
 * Choose a _winning_ revision from among the conflicting revisions (see <<simple-conflict-resolvers>>), or
 * Merge conflicting revision to create a new _winning_ revision; losing revisions are tomb-stoned.
 +
-However, user are cautioned against using complex resolver logic as it can have a significant impact on performance.
+However, users should avoid overly-complex resolver logic that may impact performance.
 
 == Approaches to Error Handling
 
@@ -51,7 +53,7 @@ Fault in conflict resolution javascript function::
 --
 Fix the Javascript logic and then either:
 
-* Do a _no op update_ {fn-no-op} of the remote document.
+* Do a _no op update_ {fnref-no-op} of the remote document.
 This triggers a pull replication and subsequent conflict resolution.
 
 * Reset the replication (using `_replicationstatus/reset` endpoint). Not recommended as it introduces significant duplicate processing in re-syncing previously synced documents.
