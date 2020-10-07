@@ -47,7 +47,7 @@ Replication highlights::
 * Replications can be configured to purge documents when channel access is revoked (a removal notification is received).
 
 * Persistent continuous replications can be:
-** Reset -- checkpoint back to starting value ?? check
+** Reset -- checkpoints can be reset to zero
 ** Updated -- only the parameter values provided in the PUT request body will be updated
 
 * Persistent and ad hoc replications can be:
@@ -63,7 +63,7 @@ Running highlights::
 * Multiple identical replicators can be initiated on a Sync Gateway node provided each has a unique `replication_Id`.
 * Inter-Sync{nbsp}Gateway Replication v1 and Inter-Sync{nbsp}Gateway Replication v2 replications can run on the same node, but you must ensure that they each have a different `replication_id`.
 * The user under which replication is being run must have read and write access to the data being replicated.
-* Exponential backoff when connection lost. Doesn't apply to `adhoc`.
+* Exponential backoff when connection lost; this can be customized using the {xref-sgw-pg-config-properties-db-rep-backoff} configuration setting.
 * Inter-Sync{nbsp}Gateway Replication v2 will continue trying to connect for 30 minutes following authentication failure (including user-invalid/doesn't exist).
 * Running replications can be stopped. Stopped replications can be (re)Started.
 // [On disconnected replications, replication will it will do exponential backoff upto reconnect-interval and then attempt to reconnect indefinitely based on this value. If 0, it will do exponential backoff upto 5 min before stopping the replication]
