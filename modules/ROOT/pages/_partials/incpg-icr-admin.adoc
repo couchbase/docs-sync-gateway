@@ -1,6 +1,7 @@
 // = ICR Administration and Management
 // tag::in-this-section[]
-*_In this Section_*: <<getting-replication-details>>  |  <<updating-a-replication>>  |  <<removing-a-replication>>  |  <<canceling-a-replication>>
+*_In this Section_*: <<getting-replication-details>>  |  <<updating-a-replication>>  |  <<removing-a-replication>>
+
 // end::in-this-section[]
 
 == Admin capabilities
@@ -19,7 +20,6 @@ The available endpoints used for admin tasks are:
 include::partial$block-caveats.adoc[tags=community-only-rep-same-node]
 
 == Getting Replication Details
-
 You can view the current definition details of a replication.
 This includes replications configured in the `JSON` file and those initialized using the Admin REST API.
 You can do this for:
@@ -175,62 +175,6 @@ include::{example-restapi}[tag=icr-rep-remove-replications-resp]
 =====
 
 See: {xref-sgw-pg-rest-api-admin}  |  Endpoint {xref-sgw-ep-admin-api-replication-delete}
-
-== Canceling a Replication
-
-You can cancel an existing active replication using `"cancel": true`; see <<canceling-replication>>
-
-The JSON object's body must contain the parameter `"cancel": true` and a valid `replication_id`.
-The details within the body of the request must be identical to the original replication for the cancellation request to be honoured.
-
-Note: If you omit the `continuous` property its value defaults to *false*; so only one-shot replications will match.
-
-When you cancel an active replication, the response returns the stats of the replication up to the point when it was stopped.
-
-To find the replication_id of an existing replication see <<getting-replication-status-data>>.
-
-_Action_: Send a `PUT` request to the `_replication` endpoint, with a JSON object containing the replication definition and the additional `"cancel": true` parameter
-
-[#canceling-replication]
-.Canceling a replication
-=====
-
-[{tabs}]
-====
-Request::
-+
---
-This example cancels an active replication with a `replication_id` of "db1-rep-id1-pull".
-
-[source,javascript]
-----
-include::{example-restapi}[tag=icr-rep-cancel-replications-req]
-----
---
-+
-// Without replication_id::
-// +
-// --
-// This cancels a replication that was started with the same values as those in the cancel request.
-// Note: If you omit the `continuous` property its value defaults to *false*; so only one-shot replications will match.
-//
-// [source,javascript]
-// ----
-// include::{example-restapi}[tag=icr-rep-cancel-replications-body-no-id]
-// ----
-// --
-//
-Response::
-+
---
-
-[source,javascript]
-----
-include::{example-restapi}[tag=icr-rep-cancel-replications-resp]
-----
---
-====
-=====
 
 == Getting Replication Status Data
 
