@@ -3,6 +3,8 @@
 
 // tag::2-8-all[]
 // tag::2-8-0-inter-sync-gateway[]
+// tag::latest-all-new[]
+== Inter-Sync{nbsp}Gateway Replication
 Couchbase Sync Gateway's _{glos-term-inter-sync-gateway-replication}_ feature supports _{glos-term-cloud-to-edge} synchronization_ use cases, where data changes must be synchronized between a centralized cloud cluster and a large number of edge clusters whilst still enforcing fine grained access control.
 This is an increasingly important enterprise-level requirement.
 
@@ -10,21 +12,23 @@ Read More . . . {xref-sgw-pg-icr-sgreplicate}
 
 // end::2-8-0-inter-sync-gateway[]
 // tag::2-8-0-metrics[]
-Prometheus Monitoring Support (Developer Preview)
+== Prometheus Monitoring Support (Developer Preview)
 
 This release gives developers the chance to try-out Couchbase Sync Gateway's new metrics API, which exposes stats in a Prometheus compatible format.
 This enables the integration of Sync Gateway's metrics with one of the most popular monitoring and alerting solutions, without resorting to external data transformation.
 
 Read More . . . {xref-sgw-pg-rest-api-metrics}
 
+// end::latest-all-new[]
 // end::2-8-0-metrics[]
 
 // tag::2-8-0-config-full[]
+// tag::latest-all-changed-config-rn[]
 // tag::2-8-0-config-rn[]
 // tag::2-8-0-structuralonly[]
 Sync Gateway 2.8 introduces a number of configuration file changes made to accommodate the Inter-sync-gateway replication version 2.0 feature.
 
-== Replication
+.Replication
 The database property has a new sub-property `replications`, which is used to associate an Inter-Sync Gateway Replication with a 'local' database.
 
 The top level `replications` configuration property and its sub-properties is deprecated. Instead, use the `database.replication` property (as above) to define Inter-Sync Gateway Replications, unless you specifically need to use SG-Replicate v1 type replications.
@@ -34,6 +38,21 @@ Also, that Inter-Sync Gateway Replication does not support replication between t
 
 // end::2-8-0-structuralonly[]
 // end::2-8-0-config-rn[]
+// end::latest-all-changed-config-rn[]
+
+// tag::latest-all-changed-api[]
+This release introduces two new endpoints to the Admin Rest API.
+
+* `_replication` - used to initialize Inter-Sync Gateway Replication
+* `_replicationStatus` - used to set or query the status of a replication
+
+The `_replicate` and `_active_tasks` endpoints are both deprecated, as they are replaced by the above.
+
+See: {xref-sgw-pg-rest-api-admin}
+
+// end::latest-all-changed-api[]
+
+
 
 == Removed or Deprecated Properties
 // tag::2-8-0-removedonly[]
