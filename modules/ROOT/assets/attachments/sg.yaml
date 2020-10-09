@@ -501,8 +501,23 @@ properties:
                         type: string
                         description: Optional. Discovery URL used to obtain the OpenID Connect provider configuration. If not specified, the default discovery endpoint of [issuer]/.well-known/openid-configuration will be used.
                       disable_cfg_validation:
-                        type: string
-                        description: Optional. Disables strict validation of the OpenID Connect configuration.
+                        default: 'false'
+                        type: boolean
+                        description: |+
+                          Couchbase Sync Gateway, by default, applies strict validation of the OpenID Connect configuration based on the OIDC specification.
+
+                          Set ```"disable_cfg_validation": true``` when you do not want strict validation of the OIDC configuration.
+                      disable_callback_state:
+                        default: 'false'
+                        type: boolean
+                        description: |+
+                          DisableCallbackState determines whether or not to maintain state between the ```/_oidc``` and
+                          ```/_oidc_callback``` endpoints.
+
+                          Disabling this action is NOT recommended as it will increase vulnerability to Cross-Site Request Forgery (CSRF, XSRF).
+
+                          Set ```"disable_callback_state": true``` to switch-off callback state.
+
                       username_claim:
                         type: string
                         default: 'optional'
@@ -522,6 +537,13 @@ properties:
                             - If username_claim is set and user_prefix is also set, use [user_prefix]_[username_claim] as the Sync Gateway username.
                             - If username_claim is not set and user_prefix is set, use [user_prefix]_[subject] as the Sync Gateway username (existing behavior).
                             - If neither username_claim nor user_prefix are set, use [issuer]_[subject] as the Sync Gateway username (existing behavior).
+                      allow_unsigned_provider_tokens:
+                        type: boolean
+                        default: 'false'
+                        description: |+
+                          Unsigned provider tokens are not accepted.
+
+                          Set ```"allow_unsigned_provider_tokens": true``` to opt-in to accepting unsigned tokens from providers.
 
           offline:
             type: string
@@ -723,6 +745,15 @@ properties:
           unsupported:
             type: object
             properties:
+              oidc_tls_skip_verify:
+                type: boolean
+                default: 'false'
+                description: |+
+                  Unsupported option for use in development and testing environment ONLY
+
+                  `oidc_tls_skip_verify` can be used to skip validation of TLS certs used for OpenID Connection testing.
+
+                  NOTE: Due to the unsupported nature of this option, there is no guarantee on its continued availability.
               sgr_tls_skip_verify:
                 type: boolean
                 default: 'false'
