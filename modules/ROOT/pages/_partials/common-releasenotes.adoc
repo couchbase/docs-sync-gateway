@@ -1,0 +1,148 @@
+// Release note body content for this release
+// Inclusions are use in multiple pages
+
+// ifeval::["{param-module}"=="ROOT"]
+// :url-api-method-replicator-getPendingDocumentIds: Get Pending Document
+// :url-api-method-replicator-isDocumentPending: Is Document Pending
+// :url-api-class-database: Database
+// :url-api-method-database-delete: Delete
+// :url-api-method-database-close: Close
+// :url-api-property-meta-revisionid: Meta Revision ID
+// endif::[]
+
+// BEGIN DO NOT REMOVE
+:root-partials: partial$
+:root-commons: partial$
+:module-partials: partial$
+:param-abstract: This content describes the key features and changes implemented by release {version} of Couchbase Sync{nbsp}Gateway
+:param-related: {xref-sgw-pg-whatsnew}  |  {xref-sgw-pg-compatibility} | {xref-sgw-pg-supported-os}
+include::{root-partials}block-abstract.adoc[]
+
+// END DO NOT REMOVE
+
+== Release 2.8.0 (October 2020)
+<<new-features>> *|* <<improvements>> *|* <<issues-and-resolutions>> *|* <<support-notices>> *|* <<Related Content>>
+
+[#new-features]
+=== New Features
+// tag::feature-highlights[]
+:param-link1: {xref-cbl-pg-landing-p2psync}
+include::{root-partials}pn-change-log-content.adoc[tag=latest-all-new, leveloffset=+2]
+
+// end::feature-highlights[]
+[#improvements]
+=== Improvements
+
+// ==== Feature Changes
+// // tag::feature-changes[]
+// include::{root-partials}pn-change-log-content.adoc[tag=latest-all-changed-features, leveloffset=+3]
+
+// end::feature-changes[]
+
+==== Configuration Changes
+include::partial$pn-change-log-content.adoc[tag=latest-all-changed-config-rn,leveloffset=+4]
+
+See: {xref-sgw-pg-config-properties}
+
+==== API Changes
+// – identify any REST API changes
+// tag::api-changes[]
+include::{root-partials}pn-change-log-content.adoc[tag=latest-all-changed-api, leveloffset=+4]
+
+// end::api-changes[]
+==== Other Enhancements
+include::{module-partials}pn-issues-list.adoc[tag=enhancements]
+
+[#issues-and-resolutions]
+=== Issues and Resolutions
+==== Known Issues
+include::{module-partials}pn-issues-list.adoc[tag=knownissues]
+
+==== Fixed Issues
+include::{module-partials}pn-issues-list.adoc[tag=fixed]
+
+[#support-notices]
+=== Support Notices
+This section documents any support-related notes, constraints and changes
+
+==== Deprecation Notices
+Items (features and-or functionality) are marked as deprecated when a more current, and usually enhanced, alternative is available.
+
+Whilst the deprecated item will remain usable, it is no longer supported, and will be removed in a future release.
+You should plan to move to an alternative, supported, solution as soon as practical.
+
+// ===== This Release
+// include::{root-partials}block-deprecations.adoc[tag={param-platform}-new]
+include::{module-partials}pn-issues-list.adoc[tag=deprecated, leveloffset=3]
+// * {empty}
+// +
+// include::{root-partials}block-deprecations.adoc[tag=any-platform-new]
+
+// ===== Ongoing
+// include::{root-partials}block-deprecations.adoc[tag=any-platform-ongoing]
+// include::{root-partials}block-deprecations.adoc[tag={param-platform}-ongoing]
+
+// === End of Life
+// include::{root-partials}block-deprecations.adoc[tag=any-platform-eol]
+// include::{root-partials}block-deprecations.adoc[tag={param-platform}-eol]
+
+// === End of Support
+// {ns-this}
+
+==== Other Notices
+
+===== Minimum Version for Inter-Sync Gateway Replication (v2)
+In order to support Inter-Sync Gateway Replication (v2), all active nodes in active cluster must be running Sync Gateway 2.8+.
+
+
+===== Replication between two remote databases
+Replication between two remote databases is no longer supported.
+However, root level replications (which by definition, use SG-Replicate 1.x) will continue to support remote replications, albeit in the now deprecated feature.
+
+===== Pushing to pre-2.8 targets
+// tag:rn-con-pre2-8-tgt[]
+// https://issues.couchbase.com/browse/DOC-7056
+* Push replications do not support a pre-2.8 target with `"allow_conflicts": false` set; the target must use `"allow_conflicts": true` for a replication to work.
+* Push replications do not use Delta Sync when pushing to a pre-2.8 target
+// end:rn-con-pre2-8-tgt[]
+
+// ===== New
+// include::{root-partials}block-supportnotices.adoc[tag=any-platform-new]
+// include::{root-partials}block-supportnotices.adoc[tag={param-platform}-new]
+
+// ===== Ongoing
+// include::{root-partials}block-supportnotices.adoc[tag=any-platform-ongoing]
+// include::{root-partials}block-supportnotices.adoc[tag={param-platform}-ongoing]
+===== Support is added for:
+
+* Red Hat Enterprise Linux 8
+* CentOS 8
+
+=== Upgrading
+
+// tag::upgrading[]
+In order to support Inter-Sync Gateway Replication (v2), all active nodes in an active cluster must be running Sync Gateway version 2.8+.
+
+The version of SG-Replicate useable depends on the Sync Gateway versions running on the active and passive nodes as shown in <<availability-of-sg-replicate-versions>>
+
+[#availability-of-sg-replicate-versions]
+.Availability of Inter-Sync Gateway Replication versions
+====
+Inter-Sync Gateway Replication versions available for use on an active node::
+
+* Pre-Sync Gateway 2.8 -- only Inter-Sync Gateway Replication version 1 is available
+* For Pre-Sync Gateway 2.8+ -- you may run Inter-Sync Gateway Replication version 2 and Inter-Sync Gateway Replication version 1 (deprecated)
+
+SG versions compatible as a passive node as part of SGR1/SGR2 replications::
+
+* Inter-Sync Gateway Replication v1 can target any Inter-Sync Gateway Replication version
+* Inter-Sync Gateway Replication v2 can only target Inter-Sync Gateway Replication v2+
+====
+// end::upgrading[]
+
+For more on upgrading -- see: {xref-sgw-pg-upgrade}
+
+include::partial$block-related-content-product.adoc[]
+// DO NOT EDIT -- Footer Related Content Block
+// include::{root-partials}block-related-content-prod.adoc[]
+// DO NOT EDIT

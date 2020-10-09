@@ -1,0 +1,105 @@
+// Sync Gateway Issues List
+
+// tag::enhancements[]
+* https://issues.couchbase.com/browse/CBG-1022[CBG-1022] -- Require replication to be stopped prior to upsert
+* https://issues.couchbase.com/browse/CBG-921[CBG-921] -- Ignore transaction ATR documents during DCP processing
+* https://issues.couchbase.com/browse/CBG-905[CBG-905] -- Support using custom OIDC claim as Sync Gateway username
+* https://issues.couchbase.com/browse/CBG-880[CBG-880] -- Python 3 support for sgcollect
+* https://issues.couchbase.com/browse/CBG-877[CBG-877] -- Remove inappropriate logging warning related JSON parsing from ReadJSONFromMIME when request body is empty
+* https://issues.couchbase.com/browse/CBG-876[CBG-876] -- Include Bearer prefix when sending token base authentication request in OIDC E2E tests
+* https://issues.couchbase.com/browse/CBG-864[CBG-864] -- Improve addJSON-related error handling
+* https://issues.couchbase.com/browse/CBG-821[CBG-821] -- Limit on channel queries triggered by 2.x replication
+* https://issues.couchbase.com/browse/CBG-820[CBG-820] -- Add state for OIDC auth code authentication
+* https://issues.couchbase.com/browse/CBG-803[CBG-803] -- Support for OIDC provider config refresh
+* https://issues.couchbase.com/browse/CBG-802[CBG-802] -- Being able to configure OIDC Test Provider with HTTPS
+* https://issues.couchbase.com/browse/CBG-801[CBG-801] -- Auto-generated OIDC callback URL should include provider when non-default
+* https://issues.couchbase.com/browse/CBG-800[CBG-800] -- OnDemandImportForWrite bypasses migrate handling
+* https://issues.couchbase.com/browse/CBG-752[CBG-752] -- sgcollect: Re-gzip rotated logfiles post-redaction, clean up intermediate extracted files
+* https://issues.couchbase.com/browse/CBG-751[CBG-751] -- Improve REST-based sgcollect_info options validation
+* https://issues.couchbase.com/browse/CBG-719[CBG-719] -- Update OIDC library
+* https://issues.couchbase.com/browse/CBG-714[CBG-714] -- Log warning on ignored, invalid channel data
+* https://issues.couchbase.com/browse/CBG-709[CBG-709] -- sg-replicate 2
+* https://issues.couchbase.com/browse/CBG-697[CBG-697] -- SGW startup routine could use more retry logic while CBS warms up
+* https://issues.couchbase.com/browse/CBG-688[CBG-688] -- Improve logging for x.509 connection errors
+* https://issues.couchbase.com/browse/CBG-673[CBG-673] -- Include USE INDEX hint with channel queries
+* https://issues.couchbase.com/browse/CBG-665[CBG-665] -- Make trace level logging a typical file logger
+* https://issues.couchbase.com/browse/CBG-664[CBG-664] -- Enhance trace logging for blip messages
+* https://issues.couchbase.com/browse/CBG-658[CBG-658] -- Optimize LogKey string lookup
+* https://issues.couchbase.com/browse/CBG-653[CBG-653] -- Add 'norev' BLIP handler to log detailed error information
+* https://issues.couchbase.com/browse/CBG-640[CBG-640] -- Wrong content type for _user and _role
+* https://issues.couchbase.com/browse/CBG-633[CBG-633] -- Clean up duplicate db definitions in blipHandler/blipSyncContext
+* https://issues.couchbase.com/browse/CBG-630[CBG-630] -- Validate whether multiple databases connect to the same bucket
+* https://issues.couchbase.com/browse/CBG-624[CBG-624] -- Add database config option for HttpOnly cookies
+* https://issues.couchbase.com/browse/CBG-622[CBG-622] -- Use secure cookies when SG is configured to listen over TLS
+* https://issues.couchbase.com/browse/CBG-600[CBG-600] -- sgcollect_info TMPDIR setting should be a real argument
+* https://issues.couchbase.com/browse/CBG-585[CBG-585] -- Avoid log redaction cost via UD/MD/SD when log-level disabled
+* https://issues.couchbase.com/browse/CBG-581[CBG-581] -- Write simple JSON HTTP responses directly as raw bytes
+* https://issues.couchbase.com/browse/CBG-437[CBG-437] -- Return error when receiving deltas for deltaSrc revisions which are tombstoned
+
+// end::enhancements[]
+
+// tag::deprecated[]
+// tag::dnsgw-28[] all deprecations for the release
+// tag::dnsgw-28-001-sgr1[]
+== Inter-Sync Gateway Replication (v1) replication protocol
+// tag::dnsgw-28-001-sgr1-announce[]
+Inter-Sync Gateway Replication (v1) is deprecated in Sync Gateway version 2.8.
+You should plan your transition to Inter-Sync Gateway Replication (v2) now to avoid potential issues when this functionality is removed -- see https://issues.couchbase.com/browse/CBG-904?src=confmacro[CBG-904]
+// end::dnsgw-28-001-sgr1-announce[]
+
+// tag::dnsgw-28-001-sgr1-impact[]
+The functionality of Inter-Sync Gateway Replication (v1) remains unchanged, unless explicitly stated in these release notes and-or in the appropriate documentation section.
+Refer to {xref-sgw-pg-upgrade} for more information on moving from Inter-Sync Gateway v1 to Inter-Sync Gateway v2.
+// end::dnsgw-28-001-sgr1-impact[]
+
+== Configuration deprecations
+// tag::dnsgw-28-001-sgr1-specifics[]
+// tag::dnsgw-28-001-sgr1-cfg[]
+https://issues.couchbase.com/browse/CBG-904[CBG-904] -- The SGR-1 replication configuration method is deprecated at version 2.8.
+
+Replications configured at the configuration file's root level will continue to function, but you should configure new replications under the appropriate database using the `databases.{dbname}.replications.{replication_id}` property.
+
+// end::dnsgw-28-001-sgr1-cfg[]
+
+== REST API Deprecations
+// tag::dnsgw-28-001-sgr1-endpoints[]
+https://issues.couchbase.com/browse/CBG-904[CBG-904] These SGR-1 replication REST endpoints are deprecated:
+
+* `_active_tasks` -- superseded by new monitoring endpoint
+* `_replicate` -- superseded by the `_replication` endpoint
+
+// end::dnsgw-28-001-sgr1-endpoints[]
+// end::dnsgw-28-001-sgr1-specifics[]
+// end::dnsgw-28-001-sgr1
+
+== Operating Systems
+Support for Microsoft Windows 2012 (64-bit) is deprecated
+
+// end::dnsgw-28[]
+
+
+// end::deprecated[]
+
+// tag::fixed[]
+* https://issues.couchbase.com/browse/CBG-1072[CBG-1072] -- CAS race can result in unordered recentSequences
+* https://issues.couchbase.com/browse/CBG-983[CBG-983] -- _all_docs with keys parameter not returning revID
+* https://issues.couchbase.com/browse/CBG-951[CBG-951] -- Deleted documents should set _deleted:true for import filter function
+* https://issues.couchbase.com/browse/CBG-946[CBG-946] -- Repeated change entries on access grant to doc's previous channel
+* https://issues.couchbase.com/browse/CBG-926[CBG-926] -- User name not being logged for initial HTTP request
+* https://issues.couchbase.com/browse/CBG-819[CBG-819] -- Generate empty delta as {} instead of null
+* https://issues.couchbase.com/browse/CBG-812[CBG-812] -- Running compact when UseViews=true causes an infinite loop
+* https://issues.couchbase.com/browse/CBG-744[CBG-744] -- OldDoc body in sync function for tombstone resurrections does not contain _deleted=true
+* https://issues.couchbase.com/browse/CBG-743[CBG-743] -- Doc body in sync function contains _deleted=false
+* https://issues.couchbase.com/browse/CBG-741[CBG-741] -- 403 Attachment's doc not being synced during CBL replication
+* https://issues.couchbase.com/browse/CBG-731[CBG-731] -- Channels query performance degradation when using limit
+* https://issues.couchbase.com/browse/CBG-727[CBG-727] -- Panic when connecting to non-standard memcached port using couchbase(s):// scheme
+* https://issues.couchbase.com/browse/CBG-695[CBG-695] -- Alternate addresses are always used if defined instead of applying heuristic
+* https://issues.couchbase.com/browse/CBG-661[CBG-661] -- Errors from REST API produce invalid JSON
+
+// end::fixed[]
+
+// tag::knownissues[]
+https://issues.couchbase.com/browse/CBG-798?src=confmacro[CBG-798] -- Sync Gateway requires Couchbase Server nodes to use the same SSL memcached port
+
+// end::knownissues[]
+
