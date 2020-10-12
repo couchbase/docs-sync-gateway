@@ -42,19 +42,19 @@ A path to a PEM-format file containing the certificate's matching private key.
 If both properties are present, the server will respond to SSL (and only SSL) over both the public and admin ports.
 If you want to support both HTTP and HTTPS connections you will need to run two separate instances of Sync Gateway.
 
-=== How to create an SSL certificate
+=== How to Create an SSL Certificate
 
 Certificates are a complex topic.
 There are basically two routes you can go: request a certificate from a Certificate Authority (CA), or create your own "self-signed" certificate.
 
-==== Requesting a certificate from a CA
+==== Requesting a Certificate from a CA
 
 You can obtain a certificate from a trusted https://en.wikipedia.org/wiki/Certificate_authority[Certificate Authority] (CA). Examples of trusted CAs include https://letsencrypt.org/[Let's Encrypt], Thawte or GoDaddy.
 What this means is that their own root certificates are known and trusted by operating systems, so any certificate that they sign will also be trusted.
 
 Hence, the benefit of a certificate obtained from a trusted CA is that it will be trusted by any SSL client.
 
-==== Creating your own self-signed certificate
+==== Creating a Self-Signed Certificate
 
 Unlike a CA-signed cert, a self-signed cert isn't intrinsically trustworthy: a client can't tell who you are by examining the cert, because no recognized authority has vouched for it.
 But a self-signed cert is still unique (only you, as the holder of the private key, can operate a server using that cert), and it still allows the connection to be encrypted.
@@ -81,7 +81,7 @@ To create a copy of the cert in binary DER format (often stored in a ".cer" file
 $ openssl x509 -inform PEM -in cert.pem -outform DER -out cert.cer
 ----
 
-=== Installing the certificate
+=== Installing the Certificate
 
 Whichever way you obtained the certificate, you will now have a private key and an X.509 certificate.
 Ensure that they're in separate files and in PEM format, and put them in a directory that's readable by the Sync Gateway process.
@@ -164,3 +164,5 @@ More detail on the configuration properties for x.509 authentication can be foun
 * xref:config-properties.adoc#databases-foo_db-cacertpath[databases.$db.cacertpath]
 
 If the **username**/**password** properties are also specified in the configuration file then Sync Gateway will use password-based authentication and also include the client certificate in the TLS handshake.
+
+include::partial$block-related-content-api.adoc[]
