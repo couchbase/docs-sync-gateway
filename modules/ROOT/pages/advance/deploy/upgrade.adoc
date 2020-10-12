@@ -254,7 +254,7 @@ The `replicationId` is used to ensure that any replications previously setup wit
 The restart point will be the last checkpoint used, unless over-ridden.
 
 Over-riding restart point::
-To restart a sync from zero: After the upgrade  reconfigure the Inter-Sync Gateway Replication (v2) {xref-sgw-pg-config-properties-db-replications} to use a different {xref-sgw-pg-config-properties-db-rep-id}
+To restart a sync from zero: After the upgrade reconfigure the Inter-Sync Gateway Replication (v2) {xref-sgw-pg-config-properties-db-replications} to use a different {xref-sgw-pg-config-properties-db-rep-id}
 
 === Constraints
 
@@ -372,7 +372,7 @@ To::
 Strategy::
 * Upgrade sequence
 .. Stop Inter-Sync Gateway Replication (v1) replications
-.. Remove the Inter-Sync Gateway Replication (v1) replication configuration and replace it with Inter-Sync Gateway Replication (v2) equivalent.
+// .. Remove the Inter-Sync Gateway Replication (v1) replication configuration and replace it with Inter-Sync Gateway Replication (v2) equivalent.
 .. Upgrade each cluster to Hydrogen.
 * Restart Outcomes
 ** When The active cluster is restarted it will automatically switch to Inter-Sync Gateway Replication (v2)
@@ -407,7 +407,7 @@ To::
 Strategy::
 * Upgrade sequence
 .. Stop Inter-Sync Gateway Replication (v1) replications
-.. Remove the Inter-Sync Gateway Replication (v1) replication configuration
+// .. Remove the Inter-Sync Gateway Replication (v1) replication configuration
 .. Add the Inter-Sync Gateway Replication (v2) replication configuration, including Javascript function as {xref-sgw-pg-config-properties-db-rep-resolver}
 .. Upgrade each cluster to Hydrogen
 * Restart Outcomes
@@ -419,6 +419,53 @@ Strategy::
 ====
 --
 =====
+
+=== Re-using Pre-2.8 Replication Checkpoints
+You are able to use pre-2.8 replication checkpoints as a starting point for 2.8 replications.
+This can save time on larger buckets by avoiding re-processing documents that have previously been replicated.
+
+To be eligible for re-use use in this way
+
+* These replication parameters MUST match:
+** Replication ID
+** Direction (push or pull only)
+** Previous Source/Target URLs match Remote URL
+** Channel filters
+** DocID filters
+* The new replication must be configured to be unidirectional (there was no bidirectional support prior to 2.8)
+
+=== Upgrade Steps
+
+. Have both pre-2.8 and 2.8 replications defined in the same config file.
+. Ensure prerequisites from previous slide are fulfilled (matching IDs, params, etc.)
+. On startup, SG will determine if replications match, and log:
++
+[source]
+----
+[DBG] Replicate+: Matched replication IDs for SGR1 checkpoint fallback: &{...}
+[INF] Replicate: Got SGR1 checkpoint ID for fallback in replication "repl1-push": b8da8486df3093141f7ed225eb2b2afae88ca9ce
+----
+
+. This prevents the pre-2.8 replication from running, even though it’s configured.
++
+[source]
+----
+[INF] Replicate: Replication "repl1-push" was upgraded, preventing startup of v1 replication.
+[INF] Replicate: Replication "repl1-pull" was upgraded, preventing startup of v1 replication.
+[INF] Replicate: Starting sg-replicate replications...
+----
+. When the 2.8 replication is assigned (even on a different node), the pre-2.8 checkpoint is used if no 2.8 checkpoint can be found. Logs:
++
+[source]
+----
+[DBG] SGCluster+: Replication repl1-pull is assigned to node debbc9ed92243c01 (local node is debbc9ed92243c01)
+[INF] Replicate: Initializing replication repl1-pull
+[INF] Replicate: Attempting to fetch SGR1 checkpoint as fallback: 58782a013091ffc0e7e4ae3c4b6abd8baa7149c6
+[INF] Replicate: c:repl1-pull-pull using checkpointed seq from SGR1: "3"
+----
+. Once the pre-2.8 checkpoint is used, it is deleted to ensure it cannot be used as a fallback again in the event 2.8 checkpoints are removed.
+
+
 :example-caption: {save-title}
 :example-number: {save-num}
 
