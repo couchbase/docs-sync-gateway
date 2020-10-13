@@ -47,7 +47,7 @@ Otherwise it's `null`.
 (In the case of a document with conflicts, the current provisional winning revision is passed in `oldDoc`.)
 Your implementation of the sync function can omit the `oldDoc` parameter if you do not need it (JavaScript ignores extra parameters passed to a function).
 
-If you don't supply a sync function, Sync Gateway uses the xref:config-properties.adoc#databases-foo_db-sync[default Sync Function].
+If you don't supply a sync function, Sync Gateway uses the {xref-sgw-pfx-config-properties}#databases-this_db-sync[default Sync Function].
 
 
 == channel(channelname)
@@ -310,9 +310,9 @@ To update the Sync Function, it is recommended to follow the steps outlined belo
 
 . Update the configuration file of the Sync Gateway instance.
 . Restart Sync Gateway.
-. Take the database offline using the xref:admin-rest-api.adoc#/database/post\__db___offline[+/{tkn-db}/_offline+] endpoint.
+. Take the database offline using the {xref-sgw-pfx-admin-rest-api}#/database/post\__db___offline[+/{tkn-db}/_offline+] endpoint.
 . Call the re-sync endpoint on the Admin REST API. The message body of the response contains the number of changes that were made as a result of calling re-sync.
-. Bring the database back online using the xref:admin-rest-api.adoc#/database/post\__db___online[+/{tkn-db}/_online+] endpoint.
+. Bring the database back online using the {xref-sgw-pfx-admin-rest-api}#/database/post\__db___online[+/{tkn-db}/_online+] endpoint.
 
 This is an expensive operation because it requires every document in the database to be processed by the new function.
 The database can't accept any requests until this process is complete (because no user's full access privileges are known until all documents have been scanned). Therefore the Sync Function update will result in application downtime between the call to the `+/{tkn-db}/_offline+` and `+/{tkn-db}/_online+` endpoints as mentioned above.
@@ -335,7 +335,7 @@ Running a re-sync operation does not revoke access to that document.
 If you need to ensure access to the database during the update, you can create a read-only backup of the Sync Gateway's bucket beforehand, then run a secondary Sync Gateway on the backup bucket, in read-only mode.
 After the update is complete, switch to the main Gateway and bucket.
 
-In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the xref:admin-rest-api.adoc#/database/post\__db___offline[+/{tkn-db}/_offline+] endpoint.
+In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the {xref-sgw-pfx-admin-rest-api}#/database/post\__db___offline[+/{tkn-db}/_offline+] endpoint.
 After the configuration is updated, *one* instance should be brought up so it can update the database--if more than one is running at this time, they'll conflict with each other.
 After the first instance finishes opening the database, the others can be started.
 
