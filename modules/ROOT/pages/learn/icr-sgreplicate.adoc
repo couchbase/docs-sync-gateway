@@ -1,22 +1,19 @@
-= Inter-Sync Gateway Replication
-:page-layout: article
-:page-partial:
-:page-status:
-:page-edition:
+= Inter-Sync Gateway Replication introduced in Sync Gateway 2.8
 :page-role: conceptual
-:description: Couchbase Sync Gateway -- Inter-Sync Gateway Replication provides resilient, secure, scalable bidirectional synchronization of data between cloud and edge data centers.
+:description: Use inter-Sync Gateway replication to keep clusters in different mobile data centers in sync.
 
 include::partial$_std-hdr-sgw.adoc[]
 
 :topic-group: {tg-rep-icr}
 :param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-admin} | {xref-sgw-pg-icr-running}
-:param-abstract: This content describes Couchbase Sync Gateway's Inter-Sync Gateway Replication feature (v2). It incorporates the content presented under Manage within the Nav bar to give an integrated view.
+:param-abstract: inter-Sync Gateway replication supports resilient, secure, scalable bidirectional synchronization of data between cloud and edge data centers. +
+It incorporates content presented under Manage>Replicate>Inter-Sync Gateway to give an integrated view.
 include::partial$block-abstract.adoc[]
 
 // Footnotes
-:fn-sgr1: footnote:sgr1[Inter-Sync Gateway Replication (v1) only]
-:fn-sgr2: footnote:sgr2[Inter-Sync Gateway Replication (v2) only]
-:fn-arch: footnote:arch[This architecture is also known as _ship-to-shore_ or _hub-and-spoke_.]
+:fn-sgr1: footnote:sgr1[inter-Sync Gateway replication pre-2.8]
+:fn-sgr2: footnote:sgr2[inter-Sync Gateway replication in release 2.8+]
+:fn-arch: footnote:arch[This architecture is also known as ship-to-shore or hub-and-spoke.]
 :fn-icr: footnote:icr[As of Sync Gateway version 2.8]
 :fnref-icr: footnote:icr[]
 :fnref-arch: footnote:arch[]
@@ -59,9 +56,15 @@ A typical architecture for this use cases is shown in <<icr-cloud-to-edge>>
 image::icr-cloud-to-edge200712.svg[,600]
 
 === Active-to-active Mobile Synchronization
-Here active mobile clusters at the edge are replicated between geographically separate cloud-based Sync Gateway deployments.
+Here edge clusters containing active Sync{nbsp}Gateway nodes are replicated between geographically separate cloud-based Sync Gateway deployments.
+An ideal use-case for inter-Sync{nbsp}Gateway replication, which was designed to keep clusters in different data centers in sync.
 
-A typical architecture for this use cases is shown in <<icr-active-mobile>>
+The Couchbase Server Cross Data Center Replication API (xref:server:manage:manage-xdcr/xdcr-management-overview.adoc[XDCR]) is similarly used to replicate between Couchbase Server clusters.
+*However*, inter-Sync{nbsp}Gateway replication is specifically designed for Sync Gateway deployments and it *must* be used for replication between clusters containing active Sync{nbsp}Gateway nodes. 
+
+Active Sync Gateway nodes are nodes with incoming writes; these may be from Couchbase Lite clients, the REST API, or through the Couchbase Server.
+
+A typical architecture for this use case is shown in <<icr-active-mobile>>
 
 [[icr-active-mobile]]
 .Active-active mobile synchronization
@@ -73,7 +76,7 @@ image::icr-active-mobile-sync200713.svg[,600]
 _In this section_:  <<context>>  |  <<protocol>>  |  <<types-of-replication>>  |  <<delta-sync>>  |  <<directionality>>  |  <<security>>
 
 === Context
-Sync Gateway supports the ability to run replications between Sync Gateway clusters using Inter-Sync Gateway Replication (v2), with the {glos-term-active-replicator} {glos-term-synchronizing} changes between two {glos-term-sync-gateway-databases}.
+Sync Gateway supports the ability to run replications between Sync Gateway clusters using a new websockets based protocol, with the {glos-term-active-replicator} {glos-term-synchronizing} changes between two {glos-term-sync-gateway-databases}.
 
 All replications are based on a {glos-term-replication-definition} provided either to the Admin REST API or in Sync Gateway's configuration file (JSON).
 
@@ -88,9 +91,9 @@ _Related configuration elements_:  {xref-sgw-pg-config-properties-databases}  | 
 
 === Protocol
 
-Inter-Sync Gateway Replication (v2), are websocket-based.
+inter-Sync{nbsp}Gateway replications are based on websockets. This is the exact same protocol that is used for replication with Couchbase Lite 2.x clients.
 
-NOTE: For users on releases prior to 2.8 only HTTP-based replication is possible. See the appropriate documentation here -- {xref-sgw-pg-icr-sgreplicate-sgr1}.
+NOTE: For users on releases prior to 2.8, SG Replicate provides a HTTP-based replication -- see the appropriate documentation here -- {xref-sgw-pg-icr-sgreplicate-sgr1} (deprecated).
 
 The bi-directional, persistent, nature of websocket connections is ideal for applications such as a _continuous_ Sync Gateway replication, which is constantly waiting-for and synchronizing change events.
 
