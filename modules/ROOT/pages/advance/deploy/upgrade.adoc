@@ -8,8 +8,8 @@
 
 include::partial$_std-hdr-sgw.adoc[]
 
-:sc1title: Continue with SGR-Replicate 1.0 (no conflict resolution)
-:sc2title: Continue with SGR-Replicate 1.0 (custom conflict resolution)
+:sc1title: Continue with SG Replicate (no conflict resolution)
+:sc2title: Continue with SG Replicate (custom conflict resolution)
 :sc3title: Change to SGR-Replicate 2.0 (default conflict resolution)
 :sc4title: Change to SGR-Replicate 2.0 (custom conflict resolution)
 
@@ -230,36 +230,36 @@ Caveats:
 * Bring Sync Gateway online
 |===
 
-== Upgrade to Inter-Sync Gateway Replication (v2)
+== SG Replicate to Inter-Sync Gateway
 
 === Out of the box behavior
-Any {xref-sgw-pg-config-properties-db-replications} ({xref-sgw-pg-config-properties-db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {xref-sgw-pg-config-properties-databases} section will run using the Inter-Sync Gateway Replication (v1) protocol.
+Any {xref-sgw-pg-config-properties-db-replications} ({xref-sgw-pg-config-properties-db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {xref-sgw-pg-config-properties-databases} section will run using the SG{nbsp}Replicate protocol.
 This is subject to any compatibility constraints defined in the {xref-sgw-pg-compatibility}.
 
-Existing replications implementing custom {xref-sgw-pg-resolving-conflicts} strategies (via the REST endpoint) will continue to function in the same manner as for Inter-Sync Gateway Replication (v1) replications after upgrade
+Existing replications implementing custom {xref-sgw-pg-resolving-conflicts} strategies (via the REST endpoint) will continue to function in the same manner as for SG{nbsp}Replicate replications after upgrade
 
 === Upgrading existing replications
-To upgrade existing Inter-Sync Gateway Replication (v1) replications to Inter-Sync Gateway Replication (v2), reconfigure them using Inter-Sync Gateway Replication (v2)'s {xref-sgw-pg-config-properties-db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
+To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replication, reconfigure them using Inter-Sync Gateway Replication's {xref-sgw-pg-config-properties-db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
 
 === Post-upgrade behavior
 
 General::
-* The system supports a rolling upgrade from pre-2.8 Inter-Sync Gateway (v1) to 2.8+ Inter-Sync Gateway (v2).
-* One-shot replications configured at database level will continue as v1 replications.
-* Any configured v1 replications that you want to upgrade to v2 must be re-configured using the v2 configuration (at database rather than global level) or REST API endpoint (`_replication`).
-* An pre-2.8 systems using their own custom resolution strategy (via the REST endpoint) will function as they did for v1 replications after upgrading.
+* The system supports a rolling upgrade from SG Replicate to Inter-Sync Gateway Replication.
+* One-shot replications configured at database level will continue as SG Replicate replications.
+* Any configured SG Replicate replications that you want to upgrade to Inter-Sync Gateway must be re-configured using the Inter-Sync Gateway configuration (at database rather than global level) or REST API endpoint (`_replication`).
+* An pre-2.8 systems using their own custom resolution strategy (via the REST endpoint) will function as they did for SG Replicate replications after upgrading.
 
 Restarting Replications::
-The `replicationId` is used to ensure that any replications previously setup with Inter-Sync Gateway Replication (v1), automatically restart using Inter-Sync Gateway Replication (v2).
+The `replicationId` is used to ensure that any replications previously setup with SG{nbsp}Replicate, automatically restart using Inter-Sync Gateway Replication.
 The restart point will be the last checkpoint used, unless over-ridden.
 
 Over-riding restart point::
-To restart a sync from zero: After the upgrade reconfigure the Inter-Sync Gateway Replication (v2) {xref-sgw-pg-config-properties-db-replications} to use a different {xref-sgw-pg-config-properties-db-rep-id}
+To restart a sync from zero: After the upgrade reconfigure the Inter-Sync Gateway Replication {xref-sgw-pg-config-properties-db-replications} to use a different {xref-sgw-pg-config-properties-db-rep-id}
 
 === Constraints
 
-Minimum Version for Inter-Sync Gateway Replication (v2)::
-In order to support Inter-Sync Gateway Replication (v2), all active nodes in active cluster must be running Sync Gateway 2.8+.
+Minimum Version for Inter-Sync Gateway Replication::
+In order to support Inter-Sync Gateway Replication, all active nodes in active cluster must be running Sync Gateway 2.8+.
 
 
 
@@ -271,13 +271,13 @@ Replication between two remote databases is no longer supported.
 Sync Gateway will log an error and fail to start if a replication defined at the configuration's root level does not involve at least one local database (source or target).
 --
 
-Pushing to pre-2.8 targets::
+Pushing to SG Replicate targets::
 +
 --
 // tag:rn-con-pre2-8-tgt[]
 // https://issues.couchbase.com/browse/DOC-7056
-* Push replications do not support a pre-2.8 target with `"allow_conflicts": false` set; the target must use `"allow_conflicts": true` for a replication to work.
-* Push replications do not use Delta Sync when pushing to a pre-2.8 target
+* Push replications do not support SG Replicate targets with `"allow_conflicts": false` set; the target must use `"allow_conflicts": true` for a replication to work.
+* Push replications do not use Delta Sync when pushing to a SG Replicate targets
 // end:rn-con-pre2-8-tgt[]
 --
 
@@ -286,7 +286,7 @@ Pushing to pre-2.8 targets::
 :save-num: {example-number}
 :example-caption: Scenario
 :example-number: 0
-This section describes recommended upgrade strategies for implementing Inter-Sync Gateway Replication (v2)
+This section describes recommended upgrade strategies for implementing Inter-Sync Gateway Replication
 
 * <<sc1>> -- {sc1title}
 * <<sc2>> -- {sc2title}
@@ -305,18 +305,18 @@ This section describes recommended upgrade strategies for implementing Inter-Syn
 From::
 * Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
 * Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
-* Replication - Inter-Sync{nbsp}Gateway Replication (v1) configured in continuous or one-shot mode
+* Replication - SG Replicate configured in continuous or one-shot mode
 * Conflict resolution -- Not implemented
 
 To::
 * Source Cluster -- Active node running Sync Gateway 2.8+
 * Target Cluster -- Passive node running Sync Gateway 2.8+
-* Replication -- Inter-Sync Gateway Replication (v1) configured in continuous or one-shot mode
+* Replication -- SG{nbsp}Replicate configured in continuous or one-shot mode
 * Conflict resolution -- Not implemented
 
 Strategy::
 * Upgrade sequence -- Either cluster can be upgraded first
-* Restart point -- When the active node restarts it will use Inter-Sync Gateway Replication (v1) and will continue from where it last left off
+* Restart point -- When the active node restarts it will use SG{nbsp}Replicate and will continue from where it last left off
 * Upgrade Constraint -- Replication will be down for the duration of the active node restart
 ====
 --
@@ -331,22 +331,22 @@ Strategy::
 From::
 * Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
 * Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
-* Replication -- Inter-Sync Gateway Replication (v1) configured in continuous or one-shot mode
+* Replication -- SG{nbsp}Replicate configured in continuous or one-shot mode
 * Conflict resolution -- Custom conflict resolution with `allow_conflicts=true`
 
 To::
 * Source Cluster -- Active node running Sync Gateway 2.8+
 * Target Cluster -- Passive node running Sync Gateway 2.8+
-* Replication -- Inter-Sync Gateway Replication (v1) configured in continuous or one-shot mode
+* Replication -- SG{nbsp}Replicate configured in continuous or one-shot mode
 * Conflict resolution -- Custom conflict resolution with `allow_conflicts=true`
 
 Strategy::
 * Upgrade sequence -- Either cluster can be upgraded first
-* Restart point -- When the active node restarts it will use Inter-Sync Gateway Replication (v1) and will continue from where it last left off
+* Restart point -- When the active node restarts it will use SG{nbsp}Replicate and will continue from where it last left off
 * Conflict Resolution -- Will continue to be handled by the app
 * Upgrade Constraints
 ** Replication will be down for the duration of the active node restart
-** The `allow_conflicts` flag is ignored for any Inter-Sync Gateway Replication (v2) replications configured.
+** The `allow_conflicts` flag is ignored for any Inter-Sync Gateway Replication replications configured.
 ====
 --
 +
@@ -360,26 +360,26 @@ Strategy::
 From::
 * Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
 * Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
-* Replication -- Inter-Sync Gateway Replication (v1) configured in continuous or one-shot mode
+* Replication -- SG{nbsp}Replicate configured in continuous or one-shot mode
 * Conflict resolution -- Not implemented
 
 To::
 * Source Cluster -- Active node running Sync Gateway 2.8+
 * Target Cluster -- Passive node running Sync Gateway 2.8+
-* Replication -- Inter-Sync Gateway Replication (v2) configured in continuous or one-shot mode
+* Replication -- Inter-Sync Gateway replication configured in continuous or one-shot mode
 * Conflict resolution -- Not implemented
 
 Strategy::
 * Upgrade sequence
-.. Stop Inter-Sync Gateway Replication (v1) replications
-// .. Remove the Inter-Sync Gateway Replication (v1) replication configuration and replace it with Inter-Sync Gateway Replication (v2) equivalent.
+.. Stop SG{nbsp}Replicate replications
+// .. Remove the SG{nbsp}Replicate replication configuration and replace it with Inter-Sync Gateway Replication equivalent.
 .. Upgrade each cluster to Hydrogen.
 * Restart Outcomes
-** When The active cluster is restarted it will automatically switch to Inter-Sync Gateway Replication (v2)
+** When The active cluster is restarted it will automatically switch to Inter-Sync Gateway Replication
 ** Replication will continue from the last checkpoint, unless over-ridden.
 ** {enterprise} The replication will distribute automatically
 * Conflict resolution -- Default
-* Upgrade Constraint -- The `allow_conflicts` flag is ignored for any Inter-Sync Gateway Replication (v2) replications configured.
+* Upgrade Constraint -- The `allow_conflicts` flag is ignored for any Inter-Sync Gateway Replication replications configured.
 
 ====
 --
@@ -394,34 +394,34 @@ Strategy::
 From::
 * Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
 * Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-Hydrogen)
-* Replication -- Inter-Sync Gateway Replication (v1) configured in continuous or one-shot mode
+* Replication -- SG{nbsp}Replicate configured in continuous or one-shot mode
 * Conflict resolution -- Custom conflict resolution with `allow_conflicts=true`
 
 
 To::
 * Source Cluster -- Active node running Sync Gateway 2.8+
 * Target Cluster -- Passive node running Sync Gateway 2.8+
-* Replication -- Inter-Sync Gateway Replication (v2) configured in continuous or one-shot mode
+* Replication -- Inter-Sync Gateway Replication configured in continuous or one-shot mode
 * Conflict resolution -- Apply custom conflict resolution
 
 Strategy::
 * Upgrade sequence
-.. Stop Inter-Sync Gateway Replication (v1) replications
-// .. Remove the Inter-Sync Gateway Replication (v1) replication configuration
-.. Add the Inter-Sync Gateway Replication (v2) replication configuration, including Javascript function as {xref-sgw-pg-config-properties-db-rep-resolver}
+.. Stop SG{nbsp}Replicate replications
+// .. Remove the SG{nbsp}Replicate replication configuration
+.. Add the Inter-Sync Gateway replication configuration, including Javascript function as {xref-sgw-pg-config-properties-db-rep-resolver}
 .. Upgrade each cluster to Hydrogen
 * Restart Outcomes
-** When The active cluster is restarted it will automatically switch to Inter-Sync Gateway Replication (v2)
+** When the active cluster is restarted it will automatically switch to Inter-Sync Gateway Replication
 ** Replication will continue from the last checkpoint, unless over-ridden.
 ** {enterprise} The replication will distribute automatically
 * Conflict resolution -- Conflicts will be handled by the function  specified as the as {xref-sgw-pg-config-properties-db-rep-resolver}
-* Upgrade Constraint -- The `allow_conflicts` flag is ignored for any Inter-Sync Gateway Replication (v2) replications configured.
+* Upgrade Constraint -- The `allow_conflicts` flag is ignored for any Inter-Sync Gateway Replication replications configured.
 ====
 --
 =====
 
-=== Re-using Pre-2.8 Replication Checkpoints
-You are able to use pre-2.8 replication checkpoints as a starting point for 2.8 replications.
+=== Re-using SG Replicate Checkpoints
+You are able to use SG Replicate checkpoints as a starting point for Inter-Sync Gateway replications.
 This can save time on larger buckets by avoiding re-processing documents that have previously been replicated.
 
 To be eligible for re-use use in this way
@@ -436,9 +436,9 @@ To be eligible for re-use use in this way
 
 === Upgrade Steps
 
-. Have both pre-2.8 and 2.8 replications defined in the same config file.
+. Have both SG Replicate and Inter-Sync Gateway replications defined in the same config file.
 . Ensure prerequisites from previous slide are fulfilled (matching IDs, params, etc.)
-. On startup, SG will determine if replications match, and log:
+. On startup, Sync Gateway will determine if replications match, and log:
 +
 [source]
 ----
@@ -446,15 +446,15 @@ To be eligible for re-use use in this way
 [INF] Replicate: Got SGR1 checkpoint ID for fallback in replication "repl1-push": b8da8486df3093141f7ed225eb2b2afae88ca9ce
 ----
 
-. This prevents the pre-2.8 replication from running, even though it’s configured.
+. This prevents the SG Replicate replication from running, even though it’s configured.
 +
 [source]
 ----
-[INF] Replicate: Replication "repl1-push" was upgraded, preventing startup of v1 replication.
-[INF] Replicate: Replication "repl1-pull" was upgraded, preventing startup of v1 replication.
+[INF] Replicate: Replication "repl1-push" was upgraded, preventing startup of SG Replicate replication.
+[INF] Replicate: Replication "repl1-pull" was upgraded, preventing startup of SG Replicate replication.
 [INF] Replicate: Starting sg-replicate replications...
 ----
-. When the 2.8 replication is assigned (even on a different node), the pre-2.8 checkpoint is used if no 2.8 checkpoint can be found. Logs:
+. When the Inter-Sync Gateway replication is assigned (even on a different node), the SG Replicate checkpoint is used if no Inter-Sync Gateway checkpoint can be found. Logs:
 +
 [source]
 ----
@@ -463,7 +463,7 @@ To be eligible for re-use use in this way
 [INF] Replicate: Attempting to fetch SGR1 checkpoint as fallback: 58782a013091ffc0e7e4ae3c4b6abd8baa7149c6
 [INF] Replicate: c:repl1-pull-pull using checkpointed seq from SGR1: "3"
 ----
-. Once the pre-2.8 checkpoint is used, it is deleted to ensure it cannot be used as a fallback again in the event 2.8 checkpoints are removed.
+. Once the SG Replicate checkpoint is used, it is deleted to ensure it cannot be used as a fallback again in the event Inter-Sync Gateway replication checkpoints are removed.
 
 
 :example-caption: {save-title}
