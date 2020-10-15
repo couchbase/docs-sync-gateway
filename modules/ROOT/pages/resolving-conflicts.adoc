@@ -1,27 +1,27 @@
-= Resolving Conflicts
+= Conflict Resolution with 1.x client
+:page-status: deprecated
+:description: Couchbase Sync Gateway -- resolving conflicts
 :idprefix:
 :idseparator: -
 
 include::partial$_std-hdr-sgw.adoc[]
 
-Sync Gateway 2.x resolves conflicts automatically.
-This functionality aims to simplify the default behavior of conflict handling and save disk space (conflicting revisions will no longer be stored in the database).
-The Couchbase Lite SDK guides describe how the automatic conflict resolution works:
+:param-abstract: This guide relates to handling data conflicts while syncing with Couchbase Lite 1.x clients or syncing with pre 2.8 version of Sync Gateway nodes using SG-Replicate
+include::partial$block-abstract.adoc[]
 
+== Introduction
+This guide covers  handling data conflicts while syncing with Couchbase Lite 1.x clients or syncing with pre 2.8 version of Sync Gateway nodes using SG-Replicate
 
-* xref:couchbase-lite:swift:learn/swift-conflict.adoc[Swift]
-* xref:couchbase-lite:java:learn/java-conflict.adoc[Java]
-* xref:couchbase-lite:android:learn/java-android-conflict.adoc[Java (Android)]
-* xref:couchbase-lite:csharp:learn/csharp-conflict.adoc[C#]
-* xref:couchbase-lite:objc:learn/objc-conflict.adoc[Objective-C]
-
-The following guide describes how to handle conflicts that are created by Couchbase Lite 1.x clients.
-This content isn't necessary for applications that use Couchbase Mobile 2.0 only.
+In these cases, the conflict resolution happens on the server-side using the Sync Gateway Admin REST API. This information does not apply to applications using Couchbase Mobile 2.x _only_ -- see {xref-sgw-pg-resolving-conflicts} or inter-Sync Gateway replication with versions of Sync Gateway 2.8 and above  -- see {xref-sgw-pg-resolving-conflicts} 
 
 In Couchbase Lite 1.x, a conflict usually occurs when two writers are offline and save a different revision of the same document.
 Couchbase Mobile provides features to resolve these conflicts, the resolution rules are written in the application to keep full control over which edit (also called a revision) should be picked.
-The https://developer.couchbase.com/documentation/mobile/1.5/guides/couchbase-lite/native-api/revision/index.html[revision guide] and https://developer.couchbase.com/documentation/mobile/1.5/guides/couchbase-lite/native-api/document/index.html#document-conflict-faq[documents conflicts FAQ] are good resources to learn how to resolve conflicts on the devices with Couchbase Lite.
-This guide describes how to handle the conflict resolution on the server-side using the Sync Gateway Admin REST API.
+
+The
+https://developer.couchbase.com/documentation/mobile/1.5/guides/couchbase-lite/native-api/revision/index.html[revision guide] and
+https://developer.couchbase.com/documentation/mobile/1.5/guides/couchbase-lite/native-api/document/index.html#document-conflict-faq[documents conflicts FAQ]
+are good resources to learn how to resolve conflicts on the devices with Couchbase Lite.
+
 
 == Creating a conflict
 
@@ -232,7 +232,7 @@ node index.js 0
 
 The conflicts that were added at the beginning of the guide are detected and resolved.
 
-[source]
+[source, bash]
 ----
 Document with ID _user/ has 1 revisions.
 Document with ID foo has 3 revisions.
