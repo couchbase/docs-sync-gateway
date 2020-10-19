@@ -1,24 +1,24 @@
 // = Conflict Resolution in Inter-Sync Gateway Replication
 :fn-no-op-text: footnote:fn-1[No-op update -- refers to a change to the document body that has no impact on the app logic but will trigger an import by the Sync Gateway. One option could be to include a property used specifically for this purpose (i.e. a counter that can be incremented in response to conflict resolver errors).]
 :fnref-no-op: footnote:fn-1[]
+
 // tag::in-this-section[]
-*_In this Section_*: <<automatic-conflict-resolution>>  |  <<how-resolution-works>>  |  <<configuring-conflict-resolution>>  |  <<build-a-conflict-resolution-policy-ee>>
+*_In this Section_*: <<automatic-conflict-resolution>>  |  <<how-resolution-works>>  |  <<configure-conflict-resolution>>  |  <<build-a-conflict-resolution-policy-ee>>
 // end::in-this-section[]
 
 == Automatic Conflict Resolution
-// tag::overview[]
-Inter-Sync Gateway Replication supports automatic conflict resolution to resolve conflicting document changes.
 
-It delivers this by applying one of its built-in {glos-term-conflict-resolver-policies}, which can be easily included in your own replications -- see <<configuring-a-policy-to-use>>
+// tag::overview[]
+
+Inter-Sync Gateway replication supports automatic conflict resolution to resolve conflicting document changes.
+
+It delivers this by applying one of its built-in {glos-term-conflict-resolver-policies}, which can be easily included in your own replications.
 
 include::{concepts}rep-auto-conflict-resolution.adoc[]
 
-:param-body: A <<custom-conflict-resolution-ee, Custom Conflict Resolver>> policy is available, providing additional flexibility by allowing users to provide their own confict resolution logic.
-include::partial$block-caveats.adoc[tags=ee-only]
-
 // end::overview[]
 
-// See: <<resolver-policies, conflict resolver policies>>
+For {enterprise}, a <<custom-conflict-resolution-ee, Custom Conflict Resolver>> policy is available, providing additional flexibility by allowing users to provide their own conflict resolution logic.
 
 Conflict Response on Active Replicator::
 As soon as the _active_ Sync Gateway database detects a conflict in a replicated document revision, it initiates its configured _conflict resolver policy_ to determine a _winning_ revision.
@@ -27,42 +27,13 @@ This policy assesses the conflicting revisions and either determines the winning
 Conflict Response by Passive Replicator::
 When a passive Sync Gateway database detects a conflict it responds to the active with a `409` response and rejects the revision.
 It is expected that the active Sync Gateway will pull the conflicting revision from the passive, resolve it on the active, and then subsequently push the resolved conflict back up.
-// === Automatic Resolution Policy
-
-// * Deletes always win.
-
-
-//  even when the no-conflicts mode is enabled (that is where {xref-sgw-pfx-config-properties}#databases-this_db-allow_conflicts["allow_conflicts": false]).
-
-// When running two Sync Gateway clusters with the no-conflicts mode enabled, cross-cluster document conflicts will result in that document no longer being replicated. To avoid this, the application must ensure that concurrent cross-cluster updates are not made to a given document.
-
-// Deployments  must implement a custom conflict resolver in an external app as specified in {xref-sgw-pg-resolving-conflicts}.
-
-// == Conflict Resolver Policies
-
-// Conflict resolution is configurable, in that you can choose to apply one of the out-of-the-box (predefined) conflict resolver policies.
-
-// [#predefined-resolver-policies]
-// .Predefined resolver policies
-// The following automatic conflict resolution policies are available when configuring a replication:
-
-// Default::
-// Applies the default policy described in <<automatic-conflict-resolution>>
-
-// Local Wins::
-// * Always considers the local change the winner.
-// * Configured using: `"conflict_resolution_type": "localWins"`
-
-// Remote Wins::
-// Always considers the remote change the winner.
-// * Configured using: `"conflict_resolution_type": "remoteWins"`
 
 == How Resolution Works
 
 Pull Replications::
 +
 --
-For _Pull_ replications the _active_ Sync Gateway is responsible for detecting and resolving conflicts based on the configured _conflict_resolution_type_ (see configuration item: {xref-sgw-pg-config-properties-db-rep-conflict}.
+For _Pull_ replications the _active_ Sync Gateway is responsible for detecting and resolving conflicts based on the configured _conflict_resolution_type_  -- see configuration item: {xref-sgw-pg-config-properties-db-rep-conflict}.
 
 This is also how conflicts are handled when Couchbase Lite clients pull down documents to Sync Gateway.
 
@@ -84,6 +55,7 @@ It is  the responsibility of the active sync Gateway to address rejected revisio
 +
 This approach is the same as that adopted when Couchbase Lite clients push documents to Sync Gateway.
 
+[#configure-conflict-resolution]
 == Configure Conflict Resolution
 Invoke automatic conflict resolution by specifying the required _conflict resolver policy_ in the {glos-term-replication-definition}.
 The specified policy is applied whenever a conflict is detected.
@@ -181,12 +153,6 @@ remoteWins::
 
 ====
 =====
-// Inter-Sync Gateway Replication introduced in Sync Gateway 2.8 supports automatic conflict resolution to resolve conflicting document revisions.
-
-// The automatic conflict resolution policy is the same as that adopted in Couchbase Lite 2.x between Couchbase Lite and Sync Gateway.
-// The basic rules being:
-
-// include::couchbase-lite:ROOT:partial$handling-conflicts.adoc[tags=auto-conflict-resolution]
 
 == Build a Conflict Resolution Policy [EE]
 // _In this section_: <<conflict-resolution-approaches>>  |  <<approaches-to-error-handling>>  |  <<conflict-resolver-structure>>

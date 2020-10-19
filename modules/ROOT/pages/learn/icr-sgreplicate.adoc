@@ -1,4 +1,4 @@
-= Inter-Sync Gateway Replication introduced in Sync Gateway 2.8
+= Inter-Sync Gateway Replication
 :page-role: conceptual
 :description: Use inter-Sync Gateway replication to keep clusters in different mobile data centers in sync.
 
@@ -6,19 +6,13 @@ include::partial$_std-hdr-sgw.adoc[]
 
 :topic-group: {tg-rep-icr}
 :param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-admin} | {xref-sgw-pg-icr-running}
-:param-abstract: inter-Sync Gateway replication supports resilient, secure, scalable bidirectional synchronization of data between cloud and edge data centers. +
+:param-abstract: Inter-Sync Gateway replication supports resilient, secure, scalable bidirectional synchronization of data between cloud and edge data centers. +
 It incorporates content presented under Manage>Replicate>Inter-Sync Gateway to give an integrated view.
 include::partial$block-abstract.adoc[]
 
 // Footnotes
-:fn-sgr1: footnote:sgr1[inter-Sync Gateway replication pre-2.8]
-:fn-sgr2: footnote:sgr2[inter-Sync Gateway replication in release 2.8+]
 :fn-arch: footnote:arch[This architecture is also known as ship-to-shore or hub-and-spoke.]
-:fn-icr: footnote:icr[As of Sync Gateway version 2.8]
-:fnref-icr: footnote:icr[]
 :fnref-arch: footnote:arch[]
-:fnref-sgr1: footnote:sgr1[]
-:fnref-sgr2: footnote:sgr2[]
 
 include::partial$block-caveats.adoc[tags=sgr2-only]
 
@@ -26,7 +20,7 @@ include::partial$block-caveats.adoc[tags=sgr2-only]
 == Introduction
 // tag::intro-full[]
 // tag::intro[]
-Couchbase Sync Gateway's _{glos-term-inter-sync-gateway-replication}_{fn-icr} feature supports _{glos-term-cloud-to-edge} synchronization_ use cases, where data changes must be synchronized between a centralized cloud cluster and a large number of edge clusters whilst still enforcing fine grained access control.
+Couchbase Sync Gateway's _{glos-term-inter-sync-gateway-replication}_ feature supports _{glos-term-cloud-to-edge} synchronization_ use cases, where data changes must be synchronized between a centralized cloud cluster and a large number of edge clusters whilst still enforcing fine grained access control.
 This is an increasingly important enterprise-level requirement.
 
 // end::intro[]
@@ -60,14 +54,12 @@ Here edge clusters containing active Sync{nbsp}Gateway nodes are replicated betw
 An ideal use-case for inter-Sync{nbsp}Gateway replication, which was designed to keep clusters in different data centers in sync.
 
 The Couchbase Server Cross Data Center Replication API (xref:server:manage:manage-xdcr/xdcr-management-overview.adoc[XDCR]) is similarly used to replicate between Couchbase Server clusters.
-*However*, inter-Sync{nbsp}Gateway replication is specifically designed for Sync Gateway deployments and it *must* be used for replication between clusters containing active Sync{nbsp}Gateway nodes. 
-
-Active Sync Gateway nodes are nodes with incoming writes; these may be from Couchbase Lite clients, the REST API, or through the Couchbase Server.
+*However*, the inter-Sync{nbsp}Gateway replication feature is specifically designed for Sync Gateway deployments and it *must* be used for replication between clusters containing an {glos-term-active-sgnode}.
 
 A typical architecture for this use case is shown in <<icr-active-mobile>>
 
 [[icr-active-mobile]]
-.Active-active mobile synchronization
+.Active-to-active mobile synchronization
 image::icr-active-mobile-sync200713.svg[,600]
 
 // end::use-cases[]
@@ -91,7 +83,7 @@ _Related configuration elements_:  {xref-sgw-pg-config-properties-databases}  | 
 
 === Protocol
 
-inter-Sync{nbsp}Gateway replications are based on websockets. This is the exact same protocol that is used for replication with Couchbase Lite 2.x clients.
+Inter-Sync{nbsp}Gateway replications are based on websockets. This is the exact same protocol that is used for replication with Couchbase Lite 2.x clients.
 
 NOTE: For users on releases prior to 2.8, SG Replicate provides a HTTP-based replication -- see the appropriate documentation here -- {xref-sgw-pg-icr-sgreplicate-sgr1} (deprecated).
 
@@ -149,7 +141,7 @@ _Related configuration elements_:  {xref-sgw-pg-config-properties-db-replication
 
 === Security
 // tag::security[]
-Transport level security is provided by HTTPS or WSS (for websockets{fn-sgr2}).
+Transport level security is provided for. Use the appropriate prefix in URL (WSS for websockets).
 
 // end::security[]
 
@@ -173,7 +165,7 @@ _Related how-to_: {xref-sgw-pg-def-sync-function}  |  {xref-sgw-pg-adv-sgw-cfg-s
 
 == Network Resilience
 // tag::network-resilience[]
-Inter-Sync Gateway Replications will automatically attempt to restart whenever the node restarts.
+Inter-Sync Gateway replications will automatically attempt to restart whenever the node restarts.
 
 Network resiliency is built-in for _continuous_ replications.
 They respond to network issues such as lost connections, by applying a {glos-term-persistent-exponential-backoff} policy to attempt reconnection.
