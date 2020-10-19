@@ -1,7 +1,8 @@
 = Release Notes
+// Declare module attributes in pages/_partial$/_attributes-local.adoc
 include::partial$_attributes-local.adoc[]
 
-:jira-url: {url-jira}
+// Declare page attributes
 :natt: None at this time
 :ke: Known issues
 :fixed: Fixed at this Release
@@ -9,32 +10,48 @@ include::partial$_attributes-local.adoc[]
 :nftr: New Features
 :api: API Changes
 
+[#latest]
+[#2-7-4]
+== 2.7.4 -- October, 2020
+*{fixed}*
+
+* {url-jira}/CBG-1121[*CBG-1121*] User name not being logged for initial HTTP request (Backport CBG-926)
+* {url-jira}/CBG-1093[*CBG-1093*] Running compact when UseViews=true causes an infinite loop (Backport CBG-812)
+* {url-jira}/CBG-1003[*CBG-1003*] Remove replication stats from sg-replicate1 checkpoint hash
+* {url-jira}/CBG-885[*CBG-885*] Align channels query ORDER BY with index (Backport CBG-882)
+* {url-jira}/CBG-884[*CBG-884*]	Generate empty delta as {} instead of null (Backport CBG-819)
+
+*{ke}*
+
+* {url-jira}/CBG-1127[CBG-1127] -- Treat resurrected tombstones as non-conflict when no shared history
+* {url-jira}/CBG-798[CBG-798] -- Sync Gateway requires Couchbase Server nodes to use the same SSL memcached port
+
 == 2.7.3 -- May, 2020
 
 *{fixed}*
 
-{jira-url}/CBG-816[*CBG-816*] -- Bump gocbconnstr dependency to uptake SRV support::
+{url-jira}/CBG-816[*CBG-816*] -- Bump gocbconnstr dependency to uptake SRV support::
 Update Sync Gateway references to pick-up the latest version of `gocbconnstr`, to ensure connection to servers using SRV records.
 
 == 2.7.2 -- March, 2020
 
 *{fixed}*
 
-* {jira-url}/CBG-[*CBG-741*] 403 Attachment's doc not being synced during CBL replication
-* {jira-url}/CBG-744[*CBG-744*]	OldDoc body in sync function for tombstone resurrections does not contain _deleted=true
-* {jira-url}/CBG-661[*CBG-661*]	Errors from REST API produce invalid JSON
-* {jira-url}/CBG-743[*CBG-743*]	Doc body in sync function contains _deleted=false
+* {url-jira}/CBG-741[*CBG-741*] 403 Attachment's doc not being synced during CBL replication
+* {url-jira}/CBG-744[*CBG-744*]	OldDoc body in sync function for tombstone resurrections does not contain _deleted=true
+* {url-jira}/CBG-661[*CBG-661*]	Errors from REST API produce invalid JSON
+* {url-jira}/CBG-743[*CBG-743*]	Doc body in sync function contains _deleted=false
 
 == 2.7.1 -- February, 2020
 
 *{fixed}*
 
-* {jira-url}/CBG-727[*CBG-727*] Panic when connecting to non-standard memcached port using couchbase(s):// scheme
-* {jira-url}/CBG-695[*CBG-695*] Alternate addresses are always used if defined instead of applying heuristic
+* {url-jira}/CBG-727[*CBG-727*] Panic when connecting to non-standard memcached port using couchbase(s):// scheme
+* {url-jira}/CBG-695[*CBG-695*] Alternate addresses are always used if defined instead of applying heuristic
 
 *{ke}*
 
-- {jira-url}/CBG-661[*CBG-661*]	Errors from REST API produce invalid JSON
+- {url-jira}/CBG-661[*CBG-661*]	Errors from REST API produce invalid JSON
 
 == 2.7.0 -- January, 2020
 
@@ -65,7 +82,6 @@ Update Sync Gateway references to pick-up the latest version of `gocbconnstr`, t
 
 * New and Changed options
 ** `db.import_partitions` - Controls the number of partitions for import sharding (see xref:config-properties.adoc#databases-foo_db-import_partitions[databases.$db.import_partitions])
-// `unsupported.use_stdlib_json` - Couchbase support-use if required. EE-only, Default: false. Uses Go's stdlib JSON library, instead of a faster third-party JSON library
 
 ** The default behavior of `db.import_docs` has changed (see xref:config-properties.adoc#databases-foo_db-import_docs[databases.$db.import_docs]).
 +
@@ -75,44 +91,44 @@ This will provide the flexibility for "import heavy" use case users to be able t
 
 * Sync Gateway now supports CentOS8 and RHEL8
 
-* {jira-url}/CBG-584[*CBG-584*] SyncGateway now supports scenarios where alternate addresses are provided on Couchbase Server.
+* {url-jira}/CBG-584[*CBG-584*] SyncGateway now supports scenarios where alternate addresses are provided on Couchbase Server.
 
 TIP: For more information on using alternate addresses -- see Couchbase Server's xref:server:learn:clusters-and-availability/connectivity.adoc#alternate-addresses[Alternate Addresses] documentation.
 
 *{ke}*
 
-- {jira-url}/CBG-661[*CBG-661*] Errors from REST API produce invalid JSON
-- {jira-url}/CBG-695[*CBG-695*] Alternate addresses are always used if defined instead of applying heuristic
+- {url-jira}/CBG-661[*CBG-661*] Errors from REST API produce invalid JSON
+- {url-jira}/CBG-695[*CBG-695*] Alternate addresses are always used if defined instead of applying heuristic
 
 *{fixed}*
 
-- {jira-url}/CBG-620[*CBG-620*] Concurrent attempts to create indexes trigger SG restart
-- {jira-url}/CBG-583[*CBG-583*] Skip-deleted-docs optimization never enabled in pull replication
-- {jira-url}/CBG-549[*CBG-549*] sgcollect should pick up stderr output on all platforms
-- {jira-url}/CBG-522[*CBG-522*] DocumentChanged webhook sending incorrect revision
-- {jira-url}/CBG-520[*CBG-520*] Initialization race for channel cache validFrom
-- {jira-url}/CBG-514[*CBG-514*] Running `sgcollect_info` on command with root privileges is overriding `bin/sync_gateway` file on MacOS
-- {jira-url}/CBG-502[*CBG-502*] x.509 broken due to deprecated CertificateAuthenticator
-- {jira-url}/CBG-500[*CBG-500*] Sync Gateway not handling graceful failover correctly
-- {jira-url}/CBG-463[*CBG-463*] Potential feedback loop when replicating large attachments
-- {jira-url}/CBG-439[*CBG-439*] Investigate incorrect CPU usage stats
-- {jira-url}/CBG-427[*CBG-427*] sgcollect_info tool failed to collect log when SG_SSL is enabled
-- {jira-url}/CBG-394[*CBG-394*] Upgrade to shared_bucket_access with GSI can cause missed mutations
-- {jira-url}/CBG-317[*CBG-317*] network errors while getting bulk get with multi channel with server ssl enabled
-- {jira-url}/CBG-669[*CBG-669*] Potential deadlock in sequenceAllocator
+- {url-jira}/CBG-620[*CBG-620*] Concurrent attempts to create indexes trigger SG restart
+- {url-jira}/CBG-583[*CBG-583*] Skip-deleted-docs optimization never enabled in pull replication
+- {url-jira}/CBG-549[*CBG-549*] sgcollect should pick up stderr output on all platforms
+- {url-jira}/CBG-522[*CBG-522*] DocumentChanged webhook sending incorrect revision
+- {url-jira}/CBG-520[*CBG-520*] Initialization race for channel cache validFrom
+- {url-jira}/CBG-514[*CBG-514*] Running `sgcollect_info` on command with root privileges is overriding `bin/sync_gateway` file on MacOS
+- {url-jira}/CBG-502[*CBG-502*] x.509 broken due to deprecated CertificateAuthenticator
+- {url-jira}/CBG-500[*CBG-500*] Sync Gateway not handling graceful failover correctly
+- {url-jira}/CBG-463[*CBG-463*] Potential feedback loop when replicating large attachments
+- {url-jira}/CBG-439[*CBG-439*] Investigate incorrect CPU usage stats
+- {url-jira}/CBG-427[*CBG-427*] sgcollect_info tool failed to collect log when SG_SSL is enabled
+- {url-jira}/CBG-394[*CBG-394*] Upgrade to shared_bucket_access with GSI can cause missed mutations
+- {url-jira}/CBG-317[*CBG-317*] network errors while getting bulk get with multi channel with server ssl enabled
+- {url-jira}/CBG-669[*CBG-669*] Potential deadlock in sequenceAllocator
 
 == 2.6.1
 
 *{fixed}*
 
-- {jira-url}/CBG-530[*CBG-530*] New attachment metadata not preserved on CAS retry during document update
-- {jira-url}/CBG-514[*CBG-514*] running sgcollect_info on command with root privileges is overriding bin/sync_gateway file on MacOS
-- {jira-url}/CBG-502[*CBG-502*] x.509 broken due to deprecated CertificateAuthenticator
+- {url-jira}/CBG-530[*CBG-530*] New attachment metadata not preserved on CAS retry during document update
+- {url-jira}/CBG-514[*CBG-514*] running sgcollect_info on command with root privileges is overriding bin/sync_gateway file on MacOS
+- {url-jira}/CBG-502[*CBG-502*] x.509 broken due to deprecated CertificateAuthenticator
 
 *{ke}*
 
-- {jira-url}/CBG-463[*CBG-463*] Potential feedback loop when replicating large attachments
-- {jira-url}/CBG-669[*CBG-669*] Potential deadlock in sequenceAllocator
+- {url-jira}/CBG-463[*CBG-463*] Potential feedback loop when replicating large attachments
+- {url-jira}/CBG-669[*CBG-669*] Potential deadlock in sequenceAllocator
 
 == 2.6.0
 
@@ -136,38 +152,38 @@ xref:index.adoc[Read more]
 
 *{enh}*
 
-- {jira-url}/CBG-260[*CBG-260*] Add configurable minimum TLS version
-- {jira-url}/CBG-220[*CBG-220*] Limit total size of rotated logs
-- {jira-url}/CBG-222[*CBG-222*] Set default value of xref:config-properties.adoc#databases-foo_db-revs_limit[revs_limit] to 100, and 50 if `allow_conflicts: false`.
+- {url-jira}/CBG-260[*CBG-260*] Add configurable minimum TLS version
+- {url-jira}/CBG-220[*CBG-220*] Limit total size of rotated logs
+- {url-jira}/CBG-222[*CBG-222*] Set default value of xref:config-properties.adoc#databases-foo_db-revs_limit[revs_limit] to 100, and 50 if `allow_conflicts: false`.
 
 *{fixed}*
 
-- {jira-url}/CBG-449[*CBG-449*] _removed entry not sent with delta sync
-- {jira-url}/CBG-370[*CBG-370*] Sync gateway fails to start
-- {jira-url}/CBG-364[*CBG-364*] Odd SG Installation errors
-- {jira-url}/CBG-363[*CBG-363*] Return HTTP 413 when server rejects document due to size
-- {jira-url}/CBG-362[*CBG-362*] Inconsistent handling between views and N1QL for tombstone removals
-- {jira-url}/CBG-357[*CBG-357*] GoCB Bucket Incr amt=0 logic not taking 'def' into account
-- {jira-url}/CBG-342[*CBG-342*] GoCB Bucket Incr amt=0 logic not handling errors correctly
-- {jira-url}/CBG-324[*CBG-324*] Blip messages double-tagging user for redaction
-- {jira-url}/CBG-321[*CBG-321*] Improve sg-replicate logging integration
-- {jira-url}/CBG-309[*CBG-309*] Don't log expected REST errors to sg_error.log
-- {jira-url}/CBG-306[*CBG-306*] Avoid panics as an error handling mechanism
-- {jira-url}/CBG-288[*CBG-288*] Investigate TestN1qlQuery failures
-- {jira-url}/CBG-286[*CBG-286*] SUBDOC operation attempted when server doesn't support them
-- {jira-url}/CBG-284[*CBG-284*] Retry loops for bucket update ops have no backoff and no max retry count
-- {jira-url}/CBG-280[*CBG-280*] Syncgateway doesn't import all documents while importing 50M docs ( build 2.1.3-4)
-- {jira-url}/CBG-279[*CBG-279*] go-blip leaks nextFrameToSend goroutine under aborted multi-frame send
-- {jira-url}/CBG-265[*CBG-265*] Post Upgrade fails to remove 2.0 era design docs
-- {jira-url}/CBG-264[*CBG-264*] Post Upgrade "fails" in a cluster with no query nodes
-- {jira-url}/CBG-253[*CBG-253*] Unused bulk_docs reserved sequences may not be released
-- {jira-url}/CBG-225[*CBG-225*] Unresponsive REST API on startup
-- {jira-url}/CBG-221[*CBG-221*] Admin/User views cannot handle both xattr and non-xattr simultaneously
-- {jira-url}/CBG-189[*CBG-189*] Compact() shouldn't trigger import errors
-- {jira-url}/CBG-159[*CBG-159*] CouchbaseServerVersion should use clusterCompatibility version
+- {url-jira}/CBG-449[*CBG-449*] _removed entry not sent with delta sync
+- {url-jira}/CBG-370[*CBG-370*] Sync gateway fails to start
+- {url-jira}/CBG-364[*CBG-364*] Odd SG Installation errors
+- {url-jira}/CBG-363[*CBG-363*] Return HTTP 413 when server rejects document due to size
+- {url-jira}/CBG-362[*CBG-362*] Inconsistent handling between views and N1QL for tombstone removals
+- {url-jira}/CBG-357[*CBG-357*] GoCB Bucket Incr amt=0 logic not taking 'def' into account
+- {url-jira}/CBG-342[*CBG-342*] GoCB Bucket Incr amt=0 logic not handling errors correctly
+- {url-jira}/CBG-324[*CBG-324*] Blip messages double-tagging user for redaction
+- {url-jira}/CBG-321[*CBG-321*] Improve sg-replicate logging integration
+- {url-jira}/CBG-309[*CBG-309*] Don't log expected REST errors to sg_error.log
+- {url-jira}/CBG-306[*CBG-306*] Avoid panics as an error handling mechanism
+- {url-jira}/CBG-288[*CBG-288*] Investigate TestN1qlQuery failures
+- {url-jira}/CBG-286[*CBG-286*] SUBDOC operation attempted when server doesn't support them
+- {url-jira}/CBG-284[*CBG-284*] Retry loops for bucket update ops have no backoff and no max retry count
+- {url-jira}/CBG-280[*CBG-280*] Syncgateway doesn't import all documents while importing 50M docs ( build 2.1.3-4)
+- {url-jira}/CBG-279[*CBG-279*] go-blip leaks nextFrameToSend goroutine under aborted multi-frame send
+- {url-jira}/CBG-265[*CBG-265*] Post Upgrade fails to remove 2.0 era design docs
+- {url-jira}/CBG-264[*CBG-264*] Post Upgrade "fails" in a cluster with no query nodes
+- {url-jira}/CBG-253[*CBG-253*] Unused bulk_docs reserved sequences may not be released
+- {url-jira}/CBG-225[*CBG-225*] Unresponsive REST API on startup
+- {url-jira}/CBG-221[*CBG-221*] Admin/User views cannot handle both xattr and non-xattr simultaneously
+- {url-jira}/CBG-189[*CBG-189*] Compact() shouldn't trigger import errors
+- {url-jira}/CBG-159[*CBG-159*] CouchbaseServerVersion should use clusterCompatibility version
 
 *{ke}*
 
-- {jira-url}/CBG-463[*CBG-463*] Potential feedback loop when replicating large attachments
-- {jira-url}/CBG-502[*CBG-502*] x.509 certificate authentication broken due to deprecated CertificateAuthenticator
-- {jira-url}/CBG-669[*CBG-669*] Potential deadlock in sequenceAllocator
+- {url-jira}/CBG-463[*CBG-463*] Potential feedback loop when replicating large attachments
+- {url-jira}/CBG-502[*CBG-502*] x.509 certificate authentication broken due to deprecated CertificateAuthenticator
+- {url-jira}/CBG-669[*CBG-669*] Potential deadlock in sequenceAllocator
