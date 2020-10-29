@@ -1,24 +1,56 @@
 = Data Modeling
+:description: Couchbase Sync Gateway - data modeling guidelines for synchronization
+
+:xref-sdk-nodejs-pg-start: xref:nodejs-sdk:hello-world:start-using-sdk.adoc[Node.js Server SDK]
+:xref-sdk-java-encryption: xref:java-sdk:concept-docs:encryption.adoc#format[field encryption format]
+
 include::partial$_std-hdr-sgw.adoc[]
-== Property prefix
 
-User properties cannot begin with an underscore (`+_+`).
+:param-attributes!:
+:param-related: {xref-sgw-pg-concept-fundamentals-data} | {xref-sgw-pg-concept-fundamentals-data-tombstones}
+include::partial$block-abstract.adoc[]
 
-The underscore character (`+_+`) is a reserved prefix for system properties of a document (`+_id+`, `+_rev+` etc.)
-A document which contains user properties with a leading underscore will be rejected by Sync Gateway with the following error.
+== Introduction
+The guidance and constraints documented here relate to the design of data buckets and documents that you require, or may potentially require, to replicate using sync gateway functionality.
+They do not necessarily align with constraints on the local storage and use of such documents.
+
+== Property Prefixes
+What to avoid::
+You should avoid designing user properties with names that begin with the underscore character (`+_+`, ASCII `&#095`).
+
+Why it's an isssue::
+The underscore character (`+_+`) is a *reserved prefix* for _Document_ system properties, for example: the document's identifier (`+_id+`) and revision property (`+_rev+`).
++
+Any document which does contain user properties with a leading underscore will be rejected by Sync Gateway -- see <<error-code>> for the error details.
++
+[#error-code]
+.Property prefix error message
+====
 [source,text]
 ----
 "{"error":"Bad Request","reason":"user defined top level properties beginning with '_' are not allowed in document body"}"
 ----
-This rule applies to writes performed through Couchbase Lite SDKs and Sync Gateway REST APIs.
-And to writes performed through Couchbase SDKs when xref:shared-bucket-access.adoc[Mobile-Web Data Sync] is enabled.
+====
 
-If you encounter this error, it is recommended to rename the property without a leading underscore, or to wrap the property prefixed with an underscore in another object whose key isn't prefixed with an underscore.
+Where it applies::
+This rule applies to writes performed through:
++
+* Couchbase Lite SDKs
+* Sync Gateway REST APIs
+* Couchbase Server SDKs when {xref-pfx-sgw}{sgw-pg-shared-bucket-access}[shared bucket access] is enabled.
 
-More specifically, you may encounter the error in the following deployment configurations:
+When you might encounter the error::
+You are especially likely to encounter the error in the following deployment situations:
 
-* With Mobile-Web Data Sync and Field Level Encryption enabled.
-This rule conflicts with the default xref:java-sdk::encryption.adoc#format[field encryption format].
-* With Mobile-Web Data Sync enabled, the xref:nodejs-sdk::start-using-sdk.adpc[Node.js Server SDK], and http://ottomanjs.com/[Ottoman.js] (the Node.js ODM for Couchbase).
-This rule conflicts with the `+_type+` property that is automatically added by Ottoman.js.
-A suggested workaround in this scenario is to fork the Ottoman.js library, perform a search-replace for the `+_type+` property and to rename it without a leading underscore.
+* In Mobile-to-Web Data Sync with Field-level Encryption enabled, because the rule conflicts with the default {xref-sdk-java-encryption}
+* In Mobile-to-Web Data Sync with {xref-sdk-nodejs-pg-start} and http://ottomanjs.com/[Ottoman.js] (the Node.js ODM for Couchbase), where the rule conflicts with the `+_type+` property that is automatically added by _Ottoman.js_.
++
+A suggested workaround in this scenario is to fork the _Ottoman.js_ library, perform a search-replace for the `+_type+` property and replace it without a leading underscore.
+
+How to avoid the error::
+You should change any top-level user properties that have a key with a leading underscore , by either:
+
+* Renaming them to remove the underscore, or,
+* Wrapping them inside another object with a key that doesn't have a leading underscore.
+
+include::partial$block-related-content-data.adoc[]
