@@ -161,7 +161,23 @@ parameters:
   heartbeat:
     in: query
     name: heartbeat
-    description: Default is 0. Interval in milliseconds at which an empty line (CRLF) is written to the response. This helps prevent gateways from deciding the socket is idle and closing it. Only applicable to longpoll or continuous feeds. Overrides any timeout to keep the feed alive indefinitely. Setting to 0 results in no heartbeat.
+    description: |+
+      The `heartbeat` defines the interval (in milliseconds) at which an empty line (CRLF) is written to the response. It helps prevent Sync Gateway from deciding the socket is idle and closing it.
+
+      The `heartbeat` value overrides any `timeout` value, to keep the feed alive indefinitely.
+
+      Setting `heartbeat=0` results in no heartbeat.
+
+      **Default:** 0, which is no heartbeat
+
+      **Constraints:**
+
+      - Applies ONLY where `feed=longpoll` or `feed=continuous`.
+
+      - Minimum: 25000 (25 seconds)
+
+      - Maximum: None -- unless you define one in your configuration file using `MaxHeartbeat`
+
     type: integer
     default: 0
   include_docs:
@@ -263,9 +279,23 @@ parameters:
   timeout:
     in: query
     name: timeout
-    description: Default is 300000. Maximum period in milliseconds to wait for a change before the response is sent, even if there are no results. Only applicable for longpoll or continuous feeds. Setting to 0 results in no timeout.
     type: integer
     default: 300000
+    description: |+
+      The `timeout` value defines the maximum period (in milliseconds) to wait for a change, before sending a response. This wait applies even when there are no results.
+
+      Setting `timeout=0` results in no timeout.
+
+      **Default:** 300000 (5 minutes/300 seconds)
+
+      **Constraints:**
+
+      - Applies ONLY where `feed=longpoll` or `feed=continuous`.
+
+      - Minimum: 0, no timeout
+
+      - Maximum: 1500000 (15 minutes)
+
   update_seq:
     in: query
     name: update_seq
@@ -341,13 +371,44 @@ parameters:
           description: Starts the results from the change immediately after the given sequence ID. Sequence IDs should be considered opaque; they come from the last_seq property of a prior response.
           type: integer
         heartbeat:
-          description: Default is 0. Interval in milliseconds at which an empty line (CRLF) is written to the response. This helps prevent gateways from deciding the socket is idle and closing it. Only applicable to longpoll or continuous feeds. Overrides any timeout to keep the feed alive indefinitely. Setting to 0 results in no heartbeat.
+          description: |+
+            The `heartbeat` defines the interval (in milliseconds) at which an empty line (CRLF) is written to the response. It helps prevent Sync Gateway from deciding the socket is idle and closing it.
+
+            The `heartbeat` value overrides any `timeout` value, to keep the feed alive indefinitely.
+
+            Setting `heartbeat=0` results in no heartbeat.
+
+            **Default:** 0, which is no heartbeat
+
+            **Constraints:**
+
+            - Applies ONLY where `feed=longpoll` or `feed=continuous`
+
+            - Minimum: 25000 (25 seconds)
+
+            - Maximum: None -- unless you define one in your configuration file using `MaxHeartbeat`
+
           type: integer
           default: 0
         timeout:
-          description: Default is 300000. Maximum period in milliseconds to wait for a change before the response is sent, even if there are no results. Only applicable for longpoll or continuous feeds. Setting to 0 results in no timeout.
           type: integer
           default: 300000
+          description: |+
+            The `timeout` value defines the maximum period (in milliseconds) to wait for a change, before sending a response. This wait applies even when there are no results.
+
+            Setting `timeout=0` results in no timeout.
+
+            **Default:** 300000 (5 minutes/300 seconds)
+
+            **Constraints:**
+
+            - Applies ONLY where `feed=longpoll` or `feed=continuous`
+
+            - Minimum: 0, no timeout
+
+            - Maximum: 1500000 (15 minutes)
+
+
   filter:
     in: query
     name: filter
@@ -522,7 +583,7 @@ paths:
       tags:
       - attachment
       summary: Add or update attachment
-      description: |
+      description: |+
         This request adds or updates the supplied request content as an attachment to the specified document, the maximum content size of an attachment is 20MB. The attachment name must be a URL-encoded string (the file name). You must also supply either the rev query parameter or the If-Match HTTP header for validation, and the Content-Type headers (to set the attachment content type).
 
           When uploading an attachment using an existing attachment name, the corresponding stored content of the database will be updated. Because you must supply the revision information to add an attachment to the document, this serves as validation to update the existing attachment.
