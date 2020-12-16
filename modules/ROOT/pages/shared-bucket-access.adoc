@@ -1,16 +1,23 @@
 = Mobile-Server Data Sync
-:idprefix:
-:idseparator: -
 
 include::partial$_attributes-local.adoc[]
+:idprefix:
+:idseparator: -
+:pageOriginRel: "sg=1.5, Cbs=5.0)_"
+:sgw-pg-admin-rest-api: admin-rest-api.adoc
 :url-downloads: https://www.couchbase.com/downloads
 :dbName: databases-foo
 :dbNamePrefix: {dbName}_db-
 :configPage: config-properties.html
 :dbConfig: {configPage}#{dbNamePrefix}
+:xref-pfx-sgw: xref:sync-gateway::
+:xref-sgw-ep-admin-api: {xref-pfx-sgw}{sgw-pg-admin-rest-api}
+:xref-sgw-pfx-admin-api-document: {xref-sgw-ep-admin-api}#/document
+:xref-sgw-ep-admin-api-document: {xref-sgw-pfx-admin-api-document}
+:xref-sgw-pfx-admin-api-document-post-purge: {xref-sgw-ep-admin-api-document}/post__db___purge[/{db}/_purge]
+:xref-sgw-pfx-admin-api-document-put-docid: {xref-sgw-ep-admin-api-document}/put__db___doc_[/{db}/{docid}]
 
 == Shared Bucket Access
-:pageOriginRel: "sg=1.5, Cbs=5.0)_"
 
 Sync Gateway uses the _Shared Bucket Access_ feature to synchronize document changes made to Couchbase Server bucket through the Couchbase SDKs or through the Couchbase Server Admin UI  to Couchbase Lite clients. Changes made on Couchbase Lite clients are synchronized to the server.
 The following diagram shows different clients (mobile, web, desktop) writing data to the same bucket in Couchbase Server.
@@ -52,11 +59,17 @@ Another example is presented below.
 }
 ----
 <1> The `enable_shared_bucket_access` property is used to enable Web-Server data sync and must be `_true_` on all nodes participating in such a configuration.
-<2> The `import_docs` property is used to specify that a Sync Gateway node should (only) import document changes using the <<Import process>>. But note that it can only be set to `true` on a single node.
+<2> The `import_docs` property is used to specify that a Sync Gateway node should (only) import document changes using the <<import-process>>. But note that it can only be set to `true` on a single node.
 
 From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
 The mobile metadata is no longer kept in the document, but in a system extended attribute in Couchbase Server.
 
+When this feature is enabled, the REST API will include the following changes:
+
+* Purging -- {xref-sgw-pfx-admin-api-document-post-purge} removes the document and its associated extended attributes
+* Updating -- {xref-sgw-pfx-admin-api-document-put-docid} will tombstone the active revision
+
+[#import-process]
 == Import process
 
 The import process is a key part of mobile convergence.
