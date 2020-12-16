@@ -1,4 +1,4 @@
-= Defining Sync Functions
+= Sync Function
 :page-aliases: sync-function-api, sync-function
 :page-layout: article
 :page-status:
@@ -18,6 +18,28 @@ include::partial$block-abstract.adoc[]
 
 == Sync Function Basics
 include::partial$sync-function-ovw.adoc[]
+
+== Configuration
+
+Add the `sync` function defined into your `sync-gateway-config.json` -- see <<sync-example>>
+
+[#sync-example]
+.Example Sync Function
+====
+[source,json]
+----
+include::{example-cfg}[tag="sync-function-config"]
+----
+Configuration properties:
+
+<1> This is the username of the user you created on the Couchbase Server Admin Console.
+<2> The password of the user that you created on the Couchbase Server Admin Console.
+<3> The {xref-sgw-pg-shared-bucket-access} feature allows Couchbase Server SDKs to also perform operations on this bucket.
+<4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with GSI/N1QL indexing -- see {xref-sgw-pg-indexing}.
+If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
+<5> The sync function -- a javascript function enclosed in backticks, which is actioned every time a new document, document revision or deletion is made to a database -- see the:
+ {xref-sgw-pfx-config-properties}#databases-this_db-sync[databases.$db.sync] property.
+====
 
 == Function Definition
 
@@ -180,7 +202,7 @@ if (oldDoc) {
 
 The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
 
-If a user was granted access to the xref:{sgw-pg-sync-gateway-channels}#special-channels[star channel] (noted `+*+`), a call to `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `+*+` channel). To allow a user to perform a document update in this case, you can specify multiple channel names (`requireAccess('any channel name', '*')'`)
+If a user was granted access to the xref:{sgw-pg-channels}#special-channels[star channel] (noted `+*+`), a call to `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `+*+` channel). To allow a user to perform a document update in this case, you can specify multiple channel names (`requireAccess('any channel name', '*')'`)
 
 == requireAdmin()
 
@@ -300,44 +322,4 @@ function (doc, oldDoc) {
 }
 ----
 
-== Changing the sync function
-
-The Sync Function computes document routing to channels and user access to channels at document write time.
-If the Sync Function is changed, Sync Gateway needs to reprocess all existing documents in the bucket to recalculate the routing and access assignments.
-
-The Admin REST API has a re-sync endpoint to process every document in the database again.
-To update the Sync Function, it is recommended to follow the steps outlined below:
-
-. Update the configuration file of the Sync Gateway instance.
-. Restart Sync Gateway.
-. Take the database offline using the {xref-sgw-pfx-admin-rest-api}#/database/post\__db___offline[+/{tkn-db}/_offline+] endpoint.
-. Call the re-sync endpoint on the Admin REST API. The message body of the response contains the number of changes that were made as a result of calling re-sync.
-. Bring the database back online using the {xref-sgw-pfx-admin-rest-api}#/database/post\__db___online[+/{tkn-db}/_online+] endpoint.
-
-This is an expensive operation because it requires every document in the database to be processed by the new function.
-The database can't accept any requests until this process is complete (because no user's full access privileges are known until all documents have been scanned). Therefore the Sync Function update will result in application downtime between the call to the `+/{tkn-db}/_offline+` and `+/{tkn-db}/_online+` endpoints as mentioned above.
-
-=== When should you run a re-sync?
-
-When running a re-sync operation, the context in the Sync Function is the admin user.
-For that reason, calling the `requireUser`, `requireAccess` and `requireRole` methods will always succeed.
-It is very likely that you are using those functions in production to govern write operations.
-But in a re-sync operation, all the documents are already written to the database.
-For that reason, it is recommended to use re-sync for changing the assignment to channels only (i.e. reads).
-
-If the modifications to the Sync Function only impact write security (and not routing/access), you won't need to run the re-sync operation.
-
-If you wish to change the channel/access rules, but only want those rules to apply to documents written after the change was made, then you don't need to run the re-sync operation.
-
-If you change the sync function to revoke a user's access to a document, the access will only take affect once a new revision to that document is saved on Sync Gateway.
-Running a re-sync operation does not revoke access to that document.
-
-If you need to ensure access to the database during the update, you can create a read-only backup of the Sync Gateway's bucket beforehand, then run a secondary Sync Gateway on the backup bucket, in read-only mode.
-After the update is complete, switch to the main Gateway and bucket.
-
-In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the {xref-sgw-pfx-admin-rest-api}#/database/post\__db___offline[+/{tkn-db}/_offline+] endpoint.
-After the configuration is updated, *one* instance should be brought up so it can update the database--if more than one is running at this time, they'll conflict with each other.
-After the first instance finishes opening the database, the others can be started.
-
 include::partial$block-related-content-sync.adoc[]
-

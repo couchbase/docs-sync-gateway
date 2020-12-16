@@ -1,35 +1,100 @@
 = Logging
-:description: Couchbase Sync Gateway logging feature
+:description: Introducing Couchbase Sync Gateway's logging functionality and how-to exploit its different options.
+
 :idprefix:
 :idseparator: -
 
 :fn-clog: footnote:fn-clog[Introduced in Sync Gateway version 2.1]
+:fn-dep-cfg: footnote:fn-dep-cfg[The pre-2.1 logging configuration method, using 'logging.default` is deprecated. If upgrading from a pre2.1 Sync Gateway version, then will observer warnings on startup stating what is required to update your configuration -- see also: {xref-sgw-pg-logging-pre2-1} ]
 
 include::partial$_std-hdr-sgw.adoc[]
 
-:param-abstract: This page describes the Sync Gateway logging API and how to enable different log settings.
+:param-abstract: Sync Gateway's _Continuous Logging_ feature delivers flexible log generation and retention, without compromising the availability of diagnostic information necessary to provide effective support and maintenance.
 include::partial$block-abstract.adoc[]
 
 == Overview
+Sync Gateway logs are written to <<log-file-outputs, separate files>> by log level, with each log level supporting individual retention policies.
+You can control what is logged using configuration file settings and-or the REST API.
 
-Continuous logging{fn-clog} flexibility in how logs are generated and retained, whilst maintaining the level of logging required by Couchbase Support for investigation of issues.
+Continuous logging:: {fn-clog} provides flexibility in how logs are generated and retained, whilst maintaining the level of logging required by Couchbase Support for investigation of issues.
 
-Sync Gateway logging is now written to <<log-file-outputs, separate files>> by log level, with each log level supporting individual retention policies.
-
-Console logging can also be configured independently, providing additional flexibility for system administrators depending on their needs.
+Console logging:: can be configured independently, providing additional flexibility for system administrators depending on their needs. +
 This allows system administrators running Sync Gateway to tweak the log level, and log keys for the console output to suit their needs, whilst maintaining the level of logging required by Couchbase Support for investigation of issues.
 
-The previous logging configuration (`logging.default`) is being deprecated, and Sync Gateway 2.1 will display warnings on startup of what is required to update your configuration.
+== Configuration
 
-== Console Log Output
+You configure your logging requirements in the `sync-gateway-config.json` file, using the `logging` properties -- see: {xref-sgw-pg-config-properties} and <<sample-log-cfg>>.
+
+[#sample-log-cfg]
+.Sample Logging Configuration
+====
+[source, json]
+----
+{
+  "logging": {
+    "log_file_path": "/var/tmp/sglogs",
+    "console": {
+      "log_level": "debug",
+      "log_keys": ["*"]
+      },
+    "error": {
+      "enabled": true,
+      "rotation": {
+        "max_size": 20,
+        "max_age": 180
+        }
+      },
+    "warn": {
+      "enabled": true,
+      "rotation": {
+        "max_size": 20,
+        "max_age": 90
+        }
+      },
+    "info": {
+      "enabled": false
+    },
+    "debug": {
+      "enabled": false
+      }
+    },
+  "databases": {
+    "db": {
+      "server": "couchbase://localhost",
+      "username": "username",
+      "password": "password",
+      "bucket": "default",
+      "users": {"GUEST": {"disabled": false,"admin_channels": ["*"]}},
+      "allow_conflicts": false,
+      "revs_limit": 20
+      }
+    }
+  }
+----
+====
+
+== Console Logging
+
+You can configure _console logging_ independently, providing additional flexibility, without impacting the continuous logging output.
+For example, System administrators running Sync Gateway at the console may:
+
+* tweak <<log-levels>> and <<log-keys>> to suit their needs
+* filter console output by log levels and log keys
+* set a <<log-color,color>> for log output based on log level
 
 The console output of Sync Gateway can be filtered down via <<log-levels>> and <<log-keys>>, and you can tweak this as much as you like without impacting Support's ability to analyze the log files.
 
+[#log-levels]
 === Log Levels
+Sync Gateway logs at one (or more) of six defined _log levels_: none; error; warn; info; debug and trace.
 
-The console log output can be configured with the following log levels, ordered from least verbose, to most.
-Note that log levels are additive, so if you enable `info` level, `warn` and `error` logs are also enabled.
-By default, the log level is set to `info`.
+You can set individual retention policies for each <<log-levels, log level>>, with logs for each level being written to <<log-file-outputs, separate files>>.
+
+Set log levels in your configuration file -- see the {xref-sgw-pfx-config-properties}#logging-$level[`logging.$level`] reference.
+
+TIP: Log levels are additive, so if you enable `info` level, then `warn` and `error` logs are also enabled.
+
+The default log level is `info`.
 
 [cols="1,1,2"]
 |===
@@ -60,28 +125,33 @@ By default, the log level is set to `info`.
 |Displays extremely verbose output that might be useful when debugging
 |===
 
-Log levels can be set in the configuration file (see the {xref-sgw-pfx-config-properties}#logging-$level[`logging.$level`] reference).
 
+[#log-keys]
 === Log Keys
 
-Log keys are used to provide finer-grained control over what is logged.
-By default, only `HTTP` is enabled.
+Log keys provide fine-grained control over the information to be logged.
+By default, only `HTTP` is enabled, other available keys include: Auth; Bucket; CRUD; DCP and Import.
 
-All log keys and descriptions are described in the {xref-sgw-pfx-config-properties}#logging-console-log_keys[`logging.console.log_level`] property reference.
+See the {xref-sgw-pfx-config-properties}#logging-console-log_keys[`logging.console.log_level`] property reference for a comprehensive list of available keys.
 
-=== Console Output Color
+[#log-color]
+=== Set Log Color
 
-There is an option to color log output based on log level if {xref-sgw-pfx-config-properties}#logging-console-color_enabled[`logging.console.color_enabled`] is set to `true`.
-Note: this setting is always disabled on Windows for compatibility reasons.
+You may set a color for log output based on log level by using {xref-sgw-pfx-config-properties}#logging-console-color_enabled[`logging.console.color_enabled`] is set to `true`
 
-=== Console Output Redirection
+NOTE: This setting is always disabled on Windows for compatibility reasons.
 
-The log files described below are intended for Couchbase Support, and users are urged not to rely on these.
+[#console-log-redirect]
+=== Redirect Console Log
 
-If you have special requirements for logs, such as centralized logging, you can redirect the console output to a file, and apply your own log collection mechanism to feed that data elsewhere.
-For example:
+You can easily redirect the console log output to a file.
+This can be useful when you have specialized logging requirements, such as centralized logging.
+Just redirect the output and then apply your own log collection mechanism to feed that data elsewhere -- see <<console-log-redirect-eg>>.
 
-[source]
+[#console-log-redirect-eg]
+.Console Log Redirection
+====
+[source, console]
 ----
 # Start Sync Gateway and redirect console output to a file
 ./sync-gateway > my_sg_logs.txt 2>&1
@@ -89,16 +159,18 @@ For example:
 # Start log collection to send to a centralized log aggregator.
 logcollector my_sg_logs.txt
 ----
+====
 
 == Log File Outputs
 
-These are 4 log files split by log level, with a guaranteed retention period for each.
-The log files can be collected with xref:sgcollect-info.adoc[SGCollect Info], and can be analyzed by Couchbase Support for diagnosing issues in Sync Gateway.
-As described above, it is recommended to use
-//can't find this fragment target on index.adoc
-link:index.html#console-output-redirection[Console Output redirection] if you require special handling of log files from Sync Gateway, as these files are intended for Couchbase Support.
+Sync Gateway produces four separate log files, split by log level. Each log file has its own guaranteed retention period.
 
-[cols="1,1,1,1"]
+The log files can be collected with xref:sgcollect-info.adoc[SGCollect Info] for analysis by Couchbase Support when diagnosing Sync Gateway issues.
+
+NOTE: Log files are intended solely for the use of _Couchbase Support_. If you require special log handling then use <<console-log-redirect>>.
+
+.Available Log Files
+[#log-files,cols="1,1,1,1"]
 |===
 |Log File |Default enabled |Default max_age |Minimum max_age
 
@@ -123,20 +195,26 @@ link:index.html#console-output-redirection[Console Output redirection] if you re
 |1 Day
 |===
 
-Each log level and its parameters are described in the {xref-sgw-pfx-config-properties}#logging-$level[logging.$level] property reference.
+
+
+
+TIP: Each log level and its parameters are described in the {xref-sgw-pfx-config-properties}#logging-$level[logging.$level] property reference.
 
 == Log File Rotation
 
-These four log files will be rotated once each exceeds a threshold size, defined by `max_size` in megabytes.
-Once rotated, the log files will be compressed with gzip, to reduce the disk space taken up by older logs.
-These old logs will then be cleaned up once the age exceeds `max_age` in days.
+Log files are _rotated_ once each exceeds a threshold `max_size` in megabytes.
+Once rotated, the log files are compressed (gzip) to reduce the disk usage.
+Aged logs are cleaned up once their age exceeds `max_age` days.
+
+Configure log rotation using the {xref-sgw-pfx-config-properties}#logging-level-$rotation[logging.level.$rotation] property.
 
 For pre-2.1 log rotation -- see: {xref-sgw-pg-logging-pre2-1}
 
 == Log Redaction
 
-All log outputs can be redacted, this means that user-data, considered to be private, is removed.
-This feature is optional and can be enabled in the configuration with the {xref-sgw-pfx-config-properties}#logging-redaction_level[`logging.redaction_level`] property.
+All log outputs can, optionally, be redacted, removing any user-data considered private.
+
+Enable this feature by setting the {xref-sgw-pfx-config-properties}#logging-redaction_level[`logging.redaction_level`] property.
 
 
 include::partial$block-related-content-api.adoc[]

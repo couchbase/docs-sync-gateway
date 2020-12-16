@@ -1,50 +1,60 @@
-= Configure Sync Gateway
+= Verify a Sync Gateway Install
+:Description: Configure and verify your Sync Gateway installation and securely sync enterprise data from cloud to edge
 :page-type: procedural
 
 include::partial$_std-hdr-sgw.adoc[]
 :xref-pfx: {xref-pfx-sgw}:
 
-:param-abstract: Provides an example configuration suitable for the Getting Started activity
+:topic-group: Start Here!
+:param-related: {xref-sgw-pg-gs-sgw-prereqs}  |  {xref-sgw-pg-gs-sgw-install}
+:param-abstract: Provides an example configuration suitable for verifying that your install has worked
 include::partial$block-abstract.adoc[]
 
-The following steps explain how to configure Sync Gateway to connect to a Couchbase Server instance.
 
-. Create a new file called *sync-gateway-config.json* with the following content:
-+
---
+== Step 1: Create a configuration file
+
+To configure Sync Gateway to connect to a Couchbase Server instance, create a new file called *sync-gateway-config.json* and add the content shown in <<sample-cfg>>.
+
+[#sample-cfg]
+.Sample Config
+====
 [source,json]
 ----
 include::{example-cfg}[tag="getting-started-config"]
 ----
 
-.Configuration Properties:
-
+Configuration Properties::
 <1> The user's username that you created on the Couchbase Server Admin Console.
 <2> The user's password that you created on the Couchbase Server Admin Console.
 <3> The {xref-sgw-pg-shared-bucket-access} feature allows Couchbase Server SDKs to also perform operations on this bucket.
-<4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with GSI/N1QL indexing -- see {xref-sgw-pg-indexing}.
-If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
+<4> `num_index_replicas` is the number of index replicas stored in Couchbase Server -- see {xref-sgw-pg-indexing}. +
 
---
+NOTE: If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
 
-. Start Sync Gateway
-+
---
-Start Sync Gateway from the command line, or if Sync Gateway is running in a service replace the configuration file and restart the service.
+====
 
+== Step 2: Start Sync Gateway
+
+Start Sync Gateway from the command line -- see {xref-sgw-pg-command-line-options}, or if Sync Gateway is running in a service replace the configuration file and restart the service.
+
+[#start-sgw]
+.Use Command Line to Start Sync Gateway
+====
 [source,bash]
 ----
-~/Downloads/couchbase-sync-gateway/bin/sync_gateway ~/path/to/sync-gateway-config.json
+~/Downloads/couchbase-sync-gateway/bin/sync_gateway ~/path/to/sync-gateway-config.json // <.>
 ----
 
-Run the application where Couchbase Lite is installed.
---
-. To verify that documents have been replicated, you can:
-** Monitor the Sync Gateway sequence number returned by the database endpoint (xref:{sgw-pg-rest-api}#/database/get\__db__[`+GET /{tkn-db}/+`]).
-The sequence number increments for every change that happens on the Sync Gateway database.
-** Query a document by ID on the Sync Gateway REST API (xref:{sgw-pg-rest-api}#/document/get\__db___doc_[`+GET /{tkn-db}/{id}+`]).
-** Query a document from the Query Workbench on the Couchbase Server Console.
+<.> If you are using a Couchbase Lite application, then run this command where that is installed.
 
+====
+
+== Step 3: Verify that Document Changes Sync
+To verify that documents have been replicated, you can:
+
+* Monitor the Sync Gateway sequence number returned by the database endpoint (xref:{sgw-pg-rest-api}#/database/get\__db__[`+GET /{tkn-db}/+`]).
+The sequence number increments for every change that happens on the Sync Gateway database.
+* Query a document by ID on the Sync Gateway REST API (xref:{sgw-pg-rest-api}#/document/get\__db___doc_[`+GET /{tkn-db}/{id}+`]) -- see: {xref-sgw-pg-gs-sgw-api-access}
+* Query a document from the Query Workbench on the Couchbase Server Console.
 
 include::partial$block-related-content-deploy.adoc[]
-

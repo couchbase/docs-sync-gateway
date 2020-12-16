@@ -1,0 +1,109 @@
+// Redundant
+= Import Process
+:page-content: conceptual
+:description: Sync Gateway replication keeps distributed database changes in sync
+:keywords: sync gateway, replication, sync, synchronization, edge, cloud
+:pageOriginRel: "sg=1.5, Cbs=5.0)_"
+
+include::partial$_std-hdr-sgw.adoc[]
+
+:topic-group: Sync
+:param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-admin}
+:param-abstract: This content explaina how Sync Gateway synchronizes document changes made through Couchbase SDKs and N1QL queries.
+include::partial$block-abstract.adoc[]
+
+== Introduction
+
+The import process is a key part of mobile convergence.
+It is the means by which Sync Gateway becomes aware of non-Sync Gateway data changes and obtains the mobile metadata it requires to replicate changes.
+
+image::shared-bucket-access.png[]
+
+Any non-Sync Gateway change is eligible for import.
+The document is first run through the Sync Function to compute read security and routing, with the following differences:
+
+* The import is processed with an admin user context in the Sync Function, similar to writes made through the Sync Gateway Admin API.
+This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
+* During import, `oldDoc` is `nil` when the Sync Function is executed.
+
+You can specify a filter function using the {xref-sgw-pfx-config-properties}#databases-this_db_import_filter[import_filter] property, which will only import specific documents.
+
+TIP: Use the {xref-sgw-pfx-config-properties}#log[Import+] log key to troubleshoot import processing issues in the logs.
+
+== Configuration
+
+Note that `import_docs` only takes effect if the `enabled_shared_bucket_access` is set to `true`.
+
+{enterprise}::
+The `import_docs` parameter defaults to `true`, implying that, by default, all nodes in a cluster participate in import processing.
+To exclude a node, set `"import_docs": false`.
+{community}::
+The `import_docs` parameter defaults to false and must be explicitly set to `true`.
+
+The following table describes the key behavior differences between Community Edition and Enterprise Edition when `import_docs` is enabled, disabled or not set at all.
+
+[import-docs-behavior, cols="^1,^1,4,4"]
+|===
+| `enabled_shared_bucket_access` | `import_docs` | Behavior (EE) | Behavior (CE)
+
+| true
+| not set
+| Assumes `import: true` by default
+| Assumes `import: false` by default
+
+| true
+| false
+| Node omitted from import processing (supported for workload isolation)
+| Node omitted from import processing
+
+| true
+| true
+| Node participates in import processing, and is assigned import partitions.
+| Node performs import processing for all server mutations.
+
+| false
+| not set
+| import docs is false by default
+| import docs is false by default
+
+| false
+| true
+| import docs property ignored, warning logged
+| import docs property ignored, warning logged
+
+| false
+| false
+| Import docs is false
+| Import docs is false
+|===
+
+== High Availability
+In _Enterprise Edition_, import processing work is sharded across all Sync Gateway nodes with import enabled.
+This implies that if one of the nodes fail, the failed shard is automatically picked up by the remaining nodes in the cluster.
+This way, you get High Availability of import processing.
+
+In _Community Edition_, there is no sharding of import across the nodes participating in the import processing.
+Each import node processes all server mutations.
+
+== Workload Isolation
+
+As described in the table above, if `import_docs` is set to `false`, the node will not be participating in the import process.
+This configuration is specifically recommended for workload isolation: to isolate import nodes from the client-facing nodes.
+Workload isolation may be preferable in deployments with high write throughput.
+
+The following diagram shows an example architecture of two Sync Gateway nodes handling the incoming client connections (`import_docs: false`) and two nodes sharing the import processing (`import_docs: true`).
+
+image:workload-isolation.png[]
+
+== Reference
+
+The reference to the configuration properties can be found below.
+// * link:config-properties.html#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
+// * link:config-properties.html#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+// * link:config-properties.html#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+
+* {xref-sgw-pfx-config-properties}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
+* {xref-sgw-pfx-config-properties}#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+* {xref-sgw-pfx-config-properties}#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+
+include::partial$block-related-content-api.adoc[]
