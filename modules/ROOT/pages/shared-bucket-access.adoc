@@ -1,12 +1,19 @@
 = Mobile-Server Data Sync
-:idprefix:
-:idseparator: -
 
 include::partial$_attributes-local.adoc[]
+:idprefix:
+:idseparator: -
+:pageOriginRel: "sg=1.5, Cbs=5.0)_"
+:sgw-pg-admin-rest-api: admin-rest-api.adoc
 :url-downloads: https://www.couchbase.com/downloads
+:xref-pfx-sgw: xref:sync-gateway::
+:xref-sgw-ep-admin-api: {xref-pfx-sgw}{sgw-pg-admin-rest-api}
+:xref-sgw-pfx-admin-api-document: {xref-sgw-ep-admin-api}#/document
+:xref-sgw-ep-admin-api-document: {xref-sgw-pfx-admin-api-document}
+:xref-sgw-pfx-admin-api-document-post-purge: {xref-sgw-ep-admin-api-document}/post__db___purge[/{db}/_purge]
+:xref-sgw-pfx-admin-api-document-put-docid: {xref-sgw-ep-admin-api-document}/post__db___purge[/{db}/{docid]
 
 == Shared Bucket Access
-:pageOriginRel: "sg=1.5, Cbs=5.0)_"
 
 Sync Gateway uses the _Shared Bucket Access_ feature to synchronize document changes made through Couchbase SDKs and N1QL queries with Couchbase Lite clients, and vice versa.
 The following diagram shows different client types (mobile, web, desktop) writing data to the same bucket in Couchbase Server.
@@ -45,11 +52,17 @@ The xref::gs-sgw-svr-cfg.adoc#step-2create-rbac-user[Configure Server for Sync G
 }
 ----
 <1> The `enable_shared_bucket_access` property is used to enable Web-Server data sync and must be `_true_` on all nodes participating in such a configuration.
-<2> The `import_docs` property is used to specify that a Sync Gateway node should (only) import document changes using the <<Import process>>.
+<2> The `import_docs` property is used to specify that a Sync Gateway node should (only) import document changes using the <<import-process>>.
 
 Once enabled, documents can be inserted on the Server directly (using _N1QL_ or _SDKs_) or through the xref:rest-api.adoc[Sync Gateway REST API].
 The mobile metadata is no longer kept in the document, but in a system extended attribute in Couchbase Server.
 
+When this feature is enabled, the REST API will include the following changes:
+
+* Purging -- {xref-sgw-pfx-admin-api-document-post-purge} removes the document and its associated extended attributes
+* Updating -- {xref-sgw-pfx-admin-api-document-put-docid} will tombstone the active revision
+
+[#import-process]
 == Import process
 
 The import process is a key part of mobile convergence.
