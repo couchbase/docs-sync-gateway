@@ -4,12 +4,23 @@
 :keywords: sync gateway, replication, sync, synchronization, edge, cloud
 :pageOriginRel: "sg=1.5, Cbs=5.0)_"
 
+
+
+
+// :fn-sgw1x5: footnote:sgw1x5[As of Sync Gateway 1.5]
+// :fnref-sgw1x5: footnote:sgw1x5[]
+// :fn-cbs5x0: footnote:cbs5x0[As of Couchbase Server 5.0]
+// :fnref-cbs5x0: footnote:cbs5x0[]
+
 include::partial$_std-hdr-sgw.adoc[]
 
 :topic-group: Replication
 :param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-admin}
 :param-abstract: This content describes how Sync Gateway synchronizes document changes made through Couchbase SDKs and N1QL queries.
 include::partial$block-abstract.adoc[]
+
+
+include::partial$block-standard-footnotes.adoc[tags=sgw1x5;cbs5x0]
 
 == Shared Bucket Access
 Sync Gateway uses the _Shared Bucket Access_ feature to synchronize document changes made through Couchbase SDKs and N1QL queries with Couchbase Lite clients, and vice versa.
@@ -19,8 +30,8 @@ image::shared-bucket-access.png[]
 
 In previous releases, you either had to ensure all writes happened through Sync Gateway, or had to set up bucket shadowing to ensure that the security and replication metadata needed by mobile applications was preserved.
 
-As of Sync Gateway 1.5, the metadata created by the Sync Gateway is abstracted from applications reading and writing data directly to Couchbase Server.
-Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (e**X**tended **ATTR**ibutes) to store that metadata into an external document fragment.
+The metadata created by the Sync Gateway is abstracted from applications reading and writing data directly to Couchbase Server.
+Sync Gateway uses the Couchbase Server XATTRs (e**X**tended **ATTR**ibutes) to store that metadata into an external document fragment {fn-sgw1x5} {fn-cbs5x0}.
 
 == Enable Shared Bucket Access
 
@@ -49,11 +60,17 @@ The xref:getting-started.adoc[getting started] page includes step-by-step instru
 }
 ----
 <1> The `enable_shared_bucket_access` property is used to enable Web-Server data sync and must be `_true_` on all nodes participating in such a configuration.
-<2> The `import_docs` property is used to specify that a Sync Gateway node should (only) import document changes using the <<Import process>>.
+<2> The `import_docs` property is used to specify that a Sync Gateway node should (only) import document changes using the <<import-process>>.
 
 Once enabled, documents can be inserted on the Server directly (using _N1QL_ or _SDKs_) or through the xref:rest-api.adoc[Sync Gateway REST API].
 The mobile metadata is no longer kept in the document, but in a system extended attribute in Couchbase Server.
 
+When this feature is enabled, the REST API will include the following changes:
+
+* Purging -- {xref-sgw-pfx-admin-api-document-post-purge} removes the document and its associated extended attributes
+* Updating -- {xref-sgw-pfx-admin-api-document-put-docid} will tombstone the active revision
+
+[#import-process]
 == Import Process
 
 The import process is a key part of mobile convergence.
