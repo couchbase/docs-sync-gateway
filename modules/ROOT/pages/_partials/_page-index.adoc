@@ -1,12 +1,15 @@
 // inclusion
+
 // BEGIN::EnterPage
 // We don't know if the xref prefix exists, or what it is set to
 // So save a copy of it if it does and create one we know works
 ifdef::xref-pfx-sgw[]
 :save-xref-pfx-sgw: {xref-pfx-sgw}
 endif::xref-pfx-sgw[]
+:xref-pfx-cbl: xref:couchbase-lite:
 :xref-pfx-sgw: xref:sync-gateway::
 // END::EnterPage
+
 
 :brace: &#123;
 :brace-x: &#125;
@@ -15,11 +18,9 @@ endif::xref-pfx-sgw[]
 :tkn-db: {brace}db{brace-x}
 :tkn-action: {brace}action{brace-x}
 
-
-
-
 // Ref - Page Targets - sync-gateway
-// Ref - xrefs - sync-gateway
+// Ref - xrefs - sync-gateway:page-layout: landing-page-core-concept
+:page-role: -toc
 
 :sgw-pg-adv-rest-api-client: advance/adv-rest-api-client.adoc
 :sgw-pg-adv-sgw-cfg-import-filter: advance/adv-sgw-cfg-import-filter.adoc
@@ -39,6 +40,8 @@ endif::xref-pfx-sgw[]
 :sgw-pg-data-modeling: data-modeling.adoc
 :sgw-pg-database-offline: database-offline.adoc
 :sgw-pg-deploy-cluster: advance/kubernetes/deploy-cluster.adoc
+:sgw-pg-delta-sync: delta-sync.adoc
+:sgw-pg-resync: resync.adoc
 :sgw-pg-deployment: deployment.adoc
 :sgw-pg-gs-sgw-api-access: start/gs-sgw-api-access.adoc
 :sgw-pg-gs-sgw-config: start/gs-sgw-config.adoc
@@ -64,6 +67,7 @@ endif::xref-pfx-sgw[]
 :sgw-pg-index-sgw: index.adoc
 :sgw-pg-index: index.adoc
 :sgw-pg-whatsnew: sgw-whatsnew.adoc
+:sgw-pg-import-process: import-process.adoc
 :sgw-pg-indexing: indexing.adoc
 :sgw-pg-integrating-external-stores: integrating-external-stores.adoc
 :sgw-pg-introduction: introduction.adoc
@@ -87,17 +91,20 @@ endif::xref-pfx-sgw[]
 :sgw-pg-server-integration: server-integration.adoc
 :sgw-pg-sgcollect-info: sgcollect-info.adoc
 :sgw-pg-shared-bucket-access: shared-bucket-access.adoc
+:sgw-pg-sync-from-client: sync-from-client.adoc
 :sgw-pg-stats-monitoring: stats-monitoring.adoc
 :sgw-pg-supported-os: prodnotes/pn-supported-os.adoc
 :sgw-pg-def-sync-function: learn/defining-sync-functions.adoc
-:sgw-pg-sync-gateway-channels: learn/sync-gateway-channels.adoc
+:sgw-pg-channels: learn/sync-gateway-channels.adoc
+// :sgw-pg-using-channels: using-channels.adoc
 :sgw-pg-upgrade: advance/deploy/upgrade.adoc
-:sgw-pg-users-and-roles: learn/users-and-roles.adoc
+:sgw-pg-users: learn/users-and-roles.adoc
+:sgw-pg-roles: learn/roles.adoc
 :sgw-pg-write-access: learn/write-access.adoc
 
 
 :xref-sgw-pg-adv-rest-api-client: {xref-pfx-sgw}{sgw-pg-adv-rest-api-client}[Use the REST API?]
-:xref-sgw-pg-adv-sgw-cfg-import-filter: {xref-pfx-sgw}{sgw-pg-adv-sgw-cfg-import-filter}[Use Import filters?]
+:xref-sgw-pg-adv-sgw-cfg-import-filter: {xref-pfx-sgw}{sgw-pg-adv-sgw-cfg-import-filter}[Import filter]
 // [Work With Import Filters]
 :xref-sgw-pg-adv-sgw-cfg-sync-function: {xref-pfx-sgw}{sgw-pg-adv-sgw-cfg-sync-function}[Use Sync functions?]
 // [Work With Sync Functions]
@@ -148,9 +155,9 @@ endif::xref-pfx-sgw[]
 
 :xref-sgw-pfx-admin-rest-api: {xref-pfx-sgw}{sgw-pg-admin-rest-api}
 :xref-sgw-pg-admin-rest-api: {xref-sgw-pfx-admin-rest-api}[Admin REST API]
-:xref-sgw-pg-authentication: {xref-pfx-sgw}{sgw-pg-authentication}[Authentication]
+:xref-sgw-pg-authentication: {xref-pfx-sgw}{sgw-pg-authentication}[User Authentication]
 :xref-sgw-pg-cbmintro: {xref-pfx-sgw}{sgw-pg-cbmintro}[About Mobile]
-:xref-sgw-pg-command-line-options: {xref-pfx-sgw}{sgw-pg-command-line-options}[Use Command Line Configuration]
+:xref-sgw-pg-command-line-options: {xref-pfx-sgw}{sgw-pg-command-line-options}[Using Command Line]
 :xref-sgw-pg-compatibility: {xref-pfx-sgw}{sgw-pg-compatibility}[Compatibility Matrix]
 :xref-sgw-pg-concept-fundamentals-data-tombstones: {xref-pfx-sgw}{sgw-pg-concept-fundamentals-data-tombstones}[Tombstones]
 :xref-sgw-pg-concept-fundamentals-data: {xref-pfx-sgw}{sgw-pg-concept-fundamentals-data}[Documents]
@@ -159,7 +166,7 @@ endif::xref-pfx-sgw[]
 
 // LINKS INTO CONFIGURATION SCHEMA
 :xref-sgw-pfx-config-properties: {xref-pfx-sgw}{sgw-pg-config-properties}
-:xref-sgw-pg-config-properties: {xref-sgw-pfx-config-properties}[Configuration Details]
+:xref-sgw-pg-config-properties: {xref-sgw-pfx-config-properties}[Configuration File]
 
 :xref-sgw-adv-vw-config-properties: {xref-sgw-pfx-config-properties}[... view Configuration reference]
 :xref-sgw-lrn-vw-config-properties: {xref-sgw-pfx-config-properties}[... view Configuration reference]
@@ -170,9 +177,13 @@ endif::xref-pfx-sgw[]
 :xref-sgw-pfx-config-properties-db: {xref-pfx-sgw}{sgw-pg-config-properties}#databases
 // :xref-sgw-pg-config-properties-db: {xref-sgw-pfx-config-properties-db}
 :xref-sgw-pg-config-properties-databases: {xref-sgw-pfx-config-properties-db}[databases]
+:xref-sgw-pg-config-properties-databases-bucket: {xref-sgw-pfx-config-properties-db}-this_db-bucket[this_db_bucket]
 :xref-sgw-pg-config-properties-databases-sync: {xref-sgw-pfx-config-properties-db}-this_db-sync[sync]
 :xref-sgw-pg-config-properties-databases-sgr-enabled: {xref-sgw-pfx-config-properties-db}-this_db-sgreplicate_enabled[sgreplicate_enabled]
-:xref-sgw-pg-config-properties-databases-delta-sync: {xref-sgw-pfx-config-properties-db}-this_db-delta_sync[delta_sync]
+
+:xref-sgw-pg-config-properties-databases-delta-sync: {xref-sgw-pfx-config-properties-db}-this_db-delta_sync[this_db.delta_sync]
+:xref-sgw-pg-config-properties-databases-delta-sync-enabled: {xref-sgw-pfx-config-properties-db}-this_db-delta_sync-enabled[this_db.delta_sync.enabled]
+:xref-sgw-pg-config-properties-databases-delta-sync-max-age: {xref-sgw-pfx-config-properties-db}-this_db-delta_sync-rev_max_age_seconds[this_db.delta_sync.rev_max_age_seconds]
 :xref-sgw-pg-config-properties-databases-sgr-ws-heartbeat: {xref-sgw-pfx-config-properties-db}-this_db-sgreplicate_websocket_heartbeat_secs[sgreplicate_websocket_heartbeat_secs]
 :xref-sgw-pg-config-properties-databases-unsupp-sgr-tls-skip-verify: {xref-sgw-pfx-config-properties-db}-this_db-unsupported-sgr_tls_skip_verify[unsupported.sgr_tls_skip_verify]
 :xref-sgw-pfx-config-properties-databases-oidc: {xref-sgw-pfx-config-properties-db}-this_db-oidc
@@ -199,13 +210,14 @@ endif::xref-pfx-sgw[]
 :xref-sgw-pg-config-properties-db-rep-initial_state: {xref-sgw-pfx-config-properties-db-rep}initial_state[initial_state]
 // END CONFIGURATION LINKS
 
-:xref-sgw-pg-data-modeling: {xref-pfx-sgw}{sgw-pg-data-modeling}[Data Modeling]
-:xref-sgw-pg-database-offline: {xref-pfx-sgw}{sgw-pg-database-offline}[Taking Databases Offline and Online]
+:xref-sgw-pg-data-modeling: {xref-pfx-sgw}{sgw-pg-data-modeling}[Data Modelling]
+:xref-sgw-pg-database-offline: {xref-pfx-sgw}{sgw-pg-database-offline}[Take Database Offline/Online]
 :xref-sgw-pg-deployment: {xref-pfx-sgw}{sgw-pg-deployment}[Deploy]
-:xref-sgw-pg-gs-sgw-api-access: {xref-pfx-sgw}{sgw-pg-gs-sgw-api-access}[Test the Installation]
-:xref-sgw-pg-gs-sgw-config: {xref-pfx-sgw}{sgw-pg-gs-sgw-config}[Configure Sync Gateway]
-:xref-sgw-pg-gs-sgw-install: {xref-pfx-sgw}{sgw-pg-gs-sgw-install}[Install Sync Gateway]
-:xref-sgw-pg-gs-sgw-prereqs: {xref-pfx-sgw}{sgw-pg-gs-sgw-prereqs}[Before You Start]
+:xref-sgw-pg-delta-sync: {xref-pfx-sgw}{sgw-pg-delta-sync}[Delta Sync]
+:xref-sgw-pg-gs-sgw-api-access: {xref-pfx-sgw}{sgw-pg-gs-sgw-api-access}[REST API Access]
+:xref-sgw-pg-gs-sgw-config: {xref-pfx-sgw}{sgw-pg-gs-sgw-config}[Verify]
+:xref-sgw-pg-gs-sgw-install: {xref-pfx-sgw}{sgw-pg-gs-sgw-install}[Install]
+:xref-sgw-pg-gs-sgw-prereqs: {xref-pfx-sgw}{sgw-pg-gs-sgw-prereqs}[Prepare]
 :xref-sgw-pg-gs-sgw-svr-cfg: {xref-pfx-sgw}{sgw-pg-gs-sgw-svr-cfg}[Configure Server for Sync Gateway]
 :xref-sgw-pfx-icr-admin: {xref-pfx-sgw}{sgw-pg-icr-admin}
 :xref-sgw-pg-icr-admin: {xref-sgw-pfx-icr-admin}[Manage Inter-Sync Gateway Replications]
@@ -227,7 +239,7 @@ endif::xref-pfx-sgw[]
 :xref-sgw-pg-icr-high-availability-node-dist: {xref-sgw-pfx-icr-high-availability}#node-distribution[High-Availability]
 :xref-sgw-pg-icr-managing: {xref-pfx-sgw}{sgw-pg-icr-managing}[Replication managing]
 :xref-sgw-pfx-icr-monitoring: {xref-pfx-sgw}{sgw-pg-icr-monitoring}
-:xref-sgw-pg-icr-monitoring: {xref-sgw-pfx-icr-monitoring}[Monitoring Inter-Sync Gateway Replications]
+:xref-sgw-pg-icr-monitoring: {xref-sgw-pfx-icr-monitoring}[Monitor Inter-Sync Gateway Replications]
 // [Replication Monitoring]
 :xref-sgw-pg-icr-monitoring-status: {xref-sgw-pfx-icr-monitoring}#retrieving-replication-status-data[Replication Monitoring - Status Information]
 :xref-sgw-pg-icr-monitoring-stats: {xref-sgw-pfx-icr-monitoring}#retrieving-sync-gateway-statistics[Replication Monitoring - Stats]
@@ -257,7 +269,8 @@ endif::xref-pfx-sgw[]
 // :xref-sgw-pg-icr-running-replications: {xref-pfx-sgw}{sgw-pg-icr-running-replications}[Running Replications]
 :xref-sgw-pg-index-sgw: {xref-pfx-sgw}{sgw-pg-index-sgw}[What's New]
 :xref-sgw-pg-index: {xref-pfx-sgw}{sgw-pg-index}[Sync Gateway]
-:xref-sgw-pg-indexing: {xref-pfx-sgw}{sgw-pg-indexing}[Indexing]
+:xref-sgw-pg-import-process: {xref-pfx-sgw}{sgw-pg-import-process}[Import Processing]
+:xref-sgw-pg-indexing: {xref-pfx-sgw}{sgw-pg-indexing}[Indexing versus Views]
 :xref-sgw-pg-integrating-external-stores: {xref-pfx-sgw}{sgw-pg-integrating-external-stores}[Integrating External Stores]
 :xref-sgw-pg-introduction: {xref-pfx-sgw}{sgw-pg-introduction}[About Sync Gateway]
 :xref-sgw-pg-deploy-cluster: {xref-pfx-sgw}{sgw-pg-deploy-cluster}[Deploy Sync Gateway Clusters]
@@ -271,11 +284,12 @@ endif::xref-pfx-sgw[]
 :xref-sgw-pfx-read-access: {xref-pfx-sgw}{sgw-pg-read-access}
 :xref-sgw-pg-read-access: {xref-sgw-pfx-read-access}[Read Access]
 :xref-sgw-pg-read-access-add: {xref-sgw-pfx-read-access}[Read Access -- add access]
-:xref-sgw-pg-refer-sgw-glossary: {xref-pfx-sgw}{sgw-pg-refer-sgw-glossary}[Sync Gateway Glossary]
 :xref-sgw-pg-release-notes-archive: {xref-pfx-sgw}{sgw-pg-release-notes-archive}[Release Notes Archive]
 :xref-sgw-pfx-release-notes: {xref-pfx-sgw}{sgw-pg-release-notes}
 :xref-sgw-pg-release-notes: {xref-sgw-pfx-release-notes}[Release Notes]
 :xref-sgw-pg-release-notes-enhancements: {xref-sgw-pfx-release-notes}#enhancements[Release Notes - Enhancements list]
+:xref-sgw-pg-refer-sgw-glossary: {xref-pfx-sgw}{sgw-pg-refer-sgw-glossary}[Sync Gateway Glossary]
+:xref-sgw-pg-resync: {xref-pfx-sgw}{sgw-pg-resync}[Re-sync]
 :xref-sgw-pg-change-log-config: {xref-pfx-sgw}{sgw-pg-change-log-config}[Configuration Change Log]
 :xref-sgw-pg-change-log-rest-api: {xref-pfx-sgw}{sgw-pg-change-log-rest-api}[Rest API Change Log]
 :xref-sgw-pg-resolving-conflicts: {xref-pfx-sgw}{sgw-pg-resolving-conflicts}[Conflict Resolution]
@@ -284,20 +298,23 @@ endif::xref-pfx-sgw[]
 :xref-sgw-pg-rest-api-metrics: {xref-pfx-sgw}{sgw-pg-rest-api-metrics}[Metrics REST API]
 :xref-sgw-pg-rest-api: {xref-pfx-sgw}{sgw-pg-rest-api}[Public REST API]
 // :xref-sgw-pg-running-replications: {xref-pfx-sgw}{sgw-pg-running-replications}[Inter-sync-gateway Replication]
-:xref-sgw-pg-security: {xref-pfx-sgw}{sgw-pg-security}[Security Best Practices]
+:xref-sgw-pg-security: {xref-pfx-sgw}{sgw-pg-security}[TLS Certificate Authentication]
 :xref-sgw-pg-server-integration: {xref-pfx-sgw}{sgw-pg-server-integration}[Webhooks and Changes Feed]
 :xref-sgw-pg-sgcollect-info: {xref-pfx-sgw}{sgw-pg-sgcollect-info}[Collect Node Statistics]
 // [SGCollect Info]
-:xref-sgw-pg-shared-bucket-access: {xref-pfx-sgw}{sgw-pg-shared-bucket-access}[Mobile-Server Replication]
-:xref-sgw-pg-stats-monitoring: {xref-pfx-sgw}{sgw-pg-stats-monitoring}[View Statistics and Metrics]
+:xref-sgw-pg-shared-bucket-access: {xref-pfx-sgw}{sgw-pg-shared-bucket-access}[Sync with Couchbase Server]
+:xref-sgw-pg-sync-from-client: {xref-pfx-sgw}{sgw-pg-sync-from-client}[Sync with Couchbase Lite]
+:xref-sgw-pg-stats-monitoring: {xref-pfx-sgw}{sgw-pg-stats-monitoring}[Monitor]
 // [Stats and Monitoring?]
 :xref-sgw-pg-supported-os: {xref-pfx-sgw}{sgw-pg-supported-os}[Supported OS]
-:xref-sgw-pg-def-sync-function: {xref-pfx-sgw}{sgw-pg-def-sync-function}[Defining Sync Functions]
-:xref-sgw-pfx-sync-gateway-channels: {xref-pfx-sgw}{sgw-pg-sync-gateway-channels}
-:xref-sgw-pg-sync-gateway-channels: {xref-sgw-pfx-sync-gateway-channels}[Sync Gateway Channels]
-:xref-sgw-pg-sync-gateway-channels-add: {xref-sgw-pfx-sync-gateway-channels}#add-to-channel[Sync Gateway Channels -- add to channel]
+:xref-sgw-pg-def-sync-function: {xref-pfx-sgw}{sgw-pg-def-sync-function}[Sync Function]
+:xref-sgw-pfx-channels: {xref-pfx-sgw}{sgw-pg-channels}
+:xref-sgw-pg-channels: {xref-sgw-pfx-channels}[Channels]
+// :xref-sgw-pg-using-channels: {xref-sgw-pfx-using-channels}[Using Channels]
+:xref-sgw-pg-channels-add: {xref-sgw-pfx-channels}#add-to-channel[Channels -- add to channel]
 :xref-sgw-pg-upgrade: {xref-pfx-sgw}{sgw-pg-upgrade}[Upgrade Sync Gateway]
-:xref-sgw-pg-users-and-roles: {xref-pfx-sgw}{sgw-pg-users-and-roles}[Users and Roles]
+:xref-sgw-pg-roles: {xref-pfx-sgw}{sgw-pg-roles}[Roles]
+:xref-sgw-pg-users: {xref-pfx-sgw}{sgw-pg-users}[Users]
 :xref-sgw-pg-whatsnew: {xref-pfx-sgw}{sgw-pg-whatsnew}[What's New]
 :xref-sgw-pfx-write-access: {xref-pfx-sgw}{sgw-pg-write-access}
 :xref-sgw-pg-write-access: {xref-sgw-pfx-write-access}[Write Access]
@@ -305,6 +322,20 @@ endif::xref-pfx-sgw[]
 :xref-sgw-pg-write-access-authchange: {xref-sgw-pfx-write-access}#write-access[Write Access -- authorize the change]
 
 :xref-sgw-pg-write-access-addchan: {xref-sgw-pfx-write-access}#add-to-channel[Write Access -- add to channel]
+
+
+
+// BEGIN Server Pages
+:xref-pfx-svr: xref:server:
+:svr-pg-xattrs: learn:data/extended-attributes-fundamentals.adoc
+
+:xref-svr-pg-xattrs: {xref-pfx-svr}{svr-pg-xattrs}[Extended Attributes (XATTR)]
+
+// BEGIN Server Pages
+
+
+
+
 // BEGIN::ExitPage
 // Restore saved xref-pfx-sgw content if exists
 ifdef::save-xref-pfx-sgw[]

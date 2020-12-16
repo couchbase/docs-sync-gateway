@@ -1,0 +1,51 @@
+= Delta-Sync
+:page-edition: {enterprise}
+
+
+NOTE: Delta Sync is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
+
+Delta Sync is the ability to replicate only parts of the Couchbase mobile document that have changed. This can result in significant savings in bandwidth consumption as well as throughput improvements, especially when network bandwidth is typically constrained.
+
+Delta Sync incurs additional bucket storage requirements which can be tuned with the [`rev_max_age_seconds`](#databases-this_db-delta_sync-rev_max_age_seconds) property.
+
+Delta Sync does not apply to attachment contents.
+
+Delta Sync is disabled by default on the Sync Gateway. You can enable it through the `enabled` property.
+
+If delta sync is enabled on Sync Gateway, then Couchbase Lite clients will switch to using delta sync automatically.
+Similarly, if delta sync is disabled on Sync Gateway, clients will switch to normal mode.
+
+NOTE: Push replications do not use Delta Sync when pushing to a pre-2.8 target.
+
+.Enabling delta-sync
+====
+[source, console]
+----
+  {
+    "logging": {
+      "console": {
+        "log_keys": ["*"]
+      }
+    },
+    "databases": {
+      "db": {
+        "server": "http://localhost:8091",
+        "bucket": "default",
+        "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
+        "allow_conflicts": false,
+        "revs_limit": 20,
+        "delta_sync": {
+          "enabled": true,
+          "rev_max_age_seconds": 86400
+        }
+      }
+    }
+  }
+----
+====
+
+Footnotes:
+
+  - Delta Sync is automatically enabled for peer-to-peer sync between Couchbase Lite clients.
+  - Delta sync is disabled for Couchbase Lite database replicas.
+

@@ -1,37 +1,59 @@
-= Command Line Options
+= Using the Command Line
+:Description: Start a Sync Gateway instance using command line options and securely sync enterprise data from cloud to edge
+
 include::partial$_std-hdr-sgw.adoc[]
+
+:topic-group: Deploy
+:param-related: {xref-sgw-pg-deployment}  |  {xref-sgw-pg-gs-sgw-api-access}  |  {xref-sgw-pg-config-properties}
+:param-abstract: Introduces the options available when running Sync Gateway from the command line
+include::partial$block-abstract.adoc[]
+
 == Overview
-To configure Sync Gateway, you can specify command-line options when you start Sync Gateway.
-Command-line options can only specify a limited set of configuration properties, and cannot be used to configure multiple databases.
-For more comprehensive configuration, use a JSON configuration file.
-For information about using a configuration file, see the configuration file guide.
+
+You can configure some Sync Gateway features by specifying command-line options when you start it.
+
+
+For more comprehensive configuration, use a JSON configuration file - see: {xref-sgw-pg-config-properties}.
+
+== Configuration
 
 Configuration determines the runtime behavior of Sync Gateway, including server configuration and the database or set of databases with which a Sync Gateway instance can interact.
 
-NOTE: You can only specify a small subset of configuration properties as command-line options.
+NOTE: Command-line options can only specify a sub-set of the available configuration properties, and cannot be used to configure multiple databases.
+
 Two command-line options do not have corresponding configuration properties: `-help` and `-verbose`.
 
+== Option Format
 
-When specifying command-line options, the format of the `sync_gateway` command is:
+When specifying command-line options use the format shown in <<option-fmt>>
 
+* Command-line options are case-insensitive.
+* You can prefix command-line options with one hyphen (-) or with two hyphens (--).
+* For command-line options that take an argument, you specify the argument after an equal sign (=). +
+For example, `-bucket=db`, or as a following item on the command line, for example, `-bucket db`.
+
+
+[#option-fmt]
+.Command line option format
+====
 [source,bash]
 ----
 sync_gateway [command-line options]
 ----
+====
+// Here we use lower camel case.
 
-== Command-line Options
 
-You can prefix command-line options with one hyphen (-) or with two hyphens (--). For command-line options that take an argument, you specify the argument after an equal sign (=), for example, `-bucket=db`, or as a following item on the command line, for example, `-bucket db`.
-Command-line options are case-insensitive.
-Here we use lower camel case.
+== Available Options
+The following command-line options can be used when starting Sync Gateway  see <<cmd-opts>>
 
 .*Deprecation Notice*
+WARNING: The `-bucket` command line option is deprecated at Release 2.7 and will be removed following release 2.8. +
+Use the JSON configuration file option `bucket` -- see {xref-sgw-pg-config-properties-databases-bucket}.
 
-WARNING: The `-bucket` command line option is deprecated at Release 2.7. It will be removed in Release 2.10. *Instead*, use the JSON configuration file option `bucket` -- see link:config-properties.html#databases-this_db-bucket[$dbname.bucket]
-
-Following are the command-line options that you can specify when starting Sync Gateway.
-
-[cols="1,1,2"]
+[#cmd-opts]
+.Available command-line options
+[#cmd-opts,cols="1,1,2"]
 |===
 |Option |Default |Description
 
