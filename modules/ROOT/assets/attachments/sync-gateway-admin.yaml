@@ -1381,19 +1381,18 @@ paths:
       - database
       summary: Compact the database
       description: |
-        Triggers a compaction process. When a document is updated, Sync Gateway makes a copy of the previous revision body, for use by any in-flight replications. The primary motivation for using compaction is to reclaim disk space by deleting the JSON bodies of non-leaf revisions. As shown on the diagram below, after compaction, only properties with a leading underscore on the leaf revision (`_`) are kept to construct the revision tree.
+        Use the ```/{db}/_compact``` endpoint to trigger the compaction process, which purges the JSON bodies of non-leaf revisions. This process is also run periodically by the system.
 
-          ![](https://cl.ly/1Q1F0i3f2i3n/compaction.gif)
+        Note -- Leaf revisions are not purged during compaction.
 
-        There are subtle differences in the way the `/{db}/_compact` endpoint works across Sync Gateway versions:
+        Compaction does not remove JSON bodies of leaf nodes (conflicting branches). So it is also important to resolve conflicts in your application in order to re-claim disk space.
 
-        **In Sync Gateway 1.2**, these obsolete revision bodies have to be cleaned up by calling the `/{db}/_compact` endpoint.
+        **Pre-1.5 behavior differed from the above, as follows:**
 
-        In **1.3** and **1.4**, the parent revision is marked with a 5 minute expiry time, thus calling the `/{db}/_compact` endpoint is not necessary.
+        1.3-1.4 -- the parent revision is marked with a 5 minute expiry time, thus calling the `/{db}/_compact` endpoint is not necessary.
 
-        In **1.5** with **shared bucket access** enabled, this endpoint can be used to compact Sync Gateway view indexes. When a Sync Gateway tombstone is purged from the database (based on the metadata purge interval), the document itself is purged, but its entry in the view index is not removed. The `/{db}/_compact` endpoint removes the index entries for purged tombstones from the Sync Gateway view indexes.
+        1.2 -- obsolete revision bodies have to be cleaned up by calling the `/{db}/_compact` endpoint.
 
-        The compaction process does not remove JSON bodies of leaf nodes (conflicting branches). Hence, it is also important to resolve conflicts in your application in order to re-claim disk space.
       responses:
         200:
           description: Request completed successfully.
