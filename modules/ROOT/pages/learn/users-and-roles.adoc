@@ -9,15 +9,14 @@ include::partial$block-abstract.adoc[]
 You can authorize users and control their access to your database by creating user accounts and assigning roles to users.
 This article focuses on how to authorize users to be able to access the Sync Gateway and their remote databases.
 
-NOTE: Sync Gateway users and roles have no relationship to xref:server:learn:security/authorization-overview.adoc[RBAC in Couchbase Server].
+The user must be created on Sync Gateway before it can be used for authentication -- see also: {xref-sgw-pg-authentication}.
 
-== Users
+NOTE: Sync Gateway users and roles have no relationship to Couchbase Server's xref:server:learn:security/authorization-overview.adoc[RBAC (Role-base Access Control) users].
 
-The user must be created on Sync Gateway before it can be used for authentication.
-Users can be created through the Sync Gateway Admin REST API or configuration file.
+You create Users through either the {xref-sgw-pg-rest-api-admin} or {xref-sgw-pg-config-properties}.
 
 Admin REST API::
-You can create a new user by sending a PUT request to {xref-sgw-pfx-admin-rest-api}#/user/put\__db___user__name_[/{tkn-db}/\_user/{name}] or by sending a POST request to {xref-sgw-pfx-admin-rest-api}#/user/post\__db___user_[/{tkn-db}/_user], where `db` is the configured name of the database and `name` is the user name.
+Create a new user by sending a PUT request to {xref-sgw-pfx-admin-rest-api}#/user/put\__db___user__name_[/{tkn-db}/\_user/{name}] or by sending a POST request to {xref-sgw-pfx-admin-rest-api}#/user/post\__db___user_[/{tkn-db}/_user], where `db` is the configured name of the database and `name` is the user name.
 +
 The user credentials (**username**/**password**) are passed in the request body.
 +
@@ -35,7 +34,7 @@ Lastly, Sync Gateway supports xref:{sgw-pg-authentication}#openid-connect[OpenID
 In this case, Sync Gateway can automatically create users for successfully authenticated users that don't have an already existing user in Sync Gateway.
 
 Configuration file::
-User credentials can also be hardcoded in the configuration file.
+Create users by hardcoding their credentials in the {xref-sgw-pg-config-properties}.
 This method is convenient for testing and to get started, otherwise it is generally recommended to use the *Admin REST API* for a programmatic behavior.
 +
 [source,json]
@@ -52,47 +51,5 @@ This method is convenient for testing and to get started, otherwise it is genera
 }
 ----
 <1> {xref-sgw-pfx-config-properties}#databases-this_db-users[databases.$db.users]
-
-== Roles
-
-Roles are named collections of channels.
-A user account can be assigned to zero or more roles.
-A user inherits the channel access of all roles it belongs to.
-This is very much like Unix groups, except that roles do not form a hierarchy.
-
-You access roles through the Admin REST API much like users are accessed, through URLs of the form {xref-sgw-pfx-admin-rest-api}#/role[/{tkn-db}/_role/{name}].
-Role resources have a subset of the properties that users do: `name`, `admin_channels`, `all_channels`.
-
-Roles have a separate namespace from users, so it's legal to have a user and a role with the same name.
-
-Admin REST API::
-You can assign a role to a user by sending a PUT request to {xref-sgw-pfx-admin-rest-api}#/user/put\__db___user__name_[/{tkn-db}/_user/{name}] where `db` is the configured name of the database and `name` is the user name.
-+
-The roles to assign to the user are specified in the `admin_roles` array.
-+
-[source,bash]
-----
-$ curl -vX POST "http://localhost:4985/mydatabase/_user/" -H "accept: application/json" -H "Content-Type: application/json" -d '{"name": "john", "password": "pass", "admin_roles": ["foo"]}'
-----
-
-Configuration file::
-A user can also be assigned to a role in the configuration file.
-This method is convenient for testing and to get started, otherwise it is generally recommended to use the *Admin REST API* for a programmatic behavior.
-+
-[source,json]
-----
-{
-  "databases": {
-    "mydatabase": {
-      "users": { // <1>
-        "GUEST": {"disabled": true},
-        "john": {"password": "pass", "admin_roles": ["foo"]}
-      }
-    }
-  }
-}
-----
-<1> {xref-sgw-pfx-config-properties}#databases-this_db-users-this_user-admin_roles[databases.$db.users.$user.admin_roles]
-
 
 include::partial$block-related-content-data.adoc[]
