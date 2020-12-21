@@ -1056,22 +1056,17 @@ paths:
               access_token:
                 type: string
                 decription: The access token for the user to authenticate
-          responses:
-            200:
-              description: The request was successful
-              schema:
-                authentication_handlers:
-                  type: array
-                  description: List of authentication methods.
-                  items:
-                    type: string
-                ok:
-                  type: boolean
-                  description: Always true if the operation was successful.
-                userCtx:
-                  $ref: '#/definitions/UserContext'
-            401:
-              description: Authentication failed. Facebook verification server status 400
+      responses:
+        200:
+          description: Session successfully created. The Set-Cookie response header contains the session credentials.
+          schema:
+            $ref: '#/definitions/Session'
+        401:
+          name: Unauthorized
+          description: Facebook verification server status <Facebook status code>
+        502:
+          name: Bad Gateway
+          description:  Invalid response from Facebook verifier
   /{db}/_google:
     parameters:
       - $ref: '#/parameters/db'
@@ -1092,22 +1087,17 @@ paths:
               id_token:
                 type: string
                 decription: The access token for the user to authenticate
-          responses:
-            200:
-              description: The request was successful
-              schema:
-                authentication_handlers:
-                  type: array
-                  description: List of authentication methods.
-                  items:
-                    type: string
-                ok:
-                  type: boolean
-                  description: Always true if the operation was successful.
-                userCtx:
-                  $ref: '#/definitions/UserContext'
-            401:
-              description: Authentication failed. Google verification server status 400
+      responses:
+        200:
+          description: Session successfully created. The Set-Cookie response header contains the session credentials.
+          schema:
+            $ref: '#/definitions/Session'
+        401:
+          name: Unauthorized
+          description: Returns the Google response's ErrorDescription
+        502:
+          name: Bad Gateway
+          description:  Invalid response from Google token verifier
   /{db}/_revs_diff:
     parameters:
     - $ref: '#/parameters/db'
