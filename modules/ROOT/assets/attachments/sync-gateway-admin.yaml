@@ -824,60 +824,117 @@ parameters:
     required: false
   logtags:
     in: body
-    name: body
-    description: Log keys to enable or disable.
+    name: log_keys
+    description: |
+      Use the body to provide a list of the log keys you want to set.
+
+      For example -- `{"Changes++":true, "Cache":true, "HTTP":true, "DCP":true, "WS": true, "WSFrame": true, "Replicate": true}`
     schema:
       type: object
       properties:
-        '*':
+        All:
           type: boolean
-          description: Enabling log key "*" enables all logging tags automatically
+          description: |
+            Use the wildcard character `*` to set all log keys
+            For example ```{"*":true}```
+        none:
+          type: boolean
+          description: |
+            Use "none" or "" as the key to disable all log keys.
+            For example ```{"none":true}```
+        Admin:
+          type: boolean
+          description: Admin processes in Sync Gateway.
         Access:
           type: boolean
-          description: access() calls made by the sync function
-        Attach:
-          type: boolean
-          description: Attachment processing
+          description: Anytime an access() call is made in the sync function.
         Auth:
           type: boolean
-          description: Authentication
+          description: Authentication.
         Bucket:
           type: boolean
-          description: Sync Gateway interactions with the bucket (verbose logging).
+          description: Sync Gateway interactions with the bucket (trace level only).
         Cache:
           type: boolean
-          description: Interactions with Sync Gateway's in-memory channel cache (Cache+ for verbose logging)
+          description: Interactions with Sync Gateway's in-memory channel cache.
         Changes:
           type: boolean
-          description: Processing of _changes requests (Changes+ for verbose logging)
+          description: Processing of /{db}/_changes requests.
         CRUD:
           type: boolean
-          description: Updates made by Sync Gateway to documents (CRUD+ for verbose logging)
+          description: Updates made by Sync Gateway to documents.
         DCP:
           type: boolean
-          description: DCP-feed processing (verbose logging)
+          description: DCP-feed processing.
         Events:
           type: boolean
-          description: Event processing (webhooks) (Events+ for verbose logging)
-        Feed:
+          description: Event processing (webhooks).
+        gocb:
           type: boolean
-          description: Server-feed processing (Feed+ for verbose logging)
+          description: All logging emitted by the GoCB SDK
         HTTP:
           type: boolean
-          description: All requests made to the Sync Gateway REST APIs (Sync and Admin). Note that the log keyword HTTP is always enabled, which means that HTTP requests and error responses are always logged (in a non-verbose manner). HTTP+ provides more verbose HTTP logging.
+          description: All requests made to the Sync Gateway REST APIs.
+        HTTP+:
+          type: boolean
+          description: Additional information about HTTP requests (response times, status codes).
+        Import:
+          type: boolean
+          description: Introduced in Sync Gateway 1.5 to help troubleshoot the import process of a document (this is the Sync Gateway process to make a document that was added through N1QL or the Server SDKs mobile-aware). This log key can be useful to troubleshoot why a given document was not successfully imported.
+        Javascript:
+          type: boolean
+          description: All logging from Javascript. This includes -- sync function, import filters, webhook filter function, and the custom ISGR conflict resolvers
+        Migrate:
+          type: boolean
+          description: Logs messages thhat show when old inline document metdata is upgraded to xattrs
+        Query:
+          type: boolean
+          description: Query is used for Sync Gateway code related to N1QL queries
+        Replicate:
+          type: boolean
+          description: |
+            Log messages related to replications between Sync Gateways (using sg-replicate). This tag cannot be used for replications initiated by Couchbase Lite.
+        SGCluster:
+          type: boolean
+          description: Log messages related to the sharded import and HA sg-replicate
+        Sync:
+          type: boolean
+          description: Activity which relates to synchronization between Couchbase Lite and Sync Gateway
+        SyncMsg:
+          type: boolean
+          description: Can be used for additional Sync logging output
+        WS:
+          type: boolean
+          description: Websocket replication log messages
+        WSFrame:
+          type: boolean
+          description: Can be used for additional WS logging output
   level:
     in: query
     name: level
     description: |
-      Verbosity of the logging. The default value is 1 which is regular logging. level=2 enables warnings and
-      panics logging and level=3 will log panics only.
+      **Deprecated** -- please use `logLevel` instead
+      This setting determines the verbosity of the logging
+      -- level=1 - The default, regular, logging
+      -- level=2 - Enables warnings and panics logging
+      -- level=3 - Will log panics only
     type: integer
-    deprecated: true
   logLevel:
     in: query
     name: logLevel
     description: |
-      Verbosity of the logging. Available values are `none`, `error`, `warn`, `info`, `debug,` or `trace`.
+      This setting determines the verbosity of the logging.
+
+      Available values are
+      -- `none`
+      -- `error`
+      -- `warn`
+      -- `info`
+      -- `debug`
+      -- `trace`
+
+      Note that the setting is additive. For example, setting `info` will also enable both `error` and `warn`.
+
     type: string
   sgcollect_info:
     in: body

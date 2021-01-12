@@ -1380,9 +1380,10 @@ properties:
 
               Available log key values include:
 
+              - *: Wildcard log key. Enables all log keys
+              - `none`:Disables all log keys
               - `Admin`: Admin processes in Sync Gateway.
               - `Access`: Anytime an `access()` call is made in the sync function.
-              - `Attach`: Attachment processing.
               - `Auth`: Authentication.
               - `Bucket`: Sync Gateway interactions with the bucket (`trace` level only).
               - `Cache`: Interactions with Sync Gateway's in-memory channel cache.
@@ -1390,20 +1391,19 @@ properties:
               - `CRUD`: Updates made by Sync Gateway to documents.
               - `DCP`: DCP-feed processing.
               - `Events`: Event processing (webhooks).
-              - `gocb`
-              - `HTTP`: All requests made to the Sync Gateway REST APIs.
+              - `gocb`: All logging emitted by the GoCB SDK
+              - `HTTP`: All requests made to the Sync Gateway REST APIs. This is the default setting.
               - `HTTP+`: Additional information about HTTP requests (response times, status codes).
               - `Import`: Introduced in Sync Gateway 1.5 to help troubleshoot the import process of a document (this is the Sync Gateway process to make a document that was added through N1QL or the Server SDKs mobile-aware). This log key can be useful to troubleshoot why a given document was not successfully imported.
-              - `Migrate`
-              - `Query`
+              - `Javascript`: All logging from Javascript. This includes: sync function, import filters, webhook filter function, and the custom ISGR conflict resolvers
+              - `Migrate`: Logs messages that show when old inline document metadata is upgraded to xattrs
+              - `Query`: Query is used for Sync Gateway code related to N1QL queries
               - `Replicate`: Log messages related to replications between Sync Gateways (using sg-replicate). This tag cannot be used for replications initiated by Couchbase Lite.
-              - `Shadow`
+              - `SGCluster`: Log messages related to the sharded import and HA sg-replicate
               - `Sync`: Activity which relates to synchronization between Couchbase Lite and Sync Gateway
               - `SyncMsg`: Can be used for additional Sync logging output
               - `WS`: Websocket replication log messages
               - `WSFrame`: Can be used for additional WS logging output
-              - *: Wildcard log key. Enables all log keys if set.
-
             type: array
             items:
               type: string
@@ -1424,12 +1424,12 @@ properties:
         description: |+
           The level of logging as a key. Log levels accumulate as you read down the table (i.e log entries at WARN will also be included in the INFO and DEBUG logs).
 
-          |+Level|+Description|+Minimum max_age|+Log File Name|+
-          |+:---|+:---|+:---|+:---|+
-          |+ERROR|+Critical error messages.|+180 days|+sg_error.log|+
-          |+WARN|+Something is wrong but SG can still service requests|+90 days|+sg_warn.log|+
-          |+INFO|+Important diagnostics for support and customers|+3 days|+sg_info.log|+
-          |+DEBUG|+Lower level development analysis|+1 day|+sg_debug.log|+
+          | Level| Description| Minimum max_age| Log File Name|
+          | :---| :---| :---| :---|
+          | ERROR| Critical error messages.| 180 days| sg_error.log|
+          | WARN| Something is wrong but SG can still service requests| 90 days| sg_warn.log|
+          | INFO| Important diagnostics for support and customers| 3 days| sg_info.log|
+          | DEBUG| Lower level development analysis| 1 day| sg_debug.log|
 
           Each log level takes a dictionary as value and various properties can set for each log level. For example:
 
