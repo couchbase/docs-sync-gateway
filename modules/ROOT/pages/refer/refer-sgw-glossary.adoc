@@ -104,6 +104,22 @@ include::{concepts}rep-auto-conflict-resolution-policy.adoc[]
 
 == C
 
+// tag::replication-checkpoint-full[]
+[[checkpoint]]Checkpoint::
+// tag::replication-checkpoint-summary[]
+A _Checkpoint_, in _Couchbase Mobile_ terms, is a “save state” on a replicator, used to enable a restart at the last success-point in the event of a failure during a replication.
++
+
+// end::replication-checkpoint-summary[]
+The checkpoint itself is a (meta)document that describes how far in the replication process a given replicator has progressed.
++
+Note that two checkpoints are saved for every replication; one local and one remote.
++
+The checkpoint documents are compared at the beginning of every replication.
+If they do not agree, then it indicates a severe error during the last run, and the replication is forced to restart from the beginning.
+// end::replication-checkpoint-full[]
+
+
 // tag::conflict-resolver-policies-full[]
 [[conflict-resolver-policies]]Conflict Resolver Policies::
 // tag::conflict-resolver-policies-summary[]
@@ -117,6 +133,7 @@ Each conflict resolver policy applies a different strategy:
 
 Default::
 * Always applies Sync Gateway's <<auto-conflict-resolution-policy>>
+
 * Configured using: `"conflict_resolution_type": "default"`
 
 Local Wins::
