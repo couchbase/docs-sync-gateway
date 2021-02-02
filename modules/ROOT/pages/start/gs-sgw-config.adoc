@@ -4,12 +4,17 @@
 
 include::partial$_std-hdr-sgw.adoc[]
 :xref-pfx: {xref-pfx-sgw}:
+:xref-sgw-bmk-logging-console: xref:{sgw-pg-logging}#lbl-console-logs[Console Logs]
+:xref-sgw-bmk-logging-console-redirect: xref:{sgw-pg-logging}#lbl-log-redirect[Redirect Console Logs]
+:xref-sgw-bmk-logging-continuous: xref:{sgw-pg-logging}#lbl-continuous-logs[Continuous Logging]
 
 :topic-group: Start Here!
 :param-related: {xref-sgw-pg-gs-sgw-prereqs}  |  {xref-sgw-pg-gs-sgw-install}
-:param-abstract: Provides an example configuration suitable for verifying that your install has worked
+:param-abstract: Here we will check that you can connect to your Sync Gateway
 include::partial$block-abstract.adoc[]
 
+.Preparatory Steps
+NOTE: Before following the steps in this topic you must have read, and acted-upon, the information and steps in {xref-sgw-pg-gs-sgw-prereqs} and {xref-sgw-pg-gs-sgw-install}.
 
 == Step 1: Create a configuration file
 
@@ -24,13 +29,13 @@ include::{example-cfg}[tag="getting-started-config"]
 ----
 
 Configuration Properties::
-<1> The user's username that you created on the Couchbase Server Admin Console.
-<2> The user's password that you created on the Couchbase Server Admin Console.
-<3> The {xref-sgw-pg-shared-bucket-access} feature allows Couchbase Server SDKs to also perform operations on this bucket.
-<4> `num_index_replicas` is the number of index replicas stored in Couchbase Server -- see {xref-sgw-pg-indexing}. +
-
-NOTE: If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
-
+<.> The username of the RBAC user that you created on the Couchbase Server Admin Console -- see xref:{sgw-pg-gs-sgw-prereqs}#configure-server[Configure Server for Sync Gateway]
+<.> The password of the user that you created on the Couchbase Server Admin Console.
+<.> The xref:{sgw-pg-shared-bucket-access}[enable_shared_bucket_access] feature allows Couchbase Server SDKs to also perform operations on this bucket.
+<.> `num_index_replicas` is the number of index replicas stored in Couchbase Server -- see {xref-sgw-pg-indexing}. +
+*NOTE:* If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
+<.> Define your logging requirements. +
+Here we set general diagnostic console logs on.
 ====
 
 == Step 2: Start Sync Gateway
@@ -49,12 +54,36 @@ Start Sync Gateway from the command line -- see {xref-sgw-pg-command-line-option
 
 ====
 
-== Step 3: Verify that Document Changes Sync
+== Step 3: Connect to Sync Gateway
+TIP: You can use {xref-sgw-bmk-logging-console} to aid diagnosis of connection issues
+
+. With Sync Gateway started (see: <<start-sgw>>), point your browser to the Sync Gateway url, typically on port 4984, but this can be changed -- see: {xref-sgw-pg-gs-sgw-api-access}.
++
+So, for example:
++
+[source, console]
+----
+http://localhost:4984
+----
+
+. Check that you receive a response similar to this:
++
+[source, console]
+----
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":"2.8"},"version":"Couchbase Sync Gateway/2.8.0(376;e2e7d42) EE"}
+----
++
+If there are issues then check the {xref-sgw-bmk-logging-console} for more information.
+Where necessary you can redirect console output to a file -- see: {xref-sgw-bmk-logging-console-redirect}.
+
+TIP: If Sync Gateway is behind a load balancer then check the websockets configuration -- see {xref-sgw-pg-load-balancer}.
+
+== Step 4: Sync Changes
 To verify that documents have been replicated, you can:
 
-* Monitor the Sync Gateway sequence number returned by the database endpoint (xref:{sgw-pg-rest-api}#/database/get\__db__[`+GET /{tkn-db}/+`]).
+* Monitor the Sync Gateway sequence number returned by the database endpoint (xref:{sgw-pg-rest-api}#/database/get\__db__[GET /{tkn-db}/]).
 The sequence number increments for every change that happens on the Sync Gateway database.
-* Query a document by ID on the Sync Gateway REST API (xref:{sgw-pg-rest-api}#/document/get\__db___doc_[`+GET /{tkn-db}/{id}+`]) -- see: {xref-sgw-pg-gs-sgw-api-access}
+* Query a document by ID on the Sync Gateway REST API (xref:{sgw-pg-rest-api}#/document/get\__db___doc_[GET /{tkn-db}/{id}]) -- see: {xref-sgw-pg-gs-sgw-api-access}
 * Query a document from the Query Workbench on the Couchbase Server Console.
 
 include::partial$block-related-content-deploy.adoc[]
