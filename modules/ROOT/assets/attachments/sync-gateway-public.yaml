@@ -1,13 +1,11 @@
-# NEEDS UPDATING TO REFLECT SG REPLICATE 2.0 CHANGES per https://issues.couchbase.com/browse/DOC-6463
-
-
-# this is an example of the Sync Gateway API
-# as a demonstration of an API spec in YAML
 swagger: '2.0'
 info:
   title: Sync Gateway
-  description: |
-    Documentation for the Sync Gateway Public REST API. This page is generated from the Sync Gateway Public Swagger spec, the exact same information is also available at [developer.couchbase.com/mobile/swagger/sync-gateway-public](http://developer.couchbase.com/mobile/swagger/sync-gateway-public/).
+  description: |2
+    This yaml API spec documents the Sync Gateway Public REST API.
+
+    The swagger spec isn’t officially supported or actively maintained. It is offered as a convenient starting point for developers.
+
   version: '2.0'
 # the domain of the service
 host: localhost:4984
@@ -286,7 +284,7 @@ parameters:
     in: query
     name: since
     description: Starts the results from the change immediately after the given sequence ID. Sequence IDs should be considered opaque; they come from the last_seq property of a prior response.
-    type: object
+    type: string
     required: false
   style:
     in: query
@@ -577,6 +575,7 @@ paths:
     - $ref: '#/parameters/doc'
     - $ref: '#/parameters/attachment'
     get:
+      operationId: GetAttachment
       tags:
       - attachment
       summary: Get attachment
@@ -597,6 +596,7 @@ paths:
         404:
           description: Not Found, the specified database, document or attachment was not found.
     put:
+      operationId: UpdateAttachment
       tags:
       - attachment
       summary: Add or update attachment
@@ -623,6 +623,7 @@ paths:
     parameters:
     - $ref: '#/parameters/db'
     post:
+      operationId: UpdateDocsInBulk
       tags:
       - database
       summary: Bulk docs
@@ -645,6 +646,7 @@ paths:
             $ref: '#/definitions/Forbidden'
   /:
     get:
+      operationId: GetServerInfo
       tags:
       - server
       summary: Server
@@ -659,6 +661,7 @@ paths:
     parameters:
     - $ref: '#/parameters/db'
     post:
+      operationId: GetDocsInBulk
       tags:
       - database
       summary: Bulk get
@@ -709,6 +712,7 @@ paths:
     - $ref: '#/parameters/db'
     - $ref: '#/parameters/local_doc'
     get:
+      operationId: GetLocalDoc
       tags:
       - document
       summary: Get local doc
@@ -720,6 +724,7 @@ paths:
           schema:
             $ref: '#/definitions/Success'
     put:
+      operationId: AddOrUpdateLocalDoc
       tags:
       - document
       summary: Create or update a local document
@@ -731,6 +736,7 @@ paths:
           schema:
             $ref: '#/definitions/Success'
     delete:
+      operationId: DeleteLocalDoc
       tags:
       - document
       summary: Delete a local document
@@ -748,6 +754,7 @@ paths:
     parameters:
     - $ref: '#/parameters/db'
     get:
+      operationId: GetChanges
       tags:
       - database
       parameters:
@@ -772,6 +779,7 @@ paths:
           schema:
             $ref: '#/definitions/Changes'
     post:
+      operationId: GetChangesWithParametersInBody
       tags:
       - database
       parameters:
@@ -789,6 +797,7 @@ paths:
     - $ref: '#/parameters/db'
     - $ref: '#/parameters/doc'
     get:
+      operationId: GetDocument
       tags:
       - document
       parameters:
@@ -806,6 +815,7 @@ paths:
           schema:
             type: object
     put:
+      operationId: AddOrUpdateDocument
       tags:
       - document
       parameters:
@@ -828,6 +838,7 @@ paths:
           schema:
             $ref: '#/definitions/Success'
     delete:
+      operationId: DeleteDocument
       tags:
       - document
       parameters:
@@ -844,6 +855,7 @@ paths:
     parameters:
     - $ref: '#/parameters/db'
     get:
+      operationId: GetAllDocs
       tags:
       - database
       summary: All docs
@@ -865,6 +877,7 @@ paths:
           schema:
             $ref: '#/definitions/QueryResult'
     post:
+      operationId: GetAllDocsWithParametersInBody
       tags:
       - database
       summary: All docs
@@ -890,6 +903,7 @@ paths:
     parameters:
     - $ref: '#/parameters/db'
     get:
+      operationId: GetOpenID
       tags:
       - auth
       summary: OpenID Connect Authentication.
@@ -917,6 +931,7 @@ paths:
     parameters:
     - $ref: '#/parameters/db'
     get:
+      operationId: GetOpenIDAuthCallBack
       tags:
       - auth
       summary: OpenID Connect Authentication callback.
@@ -968,6 +983,7 @@ paths:
     parameters:
     - $ref: '#/parameters/db'
     get:
+      operationId: GetOpenIDAuth
       tags:
       - auth
       summary: OpenID Connect Authentication.
@@ -995,6 +1011,7 @@ paths:
     parameters:
     - $ref: '#/parameters/db'
     get:
+      operationId: GetOpenIDRefreshToken
       tags:
       - auth
       summary: OpenID Connect refresh.
@@ -1043,6 +1060,7 @@ paths:
     parameters:
       - $ref: '#/parameters/db'
     post:
+      operationId: AuthenticationViaFacebook
       tags:
         - auth
       summary: User creation / authentication via Facebook
@@ -1058,22 +1076,23 @@ paths:
             properties:
               access_token:
                 type: string
-                decription: The access token for the user to authenticate
+                description: The access token for the user to authenticate
       responses:
         200:
           description: Session successfully created. The Set-Cookie response header contains the session credentials.
           schema:
             $ref: '#/definitions/Session'
         401:
-          name: Unauthorized
+          #name: Unauthorized
           description: Facebook verification server status <Facebook status code>
         502:
-          name: Bad Gateway
+          #name: Bad Gateway
           description:  Invalid response from Facebook verifier
   /{db}/_google:
     parameters:
       - $ref: '#/parameters/db'
     post:
+      operationId: AuthenticationViaGoogle
       tags:
         - auth
       summary: User creation / authentication via Google
@@ -1089,22 +1108,23 @@ paths:
             properties:
               id_token:
                 type: string
-                decription: The access token for the user to authenticate
+                description: The access token for the user to authenticate
       responses:
         200:
           description: Session successfully created. The Set-Cookie response header contains the session credentials.
           schema:
             $ref: '#/definitions/Session'
         401:
-          name: Unauthorized
+          #name: Unauthorized
           description: Returns the Google response's ErrorDescription
         502:
-          name: Bad Gateway
+          #name: Bad Gateway
           description:  Invalid response from Google token verifier
   /{db}/_revs_diff:
     parameters:
     - $ref: '#/parameters/db'
     post:
+      operationId: GetRevisionIds
       tags:
       - database
       summary: Used by the replicator
@@ -1133,10 +1153,13 @@ paths:
                 missing:
                   type: array
                   description: A list of revision IDs for that document (the ones that are not stored in the database).
+                  items:
+                    type: string
   /{db}/:
     parameters:
     - $ref: '#/parameters/db'
     get:
+      operationId: GetDatabaseInfo
       tags:
       - database
       summary: Database info
@@ -1152,9 +1175,9 @@ paths:
         404:
           description: Not Found. Requested database not found.
     post:
+      operationId: AddDocument
       tags:
       - document
-      operationId: post
       summary: Create document
       description: |
         This request creates a new document in the specified database. You can either specify the document ID by including the _id in the request message body (the value must be a string), or let the software generate an ID.
@@ -1175,6 +1198,7 @@ paths:
     parameters:
     - $ref: '#/parameters/db'
     post:
+      operationId: AddUserSession
       tags:
       - session
       summary: Create a user session
@@ -1199,6 +1223,7 @@ paths:
           schema:
             $ref: '#/definitions/Session'
     delete:
+      operationId: DeleteUserSession
       tags:
       - session
       summary: Delete a user session
@@ -1494,6 +1519,12 @@ definitions:
       seq:
         type: integer
         description: Update sequence number
+      deleted:
+        type: boolean
+        description: Indicate whether the row is deleted
+        default: false
+      doc:
+        type: object
   InvalidJSON:
     description: The request provided invalid JSON data
   View:
