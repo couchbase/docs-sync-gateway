@@ -1,25 +1,37 @@
 = Webhooks and Changes Feed
+:description: Integrating Sync Gateway with other servers
 :idprefix:
 :idseparator: -
-:url-couchdb: http://guide.couchdb.org/draft/notifications.html
+
 include::partial$_std-hdr-sgw.adoc[]
-This guide describes two approaches for integrating Sync Gateway with other servers.
-These approaches can be used to build services that react to changes in documents.
-Examples of use cases include:
+
+:topic-group: deploy
+:param-related!:
+// {xref-sgw-pg-config-properties}  |  {xref-sgw-pg-rest-api-admin} |    {xref-sgw-pg-config-properties-databases}  |  {xref-sgw-pg-config-properties-databases-sync}
+
+:param-abstract: This content provides approaches for integrating Sync Gateway with other servers to build services that react to document changes.
+include::partial$block-abstract.adoc[]
+
+:url-couchdb: http://guide.couchdb.org/draft/notifications.html
+
+== Introduction
+
+By adopting the approaches documented here you can build responsive services that react to changes in documents, adding value to the end to end process.
+
+The use cases for these approaches to Sync Gateway integration with other servers comprise:
 
 * Sending notifications when specific documents change, for example, by email or SMS
 * Customized auditing or logging
 
-The integration approaches are:
+These approaches include using the following change indicators, a comparison of which can be seen in <<tbl-scenarios>>:
 
 <<changes-feed>>::
 The changes feed returns a sorted list of changes made to documents in the database.
 <<webhooks>>::
 Sync Gateway can detect document updates and post the updated documents to one or more external URLs.
 
-Here's a table that compares each API in different scenarios:
-
-[cols="1,1,1",width="80%"]
+.Scenarios by API
+[#tbl-scenarios,cols="1,^1,^1",width="80%"]
 |===
 |Scenario |Changes feed (pull) |Webhooks (push)
 
@@ -42,31 +54,45 @@ Here's a table that compares each API in different scenarios:
 
 == Changes Feed
 
+In this section::
+<<lbl-endpoint>>  |  <<lbl-methods>>  | <<lbl-websockets>>
+
 This article describes how to use the changes feed API to integrate Sync Gateway with other backend processes.
 For instance if you have a channel called "needs-email" you could have a bot that sends an email and then saves the document back with a flag to keep it out of the "needs-email" channel.
 
+[#lbl-endpoint]
+=== Endpoint
+
 The changes feed API is a REST API endpoint (xref:rest-api.adoc#/database/get\__db___changes[`+/{tkn-db}/_changes+`]) that returns a sorted list of changes made to documents in the database.
 It permits applications to implement business logic that reacts to changes in documents.
+
+[#lbl-methods]
+=== Methods
 There are several methods of connecting to the changes feed (also know as the feed type).
 The first 3 methods (`polling`, `longpoll` and `continuous`) are based on the CouchDB API.
 The last method (`websocket`) is specific to Sync Gateway.
 
-{url-couchdb}#polling[polling] (default)::
+{url-couchdb}#polling[polling^] (default)::
 Returns the list of changes immediately.
 A new request must be sent to get the next set of changes.
-{url-couchdb}#long[longpolling]::
+{url-couchdb}#long[longpolling^]::
 In addition to regular polling, if the request is sent with a special `last_seq` parameter, it will stay open until a new change occurs and is posted.
-{url-couchdb}#continuous[continuous]::
+{url-couchdb}#continuous[continuous^]::
 The continuous changes API allows you to receive change notifications as they come, in a single HTTP connection.
 You make a request to the continuous changes API and both you and Sync Gateway will hold the connection open “forever.”
 <<websockets>>::
 The WebSocket mode is conceptually the same as continuous mode but it should avoid issues with proxy servers and gateways that cause continuous mode to fail in many real-world mobile use cases.
 
+[#lbl-websockets]
 === WebSockets
 
-The primary problem with the continuous mode is buggy HTTP chunked-mode body parsing that buffers up the entire response before sending any of it on;
-since the continuous feed response never ends, nothing gets through to the client.
-This can often be a problem with proxy servers but can be avoided by using the WebSocket method.
+In this section::
+<<lbl-options>>  |  <<lbl-messages>>  |  <<lbl-compressed>>
+
+Continuous streaming HTTP responses may not be suitable for all deployments.
+Some proxy servers perform chunked-mode response parsing, which waits for the entire response to be buffered before sending it on.
+So, since the continuous feed response never ends, nothing is ever sent through to the client.
+This problem can be avoided using the WebSocket method.
 
 The client requests WebSockets by setting the `_changes` URL's feed query parameter to `websocket`, and opening a WebSocket connection to that URL:
 
@@ -78,12 +104,14 @@ Upgrade: websocket
 ...
 ----
 
+[#lbl-options]
 ==== Specifying Options
 
 After the connection opens, the client MUST send a single textual message to the server, specifying the feed options.
 This message is identical to the body of a regular HTTP POST to `_changes`, i.e. it's a JSON object whose keys are the parameters (for example, `{"since": 112233, "include_docs": true}`).
 Depending on which client you use, make sure that options are sent as binary.
 
+[#lbl-messages]
 ==== Messages
 
 Once the server receives the options, it will begin to send text-format messages. The messages are JSON;
@@ -104,6 +132,7 @@ It thus indicates that the client has "caught up" with the current state of the 
 
 The `websocket` mode behaves like the `continuous` mode: after the backlog of notifications (if any) is sent, the connection remains open and new notifications are sent as they occur.
 
+[#lbl-compressed]
 ==== Compressed Feed
 
 For efficiency, the feed can be sent in compressed form; this greatly reduces the bandwidth and is highly recommended.
@@ -188,3 +217,6 @@ The `filter` function in the second handler recognizes documents with `doc.type`
      ]
   }
 ----
+
+include::partial$block-related-content-sync.adoc[]
+
