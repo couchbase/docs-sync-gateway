@@ -1,47 +1,46 @@
-
 = Metrics REST API
 :page-layout: article
 :page-status:
-:page-edition: Developer Preview
-:page-role: -toc
+:page-edition:
+:page-role:
 :page-content: conceptual
 :description: Description of the Sync Gateway Metrics Rest API
 
 include::partial$_std-hdr-sgw.adoc[]
 
 :param-abstract: Use the API explorer to find out more about Sync Gateway's endpoints by functionality.
-:param-related: {xref-sgw-pg-rest-api}  |  {xref-sgw-pg-rest-api-admin}  |  {xref-sgw-pg-adv-rest-api-client}
+:param-related: {xref-sgw-pg-rest-api}  |  {xref-sgw-pg-rest-api-admin}  |  {xref-sgw-pg-adv-rest-api-client}  |  {xref-sgw-pg-stats-monitoring}  |  {xref-sgw-pg-stats-prometheus}
 :topic-group: REST API
 include::partial$block-abstract.adoc[]
 
-== Overview
+.Constraints
+NOTE: This API is OFF by default -- see <<ex-activate>> for details on how to activate it
 
-include::partial$block-caveats.adoc[tag="developer-preview"]
+== Introduction
 
-*This API is OFF by default*.
-To activate the API you will need to configure it using the `metricsInterface` setting in the configuration file
+Sync Gateway makes collecting performance data easy and secure by providing a Metrics REST API.
+This API -- separate from both the Public and Admin REST APIs -- exposes Sync Gateway's stats on two endpoints, which deliver the same data in one of two formats:
 
-When activated, this API exposes two endpoints:
+* The `_metrics` endpoint returns Sync Gateway statistics in {glos-term-prometheus} format. +
+[source, `GET host:/4986/_metrics` +
++
+For information on integration with Prometheus -- see {xref-sgw-pg-stats-prometheus} and our blog entry {url-blog-prometheus}.
 
-* _metrics -- which returns Sync Gateway statistics in Prometheus format +
-`GET host:/4986/_metrics`
-* _expvars -- which returns the same Sync Gateway statistics in JSON format +
+* The `_expvars` endpoint returns Sync Gateway statistics in JSON format.
 
-For information on integration with Prometheus -- see our blog entry {url-blog-prometheus}.
+Note, this Metrics REST API is off by default --  activate it see: <<lbl-act>>.
 
-.Switch on metrics interface
-====
-[source,json]
-----
-"metricsInterface": "127.0.0.1:4986"
-----
-====
+[#lbl-act]
+== Activation
+
+include::partial$prometheus-activation.adoc[]
 
 == API Explorer
-The API explorer below groups all the endpoints by functionality.
-You can click on a label to expand the list of endpoints and also generate a curl request for each endpoint.
 
-// json_config_ui::{attachmentsdir}/sync-gateway-Metrics.yaml[]
+You can browse the API using the explorer below.
+The explorer groups all the endpoints by functionality.
+Just click a label to expand the endpoints.
+You can also generate curl requests if required, for each endpoint.
 
 swagger_ui::{attachmentsdir}/sync-gateway-metrics.yaml[]
 
