@@ -8,10 +8,12 @@ include::partial$_std-hdr-sgw.adoc[]
 :param-abstract: This content explains how to integrate Sync Gateway and Prometheus to provide effective monitoring and alerts for Sync Gateway events
 include::partial$block-abstract.adoc[]
 
+.Constraints
+NOTE: The Metrics Rest API is off by default -- see: <<lbl-prom-act>> for details on how to activate it.
+
 == Introduction
 
-Sync Gateway's Metrics REST API exposes stats in a {glos-term-prometheus} compatible format.
-The `metricsInterface` is off by default; to enable it see: <<lbl-prom-act>>.
+Sync Gateway's Metrics REST API exposes stats in a {glos-term-prometheus} compatible and JSON formats.
 
 [#lbl-prom-act]
 == Activation
@@ -41,16 +43,15 @@ See also our blog entry {url-blog-prometheus}.
 
 == Configuration
 
-Configuration of Prometheus to work with Sync Gateway is governed by two files, starter copies of which are provided with Sync Gateway.
+Configuration of Prometheus to work with Sync Gateway is governed by two files, starter copies of which are provided with Sync Gateway -- see: <<ex-promyaml>> for sample file contents.
 
 Prometheus Configuration File::
 +
 --
 The provided `prometheus.yml` file specifies the configuration required to scrape the Sync{nbsp}Gateway metrics target.
-It defines Sync Gateway's `metricsInterface` as being accessible on sync_gateway:4986/_metrics.
-If you have multiple Sync Gateways, you can either statically specify all their endpoints or configure Prometheus to discover the targets.
+In this instance it defines Sync Gateway's `metricsInterface` as being accessible on `sync_gateway:4986/_metrics`.
+If you have multiple Sync Gateways, you can specify all their endpoints here (as `targets`).
 
-See: <<ex-promyaml>> to examine the contents of this file
 --
 
 Prometheus Rules File::
@@ -64,25 +65,20 @@ Sync Gateway's out-of-the-box rule set provides a starting point, which you can 
 --
 
 [#ex-promyaml]
-.Sample contents from prometheus.yaml
+.Sample file contents
+=====
+
+[tabs]
 ====
+Config --  prometheus.yaml::
++
+--
 The config file (`prometheus.yml`) specifies the configuration that the Prometheus server is launched with.
 
 [source, yaml]
 ----
-global:
-  scrape_interval:     5s # <.>
-  evaluation_interval: 5s
 
-rule_files: # <.>
-  - '/etc/prometheus/rules/*'
-
-scrape_configs:
-  - job_name: swg
-    metrics_path: /_metrics
-    static_configs:
-      - targets: # <.>
-          - sync_gateway:4986
+include::partial$prometheus-config.adoc[]
 
 ----
 
@@ -94,7 +90,27 @@ The rules file defines any custom alerts based on the collected stats.
 <.> The `targets` property specifies the list of targets making statistics available to Prometheus; here we specify Sync Gateway's `metricsInterface`. +
 If you have multiple Sync Gateways, you can specify each their endpoints here.
 Alternatively, you can configure Prometheus to discover the targets -- see https://prometheus.io/docs/[Prometheus' Docs^] for how to do this.
+--
++
+Rules - sync-gateway-rules.yaml::
++
+--
+The rules file (`sync-gateway-rules.yml`) specifies the alerting and recording rules.
 
+[source, yaml]
+----
+
+include::partial$prometheus-sync-gateway-rules.adoc[]
+
+----
+
+<.> Here we define a recording rule. +
+Recording rules allow you to compute and save the results of frequently used (or computationally expensive) expressions.
+<.> Here we define an alerting rule. +
+Alerting rules allow you to define alert conditions based on an expression and to send notifications when the expression is satisfied
+
+--
 ====
+=====
 
 include::partial$block-related-content-api.adoc[]
