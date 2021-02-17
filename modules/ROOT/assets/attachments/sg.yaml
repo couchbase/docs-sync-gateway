@@ -649,7 +649,24 @@ properties:
 
               As with the SDK, when using the `couchbase://` or `couchbases://` schemes, the port is not required, but if specified should be the external/internal bucket ports (defaults are 11210 or 11207 respectively). Attempting to use the admin ports (8091/18091) will result in a startup error.
 
+              *Alternate Addresses*
+
               On startup, Sync Gateway will try each hostname that is provided until it is able to connect successfully.
+
+              By default, if a remote cluster has an external address set, then when SG connects it will always use the external address.
+              However, it is possible to override this behavior by adding a `network` parameter to the connection string.
+
+              The `network` parameter can be --
+              - auto -- this is the default value if no parameter is provided; there is no override
+              - external -- to always force use of the external address
+              - default -- to always force use of the internal address
+
+              For example:
+              ```"server": "couchbases://my-cbs-server?network=default"```
+
+              Will force the connection to ignore any alternative external addresses configured on the Couchbase Server node.
+
+              *Lost Connections*
 
               If the connection to Couchbase Server is lost during normal operations, Sync Gateway will automatically re-connect to another node in the cluster. During that re-connection period, the Sync Gateway will appear offline -- see [Taking Databases Offline](./../database-offline.html) -- and documents will not be replicated to mobile clients.
 
