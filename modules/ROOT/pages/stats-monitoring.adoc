@@ -9,37 +9,66 @@
 :gotoIndex: <<Alphabetic Index, Back to Index Start>>
 
 include::partial$_std-hdr-sgw.adoc[]
-include::partial$block-authors-notes.adoc[tag=wip]
+
 :topic-group: Inter-Sync Gateway Replication
-:param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-admin}
+:param-related: {xref-sgw-pg-config-properties} | {xref-sgw-pg-rest-api-metrics}  | {xref-sgw-pg-stats-prometheus}
 :param-abstract:  Sync Gateway's statistics and metrics provide under-the-hood data on the performance, resource utilization and health of it nodes. This is increasingly important as deployments scale to support a large numbers of connected mobile and edge components.
 include::partial$block-abstract.adoc[]
 
+// include name attributes for stats
 include::partial$_stats-item-names.adoc[]
+
+.Constraints
+NOTE: This API is OFF by default -- see {xref-sgw-pg-rest-api-metrics} for details on how to activate it.
 
 == Introduction
 
 Deployments are increasingly scaling to support large numbers of connected mobile and edge clients.
 This places added emphasis on the effective  monitoring of the health and performance of Sync Gateway nodes.
 
-Sync Gateway's _Admin REST API_ facilitates the process of gathering this essential data by providing access to node metrics covering:
+Sync Gateway's Metrics REST API_ facilitates the process of gathering this essential data by providing access to node metrics covering:
 
 * Performance
 * Resource utilization
 * Health
 
+It also provides for integration with Prometheus.
+
 == Access the Data
 
-Use the _Admin REST API's_, *_expvars_* method to request these metrics, as shown in this `curl` command:
+Use the Metrics REST API to request the statistics in either <<lbl-metjson>> or <<lbl-metprom>>.
 
+[#lbl-metjson]
+=== JSON format
+Use the `_expvars` method to request these metrics, as shown in <<ex-metjson>>:
+
+[#ex-metjson]
+.Metrics in JSON format
+====
 [source,console]
 ----
-curl -X GET "http://localhost:4985/_expvar" -H "accept: application/json"
+curl -X GET "http://localhost:4986/_expvar" -H "accept: application/json"
 ----
+====
 
 The response is a JSON object with the schema detailed in <<Sync Gateway Stats Schema>>, use the click-through links to find out more about each item.
 
-include::partial$block-prometheus.adoc[]
+[#lbl-metprom]
+=== Prometheus format
+Use the `_metrics` method to request these metrics, as shown in <<ex-metprom>>:
+
+[#ex-metprom]
+.Metrics in Prometheus format
+====
+[source,console]
+----
+curl -X GET "http://localhost:4986/_metrics" -H "accept: application/json"
+----
+====
+
+The response, in Prometheus format, comprises the data detailed in <<Sync Gateway Stats Schema>>.
+
+This endpoint's data will be scraped at configurable interval, when the `metricsInterface` is activated and Sync Gateway integrated with Prometheus -- see: {xref-sgw-pg-stats-prometheus} and our blog entry {url-blog-prometheus}.
 
 == Sync Gateway Stats Schema
 
