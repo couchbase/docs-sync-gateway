@@ -18,52 +18,297 @@
 :param-related: {xref-sgw-pg-whatsnew}  |  {xref-sgw-pg-compatibility} | {xref-sgw-pg-supported-os}
 include::{root-partials}block-abstract.adoc[]
 
+:xref-sgw-bmk-cfg-dbsvr: xref:{sgw-pg-config-properties}#databases-this_db-server[Couchbase Server Connection String]
+:xref-sgw-bmk-cfg-hideprodvn: xref:{sgw-pg-config-properties}#hide_product_version[Hide Product Version in Headers]
+
 // END DO NOT REMOVE
 
-== Release 2.8.0 (October 2020)
-====
-<<new-features>> *|* <<improvements>> *|* <<issues-and-resolutions>> *|* <<support-notices>> *|* <<Related Content>>
-====
 
-[#new-features]
+[#lbl-rel281]
+== Release 2.8.1 (February 2021)
+====
+<<new-features-281>> *|* <<improvements-281>> *|* <<issues-and-resolutions-281>>
+====
+// tag::feature-highlights-281[]
+// tag::new-281-all[]
+
+[#new-features-281]
 === New Features
-// tag::feature-highlights[]
-:param-link1: {xref-cbl-pg-landing-p2psync}
-include::{root-partials}pn-change-log-content.adoc[tag=latest-all-new, leveloffset=+2]
 
-// end::feature-highlights[]
-[#improvements]
-=== Improvements
+// tag::features-281[]
+Metrics REST API::
+// tag::prometheus-281[]
+Release 2.8.1 sees the transition to general availability of Couchbase Sync Gateway's Metrics REST API, which was introduced as a _developer preview_ in release 2.8.0.
++
+This feature exposes Sync Gateway's extensive stats in both JSON and Prometheus-compatible format.
+For more on how to enable the integration of Sync Gateway's metrics with one of the most popular monitoring and alerting solutions -- see: {xref-sgw-pg-stats-prometheus} and {xref-sgw-pg-rest-api-metrics}.
 
-// ==== Feature Changes
-// // tag::feature-changes[]
-// include::{root-partials}pn-change-log-content.adoc[tag=latest-all-changed-features, leveloffset=+3]
+// end::prometheus-281[]
+// end::features-281[]
+// end::new-281-all[]
+// end::feature-highlights-281[]
 
-// end::feature-changes[]
+[#improvements-281]
+=== Enhancements
+// tag::enhancements-281[]
 
 ==== Configuration Changes
-include::partial$pn-change-log-content.adoc[tag=latest-all-changed-config-rn,leveloffset=+4]
 
+// tag::enhancement-highlights-281[]
+===== Custom Response Headers
+It is now possible to remove product versions from Sync Gateway responses using the `hide_product_versions` setting in the Config file.
+This customization of responses avoids revealing the version of the Sync Gateway to HTTP requests to the root path -- see: {xref-sgw-bmk-cfg-hideprodvn} and https://issues.couchbase.com/browse/CBG-1235[CBG-1235^]
+
+===== Connection String Overrides
+It is now possible to use the server connection string to override the current heuristic-driven behavior for selecting internal/external networking matches -- see: {xref-sgw-bmk-cfg-dbsvr} and https://issues.couchbase.com/browse/CBG-1276[CBG-1276^]
+
+// end::enhancement-highlights-281[]
+
+==== Other Enhancements
+
+[,cols="^2,8"]
+|===
+h|Issue|Summary
+
+|https://issues.couchbase.com/browse/CBG-1152[CBG-1152]
+|https://issues.couchbase.com/browse/CBG-1152[2.8.1 Backport --  Additional logging context for SGR2 checkpointing]
+
+|https://issues.couchbase.com/browse/CBG-1235[CBG-1235]
+|https://issues.couchbase.com/browse/CBG-1235[2.8.x Backport -- Customizable HTTP response to ""/"" (suppress headers)"]
+
+|https://issues.couchbase.com/browse/CBG-1254[CBG-1254]
+|https://issues.couchbase.com/browse/CBG-1254[2.8.1 Backport --  CBG-1244 - Add a new rev option for document_changed event handler]
+
+|https://issues.couchbase.com/browse/CBG-1267[CBG-1267]
+|https://issues.couchbase.com/browse/CBG-1267[2.8.1 Backport --  CBG-1151  - Exit early from DocChange after running callback for _sync:cfg docs]
+
+|https://issues.couchbase.com/browse/CBG-1270[CBG-1270]
+|https://issues.couchbase.com/browse/CBG-1270[2.8.1 Backport --  CBG-1253 - Add USE INDEX to index readiness queries]
+
+|https://issues.couchbase.com/browse/CBG-1274[CBG-1274]
+|https://issues.couchbase.com/browse/CBG-1274[2.8.1-backport --  Add Prometheus alert examples]
+
+|https://issues.couchbase.com/browse/CBG-1276[CBG-1276]
+|https://issues.couchbase.com/browse/CBG-1276[Implement network connstr flag for cbdatasource alt address shims]
+|===
+
+// end::enhancements-281[]
+
+
+[#issues-and-resolutions-281]
+=== Issues and Resolutions
+
+==== Known Issues
+
+
+{empty}
+
+// tag::known-281[]
+// .List of issues outstanding at this release
+
+[#tbl-known,cols="^2,8"]
+|===
+h|Issue Ref.
+h|Summary
+
+|https://issues.couchbase.com/browse/CBG-798[CBG-798]
+|https://issues.couchbase.com/browse/CBG-798[Sync Gateway requires Couchbase Server nodes to use the same SSL memcached port]
+
+|===
+
+// end::known-281[]
+
+==== Fixed Issues
+
+{empty}
+// tag::fixed-281[]
+// .List of issues resolved by this release
+[#tbl-fixed,cols="^2,8"]
+
+|===
+h|Issue Ref.
+h|Summary
+
+|https://issues.couchbase.com/browse/CBG-1203[CBG-1203]
+|https://issues.couchbase.com/browse/CBG-1203[2.8.1 Backport CBG-1194 - sgcollect_info not collecting system information]
+
+|https://issues.couchbase.com/browse/CBG-1234[CBG-1234]
+|https://issues.couchbase.com/browse/CBG-1234[2.8.1 Backport --  CBG-1231 - Prevent import cfg startup races]
+
+|https://issues.couchbase.com/browse/CBG-1252[CBG-1252]
+|https://issues.couchbase.com/browse/CBG-1252[2.8.1 Backport --  CBG-1246 - Changes limit incorrectly applied in case of CBG-946]
+
+|https://issues.couchbase.com/browse/CBG-1263[CBG-1263]
+|https://issues.couchbase.com/browse/CBG-1263[2.8.1 Backport CBG-1222 - Pre-2.8 cbgt index definitions not being removed post-upgrade]
+
+|https://issues.couchbase.com/browse/CBG-1265[CBG-1265]
+|https://issues.couchbase.com/browse/CBG-1265[2.8.1 Backport --  CBG-1163 - Missing document in changes feed when using a compound sequence number as since parameter]
+
+|https://issues.couchbase.com/browse/CBG-1311[CBG-1311]
+|https://issues.couchbase.com/browse/CBG-1311[2.8.1 Backport ISGR: Pull replications incompatible with active-side allow_conflicts=false]
+
+
+|===
+// end::fixed-281[]
+
+// tag::api-changed-281[]
+// tbd
+// end::api-changed-281[]
+
+// tag::cfg-changed-281[]
+// tbd
+// end::cfg-changed-281[]
+
+// tag::enhancements-281[]
+
+// end::enhancements-281[]
+
+[#lbl-rel280]
+== Release 2.8.0 (October 2020)
+====
+<<new-features-280>> *|* <<improvements-280>> *|* <<issues-and-resolutions-280>> *|* <<support-notices-280>> *|* <<Related Content>>
+====
+
+[#new-features-280]
+=== New Features
+// tag::feature-highlights-280[]
+// tag::new-280-all[]
+:param-link1: {xref-cbl-pg-landing-p2psync}
+
+// tag::2-8-0-inter-sync-gateway[]
+==== Inter-Sync{nbsp}Gateway Replication
+Couchbase Sync Gateway's _{glos-term-inter-sync-gateway-replication}_ feature supports _{glos-term-cloud-to-edge} synchronization_ use cases, where data changes must be synchronized between a centralized cloud cluster and a large number of edge clusters whilst still enforcing fine grained access control.
+This is an increasingly important enterprise-level requirement.
+
+Read More . . . {xref-sgw-pg-icr-sgreplicate}
+
+// end::2-8-0-inter-sync-gateway[]
+
+// tag::2-8-0-metrics[]
+==== Prometheus Monitoring Support (Developer Preview)
+
+This release gives developers the chance to try-out Couchbase Sync Gateway's new metrics API, which exposes stats in a Prometheus compatible format.
+This enables the integration of Sync Gateway's metrics with one of the most popular monitoring and alerting solutions, without resorting to external data transformation.
+
+Read More . . . {xref-sgw-pg-rest-api-metrics}
+
+// end::2-8-0-metrics[]
+// end::new-280-all[]
+// end::feature-highlights-280[]
+
+
+[#improvements-280]
+=== Enhancements
+
+
+==== Configuration Changes
+
+// tag::all-changed-280-config-rn[]
+// tag::2-8-0-config-rn[]
+// tag::2-8-0-structuralonly[]
+Sync Gateway 2.8 introduces a number of configuration file changes made to accommodate the Inter-sync-gateway replication feature.
+
+.Replication
+The database property has a new sub-property `replications`, which is used to associate an inter-Sync Gateway replication with a 'local' database.
+
+The top level `replications` configuration property and its sub-properties is deprecated. Instead, use the `database.replication` property (as above) to define replications, unless you specifically need to use the pre-2.8 version with SG{nbsp}Replicate.
+
+Note that any given database can still have multiple replications configured.
+Also, that inter-Sync Gateway replication does not support replication between two remote hosts via a third Sync Gateway; at least one database must be local.
+
+// end::2-8-0-structuralonly[]
+// end::2-8-0-config-rn[]
+// end::all-changed-280-config-rn
 See: {xref-sgw-pg-config-properties}
 
 ==== API Changes
 // – identify any REST API changes
-// tag::api-changes[]
-include::{root-partials}pn-change-log-content.adoc[tag=latest-all-changed-api, leveloffset=+4]
+// tag::api-changes-280[]
+// tag::all-changed-280-api[]
+This release introduces two new endpoints to the Admin Rest API.
 
-// end::api-changes[]
+* `_replication` - used to initialize Inter-Sync Gateway Replication
+* `_replicationStatus` - used to set or query the status of a replication
+
+The `_replicate` and `_active_tasks` endpoints are both deprecated, as they are replaced by the above.
+
+See: {xref-sgw-pg-rest-api-admin}
+
+// end::all-changed-280-api[]
+
+// end::api-changes-280[]
 ==== Other Enhancements
-include::{module-partials}pn-issues-list.adoc[tag=enhancements]
 
-[#issues-and-resolutions]
+// tag::enhancements-280[[]
+* https://issues.couchbase.com/browse/CBG-1022[CBG-1022] -- Require replication to be stopped prior to upsert
+* https://issues.couchbase.com/browse/CBG-921[CBG-921] -- Ignore transaction ATR documents during DCP processing
+* https://issues.couchbase.com/browse/CBG-905[CBG-905] -- Support using custom OIDC claim as Sync Gateway username
+* https://issues.couchbase.com/browse/CBG-880[CBG-880] -- Python 3 support for sgcollect
+* https://issues.couchbase.com/browse/CBG-877[CBG-877] -- Remove inappropriate logging warning related JSON parsing from ReadJSONFromMIME when request body is empty
+* https://issues.couchbase.com/browse/CBG-876[CBG-876] -- Include Bearer prefix when sending token base authentication request in OIDC E2E tests
+* https://issues.couchbase.com/browse/CBG-864[CBG-864] -- Improve addJSON-related error handling
+* https://issues.couchbase.com/browse/CBG-821[CBG-821] -- Limit on channel queries triggered by 2.x replication
+* https://issues.couchbase.com/browse/CBG-820[CBG-820] -- Add state for OIDC auth code authentication
+* https://issues.couchbase.com/browse/CBG-803[CBG-803] -- Support for OIDC provider config refresh
+* https://issues.couchbase.com/browse/CBG-802[CBG-802] -- Being able to configure OIDC Test Provider with HTTPS
+* https://issues.couchbase.com/browse/CBG-801[CBG-801] -- Auto-generated OIDC callback URL should include provider when non-default
+* https://issues.couchbase.com/browse/CBG-800[CBG-800] -- OnDemandImportForWrite bypasses migrate handling
+* https://issues.couchbase.com/browse/CBG-752[CBG-752] -- sgcollect: Re-gzip rotated logfiles post-redaction, clean up intermediate extracted files
+* https://issues.couchbase.com/browse/CBG-751[CBG-751] -- Improve REST-based sgcollect_info options validation
+* https://issues.couchbase.com/browse/CBG-719[CBG-719] -- Update OIDC library
+* https://issues.couchbase.com/browse/CBG-714[CBG-714] -- Log warning on ignored, invalid channel data
+* https://issues.couchbase.com/browse/CBG-709[CBG-709] -- Inter-Sync Gateway Replication
+* https://issues.couchbase.com/browse/CBG-697[CBG-697] -- SGW startup routine could use more retry logic while CBS warms up
+* https://issues.couchbase.com/browse/CBG-688[CBG-688] -- Improve logging for x.509 connection errors
+* https://issues.couchbase.com/browse/CBG-673[CBG-673] -- Include USE INDEX hint with channel queries
+* https://issues.couchbase.com/browse/CBG-665[CBG-665] -- Make trace level logging a typical file logger
+* https://issues.couchbase.com/browse/CBG-664[CBG-664] -- Enhance trace logging for blip messages
+* https://issues.couchbase.com/browse/CBG-658[CBG-658] -- Optimize LogKey string lookup
+* https://issues.couchbase.com/browse/CBG-653[CBG-653] -- Add 'norev' BLIP handler to log detailed error information
+* https://issues.couchbase.com/browse/CBG-640[CBG-640] -- Wrong content type for _user and _role
+* https://issues.couchbase.com/browse/CBG-633[CBG-633] -- Clean up duplicate db definitions in blipHandler/blipSyncContext
+* https://issues.couchbase.com/browse/CBG-630[CBG-630] -- Validate whether multiple databases connect to the same bucket
+* https://issues.couchbase.com/browse/CBG-624[CBG-624] -- Add database config option for HttpOnly cookies
+* https://issues.couchbase.com/browse/CBG-622[CBG-622] -- Use secure cookies when SG is configured to listen over TLS
+* https://issues.couchbase.com/browse/CBG-600[CBG-600] -- sgcollect_info TMPDIR setting should be a real argument
+* https://issues.couchbase.com/browse/CBG-585[CBG-585] -- Avoid log redaction cost via UD/MD/SD when log-level disabled
+* https://issues.couchbase.com/browse/CBG-581[CBG-581] -- Write simple JSON HTTP responses directly as raw bytes
+* https://issues.couchbase.com/browse/CBG-437[CBG-437] -- Return error when receiving deltas for deltaSrc revisions which are tombstoned
+
+// end::enhancements-280[[]
+
+[#issues-and-resolutions-280]
 === Issues and Resolutions
+
 ==== Known Issues
-include::{module-partials}pn-issues-list.adoc[tag=knownissues]
+
+// tag::knownissues-280[]
+* https://issues.couchbase.com/browse/CBG-1127[CBG-1127] -- 	Treat resurrected tombstones as non-conflict when no shared history
+* https://issues.couchbase.com/browse/CBG-798[CBG-798] -- Sync Gateway requires Couchbase Server nodes to use the same SSL memcached port
+
+// end::knownissues-280[]
 
 ==== Fixed Issues
-include::{module-partials}pn-issues-list.adoc[tag=fixed]
 
-[#support-notices]
+// tag::fixed-280[]
+* https://issues.couchbase.com/browse/CBG-1072[CBG-1072] -- CAS race can result in unordered recentSequences
+* https://issues.couchbase.com/browse/CBG-983[CBG-983] -- _all_docs with keys parameter not returning revID
+* https://issues.couchbase.com/browse/CBG-951[CBG-951] -- Deleted documents should set _deleted:true for import filter function
+* https://issues.couchbase.com/browse/CBG-946[CBG-946] -- Repeated change entries on access grant to doc's previous channel
+* https://issues.couchbase.com/browse/CBG-926[CBG-926] -- User name not being logged for initial HTTP request
+* https://issues.couchbase.com/browse/CBG-819[CBG-819] -- Generate empty delta as {} instead of null
+* https://issues.couchbase.com/browse/CBG-812[CBG-812] -- Running compact when UseViews=true causes an infinite loop
+* https://issues.couchbase.com/browse/CBG-744[CBG-744] -- OldDoc body in sync function for tombstone resurrections does not contain _deleted=true
+* https://issues.couchbase.com/browse/CBG-743[CBG-743] -- Doc body in sync function contains _deleted=false
+* https://issues.couchbase.com/browse/CBG-741[CBG-741] -- 403 Attachment's doc not being synced during CBL replication
+* https://issues.couchbase.com/browse/CBG-731[CBG-731] -- Channels query performance degradation when using limit
+* https://issues.couchbase.com/browse/CBG-727[CBG-727] -- Panic when connecting to non-standard memcached port using couchbase(s):// scheme
+* https://issues.couchbase.com/browse/CBG-695[CBG-695] -- Alternate addresses are always used if defined instead of applying heuristic
+* https://issues.couchbase.com/browse/CBG-661[CBG-661] -- Errors from REST API produce invalid JSON
+
+// end::fixed-280[]
+
+[#support-notices-280]
 === Support Notices
 This section documents any support-related notes, constraints and changes
 
@@ -73,13 +318,45 @@ Items (features and-or functionality) are marked as deprecated when a more curre
 Whilst the deprecated item will remain usable, it is no longer supported, and will be removed in a future release.
 You should plan to move to an alternative, supported, solution as soon as practical.
 
-// ===== This Release
-// include::{root-partials}block-deprecations.adoc[tag={param-platform}-new]
-include::{module-partials}pn-issues-list.adoc[tag=deprecated, leveloffset=3]
-// * {empty}
-// +
-// include::{root-partials}block-deprecations.adoc[tag=any-platform-new]
+// tag::deprecated-280[]
+// tag::dnsgw-28[] all deprecations for the release
+// tag::dnsgw-28-001-sgr1[]
+===== SG{nbsp}Replicate replication protocol
+// tag::dnsgw-28-001-sgr1-announce[]
+SG{nbsp}Replicate is deprecated in Sync Gateway version 2.8.
+You should plan your transition to inter-Sync Gateway replication now to avoid potential issues when this functionality is removed -- see https://issues.couchbase.com/browse/CBG-904?src=confmacro[CBG-904]
+// end::dnsgw-28-001-sgr1-announce[]
 
+// tag::dnsgw-28-001-sgr1-impact[]
+The functionality of SG{nbsp}Replicate remains unchanged, unless explicitly stated in these release notes and-or in the appropriate documentation section.
+Refer to {xref-sgw-pg-upgrade} for more information on upgrading from SG Replicate to Inter-Sync Gateway replication.
+// end::dnsgw-28-001-sgr1-impact[]
+
+===== Configuration deprecations
+// tag::dnsgw-28-001-sgr1-specifics[]
+// tag::dnsgw-28-001-sgr1-cfg[]
+https://issues.couchbase.com/browse/CBG-904[CBG-904] -- The SG Replicate configuration method is deprecated at version 2.8.
+
+Replications configured at the configuration file's root level will continue to function, but you should configure new replications under the appropriate database using the `databases.{dbname}.replications.{replication_id}` property.
+
+// end::dnsgw-28-001-sgr1-cfg[]
+
+===== REST API Deprecations
+// tag::dnsgw-28-001-sgr1-endpoints[]
+https://issues.couchbase.com/browse/CBG-904[CBG-904] These SG Replicate REST endpoints are deprecated:
+
+* `_active_tasks` -- superseded by new monitoring endpoint
+* `_replicate` -- superseded by the `_replication` endpoint
+
+// end::dnsgw-28-001-sgr1-endpoints[]
+// end::dnsgw-28-001-sgr1-specifics[]
+// end::dnsgw-28-001-sgr1
+
+===== Operating Systems
+Support for Microsoft Windows 2012 (64-bit) is deprecated
+
+// end::dnsgw-28[]
+// end::deprecated-280[]
 // ===== Ongoing
 // include::{root-partials}block-deprecations.adoc[tag=any-platform-ongoing]
 // include::{root-partials}block-deprecations.adoc[tag={param-platform}-ongoing]
