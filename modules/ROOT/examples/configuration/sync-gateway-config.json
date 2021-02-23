@@ -761,6 +761,7 @@ function sync(doc, oldDoc) {
                             var localDoc = conflict.LocalDocument;
                             console.log("full localDoc doc: "+JSON.stringify(localDoc));
                             var mergedDoc = extend({}, localDoc, remoteDoc);
+                            delete mergedDoc._rev // <.>
 
                             console.log("full mergedDoc doc: "+JSON.stringify(mergedDoc));
                             // Resolve using this merged doc as the winner
@@ -770,7 +771,9 @@ function sync(doc, oldDoc) {
                                 var sources = [].slice.call(arguments, 1);
                                 sources.forEach(function (source) {
                                     for (var prop in source) {
+                                      if (prop.indexOf('_') != 0) { // <.>
                                         target[prop] = source[prop];
+                                      }
                                     }
                                 });
                                 return target;
