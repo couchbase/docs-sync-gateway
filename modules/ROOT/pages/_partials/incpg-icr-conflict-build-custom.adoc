@@ -22,6 +22,10 @@ There are two ways to handle conflicts in your custom_conflict_resolver, you can
 * Choose a _winning_ revision from among the conflicting revisions (see <<simple-conflict-resolvers>>), or
 * Merge conflicting revision to create a new _winning_ revision; losing revisions are tomb-stoned.
 +
+NOTE: When creating a new revision, do not provide a `_rev` property.
+A new revision ID will be generated.
+Use `delete mergedDoc._rev` to invalidate the property.
++
 However, users should avoid overly-complex resolver logic that may impact performance.
 
 == Approaches to Error Handling
@@ -116,13 +120,18 @@ This example creates a winner by merging changes from the local and remote docum
 
 If both document.types are non-null and the local document.type is `usedefault`, the merge path is overridden and the default resolver policy is applied.
 
-//- In the merge case, winner[revid] must be empty.
 //   - If an nil Body is returned, the conflict should be resolved as a deletion/tombstone.
 
 [source,json]
 ----
 include::{example-cfg}[tags=icr-simple-merge-conflict-resolver, indent=0]
 ----
+<.> Invalidate the `_rev` property.
+A new revision ID will be generated.
+<.> Transcribe properties from source to target.
++
+
+NOTE: The `IF` block is temporary. It circumvents the known_issue https://issues.couchbase.com/browse/CBG-1335[CBG-1335], which results in a revision ID mismatch.
 --
 ====
 =====
