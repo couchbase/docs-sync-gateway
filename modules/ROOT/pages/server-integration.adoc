@@ -1,75 +1,42 @@
-= Webhooks and Changes Feed
+= Changes Feed
 :description: Integrating Sync Gateway with other servers
 :idprefix:
 :idseparator: -
 
 include::partial$_std-hdr-sgw.adoc[]
 
-:topic-group: deploy
-:param-related!:
-// {xref-sgw-pg-config-properties}  |  {xref-sgw-pg-rest-api-admin} |    {xref-sgw-pg-config-properties-databases}  |  {xref-sgw-pg-config-properties-databases-sync}
-
-:param-abstract: This content provides approaches for integrating Sync Gateway with other servers to build services that react to document changes.
+:topic-group: integration
+:param-related: {xref-sgw-pg-events}  |  {xref-pfx-sgw}{sgw-pg-integrating-external-stores}[External Stores]  |  {xref-sgw-pg-stats-prometheus}
+:param-abstract: This content describes how to use the changes feed to integrate Sync Gateway with other servers to build services that react to document changes.
 include::partial$block-abstract.adoc[]
 
 :url-couchdb: http://guide.couchdb.org/draft/notifications.html
 
 == Introduction
 
-By adopting the approaches documented here you can build responsive services that react to changes in documents, adding value to the end to end process.
+Sync Gateway provides the ability to extend the replication process and build responsive services that react to changes in documents, adding value to the end to end process.
 
-The use cases for these approaches to Sync Gateway integration with other servers comprise:
+For example, you can initiate the sending of notifications, or specialist audit processes, when certain document changes are detected.
+This can be done using either the changes feed or xref:{sgw-pg-events}[document_changed events] -- see  <<tbl-scenarios>> for a comparison of these scenarios.
 
-* Sending notifications when specific documents change, for example, by email or SMS
-* Customized auditing or logging
-
-These approaches include using the following change indicators, a comparison of which can be seen in <<tbl-scenarios>>:
-
-<<changes-feed>>::
-The changes feed returns a sorted list of changes made to documents in the database.
-<<webhooks>>::
-Sync Gateway can detect document updates and post the updated documents to one or more external URLs.
-
-.Scenarios by API
-[#tbl-scenarios,cols="1,^1,^1",width="80%"]
-|===
-|Scenario |Changes feed (pull) |Webhooks (push)
-
-|Sequence/Ordered
-|Yes
-|No
-
-|User Access Control
-|Fine Grain
-|Limited
-
-|Scalable
-|Yes
-|No
-
-|Data Stream replay on Failure
-|Yes
-|No
-|===
+include::partial$server-integration-scenario-table.adoc[]
 
 == Changes Feed
-
-In this section::
-<<lbl-endpoint>>  |  <<lbl-methods>>  | <<lbl-websockets>>
+The changes-feed for the reliever returns a sorted list of changes made to documents in the database.
 
 This article describes how to use the changes feed API to integrate Sync Gateway with other backend processes.
 For instance if you have a channel called "needs-email" you could have a bot that sends an email and then saves the document back with a flag to keep it out of the "needs-email" channel.
 
 [#lbl-endpoint]
-=== Endpoint
+== Endpoint
 
 The changes feed API is a REST API endpoint (xref:rest-api.adoc#/database/get\__db___changes[`+/{tkn-db}/_changes+`]) that returns a sorted list of changes made to documents in the database.
 It permits applications to implement business logic that reacts to changes in documents.
 
 [#lbl-methods]
-=== Methods
+== Methods
 There are several methods of connecting to the changes feed (also know as the feed type).
-The first 3 methods (`polling`, `longpoll` and `continuous`) are based on the CouchDB API.
+The first three methods (`polling`, `longpoll` and `continuous`) are based on the CouchDB API.
 The last method (`websocket`) is specific to Sync Gateway.
 
 {url-couchdb}#polling[polling^] (default)::
@@ -80,11 +47,11 @@ In addition to regular polling, if the request is sent with a special `last_seq`
 {url-couchdb}#continuous[continuous^]::
 The continuous changes API allows you to receive change notifications as they come, in a single HTTP connection.
 You make a request to the continuous changes API and both you and Sync Gateway will hold the connection open “forever.”
-<<websockets>>::
+<<lbl-websockets>>::
 The WebSocket mode is conceptually the same as continuous mode but it should avoid issues with proxy servers and gateways that cause continuous mode to fail in many real-world mobile use cases.
 
 [#lbl-websockets]
-=== WebSockets
+== WebSockets
 
 In this section::
 <<lbl-options>>  |  <<lbl-messages>>  |  <<lbl-compressed>>
@@ -94,35 +61,41 @@ Some proxy servers perform chunked-mode response parsing, which waits for the en
 So, since the continuous feed response never ends, nothing is ever sent through to the client.
 This problem can be avoided using the WebSocket method.
 
-The client requests WebSockets by setting the `_changes` URL's feed query parameter to `websocket`, and opening a WebSocket connection to that URL:
+The client requests WebSockets by setting the `_changes` URL's feed query parameter to `websocket`, and opening a WebSocket connection to that URL -- see: <<ex-getfeed>>.
 
-[source]
+[#ex-getfeed]
+.Changes Feed Request
+====
+[source, html]
 ----
 GET /db/_changes?feed=websocket HTTP/1.1
 Connection: Upgrade
 Upgrade: websocket
 ...
 ----
+====
 
 [#lbl-options]
-==== Specifying Options
-
+=== Specifying Options
 After the connection opens, the client MUST send a single textual message to the server, specifying the feed options.
 This message is identical to the body of a regular HTTP POST to `_changes`, i.e. it's a JSON object whose keys are the parameters (for example, `{"since": 112233, "include_docs": true}`).
 Depending on which client you use, make sure that options are sent as binary.
 
 [#lbl-messages]
-==== Messages
+=== Messages
+Once the server receives the options, it will begin to send text-format messages.
+The messages are JSON; each contains one or more change notifications (in the same format as the regular feed) wrapped in an array -- see: <<ex-msg>>.
 
-Once the server receives the options, it will begin to send text-format messages. The messages are JSON;
-each contains one or more change notifications (in the same format as the regular feed) wrapped in an array:
-
-[source]
+[#ex-msg]
+.Sample Message
+====
+[source, bash]
 ----
 [ {"seq":1022,"id":"beer_Indiana_Amber","changes":[{"rev":"1-e8f6b2e1f220fa4c8a64d65e68469842"}]},
   {"seq":1023,"id":"beer_Iowa_Pale_Ale","changes":[{"rev":"1-db962c6d93c3f1720cc7d3b6e50ac9df"}]}
 ]
 ----
+====
 
 (The current server implementation sends at most one notification per message, but this could change.
 Clients should accept any number.)
@@ -133,7 +106,7 @@ It thus indicates that the client has "caught up" with the current state of the 
 The `websocket` mode behaves like the `continuous` mode: after the backlog of notifications (if any) is sent, the connection remains open and new notifications are sent as they occur.
 
 [#lbl-compressed]
-==== Compressed Feed
+=== Compressed Feed
 
 For efficiency, the feed can be sent in compressed form; this greatly reduces the bandwidth and is highly recommended.
 
@@ -147,76 +120,6 @@ The compressed messages sent from the server constitute a single stream of gzip-
 They cannot be decompressed individually!
 Instead, the client should open a gzip decompression session when the feed opens, and write each binary message to it as input as it arrives.
 The output from the decompressor consists of a sequence of JSON arrays, each of which has the same interpretation as a text message (above).
-
-== Webhooks
-
-Since Sync Gateway 1.1, you can configure webhooks to detect document changes and to post changed documents to URLs that you specify.
-In more detail, the steps for a single webhook event handler are:
-
-. *Raise and listen for events*: Document changes (creations, updates, and deletions) that are made through Sync Gateway's Public REST API, including document changes that result from Couchbase Lite push replications, raise events that webhook event handlers listen for.
-. *Filter*: You can define a `filter` function to examine the contents of the changed documents, and to decide which ones to post.
-. *Post*: Sync Gateway uses asynchronous HTTP or HTTPS POSTs to post the changed documents identified by the `filter` function to the specified URL.
-Without a `filter` function, Sync Gateway posts all changed documents.
-
-You can define multiple webhook event handlers.
-For example, you could define webhooks with different filtering criteria and that post changed documents to different URLs.
-
-CAUTION: Webhooks post your application's data, which might include user data, to URLs.
-Consider the security implications.
-
-=== When events are raised
-
-Sync Gateway raises a `document_changed` event every time it writes a document to a Couchbase Server bucket, such as during a Couchbase Lite push replication session.
-
-You can configure event handlers for webhooks with the {xref-sgw-pfx-config-properties}#databases-this_db-event_handlers[event_handlers] property in the database configuration section of the JSON configuration file.
-
-==== Examples
-
-Following is a simple example of a `webhook` event handler.
-In this case, a single instance of a `webhook` event handler is defined for the event `document_changed`.
-Every time a document changes, the document is sent to the URL `+http://someurl.com+`.
-
-[source,javascript]
-----
-"event_handlers": {
-    "document_changed": [
-        {
-            "handler": "webhook",
-            "url": "http://someurl.com"
-        }
-    ]
-}
-----
-
-Following is an example that defines two `webhook` event handlers.
-The `filter` function in the first handler recognizes documents with `doc.type` equal to `A` and posts the documents to the URL `+http://someurl.com/type_A+`.
-The `filter` function in the second handler recognizes documents with `doc.type` equal to B and posts the documents to the URL `+http://someurl.com/type_B+`.
-
-[source,javascript]
-----
-"event_handlers": {
-      "document_changed": [
-        {"handler": "webhook",
-         "url": "http://someurl.com/type_A",
-         "filter": `function(doc) {
-              if (doc.type == "A") {
-                return true;
-              }
-              return false;
-            }`
-         },
-        {"handler": "webhook",
-         "url": "http://someurl.com/type_B",
-         "filter": `function(doc) {
-              if (doc.type == "B") {
-                return true;
-              }
-              return false;
-            }`
-        }
-     ]
-  }
-----
 
 include::partial$block-related-content-sync.adoc[]
 
