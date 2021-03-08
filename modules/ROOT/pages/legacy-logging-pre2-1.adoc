@@ -1,6 +1,10 @@
-= Log rotations pre 1.4
+= Log Rotation [DEPRECATED]
+:page-aliases: learn/logging-legacy-pre2-1.adoc
+
 include::partial$_std-hdr-sgw.adoc[]
-CAUTION: DEPRECATED]
+
+[abstract]
+This log rotation content was deprecated in Sync Gateway.1 and applies only to pre-2.1 versions.
 
 == Built-in log rotation
 
@@ -101,18 +105,19 @@ For users that want to migrate to the new logging config to write to a log file 
     }
 }
 ----
+
 == OS log rotation
 
 In production environments it is common to rotate log files to prevent them from taking too much disk space, and to support log file archival.
 
-Sync gateway writes log statements to `stderr`. This is normally redirected to a log file by starting Sync Gateway with a command similar to the following:
+By default Sync gateway will write log statements to stderr, normally stderr is redirected to a log file by starting Sync Gateway with a command similar to the following:
 
 [source,bash]
 ----
 sync_gateway sync_gateway.json 2>> sg_error.log
 ----
 
-On Linux you can use `logrotate` to monitor and rotate log files. This can be triggered at fixed time intervals or on reaching a certain size.
+On Linux the logrotate tool can be used to monitor log files and rotate them at fixed time intervals or when they reach a certain size.
 Below is an example of a logrotate configuration that will rotate the Sync Gateway log file once a day or if it reaches 10M in size.
 
 [source]
@@ -184,5 +189,4 @@ This command can be added to the logrotate configuration using the 'postrotate' 
     endscript
 }
 ----
-
 After renaming the log file logrotate will send the `SIGHUP` signal to the `sync_gateway` process, Sync Gateway will close the existing log file and open a new file at the original path, no log entries will be lost.
