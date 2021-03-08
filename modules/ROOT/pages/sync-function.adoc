@@ -1,5 +1,24 @@
+// BEGIN -- PAGE -- sync-function.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/pages/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+//  INCLUSION USAGE --
+//    This module uses attributes from:
+//    - /modules/ROOT/pages/_partials/_page-index.adoc -- xref page links
+//
+//    This module uses these inclusions:
+//    - /modules/ROOT/pages/_partials/_std-hdr-sgw.adoc -- std attribute environment
+//    - /modules/ROOT/pages/_partials/block-abstract.adoc --  std text block for page header content
+//    - /modules/ROOT/pages/_partials/block-related-content-deploy.adoc --  std text block for page footer content
+//    - modules/ROOT/assets/images -- .png/.jpeg images
+//  INCLUSION USAGE
+// END PAGE DEFINITION
 = Sync Function
-:page-aliases: sync-function-api, sync-function
+:page-aliases: sync-function-api, advance/adv-sgw-cfg-sync-function.adoc
 :page-layout: article
 :page-status:
 :page-edition:
@@ -11,7 +30,7 @@
 include::partial$_std-hdr-sgw.adoc[]
 
 :topic-group: {tg-sgw-cfg}
-:param-related: {xref-sgw-pg-config-properties}  |  {xref-sgw-pg-rest-api-admin} |    {xref-sgw-pg-config-properties-databases}  |  {xref-sgw-pg-config-properties-databases-sync}
+:param-related: {configuration-properties-xref}  |  {rest-api-admin-xref} |    {configuration-properties-xref--databases}  |  {configuration-properties-xref--databases-sync}
 :param-abstract: This content provides an overview of sync function definition describing th options and providing a working example.
 include::partial$block-abstract.adoc[]
 
@@ -38,7 +57,7 @@ Configuration properties:
 <4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with GSI/N1QL indexing -- see {xref-sgw-pg-indexing}.
 If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
 <5> The sync function -- a javascript function enclosed in backticks, which is actioned every time a new document, document revision or deletion is made to a database -- see the:
- {xref-sgw-pfx-config-properties}#databases-this_db-sync[databases.$db.sync] property.
+ {configuration-properties-pfx}#databases-this_db-sync[databases.$db.sync] property.
 ====
 
 == Function Definition
@@ -69,7 +88,7 @@ Otherwise it's `null`.
 (In the case of a document with conflicts, the current provisional winning revision is passed in `oldDoc`.)
 Your implementation of the sync function can omit the `oldDoc` parameter if you do not need it (JavaScript ignores extra parameters passed to a function).
 
-If you don't supply a sync function, Sync Gateway uses the {xref-sgw-pfx-config-properties}#databases-this_db-sync[default Sync Function].
+If you don't supply a sync function, Sync Gateway uses the {configuration-properties-pfx}#databases-this_db-sync[default Sync Function].
 
 
 == channel(channelname)
@@ -252,7 +271,7 @@ Under the hood, the expiration time is set and managed on the Couchbase Server d
 
 * *ISO-8601 format:* for example the 6th of July 2016 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`;
 * *as a numeric Couchbase Server expiry value:* Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server).
-The document expiration time is returned in the response of GET xref:{sgw-pg-rest-api}#/document/get\__db___doc_[+/{tkn-db}/{doc}+] when `show_exp=true` is included in the querystring.
+The document expiration time is returned in the response of GET xref:{rest-api-page}#/document/get\__db___doc_[+/{tkn-db}/{doc}+] when `show_exp=true` is included in the querystring.
 
 The behavior on the resulting document when the expiry value is reached depends on the following:
 
@@ -323,3 +342,6 @@ function (doc, oldDoc) {
 ----
 
 include::partial$block-related-content-sync.adoc[]
+
+
+// END -- PAGE -- sync-function.adoc

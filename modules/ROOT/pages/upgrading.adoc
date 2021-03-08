@@ -1,6 +1,25 @@
-= Upgrade Sync Gateway
+// BEGIN -- PAGE -- upgrading.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/pages/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+//  INCLUSION USAGE --
+//    This module uses attributes from:
+//    - /modules/ROOT/pages/_partials/_page-index.adoc -- xref page links
+//
+//    This module uses these inclusions:
+//    - /modules/ROOT/pages/_partials/_std-hdr-sgw.adoc -- std attribute environment
+//    - /modules/ROOT/pages/_partials/block-abstract.adoc --  std text block for page header content
+//    - /modules/ROOT/pages/_partials/block-related-content-deploy.adoc --  std text block for page footer content
+//    - modules/ROOT/assets/images -- .png/.jpeg images
+//  INCLUSION USAGE
+// END PAGE DEFINITION
+= Upgrading Sync Gateway
+:page-aliases: advance/deploy/upgrade.adoc, upgrade.adoc
 :page-layout: article
-:page-aliases: upgrade.adoc
 :page-role:
 :page-status:
 :page-content: procedural
@@ -13,11 +32,11 @@ include::partial$_std-hdr-sgw.adoc[]
 :sc3title: Change to SGR-Replicate 2.0 (default conflict resolution)
 :sc4title: Change to SGR-Replicate 2.0 (custom conflict resolution)
 
-:xref-sgw-bmk-gs-sgw-prereqs-cfg-svr: xref:{sgw-pg-gs-sgw-prereqs}#configure-server.html[Configure Server for Sync Gateway]
+:xref-sgw-bmk-get-started-prepare-cfg-svr: xref:{sgw-pg-get-started-prepare}#configure-server.html[Configure Server for Sync Gateway]
 
 :param-abstract:
 :topic-group: Application Deployment
-:param-related: {xref-sgw-pg-gs-sgw-prereqs} | {xref-sgw-pg-gs-sgw-install} | {xref-sgw-pg-release-notes}
+:param-related: {get-started-prepare-xref} | {get-started-install-xref} | {xref-sgw-pg-release-notes}
 include::partial$block-abstract.adoc[]
 
 == Upgrade Approaches
@@ -60,7 +79,7 @@ Then, Sync Gateway will wait until indexes are available before starting to serv
 === Tidy-up
 Sync Gateway 2.1 or above will *not* automatically remove the previously used design documents.
 
-Removal of the obsolete design documents is done via a call to the {xref-sgw-pfx-admin-rest-api}#/server/post__post_upgrade[+/_post_upgrade+] endpoint in Sync Gateway`'s Admin REST API.
+Removal of the obsolete design documents is done via a call to the {rest-api-admin-pfx}#/server/post__post_upgrade[+/_post_upgrade+] endpoint in Sync Gateway`'s Admin REST API.
 This endpoint can be run in preview mode (`?preview=true`) to see which design documents would be removed.
 
 
@@ -110,7 +129,7 @@ If the view request exceeds the default timeout of 75s (which would be expected 
 === Tidy-up
 Sync Gateway 2.0 will *not* automatically remove the previous design documents.
 
-Removal of the obsolete design documents is done via a call to the new {xref-sgw-pfx-admin-rest-api}#/server/post\__post_upgrade[`_post_upgrade`] endpoint in Sync Gateway's Admin REST API.
+Removal of the obsolete design documents is done via a call to the new {rest-api-admin-pfx}#/server/post\__post_upgrade[`_post_upgrade`] endpoint in Sync Gateway's Admin REST API.
 This endpoint can be run in preview mode (`?preview=true`) to see which design documents would be removed.
 
 
@@ -127,7 +146,7 @@ In this upgrade path, the upgrade process will trigger views in Couchbase Server
 During the re-indexing, operations that are dependent on those views will not be available.
 The main operations relying on views to be indexed are:
 
-* A user requests data that doesn't reside in the {xref-sgw-pfx-config-properties}#databases-this_db-cache-channel_cache_max_length[channel cache].
+* A user requests data that doesn't reside in the {configuration-properties-pfx}#databases-this_db-cache-channel_cache_max_length[channel cache].
 * A new channel or role is granted to a user in the {xref-sgw-pg-adv-sgw-cfg-sync-function}.
 
 The unavailability of those operations may result in some requests not being processed.
@@ -207,9 +226,9 @@ This will match the Development Design Document we just indexed, so will be avai
 
 == Couchbase Server Upgrade Paths
 
-NOTE: When upgrading your Couchbase Server from 4.x to 5.x, remember to create a Sync Gateway RBAC user on the server -- see: {xref-sgw-bmk-gs-sgw-prereqs-cfg-svr} -- and to include the user's credentials username/password in you Sync-Gateway-Config.json file.
+NOTE: When upgrading your Couchbase Server from 4.x to 5.x, remember to create a Sync Gateway RBAC user on the server -- see: {xref-sgw-bmk-get-started-prepare-cfg-svr} -- and to include the user's credentials username/password in you Sync-Gateway-Config.json file.
 
-All of the different upgrade paths mentioned above assume that you are running a compatible Couchbase Server version -- see {xref-sgw-pg-compatibility}.
+All of the different upgrade paths mentioned above assume that you are running a compatible Couchbase Server version -- see {compatibility-xref}.
 
 There are three commonly used upgrade approaches for Couchbase Server.
 Depending on the one you choose, there may be additional consideration to keep in mind when using Sync Gateway:
@@ -258,13 +277,13 @@ Caveats:
 == SG Replicate to Inter-Sync Gateway
 
 === Out of the box behavior
-Any {xref-sgw-pg-config-properties-db-replications} ({xref-sgw-pg-config-properties-db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {xref-sgw-pg-config-properties-databases} section will run using the SG{nbsp}Replicate protocol.
-This is subject to any compatibility constraints defined in the {xref-sgw-pg-compatibility}.
+Any {configuration-properties-xref--db-replications} ({configuration-properties-xref--db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {configuration-properties-xref--databases} section will run using the SG{nbsp}Replicate protocol.
+This is subject to any compatibility constraints defined in the {compatibility-xref}.
 
 Existing replications implementing custom {xref-sgw-pg-resolving-conflicts} strategies (via the REST endpoint) will continue to function in the same manner as for SG{nbsp}Replicate replications after upgrade
 
 === Upgrading existing replications
-To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replication, reconfigure them using Inter-Sync Gateway Replication's {xref-sgw-pg-config-properties-db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
+To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replication, reconfigure them using Inter-Sync Gateway Replication's {configuration-properties-xref--db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
 
 === Post-upgrade behavior
 
@@ -279,7 +298,7 @@ The `replicationId` is used to ensure that any replications previously setup wit
 The restart point will be the last checkpoint used, unless over-ridden.
 
 Over-riding restart point::
-To restart a sync from zero: After the upgrade reconfigure the inter-Sync Gateway replication {xref-sgw-pg-config-properties-db-replications} to use a different {xref-sgw-pg-config-properties-db-rep-id}
+To restart a sync from zero: After the upgrade reconfigure the inter-Sync Gateway replication {configuration-properties-xref--db-replications} to use a different {configuration-properties-xref--db-rep-id}
 
 === Constraints
 
@@ -433,13 +452,13 @@ Strategy::
 * Upgrade sequence
 .. Stop SG{nbsp}Replicate replications
 // .. Remove the SG{nbsp}Replicate replication configuration
-.. Add the Inter-Sync Gateway replication configuration, including Javascript function as {xref-sgw-pg-config-properties-db-rep-resolver}
+.. Add the Inter-Sync Gateway replication configuration, including Javascript function as {configuration-properties-xref--db-rep-resolver}
 .. Upgrade each cluster to Hydrogen
 * Restart Outcomes
 ** When the active cluster is restarted it will automatically switch to Inter-Sync Gateway Replication
 ** Replication will continue from the last checkpoint, unless over-ridden.
 ** {enterprise} The replication will distribute automatically
-* Conflict resolution -- Conflicts will be handled by the function  specified as the as {xref-sgw-pg-config-properties-db-rep-resolver}
+* Conflict resolution -- Conflicts will be handled by the function  specified as the as {configuration-properties-xref--db-rep-resolver}
 * Upgrade Constraint -- The `allow_conflicts` flag is ignored for any inter-Sync Gateway replication replications configured.
 ====
 --
@@ -540,12 +559,13 @@ The following steps outline a recommended method for migrating from Bucket Shado
 . Follow the recommendations in the xref:server:install:upgrade-online.adoc[Couchbase Server documentation] to upgrade all instances to 5.0.
 . Create a new bucket on Couchbase Server (*bucket 2*).
 . Install Sync Gateway 1.5 on a separate node with shared access enabled and connect it to the new bucket (*bucket 2*).
-. Setup a xref:{sgw-pg-icr-sgreplicate-sgr1}[push replication] from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.
+. Setup a xref:{legacy-sg-replicate-page}[push replication] from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.
 . Once the replication has completed, test your application is performing as expected.
 . Update the load balancer to direct incoming traffic to the Sync Gateway 1.5 instance when you are ready to upgrade.
 . Delete the first bucket (*bucket 1*).
 
 image:bucket-shadowing-migration.png[]
 
-
 include::partial$block-related-content-deploy.adoc[]
+
+// END -- PAGE -- upgrading.adoc
