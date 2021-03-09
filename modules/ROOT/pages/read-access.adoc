@@ -1,5 +1,32 @@
+// BEGIN -- PAGE -- read-access.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/pages/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+//  INCLUSION USAGE --
+//    This module uses attributes from:
+//    - /modules/ROOT/pages/_partials/_page-index.adoc -- xref page links
+//
+//    This module uses these inclusions:
+//    - /modules/ROOT/pages/_partials/_std-hdr-sgw.adoc -- std attribute environment
+//    - /modules/ROOT/pages/_partials/block-abstract.adoc --  std text block for page header content
+//    - /modules/ROOT/pages/_partials/block-related-content-deploy.adoc --  std text block for page footer content
+//    - modules/ROOT/assets/images -- .png/.jpeg images
+//  INCLUSION USAGE
+// END PAGE DEFINITION
 = Read Access
+:page-aliases: learn/read-access.adoc
+
 include::partial$_std-hdr-sgw.adoc[]
+
+:topic-group: access-control
+:param-abstract: The sync function API provides several methods that you can use to validate document creation, updates and deletions.
+include::partial$block-abstract.adoc[]
+
+== Introduction
 Every user and role has a set of channels that they're allowed to read.
 A user can only read documents that are in at least one of the user's channels (or the channels of roles that user has.)
 
@@ -37,11 +64,11 @@ Because anonymous requests are authenticated as the user "GUEST", you can make a
 
 === Configuration File
 
-A user can be granted access to a channel through the {xref-sgw-pfx-config-properties}#databases-this_db-users-this_user-admin_channels[admin_channels] property in the configuration file.
+A user can be granted access to a channel through the {configuration-properties-pfx}#databases-this_db-users-this_user-admin_channels[admin_channels] property in the configuration file.
 
 === Admin REST API
 
-A user can be granted access to a channel through the `admin_channels` property on the {xref-sgw-pfx-admin-rest-api}#/user/put\__db___user__name_[/+{db}+/user/+{name}+] admin REST API endpoint.
+A user can be granted access to a channel through the `admin_channels` property on the {rest-api-admin-pfx}#/user/put\__db___user__name_[/+{db}+/user/+{name}+] admin REST API endpoint.
 
 == Revoke Access
 
@@ -58,7 +85,7 @@ This is a design limitation of Sync Gateway that may be resolved in the future.
 == Inspect Read Access
 
 You can use the admin REST API to see what channels a user has access to.
-Issue an {xref-sgw-pfx-admin-rest-api}#/database/get
+Issue an {rest-api-admin-pfx}#/database/get
 \__db___all_docs[+/{tkn-db}/_user/{name}+] request.
 Here's an example of the response.
 The output shows that the user `pupshaw` has access to channels `all` and `hoopy`.
@@ -93,14 +120,15 @@ Its value is derived from the union of:
 == Replication
 
 By default, Couchbase Lite gets all the channels to which the configured user account has access.
-This behavior is suitable for most apps that rely on {xref-sgw-pg-authentication} and the {xref-sgw-pg-def-sync-function} to specify which data to pull for each user.
+This behavior is suitable for most apps that rely on {authentication-users-xref} and the {xref-sgw-pg-sync-function} to specify which data to pull for each user.
 
 Optionally, a Couchbase Lite "pull" replication can also specify a comma-separated list of channel names to receive documents from.
 In this case, the replication from Sync Gateway will only pull documents tagged with those channels.
 Client apps can use this ability to intelligently sync with a subset of the available documents from the database.
 
-Example:
+:param-bookmark: channels
+include::partial$blocklinks-cbl.adoc[]
 
-xref:couchbase-lite:swift:learn/swift-replication.adoc#channels[swift]
+include::partial$block-related-content-api.adoc[]
 
-#session-authentication
+// END -- PAGE -- read-access.adoc
