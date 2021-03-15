@@ -14,10 +14,7 @@
 //    - /modules/ROOT/pages/_partials/_std-hdr-sgw.adoc -- std attribute environment
 //    - /modules/ROOT/pages/_partials/block-abstract.adoc --  std text block for page header content
 //    - /modules/ROOT/pages/_partials/block-related-content-deploy.adoc --  std text block for page footer content
-//    - /modules/ROOT/pages/_partials/common-cfg-ext-javascript.adoc --  for javascript function examples
-//    /modules/ROOT/pages/_partials/sync-function-ovw.adoc
 //    - modules/ROOT/assets/images -- .png/.jpeg images
-//    /modules/examples/sync-gateway-config.json -- examples
 //  INCLUSION USAGE
 // END PAGE DEFINITION
 = Sync Function
@@ -39,81 +36,59 @@ include::partial$block-abstract.adoc[]
 
 
 == Sync Function Basics
-=== Introduction
+include::partial$sync-function-ovw.adoc[]
+
+== Configuration
+
+Add the `sync` function defined into your `sync-gateway-config.json` -- see <<sync-example>>
+
+[#sync-example]
+.Example Sync Function
+====
+[source,json]
+----
+include::{example-cfg}[tag="sync-function-config"]
+----
+Configuration properties:
+
+<1> This is the username of the user you created on the Couchbase Server Admin Console.
+<2> The password of the user that you created on the Couchbase Server Admin Console.
+<3> The {xref-sgw-pg-shared-bucket-access} feature allows Couchbase Server SDKs to also perform operations on this bucket.
+<4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with GSI/N1QL indexing -- see {xref-sgw-pg-indexing}.
+If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
+<5> The sync function -- a javascript function enclosed in backticks, which is actioned every time a new document, document revision or deletion is made to a database -- see the:
+ {configuration-properties-pfx}#databases-this_db-sync[databases.$db.sync] property.
+====
+
+== Function Definition
+
 *The sync function is crucial to the security of your application.*
 It is in charge of data validation, and of authorizing both read and write access to documents.
 
 TIP: The sync function should be a focus of any security review of your application.
 
-The API is high-level, enabling you to do some powerful things very simply.
-However, you do need to remain vigilant.
-Review the function carefully to ensure it detects threats and prevents any illegal access.
+The API is high-level, enabling you to do some powerful things very simply. However, you do need to remain vigilant. Review the function carefully to ensure it detects threats and prevents any illegal access.
 
-=== Operation
+You write your sync function in JavaScript and provide it in the `sync` property of the appropriate database in your `sync-gateway-config.json` file.
 
-The Sync Function is executed every time a new revision/update is made to a document.
-The changes to channels and access made by the sync function are _tied to that revision_.
-If the document is later updated, the sync function will be called again on the new revision, and the new channel assignments and user/channel access _replace_ the ones from the first call.
+The basic structure of the sync function, within the configuration file, looks like this:
 
-It can do the following things:
+include::partial$sync-function-code.adoc[]
 
-* Validate documents -- see: {xref-sgw-pg-write-access-data-val}
-// xref:write-access.adoc#data-validation[Write Access -- data validation]
-* Authorize changes -- see: {xref-sgw-pg-write-access-authchange}
-// xref:write-access.adoc#write-access[Write Access -- authorize the change]
-* Grant user access to channels -- see: {xref-sgw-pg-read-access-add}
-// xref:read-access.adoc#add-access[Read Access -- add access]
-* Assign documents to channels -- see: {xref-sgw-pg-channels-add}
-
-For simple applications it might be the only server-side code you need to write.
-For more complex applications it is still a primary touchpoint for managing data routing and access control.
-
-=== Provision
-
-include::partial$common-cfg-ext-javascript.adoc[tag=intro]
-
-You can learn more about this property ($db.sync) in the Configuration Schema Reference -- see: {configuration-properties-xref--databases-sync}.
-
-include::partial$common-cfg-ext-javascript.adoc[tag=config-full]
-
-
-== Arguments
 The sync function arguments are:
 
 `doc`::
-This object references the content of the document that is being saved.
-It matches the JSON saved by the Couchbase Lite and replicated to Sync Gateway.
-* The `_id` property contains the document ID
-* The `_rev` property is the new revision ID.
-* If the document is being deleted, there will be a `_deleted` property with the value true.
+An object, the content of the document that is being saved.
+This matches the JSON that was saved by the Couchbase Lite and replicated to Sync Gateway.
+The `_id` property contains the document ID, and the `_rev` property the new revision ID.
+If the document is being deleted, there will be a `_deleted` property with the value true.
 `oldDoc`::
 If the document has been saved before, the revision that is being replaced is available in this argument.
 Otherwise it's `null`.
-(In the case of a document with conflicts, the current provisional winning revision is passed in `oldDoc`.) +
+(In the case of a document with conflicts, the current provisional winning revision is passed in `oldDoc`.)
 Your implementation of the sync function can omit the `oldDoc` parameter if you do not need it (JavaScript ignores extra parameters passed to a function).
 
 If you don't supply a sync function, Sync Gateway uses the {configuration-properties-pfx}#databases-this_db-sync[default Sync Function].
-
-// == An Example Sync Function
-// This section shows a simple Sync Function definitions which could be included in your `sync-gateway-config.json` -- see <<sync-example>>
-
-// [#sync-example]
-// .A Simple Sync Function
-// ====
-// [source,json]
-// ----
-// include::{example-cfg}[tag="sync-function-config"]
-// ----
-// Configuration properties:
-
-// <1> This is the username of the user you created on the Couchbase Server Admin Console.
-// <2> The password of the user that you created on the Couchbase Server Admin Console.
-// <3> The {xref-sgw-pg-shared-bucket-access} feature allows Couchbase Server SDKs to also perform operations on this bucket.
-// <4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with GSI/N1QL indexing -- see {xref-sgw-pg-indexing}.
-// If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
-// <5> The sync function -- a javascript function enclosed in backticks, which is actioned every time a new document, document revision or deletion is made to a database -- see the:
-//  {configuration-properties-pfx}#databases-this_db-sync[databases.$db.sync] property.
-// ====
 
 
 == channel(channelname)
@@ -322,7 +297,7 @@ Validation checks often need to treat deletions specially, because a deletion is
 Many types of validations won't work on a deletion because of the missing properties -- for example, a check for a required property, or a check that a property value doesn't change.
 You'll need to skip such checks if `doc._deleted` is true.
 
-== A Practical Example
+== Example
 
 Here's an example of a complete, useful sync function that properly validates and authorizes both new and updated documents.
 The requirements are:
