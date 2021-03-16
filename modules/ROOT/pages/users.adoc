@@ -10,11 +10,11 @@ include::partial$block-abstract.adoc[]
 You can authorize users and control their access to your database by creating user accounts and assigning roles to users.
 This article focuses on how to authorize users to be able to access the Sync Gateway and their remote databases.
 
-The user must be created on Sync Gateway before it can be used for authentication -- see also: {authentication-users-xref}.
+The user must be created on Sync Gateway before it can be used for authentication -- see also: {authentication-users--xref}.
 
 NOTE: Sync Gateway users and roles have no relationship to Couchbase Server's xref:server:learn:security/authorization-overview.adoc[RBAC (Role-base Access Control) users].
 
-You create Users through either the {rest-api-admin-xref} or {configuration-properties-xref}.
+You create Users through either the {rest-api-admin--xref} or {legacy-configuration-properties--xref}.
 
 Admin REST API::
 Create a new user by sending a PUT request to {rest-api-admin-pfx}#/user/put\__db___user__name_[/{tkn-db}/\_user/{name}] or by sending a POST request to {rest-api-admin-pfx}#/user/post\__db___user_[/{tkn-db}/_user], where `db` is the configured name of the database and `name` is the user name.
@@ -29,13 +29,13 @@ $ curl -vX POST "http://localhost:4985/mydatabase/_user/" -H "accept: applicatio
 The Admin REST API is for administrator use only, and hence is *not* accessible from the clients directly.
 To allow users to sign up, it is recommended to have an app server sitting alongside Sync Gateway that performs the user validation, creates a new user on this API and then returns the response to the application.
 +
-Additionally, this API can be used in conjunction with a 3rd party server for the authentication process (see xref:{authentication-users-page}#custom-authentication[Custom authentication]).
+Additionally, this API can be used in conjunction with a 3rd party server for the authentication process (see xref:{authentication-users--page}#custom-authentication[Custom authentication]).
 +
-Lastly, Sync Gateway supports xref:{authentication-users-page}#openid-connect[OpenID Connect authentication].
+Lastly, Sync Gateway supports xref:{authentication-users--page}#openid-connect[OpenID Connect authentication].
 In this case, Sync Gateway can automatically create users for successfully authenticated users that don't have an already existing user in Sync Gateway.
 
 Configuration file::
-Create users by hardcoding their credentials in the {configuration-properties-xref}.
+Create users by hardcoding their credentials in the {legacy-configuration-properties--xref}.
 This method is convenient for testing and to get started, otherwise it is generally recommended to use the *Admin REST API* for a programmatic behavior.
 +
 [source,json]
@@ -51,6 +51,6 @@ This method is convenient for testing and to get started, otherwise it is genera
   }
 }
 ----
-<1> {configuration-properties-pfx}#databases-this_db-users[databases.$db.users]
+<1> {legacy-configuration-properties-pfx}#databases-this_db-users[databases.$db.users]
 
 include::partial$block-related-content-data.adoc[]

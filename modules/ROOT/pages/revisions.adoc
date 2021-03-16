@@ -76,7 +76,7 @@ The algorithm allows the branch to retain a configurable number of revisions (re
 
 [#lbl-rtctrl]
 === Controls
-You can vary the number of retained revisions using the Configuration File's  {configuration-properties-xref--databases-revs-limit} setting.
+You can vary the number of retained revisions using the Configuration File's  {legacy-configuration-properties--xref--databases-revs-limit} setting.
 
 So, for example, with a `revs_limit` of 1000 the algorithm will keep the last 1000 revisions in the shortest non-tombstoned branch and remove any others from that branch.
 
@@ -88,7 +88,7 @@ Do not set `revs_limit` below 100 when `allow_conflicts = true` +
 
 [#lbl-rtcons]
 === Constraints
-The default and minimum values of `revs_limit` are dependent on whether {configuration-properties-xref--databases-allow-conflicts} is  True or False.
+The default and minimum values of `revs_limit` are dependent on whether {legacy-configuration-properties--xref--databases-allow-conflicts} is  True or False.
 
 The presence of multiple unresolved conflicts in a revision tree can impair the pruning process.
 This may result in obsolete revisions not being pruned, or in revisions being pruned prematurely.
@@ -111,16 +111,16 @@ Whenever a document is accessed its revision tree (or at least some portion of i
 
 [#lbl-ctrl]
 === Control
-You can control the size of the revision cache using the {configuration-properties-xref--databases-cache-revs} settings within the configuration file, specifically:
+You can control the size of the revision cache using the {legacy-configuration-properties--xref--databases-cache-revs} settings within the configuration file, specifically:
 
-* {configuration-properties-xref--databases-cache-revs-size}
-* {configuration-properties-xref--databases-cache-revs-shard}
+* {legacy-configuration-properties--xref--databases-cache-revs-size}
+* {legacy-configuration-properties--xref--databases-cache-revs-shard}
 
 
 
 [#lbl-size]
 === Size
-Use the {configuration-properties-xref--databases-cache-revs-size} setting to specify the total number of document revisions to be cached in memory for all (recently accessed) documents.
+Use the {legacy-configuration-properties--xref--databases-cache-revs-size} setting to specify the total number of document revisions to be cached in memory for all (recently accessed) documents.
 
 When the revision cache is full, Sync Gateway will remove older document revisions to make room for newer ones.
 
@@ -131,21 +131,21 @@ This can be useful when working on servers with limited memory and in cases when
 === Sharding
 include::partial$block-caveats.adoc[tag=ee-only-feature]
 
-The *Community Edition* is configured with the default value and ignores any {configuration-properties-xref--databases-cache-revs-shard} value in the configuration file.
+The *Community Edition* is configured with the default value and ignores any {legacy-configuration-properties--xref--databases-cache-revs-shard} value in the configuration file.
 
-You can control the number of shards ino which Sync Gateway will split its revisions cache by using the {configuration-properties-xref--databases-cache-revs-shard-count}
+You can control the number of shards ino which Sync Gateway will split its revisions cache by using the {legacy-configuration-properties--xref--databases-cache-revs-shard-count}
 
 More shards means lower cache contention when accessing distinct revisions, at the cost of some memory overhead per-shard.
 
-NOTE: Do not change the default {configuration-properties-xref--databases-cache-revs-shard} unless advised to do so by Couchbase Support -- see: {url-cb-support-policy}.
+NOTE: Do not change the default {legacy-configuration-properties--xref--databases-cache-revs-shard} unless advised to do so by Couchbase Support -- see: {url-cb-support-policy}.
 
 [#lbl-deltasync]
 === Delta Sync and Revisions
 include::partial$block-caveats.adoc[tag=ee-only-feature]
 
-When executing a write operation with delta_sync enabled the revision body is backed up in the bucket and retained for {configuration-properties-xref--databases-delta-sync-max-age}, during which time it is available for the  calculation of future revision deltas.
+When executing a write operation with delta_sync enabled the revision body is backed up in the bucket and retained for {legacy-configuration-properties--xref--databases-delta-sync-max-age}, during which time it is available for the  calculation of future revision deltas.
 
-As a result, new deltas can only be generated for read requests that come in within the {configuration-properties-xref--databases-delta-sync-max-age} time window.
+As a result, new deltas can only be generated for read requests that come in within the {legacy-configuration-properties--xref--databases-delta-sync-max-age} time window.
 
 Storing backed up revision bodies for delta sync incurs additional bucket storage, the size of which equates to: +
 `(doc_size * updates_per_day * 86400) / rev_max_age_seconds` -- see <<ex-deltastor>>.
@@ -162,7 +162,7 @@ Enabling delta sync would take up an additional 400 KB of storage on Couchbase S
 Equating to: `(4 * 100 * 86400)/86400 = 400 KB`
 ====
 
-Setting {configuration-properties-xref--databases-delta-sync-max-age} to zero will generate deltas opportunistically on pull replications, with no additional storage requirements.
+Setting {legacy-configuration-properties--xref--databases-delta-sync-max-age} to zero will generate deltas opportunistically on pull replications, with no additional storage requirements.
 
 [#lbl-disable]
 === Disabling the Revision Cache
@@ -174,7 +174,7 @@ Otherwise it can negatively impact the latency of replications.
 
 NOTE: Do not disable the revision cache, unless advised to do so by Couchbase Support -- see: {url-cb-support-policy}.
 
-To disable the revision cache entirely, set {configuration-properties-xref--databases-cache-revs-size} to zero.
+To disable the revision cache entirely, set {legacy-configuration-properties--xref--databases-cache-revs-size} to zero.
 Community Edition ignores a zero setting.
 
 

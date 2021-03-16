@@ -16,8 +16,8 @@ include::partial$block-standard-footnotes.adoc[tags=sgw1x5;cbs5x0]
 :fn-sgw: footnote:fn-sgw[Prior to Release 2.5, Server 5.0 all writes had to go through Sync Gateway, or had to use bucket shadowing to ensure that the security and replication metadata needed by mobile applications was preserved.]
 // :fn-sgw-ref: footnote:fn-sgw[]
 
-:enable-sba-config-item: {configuration-properties-pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access]
-:xattr-page: xref:server:learn:data/extended-attributes-fundamentals.adoc[Extended Attributes (XATTR)]
+:enable-sba-config-item: {legacy-configuration-properties-pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access]
+:xattr--page: xref:server:learn:data/extended-attributes-fundamentals.adoc[Extended Attributes (XATTR)]
 
 include::partial$block-caveats.adoc[tag="cbs6.0ke-xattrs"]
 
@@ -35,7 +35,7 @@ Sync Gateway uses the <<sba-feature>> and <<import-process>> features to synchro
 image::shared-bucket-access.png[]
 
 === Documents
-With bucket-sharing enabled, Couchbase Server documents can be inserted directly (using _N1QL_ or _SDKs_) or by using Sync Gateway's {rest-api-xref}.
+With bucket-sharing enabled, Couchbase Server documents can be inserted directly (using _N1QL_ or _SDKs_) or by using Sync Gateway's {rest-api--xref}.
 
 Sync Gateway {fn-sgw1x5} creates the metadata it needs by abstracting it from the SDK or N1QL applications reading and writing data directly to Couchbase Server buckets. It uses Couchbase Server XATTRs {fn-cbs5x0} to store that metadata into an external document fragment -- see {xref-svr-pg-xattrs}.
 
@@ -59,7 +59,7 @@ https://blog.couchbase.com/store-sync-binary-data-attachments-blobs-couchbase-mo
 Couchbase Lite apps seamlessly handle blobs and attachments, see the appropriate platform examples here:
 
 :param-path: learn
-:param-page: blob
+:param--page: blob
 include::partial$blocklinks-cbl.adoc[]
 // * xref:couchbase-lite:swift:learn/swift-blob.adoc[Swift]
 // * xref:couchbase-lite:objc:learn/objc-blob.adoc[Objective-C]
@@ -127,8 +127,8 @@ It must be `_true_` on all nodes participating in such a configuration.
 Configuration file references:
 
 * {enable-sba-config-item} to enable convergence for a given database.
-* {configuration-properties-pfx}#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
-* {configuration-properties-pfx}#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+* {legacy-configuration-properties-pfx}#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+* {legacy-configuration-properties-pfx}#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
 
 [#import-process]
 == Import Processing
@@ -145,9 +145,9 @@ The document is first run through the Sync Function to compute read security and
 This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
 * During import, `oldDoc` is `nil` when the Sync Function is executed.
 
-You can specify a filter function using the {configuration-properties-pfx}#databases-this_db_import_filter[import_filter] property, which will only import specific documents.
+You can specify a filter function using the {legacy-configuration-properties-pfx}#databases-this_db_import_filter[import_filter] property, which will only import specific documents.
 
-TIP: Use the {configuration-properties-pfx}#log[Import+] log key to troubleshoot import processing issues in the logs.
+TIP: Use the {legacy-configuration-properties-pfx}#log[Import+] log key to troubleshoot import processing issues in the logs.
 
 === Configuration
 
@@ -221,9 +221,9 @@ The reference to the configuration properties can be found below.
 // * link:config-properties.html#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
 // * link:config-properties.html#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
 
-* {configuration-properties-pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
-* {configuration-properties-pfx}#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
-* {configuration-properties-pfx}#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+* {legacy-configuration-properties-pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
+* {legacy-configuration-properties-pfx}#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+* {legacy-configuration-properties-pfx}#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
 
 
 include::partial$block-related-content-api.adoc[]

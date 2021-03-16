@@ -11,7 +11,7 @@ include::partial$_std-hdr-sgw.adoc[]
 // include::partial$block-authors-notes.adoc[tag=wip]
 
 :topic-group: {tg-rep-icr}
-:param-related: {configuration-properties-xref} | {rest-api-admin-xref}
+:param-related: {legacy-configuration-properties--xref} | {rest-api-admin--xref}
 :param-abstract: This content introduces Inter-Sync Gateway Replication's concepts and how you can use them to configure and run effective data-sync between clusters of edge devices and central data centre resources.
 include::partial$block-abstract.adoc[]
 
@@ -88,7 +88,7 @@ image::icr-active-mobile-sync200713.svg[,600]
 Inter-Sync Gateway Replication provides the functionality to act as the {glos-term-active-replicator} supporting the {glos-term-synchronization} of changes between two {glos-term-sync-gateway-databases}.
 
 // === Architecture
-In the architecture diagram (<<icr-architecture>>), the _active replicator_  runs on a Sync Gateway node (in cluster A) and uses a bi-directional sync -- with a {glos-term-active-replicator} running on a node in Cluster B -- to ensure that changes made to either database instance are replicated to the other, in accordance with its {glos-term-replication-definition} -- see {configuration-properties-xref--db-replications} for configuration details.
+In the architecture diagram (<<icr-architecture>>), the _active replicator_  runs on a Sync Gateway node (in cluster A) and uses a bi-directional sync -- with a {glos-term-active-replicator} running on a node in Cluster B -- to ensure that changes made to either database instance are replicated to the other, in accordance with its {glos-term-replication-definition} -- see {legacy-configuration-properties--xref--db-replications} for configuration details.
 
 [[icr-architecture]]
 .Inter-Sync Gateway Replication
@@ -114,9 +114,9 @@ All replications take place at the document level.
 Replications always involve at least one local database.
 Replication between two _remote_ nodes is not possible, since replications are defined at database level and so at least one database will be local.
 
-Sync Gateway nodes can opt-out of participating in the replication process using the database-level parameter {configuration-properties-xref--databases-sgr-enabled}.
+Sync Gateway nodes can opt-out of participating in the replication process using the database-level parameter {legacy-configuration-properties--xref--databases-sgr-enabled}.
 
-_Related configuration elements_:  {configuration-properties-xref--databases}  |  {configuration-properties-xref--db-replications}  |  {configuration-properties-xref--db-rep-remote} |  {configuration-properties-xref--databases-sgr-enabled}
+_Related configuration elements_:  {legacy-configuration-properties--xref--databases}  |  {legacy-configuration-properties--xref--db-replications}  |  {legacy-configuration-properties--xref--db-rep-remote} |  {legacy-configuration-properties--xref--databases-sgr-enabled}
 
 === Protocol
 // tag::isgwr-concept-protocol[]
@@ -153,14 +153,14 @@ They provide a convenient way to:
 * Run one off replications (for example, when troubleshooting)
 * Run on-demand replications after Sync Gateway is started.
 For instance a replication that needs to be to be run only periodically can be configured as an ad hoc replication by an automated script scheduled to run when needed.
-//  They are initialized and run using {rest-api-admin-xref} requests.
+//  They are initialized and run using {rest-api-admin--xref} requests.
 // Once created they start in the 'running' state. When they enter 'stopped', or 'error', state they are automatically removed.
 --
 
-_Related configuration elements_:  {configuration-properties-xref--db-replications}  |  {configuration-properties-xref--db-rep-continuous} |  {configuration-properties-xref--db-rep-adhoc}
+_Related configuration elements_:  {legacy-configuration-properties--xref--db-replications}  |  {legacy-configuration-properties--xref--db-rep-continuous} |  {legacy-configuration-properties--xref--db-rep-adhoc}
 // They are initialized by configuring them in the _sync-gateway-config.json file_.
 
-//  Inter-Sync Gateway Only You can also create persistent replications by using the {rest-api-admin-xref}.
+//  Inter-Sync Gateway Only You can also create persistent replications by using the {rest-api-admin--xref}.
 
 // end::replication-types[]
 
@@ -170,7 +170,7 @@ Replications are bi-directional.
 
 The _active replicator_ can push, pull or pushandpull between the two database endpoints.
 
-_Related configuration elements_:  {configuration-properties-xref--db-replications}  |  {configuration-properties-xref--db-rep-direction}
+_Related configuration elements_:  {legacy-configuration-properties--xref--db-replications}  |  {legacy-configuration-properties--xref--db-rep-direction}
 
 
 === Security
@@ -195,7 +195,7 @@ Support for Basic Authentication using username and password credentials is prov
 Data access control is provided by Sync Gateway's {glos-term-sync-function} and the username/password credentials.
 All replicated documents pass through this function ensuring that access permissions are consistently applied and adhered to.
 
-_Related configuration elements_:  {configuration-properties-xref--databases}  |  {configuration-properties-xref--databases-sync} +
+_Related configuration elements_:  {legacy-configuration-properties--xref--databases}  |  {legacy-configuration-properties--xref--databases-sync} +
 _Related how-to_: {xref-sgw-pg-sync-function}  |  {xref-sgw-pg-adv-sgw-cfg-sync-function}
 // end::access-control[]
 
@@ -212,8 +212,8 @@ You can configure replications to use delta-sync by:
 * Setting `"enable_delta_sync": true` in the _replication definition_
 * Setting `"delta-sync": { "enabled": true}` on both databases in their respective _database definitions_.
 
-_Related configuration elements_:  {configuration-properties-xref--databases}  |  {configuration-properties-xref--db-replications}  |
-{configuration-properties-xref--databases-delta-sync}  |  {configuration-properties-xref--db-rep-delta}
+_Related configuration elements_:  {legacy-configuration-properties--xref--databases}  |  {legacy-configuration-properties--xref--db-replications}  |
+{legacy-configuration-properties--xref--databases-delta-sync}  |  {legacy-configuration-properties--xref--db-rep-delta}
 
 == Network Resilience
 
@@ -222,7 +222,7 @@ Persistent inter-Sync Gateway replications will automatically attempt to restart
 Network resiliency is built-in for _continuous_ replications.
 They respond to network issues such as lost connections, by applying a {glos-term-persistent-exponential-backoff} policy to attempt reconnection.
 
-The {configuration-properties-xref--db-rep-backoff} determines the maximum wait time between retries.
+The {legacy-configuration-properties--xref--db-rep-backoff} determines the maximum wait time between retries.
 When the limit is reached retries are made every `max_backoff_time` minutes.
 Set `"max_backoff_time": 0` to prevent indefinite retries. Exponential backoff retries will be attempted for up to 5 minutes and then stop if the connection has not been re-established
 
@@ -234,7 +234,7 @@ The controlling user or application should apply the appropriate corrective acti
 ====
 
 {empty} +
-_Related replication definition elements_:  {configuration-properties-xref--db-rep-backoff}
+_Related replication definition elements_:  {legacy-configuration-properties--xref--db-rep-backoff}
 
 == High Availability
 
@@ -318,7 +318,7 @@ Admin REST API endpoints support the monitoring inter-Sync Gateway replication t
 Admin REST API endpoints support the management and administration of replications (for example: to cancel or start a stopped task; or to update a replication definition).
 // end::admin[]
 
-For more on management and administration see: {legacy-sg-replicate-xref}  |  {xref-sgw-pg-icr-sgreplicate-sgr2}
-For more on monitoring and statistics see: {legacy-sg-replicate-xref}  |  {xref-sgw-pg-icr-sgreplicate-sgr2}
+For more on management and administration see: {legacy-sg-replicate--xref}  |  {xref-sgw-pg-icr-sgreplicate-sgr2}
+For more on monitoring and statistics see: {legacy-sg-replicate--xref}  |  {xref-sgw-pg-icr-sgreplicate-sgr2}
 
 include::partial$block-related-content-icr.adoc[]

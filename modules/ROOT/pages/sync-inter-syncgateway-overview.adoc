@@ -6,7 +6,7 @@
 include::partial$_std-hdr-sgw.adoc[]
 
 :topic-group: {tg-rep-icr}
-:param-related: {configuration-properties-xref} | {rest-api-admin-xref} | {xref-sgw-pg-icr-running}
+:param-related: {legacy-configuration-properties--xref} | {rest-api-admin--xref} | {xref-sgw-pg-icr-running}
 :param-abstract: Inter-Sync Gateway replication supports resilient, secure, scalable bidirectional synchronization of data between cloud and edge data centers. +
 It incorporates content presented under Manage>Replicate>Inter-Sync Gateway to give an integrated view.
 include::partial$block-abstract.adoc[]
@@ -27,7 +27,7 @@ Couchbase Sync Gateway's _{glos-term-inter-sync-gateway-replication}_ feature su
 This is an increasingly important enterprise-level requirement.
 
 // end::intro[]
-In the architecture diagram (<<icr-architecture>>), the replicator on the active Sync Gateway node ensures that any database changes made to documents in either {glos-term-sync-gateway-database} instance are replicated to the other Sync Gateway instance, in accordance with the replication's configuration -- see {configuration-properties-xref--db-replications} for configuration details.
+In the architecture diagram (<<icr-architecture>>), the replicator on the active Sync Gateway node ensures that any database changes made to documents in either {glos-term-sync-gateway-database} instance are replicated to the other Sync Gateway instance, in accordance with the replication's configuration -- see {legacy-configuration-properties--xref--db-replications} for configuration details.
 
 // tag::intro-img[]
 
@@ -81,15 +81,15 @@ Sync Gateway does not enable replication between two _remote_ nodes, because rep
 
 All replications take place at the document level (but see also, <<delta-sync>>).
 
-Sync Gateway nodes can opt-out of participating in the replication process using the database-level parameter {configuration-properties-xref--databases-sgr-enabled}.
+Sync Gateway nodes can opt-out of participating in the replication process using the database-level parameter {legacy-configuration-properties--xref--databases-sgr-enabled}.
 
-_Related configuration elements_:  {configuration-properties-xref--databases}  |  {configuration-properties-xref--db-replications}  |  {configuration-properties-xref--db-rep-remote} |  {configuration-properties-xref--databases-sgr-enabled}
+_Related configuration elements_:  {legacy-configuration-properties--xref--databases}  |  {legacy-configuration-properties--xref--db-replications}  |  {legacy-configuration-properties--xref--db-rep-remote} |  {legacy-configuration-properties--xref--databases-sgr-enabled}
 
 === Protocol
 
 Inter-Sync{nbsp}Gateway replications are based on websockets. This is the exact same protocol that is used for replication with Couchbase Lite 2.x clients.
 
-NOTE: For users on releases prior to 2.8, SG Replicate provides a HTTP-based replication -- see the appropriate documentation here -- {legacy-sg-replicate-xref} (deprecated).
+NOTE: For users on releases prior to 2.8, SG Replicate provides a HTTP-based replication -- see the appropriate documentation here -- {legacy-sg-replicate--xref} (deprecated).
 
 The bi-directional, persistent, nature of websocket connections is ideal for applications such as a _continuous_ Sync Gateway replication, which is constantly waiting-for and synchronizing change events.
 
@@ -118,7 +118,7 @@ They provide a convenient way to:
 For instance a replication that needs to be to be run only periodically can be configured as an ad hoc replication by an automated script scheduled to run when needed.
 --
 
-_Related configuration elements_:  {configuration-properties-xref--db-replications}  |  {configuration-properties-xref--db-rep-continuous} |  {configuration-properties-xref--db-rep-adhoc}
+_Related configuration elements_:  {legacy-configuration-properties--xref--db-replications}  |  {legacy-configuration-properties--xref--db-rep-continuous} |  {legacy-configuration-properties--xref--db-rep-adhoc}
 
 === Delta Sync
 include::partial$block-caveats.adoc[tag=ee-only-feature]
@@ -132,15 +132,15 @@ You can configure replications to use delta-sync by:
 
 NOTE: Push replications to pre-2.8 targets do not use Delta Sync
 
-_Related configuration elements_:  {configuration-properties-xref--databases}  |  {configuration-properties-xref--db-replications}  |
-{configuration-properties-xref--databases-delta-sync}  |  {configuration-properties-xref--db-rep-delta}
+_Related configuration elements_:  {legacy-configuration-properties--xref--databases}  |  {legacy-configuration-properties--xref--db-replications}  |
+{legacy-configuration-properties--xref--databases-delta-sync}  |  {legacy-configuration-properties--xref--db-rep-delta}
 
 === Directionality
 
 Replications are bi-directional.
 You can _push_, _pull_ or _push and pull_ between the two database endpoints.
 
-_Related configuration elements_:  {configuration-properties-xref--db-replications}  |  {configuration-properties-xref--db-rep-direction}
+_Related configuration elements_:  {legacy-configuration-properties--xref--db-replications}  |  {legacy-configuration-properties--xref--db-rep-direction}
 
 
 === Security
@@ -162,7 +162,7 @@ Data access control is provided by Sync Gateway's {glos-term-sync-function} and 
 All replicated documents pass through this function ensuring that access permissions are adhered to.
 
 // end::access-control[]
-_Related configuration elements_:  {configuration-properties-xref--databases}  |  {configuration-properties-xref--databases-sync} +
+_Related configuration elements_:  {legacy-configuration-properties--xref--databases}  |  {legacy-configuration-properties--xref--databases-sync} +
 _Related how-to_: {xref-sgw-pg-sync-function}  |  {xref-sgw-pg-adv-sgw-cfg-sync-function}
 // end::access-control-full[]
 
@@ -174,7 +174,7 @@ Inter-Sync Gateway replications will automatically attempt to restart whenever t
 Network resiliency is built-in for _continuous_ replications.
 They respond to network issues such as lost connections, by applying a {glos-term-persistent-exponential-backoff} policy to attempt reconnection.
 
-The {configuration-properties-xref--db-rep-backoff} determines the maximum wait time between retries.
+The {legacy-configuration-properties--xref--db-rep-backoff} determines the maximum wait time between retries.
 When the limit is reached retries are made every `max_backoff_time` minutes.
 Set `"max_backoff_time": 0` to prevent indefinite retries. Exponential backoff retries will be attempted for up to 5 minutes and then stop if the connection has not been re-established
 
@@ -187,7 +187,7 @@ Set `"max_backoff_time": 0` to prevent indefinite retries. Exponential backoff r
 // end::network-resilience[]
 
 {empty} +
-_Related replication definition elements_:  {configuration-properties-xref--db-rep-backoff}
+_Related replication definition elements_:  {legacy-configuration-properties--xref--db-rep-backoff}
 
 
 == High Availability

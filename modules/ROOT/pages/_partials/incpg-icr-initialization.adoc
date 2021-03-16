@@ -55,7 +55,7 @@ Running highlights::
 * Multiple identical replicators can be initiated on a Sync Gateway node provided each has a unique `replication_Id`.
 *  inter-Sync{nbsp}Gateway replications introduced in Sync Gateway 2.8 as well as SG-Replicate can run on the same node, but you must ensure that they each have a different `replication_id`.
 * The user under which replication is being run must have read and write access to the data being replicated.
-* Exponential backoff when connection lost; this can be customized using the {configuration-properties-xref--db-rep-backoff} configuration setting.
+* Exponential backoff when connection lost; this can be customized using the {legacy-configuration-properties--xref--db-rep-backoff} configuration setting.
 * replications will continue trying to connect for 30 minutes following authentication failure (including user-invalid/doesn't exist).
 * Running replications can be stopped. Stopped replications can be (re)Started.
 // [On disconnected replications, replication will it will do exponential backoff upto reconnect-interval and then attempt to reconnect indefinitely based on this value. If 0, it will do exponential backoff upto 5 min before stopping the replication]
@@ -82,16 +82,16 @@ All replications are 'initialized' by a {glos-term-replication-definition} in th
 Providing the replication definition parameters in the request body as a JSON string.
 
 Both scenarios are covered in <<replication-properties>>.
-It summarizes the {glos-term-replication-definition} elements{fn-repdef-both}, which are covered in more detail in {configuration-properties-xref}.
+It summarizes the {glos-term-replication-definition} elements{fn-repdef-both}, which are covered in more detail in {legacy-configuration-properties--xref}.
 
 === Database-level Settings
 A number of database-level options are also especially relevant to Inter-Sync{nbsp}Gateway Replication, including:
 
-* {configuration-properties-xref--databases-sgr-enabled} -- use this {enterprise} setting to allow the database to participate in Inter-Sync{nbsp}Gateway Replications.
-* {configuration-properties-xref--databases-delta-sync} -- use this setting to enable delta-sync replication on the database, it must be set if you want to use delta-sync in your _replication definition_.
-* {configuration-properties-xref--databases-sgr-ws-heartbeat} -- use this setting to override the default (5 minute) heartbeat interval for websocket ping frames for this database.
-* {configuration-properties-xref--databases-sync} -- use this setting to specify the sync function logic -- this is an essential part of access-control.
-* {configuration-properties-xref--databases-unsupp-sgr-tls-skip-verify} -- use this unsupported option to make development an testing easier by skipping verification of TLS certificates.
+* {legacy-configuration-properties--xref--databases-sgr-enabled} -- use this {enterprise} setting to allow the database to participate in Inter-Sync{nbsp}Gateway Replications.
+* {legacy-configuration-properties--xref--databases-delta-sync} -- use this setting to enable delta-sync replication on the database, it must be set if you want to use delta-sync in your _replication definition_.
+* {legacy-configuration-properties--xref--databases-sgr-ws-heartbeat} -- use this setting to override the default (5 minute) heartbeat interval for websocket ping frames for this database.
+* {legacy-configuration-properties--xref--databases-sync} -- use this setting to specify the sync function logic -- this is an essential part of access-control.
+* {legacy-configuration-properties--xref--databases-unsupp-sgr-tls-skip-verify} -- use this unsupported option to make development an testing easier by skipping verification of TLS certificates.
 
 
 === Replication-level Settings
@@ -136,7 +136,7 @@ However, you should avoid initializing identical pre-2.8 (SG Replicate) and 2.8+
 
 == Running Configured Replications
 Replications in the configuration file start automatically whenever Sync Gateway is (re)started.
-Unless you inhibit this by adding an `"initial_state": "stopped"` parameter to the replication definition -- see: {configuration-properties-xref--db-rep-initial_state}.
+Unless you inhibit this by adding an `"initial_state": "stopped"` parameter to the replication definition -- see: {legacy-configuration-properties--xref--db-rep-initial_state}.
 You can manually start 'stopped' replication using {xref-sgw-pg-icr-admin-start}.
 
 .Configured Replications -- Continuous and One-shot
