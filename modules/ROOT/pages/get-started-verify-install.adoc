@@ -11,15 +11,22 @@ include::partial$_std-hdr-sgw.adoc[]
 
 :topic-group: Start Here!
 :param-related: {get-started-prepare--xref}  |  {get-started-install--xref}
-:param-abstract: Here we will check that you can connect to your Sync Gateway
+:param-abstract: Here we will verify that you can connect your Sync Gateway to a Couchbase Server and synchronize changes whether made in Couchbase Server or through Sync Gateway's REST API.
 include::partial$block-abstract.adoc[]
 
 .Preparatory Steps
 NOTE: Before following the steps in this topic you must have read, and acted-upon, the information and steps in {get-started-prepare--xref} and {get-started-install--xref}.
 
+
+
+== Introduction
+In this final step of the Getting Started topic we will look to link your Sync Gateway to a Couchbase Server bucket and verify that sync is taking place.
+You will need the configuration file used in the {get-started-install--xref} step.
+
+
 == Step 1: Create a configuration file
 
-To configure Sync Gateway to connect to a Couchbase Server instance, create a new file called *sync-gateway-config.json* and add the content shown in <<sample-cfg>>.
+To configure Sync Gateway to connect to a Couchbase Server instance, edit the configuration file you used in {get-started-install--xref} and include the content shown in <<sample-cfg>>.
 
 [#sample-cfg]
 .Sample Config
@@ -32,16 +39,18 @@ include::{example-cfg}[tag="getting-started-config"]
 Configuration Properties::
 <.> The username of the RBAC user that you created on the Couchbase Server Admin Console -- see xref:{sgw-pg-get-started-prepare}#configure-server[Configure Server for Sync Gateway]
 <.> The password of the user that you created on the Couchbase Server Admin Console.
-<.> The xref:{sgw-pg-shared-bucket-access}[enable_shared_bucket_access] feature allows Couchbase Server SDKs to also perform operations on this bucket.
+<.> The xref:{sgw-pg-shared-bucket-access}[enable_shared_bucket_access] allows sharing of the bucket by Sync Gateway and Couchbase Server SDKs, which are able to perform operations on this bucket perhaps creating changes that replicate to Sync Gateway.
 <.> `num_index_replicas` is the number of index replicas stored in Couchbase Server -- see {xref-sgw-pg-indexing}. +
 *NOTE:* If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
 <.> Define your logging requirements. +
 Here we set general diagnostic console logs on.
+If you're having issues with sync, then refer to {logging--xref} for how to tune diagnostics to provide additional troubleshooting help
 ====
+
 
 == Step 2: Start Sync Gateway
 
-Start Sync Gateway from the command line -- see {command-line-options--xref}, or if Sync Gateway is running in a service replace the configuration file and restart the service.
+Start Sync Gateway from the command line -- see {command-line-options--xref}, or if Sync Gateway is running in a service recycle the service to pick-up the amended configuration.
 
 [#start-sgw]
 .Use Command Line to Start Sync Gateway
@@ -54,6 +63,7 @@ Start Sync Gateway from the command line -- see {command-line-options--xref}, or
 <.> If you are using a Couchbase Lite application, then run this command where that is installed.
 
 ====
+
 
 == Step 3: Connect to Sync Gateway
 TIP: You can use {xref-sgw-bmk-logging-console} to aid diagnosis of connection issues
@@ -79,12 +89,59 @@ Where necessary you can redirect console output to a file -- see: {xref-sgw-bmk-
 
 TIP: If Sync Gateway is behind a load balancer then check the websockets configuration -- see {xref-sgw-pg-load-balancer}.
 
+
 == Step 4: Sync Changes
+Use CURL, or Postman, or similar to use the REST API to
+
+* Get documents from Couchbase Server
+* Post document and sync them with Couchbase Server
+* Retrieve sync'd documents
+
+[#ex-sync]
+====
+In these examples we use CURL to get, create, edit and delete a document, syncing with a Couchbase Server bucket.
+
+
+[{tabs}]
+=====
+Get a Doc::
++
+--
+[{bash-header}]
+----
+tba
+----
+--
+
+Create a Doc::
++
+--
+[{bash-header}]
+----
+tba
+----
+--
+
+Edit a Doc::
++
+--
+[{bash-header}]
+----
+tba
+----
+
+--
+=====
+====
+
+
+== Step 5: Verify Changes
 To verify that documents have been replicated, you can:
 
 * Monitor the Sync Gateway sequence number returned by the database endpoint (xref:{rest-api--page}#/database/get\__db__[GET /{tkn-db}/]).
 The sequence number increments for every change that happens on the Sync Gateway database.
-* Query a document by ID on the Sync Gateway REST API (xref:{rest-api--page}#/document/get\__db___doc_[GET /{tkn-db}/{id}]) -- see: {rest-api-access--xref}
+* Query a document by ID on the Sync Gateway REST API as shown in <<ex-sync>>. Use (xref:{rest-api--page}#/document/get\__db___doc_[GET /{tkn-db}/{id}]) -- see: {rest-api-access--xref} for more.
 * Query a document from the Query Workbench on the Couchbase Server Console.
+
 
 include::partial$block-related-content-deploy.adoc[]
