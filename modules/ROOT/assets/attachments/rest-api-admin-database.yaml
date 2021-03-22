@@ -24,7 +24,7 @@ paths:
     - $ref: '#/parameters/attachment'
     get:
       tags:
-      - attachment
+      - Attachments
       summary: Get attachment
       description: |
         This request retrieves a file attachment associated with the document. The raw data of the associated attachment is returned (just as if you were accessing a static file). The Content-Type response header is the same content type set when the document attachment was added to the database.
@@ -44,7 +44,7 @@ paths:
           description: Not Found, the specified database, document or attachment was not found.
     put:
       tags:
-      - attachment
+      - Attachments
       summary: Add or update attachment
       description: |
         This request adds or updates the supplied request content as an attachment to the specified document, the maximum content size of an attachment is 20MB. The attachment name must be a URL-encoded string (the file name). You must also supply either the rev query parameter or the If-Match HTTP header for validation, and the Content-Type headers (to set the attachment content type).
@@ -65,35 +65,12 @@ paths:
             $ref: '#/definitions/Success'
         409:
           description: Conflict, the document revision wasn't specified or it's not the latest.
-  /_active_tasks:
-    get:
-      tags:
-      - server
-      summary: Return status of Inter-Sync Gateway Replication (v1) replications
-      description: |+
-        <h5>**Deprecated @ 2.8** replaced by Inter-Sync Gateway Replication (v2)'s *[_replicationStatus](#/server/get__replicationStatus)* endpoint. This **_active_tasks** endpoint is retained **solely** for backward compatibility.<h5>
-
-        Use this end point to return the status of active Inter-Sync Gateway Replication (v1) replications. Only replications configured on the local node are returned.
-
-        The response is as defined in [_replicationStatus](#/replications/get__db___replicationStatus) except that it also includes:
-          - **end_last_seq**, which returns the maximum of (last_seq_pull, last_seq_push)
-          - **start_last_seq**, which is not populated (as was the case prior to Sync Gateway 2.8)
-
-        The Inter-Sync Gateway Replication (v2) equivalent is `_replicationStatus?localOnly=true&activeOnly=true` -- see [_replicationStatus](#/replications/get__db___replicationStatus).
-      responses:
-        200:
-          description: Information about active replications.
-          schema:
-            type: array
-            items:
-              type: object
-              $ref: '#/definitions/ActiveTaskResponseBody'
   /{db}/_bulk_docs:
     parameters:
       - $ref: '#/parameters/db'
     post:
       tags:
-      - database
+      - Documents
       summary: Bulk docs
       description: |
         This request enables you to add, update, or delete multiple documents to a database in a single request. To add new documents, you can either specify the ID (`_id`) or let the software create an ID. To update existing documents, you must provide the document ID, revision identifier (`_rev`), and new document values. To delete existing documents you must provide the document ID, revision identifier, and the deletion flag (`_deleted`).
@@ -129,7 +106,7 @@ paths:
     - $ref: '#/parameters/db'
     post:
       tags:
-      - database
+      - Documents
       summary: Bulk get
       description: |
         This request returns any number of documents, as individual bodies in a MIME multipart response.
@@ -179,7 +156,7 @@ paths:
     - $ref: '#/parameters/local_doc'
     get:
       tags:
-      - document
+      - Documents
       summary: Get local doc
       description: |
         This request retrieves a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
@@ -190,7 +167,7 @@ paths:
             $ref: '#/definitions/Success'
     put:
       tags:
-      - document
+      - Documents
       summary: Create or update a local document
       description: |
         This request creates or updates a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by the client's replicator, as a place to store replication checkpoint data.
@@ -201,7 +178,7 @@ paths:
             $ref: '#/definitions/Success'
     delete:
       tags:
-      - document
+      - Documents
       summary: Delete a local document
       description: |
         This request deletes a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
@@ -218,7 +195,7 @@ paths:
     - $ref: '#/parameters/db'
     get:
       tags:
-      - database
+      - Changes
       parameters:
       - $ref: '#/parameters/limit'
       - $ref: '#/parameters/style'
@@ -242,7 +219,7 @@ paths:
             $ref: '#/definitions/Changes'
     post:
       tags:
-      - database
+      - Changes
       parameters:
       - $ref: '#/parameters/changes_body'
       summary: Changes
@@ -259,7 +236,7 @@ paths:
     - $ref: '#/parameters/doc'
     get:
       tags:
-      - document
+      - Documents
       parameters:
       - $ref: '#/parameters/rev_get'
       - $ref: '#/parameters/attachments'
@@ -276,7 +253,7 @@ paths:
             type: object
     put:
       tags:
-      - document
+      - Documents
       parameters:
       - in: body
         name: Document
@@ -290,7 +267,7 @@ paths:
         This request creates a new document or creates a new revision of an existing document. It enables you to specify the identifier for a new document rather than letting the software create an identifier. If you want to create a new document and let the software create an identifier, use the POST /db request.
         If the document specified by doc does not exist, a new document is created and assigned the identifier specified in doc. If the document already exists, the document is updated with the JSON document in the message body and given a new revision. The maximum size allowed for a document is 20MB.
 
-        Since Sync Gateway 1.3, an expiry property (`_exp`) can also be specified to purge the document after a given time. If **convergence** is enabled (introduced in Sync Gateway 1.5), the behaviour of the expiry feature changes in the following way: when the expiry value is reached, instead of getting purged, the **active** revision of the document is tombstoned. If there is another non-tombstoned revision for this document (i.e a conflict) it will become the active revision. The tombstoned revision will be purged when the server's metadata purge interval is reached.
+        Since Sync Gateway 1.3, an expiry property (`_exp`) can also be specified to purge the document after a given time. If **convergence** is enabled (introduced in Sync Gateway 1.5), the behavior of the expiry feature changes in the following way: when the expiry value is reached, instead of getting purged, the **active** revision of the document is tombstoned. If there is another non-tombstoned revision for this document (i.e a conflict) it will become the active revision. The tombstoned revision will be purged when the server's metadata purge interval is reached.
       responses:
         200:
           description: The response is a JSON document that contains the following objects
@@ -298,7 +275,7 @@ paths:
             $ref: '#/definitions/Success'
     delete:
       tags:
-      - document
+      - Documents
       parameters:
       - $ref: '#/parameters/rev_delete'
       summary: Delete document
@@ -316,7 +293,7 @@ paths:
     - $ref: '#/parameters/view'
     get:
       tags:
-      - query
+      - Design
       summary: Query a view
       description: |
         Query a view on a design document.
@@ -403,7 +380,7 @@ paths:
     - $ref: '#/parameters/db'
     get:
       tags:
-      - database
+      - Documents
       summary: All docs
       description: |
         This request returns a built-in view of all the documents in the database.
@@ -424,7 +401,7 @@ paths:
             $ref: '#/definitions/QueryResult'
     post:
       tags:
-      - database
+      - Documents
       summary: All docs
       description: |
         This request retrieves specified documents from the database.
@@ -444,458 +421,12 @@ paths:
           description: Query results
           schema:
             $ref: '#/definitions/QueryResult'
-  /{db}/_oidc:
-    parameters:
-    - $ref: '#/parameters/db'
-    get:
-      tags:
-      - auth
-      summary: OpenID Connect Authentication.
-      description: |
-        Called by clients to initiate the OIDC Authorization Code flow.
-      parameters:
-      - in: query
-        name: offline
-        description: When true, requests a refresh token from the OP. Sets access_type=offline and prompt=consent on the redirect to the OP. Secure clients should set offline=true and persist the returned refresh token to secure storage.
-        type: boolean
-        required: false
-      - in: query
-        name: provider
-        description: OpenId Connect provider to be used for authentication, from the list of providers defined in the Sync Gateway Config. If not specified, will attempt to authenticate using the default provider.
-        type: string
-        required: false
-      responses:
-        302:
-          description: Redirect to the requested OpenID Connect provider for authentication. Redirect link is returned in the Location header.
-        400:
-          description: Bad request.  Reason is returned as "OpenID Connect not configured for database default".  If a provider was specified in the request, that provider was not defined in the Sync Gateway config.  If no provider was specified, OpenID Connect is not configured in the Sync Gateway config.
-        500:
-          description: Server Error.  Sync Gateway is unable to connect and validate the OpenID Connect provider requested.
-  /{db}/_oidc_callback:
-    parameters:
-    - $ref: '#/parameters/db'
-    get:
-      tags:
-      - auth
-      summary: OpenID Connect Authentication callback.
-      description: |
-        Sync Gateway callback URL that clients are redirected to by the OpenID Connect provider.
-      parameters:
-      - in: query
-        name: code
-        description: OpenID Connect Authorization code.
-        type: string
-        required: true
-      - in: query
-        name: provider
-        description: OpenId Connect provider to be used for authentication, from the list of providers defined in the Sync Gateway Config. If not specified, will attempt to authenticate using the default provider.
-        type: string
-        required: false
-      responses:
-        200:
-          description: Successful OpenID Connect authentication.
-          schema:
-            type: object
-            properties:
-              id_token:
-                type: string
-                description: OpenID Connect ID token
-              refresh_token:
-                type: string
-                description: OpenID Connect refresh token
-              session_id:
-                type: string
-                description: Sync Gateway session token
-              name:
-                type: string
-                description: Sync Gateway username
-              access_token:
-                type: string
-                description: OpenID Connect access token
-              token_type:
-                type: string
-                description: OpenID Connect token type
-              expires_in:
-                type: number
-                description: TTL for id_token
-        400:
-          description: Bad request.
-        401:
-          description: Authentication failed.  Reason returned in the response body.
-  /{db}/_oidc_challenge:
-    parameters:
-    - $ref: '#/parameters/db'
-    get:
-      tags:
-      - auth
-      summary: OpenID Connect Authentication.
-      description: |
-        Called by clients to initiate the OIDC Authorization Code flow.
-      parameters:
-      - in: query
-        name: offline
-        description: When true, requests a refresh token from the OP. Sets access_type=offline and prompt=consent on the redirect to the OP. Secure clients should set offline=true and persist the returned refresh token to secure storage.
-        type: boolean
-        required: false
-      - in: query
-        name: provider
-        description: OpenId Connect provider to be used for authentication, from the list of providers defined in the Sync Gateway Config. If not specified, will attempt to authenticate using the default provider.
-        type: string
-        required: false
-      responses:
-        302:
-          description: Redirect to the requested OpenID Connect provider for authentication. Redirect link is returned in the Location header.
-        400:
-          description: Bad request.  Reason is returned as "OpenID Connect not configured for database default".  If a provider was specified in the request, that provider was not defined in the Sync Gateway config.  If no provider was specified, OpenID Connect is not configured in the Sync Gateway config.
-        500:
-          description: Server Error.  Sync Gateway is unable to connect and validate the OpenID Connect provider requested.
-  /{db}/_oidc_refresh:
-    parameters:
-    - $ref: '#/parameters/db'
-    get:
-      tags:
-      - auth
-      summary: OpenID Connect refresh.
-      description: |
-        Used to obtain a new OpenID Connect ID token based on the provided refresh token.
-      parameters:
-      - in: query
-        name: refresh_token
-        description: OpenID Connect refresh token.
-        type: string
-        required: true
-      - in: query
-        name: provider
-        description: OpenId Connect provider to be used for authentication, from the list of providers defined in the Sync Gateway Config. If not specified, will attempt to authenticate using the default provider.
-        type: string
-        required: false
-      responses:
-        200:
-          description: Successful OpenID Connect authentication.
-          schema:
-            type: object
-            properties:
-              id_token:
-                type: string
-                description: OpenID Connect ID token
-              session_id:
-                type: string
-                description: Sync Gateway session token
-              name:
-                type: string
-                description: Sync Gateway username
-              access_token:
-                type: string
-                description: OpenID Connect access token
-              token_type:
-                type: string
-                description: OpenID Connect token type
-              expires_in:
-                type: number
-                description: TTL for id_token
-        400:
-          description: Bad request.
-        401:
-          description: Authentication failed.  Unable to refresh token.
-################################################################################
-# Replication endpoint path
-################################################################################
-  /{db}/_replication/:
-    post:
-      tags:
-      # - database
-      - replication
-      summary: Create a new replication definition
-      description: |+
-        The **_replication** endpoint is used to manage both *ad hoc* and *persistent* replication operations.
-
-        Using a POST request you can insert a new set of replication details.
-
-        <br>**To Cancel a Replication**
-        You can cancel continuous replications by adding the cancel field to the JSON request object and setting the value to true.
-        Note that the structure of the request must be identical to the original for the cancellation request to be honoured.
-        For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
-      parameters:
-      - $ref: '#/parameters/db-local'
-      # - $ref: '#/parameters/replication_id-upsert'
-      - $ref: '#/parameters/replication__replication-body'
-      responses:
-        200:
-          description: Replication successfully updated
-          schema:
-            $ref: '#/definitions/ReplicationResponse'
-        201:
-          description: Replication successfully inserted
-          schema:
-            $ref: '#/definitions/ReplicationResponse'
-    get:
-      tags:
-      # - database
-      - replication
-      summary: Retrieve all replication definitions
-      description: |
-        Returns an array object containing all replication definitions
-      parameters:
-        - $ref: '#/parameters/db-local'
-      responses:
-        200:
-          description: Successful response - returns an array of replication definitions in the body as JSON
-          schema:
-            type: array
-            items:
-              # type: object
-              $ref: '#/definitions/ReplicationResponseBody'
-
-  /{db}/_replication/{replicationID}:
-    get:
-      tags:
-      # - database
-      - replication
-      summary: Retrieve a replication definition
-      description: |
-        Returns requested (**replicationID**) replication definition
-      parameters:
-        - $ref: '#/parameters/db-local'
-        - $ref: '#/parameters/replication_id-required'
-
-      responses:
-        200:
-          description: Successful response - returns requested replication definition in the body as JSON
-          schema:
-            # type: array
-            # items:
-            type: object
-            $ref: '#/definitions/ReplicationResponseBody'
-
-    put:
-      tags:
-      # - database
-      - replication
-      summary: Upsert a replication definition
-      description: |
-        The **_replication** endpoint is used to manage both *ad hoc* and *persistent* replication operations.
-
-        Using a PUT request you can update (or insert, if it doesn't exist) a set of replication details.
-
-        <br>**To cancel a replication**
-        You can cancel continuous replications by adding the cancel field to the JSON request object and setting the value to true.
-
-        Note that the structure of the request must be identical to the original for the cancellation request to be honoured.
-
-        For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
-      parameters:
-        - $ref: '#/parameters/db-local'
-        - $ref: '#/parameters/replication_id-upsert'
-        - $ref: '#/parameters/replication__replication-body'
-      responses:
-        200:
-          description: Replication successfully updated
-          schema:
-            $ref: '#/definitions/ReplicationResponse'
-        201:
-          description: Replication successfully inserted
-          schema:
-            $ref: '#/definitions/ReplicationResponse'
-    delete:
-      tags:
-        # - database
-      - replication
-      summary: Cancel and delete replication
-      description: |
-        Deletes a specific (**replicationID**) replication
-        - Removes persisted replication definition
-        - Removes all checkpoints associated with the replication
-        - Deletes all replication status information associated with the replication
-      parameters:
-        - $ref: '#/parameters/db-local'
-        - $ref: '#/parameters/replication_id-required'
-      response:
-        200:
-          description: Replication successfully deleted
-
-################################################################################
-# Replication Status endpoint
-################################################################################
-
-  /{db}/_replicationStatus?{queryString}:
-    get:
-      tags:
-        - replication
-      summary: Returns replication status data for  replications matching the criteria
-      description: |+
-        **About**
-
-        Returns replication status data for all replications matching the criteria specified in the {querystring} parameter.
-
-        **Options**
-
-        The `{queryString}` parameter supports the following filter parameters - see *Parameter* section for more details
-
-          - `activeOnly`
-          - `localOnly`
-          - `includeConfig`
-          - `includeError`
-
-        **Behavior**
-
-        The selection is made from all replications across *all* nodes.
-
-        By default the response includes status data for replications in any state (starting, running, stopped or error) from across all nodes.
-
-          <h5>Example</h5>
-
-          ```
-          http://localhost:4985/{db}/_replicationStatus?activeOnly=false&localOnly=false&includeError=true
-
-          ```
-      parameters:
-        # $ref: '#/parameters/replicationStatus__queryString'
-        # description: |+
-
-        # replicationStatus-activeOnly:
-        - in: query
-          name: activeOnly
-          type: boolean
-          default: false
-          required: false
-          description: |+
-            **Behavior**
-
-            When *true*, only active replications (state=starting, running, stopping) are returned
-
-            **Default**
-
-            false
-
-        # replicationStatus-localOnly:
-        - in: query
-          name: localOnly
-          type: boolean
-          default: false
-          required: false
-          description: |+
-            **Behavior**
-
-            When *true* returns only replications run (or running) the local node since startup.
-
-            **Default**
-
-            false
-
-            By default the response includes replications run or running across all nodes since node start-up.
-
-        # replicationStatus-includeError:
-        - in: query
-          name: includeError
-          type: boolean
-          default: true
-          required: false
-          description: |+
-            **Behavior**
-
-            When false, omits replications stopped due to error (state=error)
-
-            **Default**
-
-            true
-
-            By default the response includes replications in `error` state.
-
-        - in: query
-          name: includeConfig
-          type: boolean
-          default: false
-          required: false
-          description: |+
-            **Behavior**
-
-            When *true* the replication definition is included in the response.
-
-            **Default**
-
-             false
-
-
-      responses:
-        200:
-          description: Returns information about the active replications
-          schema:
-            type: array
-            items:
-              type: object
-              $ref: '#/definitions/ReplicationStatusResponseBody'
-              config:
-                type: object
-                description: Optional response content. Returned only when `includeConfig=true`
-
-
-
-  /{db}/_replicationStatus/{replicationID}:
-    get:
-      tags:
-        - replication
-      summary: Returns information on specified replication
-      description: |+
-        Returns the status of the requested (**replicationID**) replication
-      parameters:
-        - $ref: '#/parameters/db'
-        - $ref: '#/parameters/replication_id-required'
-      responses:
-        200:
-          description: Information about specified replication.
-          schema:
-            # type: array
-            # items:
-            type: object
-            $ref: '#/definitions/ReplicationStatusResponseBody'
-
-  /{db}/_replicationStatus/{replicationID}?action={action}:
-    put:
-      tags:
-        - replication
-      summary: Modify replication status
-      description: |+
-        Use this endpoint to change the status of the specified (**replicationID**) replication using the value of the `action` parameter.
-
-        The `action` parameter specifies the status to be set - valid values are
-
-           - `start` -- starts a stopped replication
-
-           - `stop` -- stops an active replication
-
-           - `reset` -- resets a stopped replication (resets checkpoint to zero). For bidirectional replication, both push and pull checkpoints are reset to zero.
-
-           For example
-
-           ```
-           http://localhost:4985/fred/_replicationStatus/{replicationID}?action=start
-           ```
-      parameters:
-        - $ref: '#/parameters/db'
-        - $ref: '#/parameters/replication_id-required'
-        - $ref: '#/parameters/replicationStatus-action'
-        # - in: query
-        #   name: action
-        #   type: string
-        #   default: none
-        #   required: true
-        #   description: Specifies the status to be set (`start`, `stop` or `reset`)
-      responses:
-        200:
-          description: The required status is successfully set
-          schema:
-            # type: array
-            # items:
-            type: object
-            $ref: '#/definitions/ReplicationStatusResponseBody'
-
-
   /{db}/_revs_diff:
     parameters:
       - $ref: '#/parameters/db'
     post:
       tags:
-      - database
+      - Changes
       summary: Used by the replicator
       description: Given a set of document/revision IDs, returns the subset of those that do not correspond to revisions stored in the database.
       parameters:
@@ -922,182 +453,13 @@ paths:
                 missing:
                   type: array
                   description: A list of revision IDs for that document (the ones that are not stored in the database).
-  /_config:
-    get:
-      tags:
-      - server
-      summary: Server configuration
-      description: |
-        Returns the Sync Gateway configuration of the running instance. This is a good method to check if a particular key was set correctly on the config file.
-      responses:
-        200:
-          description: Sync Gateway configuration of the running instance.
-  /_expvar:
-    get:
-      tags:
-      - server
-      summary: Debugging/monitoring at runtime
-      description: |+
-        The ```Expvar```method returns a number of runtime variables that you can view for debugging or performance monitoring purposes.
-
-        This method can also be accessed using Sync Gateway's [Metrics REST API](./rest-api-metrics.html)
-
-        **See** : [Sync Gateway Statistics Schema](./../stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
-
-      responses:
-        200:
-          description: OK - indicates success
-          schema:
-            $ref: '#/definitions/ExpVars'
-
-  /_logging:
-    get:
-      tags:
-      - server
-      summary: Get logging tags
-      description: |
-        Get logging tags of running instance.
-      responses:
-        200:
-          description: |
-            The response is a set of key-value pairs. The key is a log tag and the value is a boolean to indicate whether this tag is enabled.
-          schema:
-            $ref: '#/definitions/LogTags'
-    put:
-      tags:
-      - server
-      summary: Set all logging tags
-      description: |
-        Enabling logging for a tag provides additional diagnostic information for that logging area.
-
-        The PUT request replaces all existing logging tags with the ones specified in the request body.
-      parameters:
-      - $ref: '#/parameters/level'
-      - $ref: '#/parameters/logLevel'
-      - $ref: '#/parameters/logtags'
-      responses:
-        201:
-          description: The operation was successful
-    post:
-      tags:
-      - server
-      summary: Set individual logging tags
-      description: |
-        Enabling logging for a tag provides additional diagnostic information for that logging area.
-
-        The POST request only updates the tags specified in the request body.
-      parameters:
-      - $ref: '#/parameters/level'
-      - $ref: '#/parameters/logLevel'
-      - $ref: '#/parameters/logtags'
-      responses:
-        201:
-          description: The operation was successful
-  /_sgcollect_info:
-    get:
-      tags:
-      - server
-      summary: Gets the status of sgcollect_info
-      description: |
-        Will return information about whether sgcollect_info is currently running or not.
-      responses:
-        200:
-          description: The operation was successful
-          schema:
-            $ref: '#/definitions/SGCollectInfoStats'
-    post:
-      tags:
-      - server
-      summary: Trigger sgcollect_info
-      description: |
-        Starting in Sync Gateway 2.1, sgcollect_info can be triggered using ths endpoint.
-      parameters:
-      - $ref: '#/parameters/sgcollect_info'
-      responses:
-        200:
-          description: The request was successful.
-    delete:
-      tags:
-      - server
-      summary: Stops any currently running sgcollect_info
-      description: |
-        sgcollect_info can be cancelled using ths endpoint.
-      parameters:
-      - $ref: '#/parameters/sgcollect_info'
-      responses:
-        200:
-          description: The request was successful.
-  /_post_upgrade:
-    post:
-      tags:
-      - server
-      summary: Remove obsolete design documents
-      description: |
-        Starting in Sync Gateway 2.0, design documents used internally by Sync Gateway will include a version number in their name.<br><br>
-
-        This version is incremented at each change, but the previous version of the design documents are retained, as they may be required by other nodes.<br><br>
-
-        Use this `_post_upgrade` endpoint to remove any obsolete design documents when you are sure they are no longer needed.<br><br>
-
-        *TIP:* Use the `preview=true` query string option to check which design documents will be removed.<br><br>
-
-        Typcal use cases for this end point include:<br>
-
-        - After upgrading Sync Gateway -- see ([upgrade guide](upgrade.html#upgrade)).
-
-        - After moving from *non-import-docs* to *import-docs* methods. That is, from `import-docs=False` to `import-docs=True`
-
-      parameters:
-      - $ref: '#/parameters/upgrade_preview'
-      responses:
-        200:
-          description: The request was successful.
-  /_replicate:
-    post:
-      tags:
-      - server
-      summary: Starts or cancels a database replication operation
-      description: |
-        <h5>**Deprecated @ 2.8** This API endpoint is now deprecated. It is replaced by the Inter-Sync Gateway Replication (v2) replication endpoint -- see [_replication](#/replication/post__db___replication__replicationID_) endpoint</h5>
-
-        **About**
-
-        This endpoint is used to start or cancel a database replication operation.
-
-        - Starting a replication with the _replicate endpoint will implicitly set `adhoc=true` for the replication
-        - Setting `cancel=true` will set the replication state to **STOPPING**
-
-        <br><br>
-        **Canceling replications**
-
-        You can cancel continuous replications by adding the cancel field to the JSON request object and setting the value to true.
-        <br>
-        Note that the structure of the request must be identical to the original for the cancellation request to be honoured.
-        For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
-
-        <br><br>
-
-        **Constraints**
-
-        - Use this endpoint only for Inter-Sync Gateway Replication (v1) replications.
-        - Users wanting to us Inter-Sync Gateway Replication (v2) replications  should use [_replication](#/replication/post__db___replication__replicationID_) **not** this endpoint.
-
-
-      parameters:
-      - $ref: '#/parameters/replicate__replication-body'
-      responses:
-        200:
-          description: 200 OK
-          schema:
-            $ref: '#/definitions/ReplicationResponse'
-#        type: integer
 
   /{db}/:
     parameters:
     - $ref: '#/parameters/db'
     get:
       tags:
-      - database
+      - Management
       summary: Database info
       description: |
         This request retrieves information about the database.
@@ -1112,7 +474,7 @@ paths:
           description: Not Found. Requested database not found.
     post:
       tags:
-      - document
+      - Documents
       operationId: post
       summary: Create document
       description: |
@@ -1132,7 +494,7 @@ paths:
             $ref: '#/definitions/Success'
     put:
       tags:
-      - database
+      - Management
       summary: Create database
       description: >
         This request creates a database.
@@ -1155,7 +517,7 @@ paths:
           description: The database was created successfully.
     delete:
       tags:
-      - database
+      - Management
       summary: Delete database
       description: Delete database
       responses:
@@ -1168,7 +530,7 @@ paths:
     - $ref: '#/parameters/db'
     post:
       tags:
-      - database
+      - Management
       summary: Compact the database
       description: |
         Use the ```/{db}/_compact``` endpoint to trigger the compaction process, which purges the JSON bodies of non-leaf revisions. This process is also run periodically by the system.
@@ -1197,7 +559,7 @@ paths:
     - $ref: '#/parameters/db'
     get:
       tags:
-      - database
+      - Config
       summary: Database configuration
       description: |
         Returns the Sync Gateway configuration of the database specified in the URL. This is a good method to check if a particular key was set correctly on the config file.
@@ -1206,7 +568,7 @@ paths:
           description: Sync Gateway configuration of the running instance.
     put:
       tags:
-      - database
+      - Config
       summary: Update database configuration
       description: |
         This request updates the configuration for the database specified in the URL.
@@ -1227,7 +589,7 @@ paths:
     - $ref: '#/parameters/ddoc'
     get:
       tags:
-      - query
+      - Design
       summary: Get Views of a design document
       description: |
         Query a design document.
@@ -1241,7 +603,7 @@ paths:
                 $ref: '#/definitions/View'
     put:
       tags:
-      - query
+      - Design
       summary: Update views of a design document
       parameters:
       - in: body
@@ -1257,7 +619,7 @@ paths:
             $ref: '#/definitions/Success'
     delete:
       tags:
-      - query
+      - Design
       summary: Delete design document
       description: |
         Delete a design document.
@@ -1277,7 +639,7 @@ paths:
     - $ref: '#/parameters/db'
     post:
       tags:
-      - database
+      - Management
       summary: This request takes the specified database offline.
       description: |
         An offline database is not accessible through Sync Gateway's Public REST API. However, some commands can be given to Sync Gateway through the Admin REST API.
@@ -1303,7 +665,7 @@ paths:
     - $ref: '#/parameters/db'
     post:
       tags:
-      - database
+      - Management
       summary: Bring a database online.
       description: |
         When a database is online, Sync Gateway serves both Public and Admin REST API requests for the database. This request brings the specified database online, either immediately or after a specified delay.
@@ -1342,7 +704,7 @@ paths:
     - $ref: '#/parameters/db'
     post:
       tags:
-      - document
+      - Documents
       summary: Purge document
       description: |
         The purge command provides a way to remove a document from the bucket itself. The operation removes all the revisions (active and tombstones) for the specified document(s). A common usage of this endpoint is to remove tombstone documents that are no longer needed, thus recovering storage space and reducing data replicated to clients. Other clients are not notified when a revision has been purged; so in order to purge a revision from the system it must be done from all databases (on Couchbase Lite and Sync Gateway).
@@ -1373,7 +735,7 @@ paths:
     - $ref: '#/parameters/doc'
     get:
       tags:
-      - document
+      - Documents
       summary: Document with metadata
       description: |
         Returns the document with the metadata.
@@ -1389,7 +751,7 @@ paths:
     - $ref: '#/parameters/db'
     post:
       tags:
-      - database
+      - Sync Function
       summary: Reprocess all documents by the database in the sync function.
       description: |
         This request causes all documents to be reprocessed by the database sync function. The _resync operation should be called if the sync function for a database has been modified in such a way that the channel or access mappings for any existing document would change as a result.
@@ -1417,7 +779,7 @@ paths:
       produces:
       - text/plain
       tags:
-      - document
+      - Changes
       summary: Revision Tree structure in Graphviz Dot format | not officially supported
       description: |
         Returns the dot syntax of the revision tree which can be rendered into a PNG image with the [CLI dot tool](http://www.graphviz.org/).
@@ -1430,245 +792,6 @@ paths:
       responses:
         200:
           description: Success and returns the revtree as plain text.
-  /{db}/_role:
-    parameters:
-    - $ref: '#/parameters/db'
-    get:
-      tags:
-      - role
-      summary: Get roles
-      description: This request returns all the roles in the specified database.
-      responses:
-        200:
-          description: 200 OK – Returns the list of roles as an array of strings
-          schema:
-            type: array
-            description: The message body contains the list of roles in a JSON array. Each element of the array is a string representing the name of a role in the specified database.
-            items:
-              type: string
-    post:
-      tags:
-      - role
-      summary: Role
-      description: This request creates a new role in the specified database.
-      parameters:
-      - $ref: '#/parameters/role'
-      responses:
-        201:
-          description: 201 OK – The role was created successfully
-        409:
-          description: 409 Conflict – A role with this name already exists
-  /{db}/_role/{name}:
-    parameters:
-    - $ref: '#/parameters/db'
-    - $ref: '#/parameters/role_name'
-    get:
-      tags:
-      - role
-      summary: Get role
-      description: Request a specific role by name.
-      responses:
-        200:
-          description: The response contains information about this role.
-          schema:
-            type: object
-            properties:
-              name:
-                type: string
-              admin_channels:
-                type: array
-                description: |
-                  The admin channels that this role has granted access to. Admin channels are the ones which were
-                  granted access to in the config file or via the Admin REST API.
-                items:
-                  type: string
-              all_channels:
-                type: array
-                description: All the channels that this role has access to.
-                items:
-                  type: string
-    put:
-      tags:
-      - role
-      summary: Creates or updates a role
-      description: This request creates or updates a role in the specified database.
-      parameters:
-      - $ref: '#/parameters/role'
-      responses:
-        200:
-          description: 200 OK – The role was updated successfully
-        201:
-          description: 201 Created – The role was created successfully
-    delete:
-      tags:
-      - role
-      summary: Deletes the role
-      description: This request deletes the role with the specified name in the specified database.
-      responses:
-        200:
-          description: 200 OK – The role was successfully deleted
-  /{db}/_session:
-    parameters:
-    - $ref: '#/parameters/db'
-    post:
-      tags:
-      - session
-      summary: Creates a new session
-      description: |
-        If the credentials provided in the request body are valid, the session is created with an idle session timeout of 24 hours. An idle session timeout in the context of Sync Gateway is defined as the following: if 10% or more of the current expiration time has elapsed when a subsequent request with that session id is processed, the session's expiry time is automatically updated to 24 hours from that time.
-      parameters:
-      - in: body
-        name: SessionBody
-        description: The message body is a JSON document that contains the following objects.
-        schema:
-          type: object
-          properties:
-            name:
-              type: string
-              description: Username of the user the session will be associated to.
-            ttl:
-              description: Default is 24 hours (86400 seconds). The TTL (time-to-live) of the session, in seconds. The value must be greater than 0.
-              type: integer
-              default: 86400
-              example: 180
-      responses:
-        200:
-          description: Session successfully created.
-          schema:
-            type: object
-            properties:
-              cookie_name:
-                type: string
-                description: Cookie used for session handling
-              expires:
-                type: string
-                description: Expiration time for session.
-              session_id:
-                type: string
-                description: Session ID.
-  /{db}/_session/{sessionid}:
-    parameters:
-    - $ref: '#/parameters/db'
-    - $ref: '#/parameters/sessionid'
-    get:
-      tags:
-      - session
-      summary: Retrieves information about a session
-      description: |
-        This request retrieves information about a session.
-      responses:
-        200:
-          description: 200 OK – Request completed successfully.
-          schema:
-            type: object
-            properties:
-              authentication_handlers:
-                type: array
-                items:
-                  type: object
-                  description: List of supported authentication handlers
-              ok:
-                type: boolean
-                description: Success flag
-              userCtx:
-                type: object
-                description: Contains an object with properties channels (the list of channels for the user associated with the session) and name (the user associated with the session)
-    delete:
-      tags:
-      - session
-      summary: Deletes a single session
-      description: |
-        This request deletes a single session.
-      responses:
-        200:
-          description: 200 OK – Request completed successfully. If the session is successfully deleted, the response has an empty message body. If the session is not deleted, the message body contains error information.
-  /{db}/_user/{name}/_session:
-    parameters:
-    - $ref: '#/parameters/db'
-    - $ref: '#/parameters/name'
-    delete:
-      tags:
-      - session
-      summary: Deletes all user sessions
-      description: This request delete the session for the specified user.
-      responses:
-        200:
-          description: User session deleted.
-  /{db}/_user/{name}/_session/{sessionid}:
-    parameters:
-    - $ref: '#/parameters/db'
-    - $ref: '#/parameters/name'
-    - $ref: '#/parameters/sessionid'
-    delete:
-      tags:
-      - session
-      summary: Deletes a specific user session
-      description: This request delete the specified session for the specified user.
-      responses:
-        200:
-          description: User session deleted.
-  /{db}/_user/:
-    parameters:
-    - $ref: '#/parameters/db'
-    get:
-      tags:
-      - user
-      summary: Retrieves all users
-      description: This request returns all the users in the specified database.
-      responses:
-        200:
-          description: The message body contains the list of users in a JSON array. Each element of the array is a string representing the name of a user in the specified database.
-          schema:
-            type: array
-            items:
-              type: string
-              description: username
-    post:
-      tags:
-      - user
-      summary: Creates a new user
-      description: This request creates a new user in the specified database.
-      parameters:
-      - $ref: '#/parameters/user'
-      responses:
-        201:
-          description: 201 OK – The user was created successfully
-        409:
-          description: 409 Conflict – A user with this name already exists
-  /{db}/_user/{name}:
-    parameters:
-    - $ref: '#/parameters/db'
-    - $ref: '#/parameters/name'
-    get:
-      tags:
-      - user
-      summary: Retrieves a specific user
-      description: This request returns information about the specified user.
-      responses:
-        200:
-          description: 200 OK – Returns information about the specified user
-          schema:
-            $ref: '#/definitions/User'
-    put:
-      tags:
-      - user
-      summary: Creates or updates a user
-      description: This request creates or updates a user in the specified database.
-      parameters:
-      - $ref: '#/parameters/user'
-      responses:
-        200:
-          description: 200 OK – The user record was updated successfully
-        201:
-          description: 201 Created – The user record was created successfully
-    delete:
-      tags:
-      - user
-      summary: Deletes a user
-      description: This request deletes the user with the specified name in the specified database.
-      responses:
-        200:
-          description: 200 OK – The user was successfully deleted
 definitions:
   ActiveTaskResponseBody:
     type: object
@@ -1935,7 +1058,7 @@ definitions:
               - cache related statistics
               - cbl_replication_push
               - cbl_replication_pull
-              - database_related_statistics
+              - Management_related_statistics
               - delta_sync
               - gsi_views
               - security_related_statistics
@@ -2332,7 +1455,7 @@ definitions:
     type: object
     properties:
       tags:
-      # - database
+      # - Management
       - replication
       summary: Start a database replication operation
       description: |
@@ -2755,7 +1878,7 @@ definitions:
 
               **Options**
               - `true` or `false`
-              - Default = false -- document removals are ignored by receiving end
+              - Default = false -- Documents removals are ignored by receiving end
 
               **Behavior**
 
@@ -3513,7 +2636,7 @@ parameters:
 
             **Options**
             - `true` or `false`
-            - Default = false -- document removals are ignored by receiving end
+            - Default = false -- Documents removals are ignored by receiving end
 
             **Behavior**
 
@@ -4104,23 +3227,13 @@ parameters:
     default: false
     required: false
 tags:
-  - name: attachment
+  - name: Attachments
     description: Groups all endpoints for attachment activities
-  - name: auth
-    description: Groups all endpoints for authentication activities
-  - name: database
+  - name: Management
     description: Groups all endpoints for database activities
-  - name: document
+  - name: Config
+    description: Groups all endpoints for database activities
+  - name: Documents
     description: Groups all endpoints for document-based activities
-  - name: query
+  - name: Design
     description: Groups all endpoints for query-based activities
-  - name: replication
-    description: Groups all endpoints for sync and replication activities
-  - name: role
-    description: Groups all endpoints for role-based activities
-  - name: server
-    description: Groups all endpoints for server activities
-  - name: session
-    description: Groups all endpoints for session activities
-  - name: user
-    description: Groups all endpoints for user-based activities
