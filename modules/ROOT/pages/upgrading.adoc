@@ -36,7 +36,7 @@ include::partial$_std-hdr-sgw.adoc[]
 
 :param-abstract:
 :topic-group: Application Deployment
-:param-related: {get-started-prepare-xref} | {get-started-install-xref} | {xref-sgw-pg-release-notes}
+:param-related: {get-started-prepare--xref} | {get-started-install--xref} | {xref-sgw-pg-release-notes}
 include::partial$block-abstract.adoc[]
 
 == Upgrade Approaches
@@ -146,7 +146,7 @@ In this upgrade path, the upgrade process will trigger views in Couchbase Server
 During the re-indexing, operations that are dependent on those views will not be available.
 The main operations relying on views to be indexed are:
 
-* A user requests data that doesn't reside in the {configuration-properties-pfx}#databases-this_db-cache-channel_cache_max_length[channel cache].
+* A user requests data that doesn't reside in the {legacy-configuration-properties-pfx}#databases-this_db-cache-channel_cache_max_length[channel cache].
 * A new channel or role is granted to a user in the {xref-sgw-pg-adv-sgw-cfg-sync-function}.
 
 The unavailability of those operations may result in some requests not being processed.
@@ -228,7 +228,7 @@ This will match the Development Design Document we just indexed, so will be avai
 
 NOTE: When upgrading your Couchbase Server from 4.x to 5.x, remember to create a Sync Gateway RBAC user on the server -- see: {xref-sgw-bmk-get-started-prepare-cfg-svr} -- and to include the user's credentials username/password in you Sync-Gateway-Config.json file.
 
-All of the different upgrade paths mentioned above assume that you are running a compatible Couchbase Server version -- see {compatibility-xref}.
+All of the different upgrade paths mentioned above assume that you are running a compatible Couchbase Server version -- see {compatibility--xref}.
 
 There are three commonly used upgrade approaches for Couchbase Server.
 Depending on the one you choose, there may be additional consideration to keep in mind when using Sync Gateway:
@@ -277,13 +277,13 @@ Caveats:
 == SG Replicate to Inter-Sync Gateway
 
 === Out of the box behavior
-Any {configuration-properties-xref--db-replications} ({configuration-properties-xref--db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {configuration-properties-xref--databases} section will run using the SG{nbsp}Replicate protocol.
-This is subject to any compatibility constraints defined in the {compatibility-xref}.
+Any {legacy-configuration-properties--xref--db-replications} ({legacy-configuration-properties--xref--db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {legacy-configuration-properties--xref--databases} section will run using the SG{nbsp}Replicate protocol.
+This is subject to any compatibility constraints defined in the {compatibility--xref}.
 
 Existing replications implementing custom {xref-sgw-pg-resolving-conflicts} strategies (via the REST endpoint) will continue to function in the same manner as for SG{nbsp}Replicate replications after upgrade
 
 === Upgrading existing replications
-To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replication, reconfigure them using Inter-Sync Gateway Replication's {configuration-properties-xref--db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
+To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replication, reconfigure them using Inter-Sync Gateway Replication's {legacy-configuration-properties--xref--db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
 
 === Post-upgrade behavior
 
@@ -298,7 +298,7 @@ The `replicationId` is used to ensure that any replications previously setup wit
 The restart point will be the last checkpoint used, unless over-ridden.
 
 Over-riding restart point::
-To restart a sync from zero: After the upgrade reconfigure the inter-Sync Gateway replication {configuration-properties-xref--db-replications} to use a different {configuration-properties-xref--db-rep-id}
+To restart a sync from zero: After the upgrade reconfigure the inter-Sync Gateway replication {legacy-configuration-properties--xref--db-replications} to use a different {legacy-configuration-properties--xref--db-rep-id}
 
 === Constraints
 
@@ -452,13 +452,13 @@ Strategy::
 * Upgrade sequence
 .. Stop SG{nbsp}Replicate replications
 // .. Remove the SG{nbsp}Replicate replication configuration
-.. Add the Inter-Sync Gateway replication configuration, including Javascript function as {configuration-properties-xref--db-rep-resolver}
+.. Add the Inter-Sync Gateway replication configuration, including Javascript function as {legacy-configuration-properties--xref--db-rep-resolver}
 .. Upgrade each cluster to Hydrogen
 * Restart Outcomes
 ** When the active cluster is restarted it will automatically switch to Inter-Sync Gateway Replication
 ** Replication will continue from the last checkpoint, unless over-ridden.
 ** {enterprise} The replication will distribute automatically
-* Conflict resolution -- Conflicts will be handled by the function  specified as the as {configuration-properties-xref--db-rep-resolver}
+* Conflict resolution -- Conflicts will be handled by the function  specified as the as {legacy-configuration-properties--xref--db-rep-resolver}
 * Upgrade Constraint -- The `allow_conflicts` flag is ignored for any inter-Sync Gateway replication replications configured.
 ====
 --
@@ -559,7 +559,7 @@ The following steps outline a recommended method for migrating from Bucket Shado
 . Follow the recommendations in the xref:server:install:upgrade-online.adoc[Couchbase Server documentation] to upgrade all instances to 5.0.
 . Create a new bucket on Couchbase Server (*bucket 2*).
 . Install Sync Gateway 1.5 on a separate node with shared access enabled and connect it to the new bucket (*bucket 2*).
-. Setup a xref:{legacy-sg-replicate-page}[push replication] from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.
+. Setup a xref:{legacy-sg-replicate--page}[push replication] from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.
 . Once the replication has completed, test your application is performing as expected.
 . Update the load balancer to direct incoming traffic to the Sync Gateway 1.5 instance when you are ready to upgrade.
 . Delete the first bucket (*bucket 1*).
