@@ -23,131 +23,282 @@ NOTE: Before following the steps in this topic you must have read, and acted-upo
 :param-page: {page-relative-src-path}
 include::partial$_get-started-topic-group.adoc[]
 
-In this final step of the Getting Started topic we will look to link your Sync Gateway to a Couchbase Server bucket and verify that sync is taking place.
-You will need the configuration file used in the {get-started-install--xref} step.
+In this final step of the Getting Started topic we will look to link your Sync Gateway to a Couchbase Server bucket and verify that sync is taking place by executing a CRUD cycle.
+You will need to edit the configuration file used in the {get-started-install--xref} step to point to a bucket on your Couchbase Server -- see <<lbl-config>>.
 
 On completion of this topic you will have a working Sync Gateway instance that you know syncs with a Couchbase Server.
 You will have successfully completed installation and can now build on this with confidence.
 
+[#lbl-config]
+== Configure Sync Gateway
 
-== Step 1: Create a configuration file
+To configure Sync Gateway to connect to a Couchbase Server:
 
-To configure Sync Gateway to connect to a Couchbase Server instance, edit the configuration file you used in {get-started-install--xref} and include the content shown in <<sample-cfg>>.
+. Ensure your Sync Gateway service is stopped/unloaded
+. Edit the configuration file you used in {get-started-install--xref} and replace the contents with those shown in <<sample-cfg>>.
++
+The configuration points to the `get-started-bucket` which we will use to verify that you can synchronize changes made through the Sync Gateway API with those made through Couchbase Server.
+. Ensure you start Couchbase Server
+. Restart/Load your Sync Gateway  to pick-up the changed configuration
+
 
 [#sample-cfg]
-.Sample Config
+.Simple Sync Gateway-Couchbase Server Config
 ====
 [source,json]
 ----
-include::{example-cfg}[tag="getting-started-config"]
+
+{
+  "adminInterface": "127.0.0.1:4985",
+  "interface": "0.0.0.0:4984",
+  "databases": {
+    "get-started-bucket": {
+      "server": "http://127.0.0.1:8091",
+      "bucket": "get-started-bucket", // <.>
+      "username": "sync_gateway", // <.>
+      "password": "password", //
+      "enable_shared_bucket_access": true, // <.>
+      "import_docs": true, // <.>
+      "num_index_replicas": 0, // <.>
+      "users": {
+        "GUEST": { "disabled": false, "admin_channels": ["*"] } // <.>
+      }
+    }
+  },
+  "logging": { // <.>
+    "console": {
+      "log_level": "debug",
+      "log_keys": ["*"]
+    }
+  }
+}
+
 ----
 
-Configuration Properties::
-<.> The username of the RBAC user that you created on the Couchbase Server Admin Console -- see xref:{get-started-prepare--page}}#configure-server[Configure Server for Sync Gateway]
-<.> The password of the user that you created on the Couchbase Server Admin Console.
-<.> The xref:{sgw-pg-shared-bucket-access}[enable_shared_bucket_access] allows sharing of the bucket by Sync Gateway and Couchbase Server SDKs, which are able to perform operations on this bucket perhaps creating changes that replicate to Sync Gateway.
+About the Configuration Properties::
+<.> Here we point to the Couchbase Server bucket you created in {get-started-prepare--config-server--xref}
+<.> Provided the credentials for the RBAC user that you created on the Couchbase Server Admin Console -- see {get-started-prepare--config-server--xref}
+<.> Set `enable_shared_bucket_access` true to allow both Sync Gateway and Couchbase Server to make changes to the same bucket. This works in conjunction with `import_docs` to facilitate the replication of changes whether made through Sync Gateway or externally by an App or Couchbase Server SDK for example.
+<.> Set `import_docs` true to allow import processing to take place on this Sync Gateway node, thereby integrating document changes made outside of Sync Gateway
 <.> `num_index_replicas` is the number of index replicas stored in Couchbase Server -- see {xref-sgw-pg-indexing}. +
 *NOTE:* If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
-<.> Define your logging requirements. +
+<.> Here `users` introduces a guest user with access to all channels and all documents
+<.> Define your logging requirements: +
 Here we set general diagnostic console logs on.
-If you're having issues with sync, then refer to {logging--xref} for how to tune diagnostics to provide additional troubleshooting help
+If you're having issues then refer to {logging--xref} for how to tune diagnostics to provide additional troubleshooting help
 ====
 
 
-== Step 2: Start Sync Gateway
-
-Start Sync Gateway from the command line -- see {command-line-options--xref}, or if Sync Gateway is running in a service recycle the service to pick-up the amended configuration.
-
-[#start-sgw]
-.Use Command Line to Start Sync Gateway
-====
-[source,bash]
-----
-~/Downloads/couchbase-sync-gateway/bin/sync_gateway ~/path/to/sync-gateway-config.json // <.>
-----
-
-<.> If you are using a Couchbase Lite application, then run this command where that is installed.
-
-====
-
-
-== Step 3: Connect to Sync Gateway
+== Connect to Sync Gateway
 TIP: You can use {xref-sgw-bmk-logging-console} to aid diagnosis of connection issues
 
-. With Sync Gateway started (see: <<start-sgw>>), point your browser to the Sync Gateway url, typically on port 4984, but this can be changed -- see: {get-started-access-rest-api--xref}.
+. With Sync Gateway and Couchbase Server started, point your browser to the Sync Gateway url, typically on port 4984, but this can be changed -- see: {rest-api-access--xref}.
 +
 So, for example:
 +
-[source, console]
+[{snippet-header}]
 ----
 http://localhost:4984
 ----
 
 . Check that you receive a response similar to this:
 +
-[source, console]
+[{snippet-header}]
 ----
-{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":"2.8"},"version":"Couchbase Sync Gateway/2.8.0(376;e2e7d42) EE"}
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":"{version}"},"version":"Couchbase Sync Gateway/{version-full}(376;e2e7d42) EE"}
 ----
 +
 If there are issues then check the {xref-sgw-bmk-logging-console} for more information.
 Where necessary you can redirect console output to a file -- see: {xref-sgw-bmk-logging-console-redirect}.
 
-TIP: If Sync Gateway is behind a load balancer then check the websockets configuration -- see {xref-sgw-pg-load-balancer}.
+TIP: If Sync Gateway is behind a load balancer then check the websockets configuration -- see {load-balancer--xref}.
 
 
-== Step 4: Sync Changes
-Use CURL, or Postman, or similar to use the REST API to
+== Verify the CRUD Cycle
 
-* Get documents from Couchbase Server
-* Post document and sync them with Couchbase Server
-* Retrieve sync'd documents
+Here we will use CURL and Sync Gateway's REST API to
+
+. <<lbl-crud-crt>> Use the API to add a document and check the document on Couchbase Server
+. <<lbl-crud-get>> Read the document back from Couchbase Server using the Sync Gateway API
+. <<lbl-crud-upd>> Update the newly created document and observe the changes in Couchbase Server
+. <<lbl-crud-upd-svr>> Update the document in Couchase Server and check the change in Sync Gateway
+. <<lbl-crud-del>> Delete our document and check its state on Couchbase Server and Sync Gateway.
+
 
 [#ex-sync]
-====
-In these examples we use CURL to get, create, edit and delete a document, syncing with a Couchbase Server bucket.
 
+[#lbl-crud-crt]
+=== Create a New Document:
 
-[{tabs}]
-=====
-Get a Doc::
+Within a terminal use CURL to issue the following POST request, which adds a new document to the Couchbase Server bucket `get-started-bucket` by way of the Sync Gateway database `get-started-bucket` we configured in <<lbl-config>>
+
+.Request
+[{snippet-header}]
+----
+curl --location -g --request POST 'http://localhost:4984/get-started-bucket/' \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "_id": "first-doc",
+  "name": "Verify-Install Topic",
+  "type": "get-started",
+  "data": "any random string"
+}'
+----
+
+[#lbl-crud-add-resp, reftext=Response to Add Document Request]
+.Response
+[{snippet-header}]
+----
+{"id":"first-doc","ok":true,"rev":"1-a46e9c2f8ff4581e5662c47ae8519b0e"}%
+----
+
+[#lbl-check-cbs, reftext=Check Document on Couchbase Server]
+.Check
+View the document in Couchbase Server Admin Console to verify it syncs from Sync Gateway database.
+
+. Within the Admin Console, select *Buckets* and hit the btn:[Documents] button to open the _Document Editor_ tab.
+
+. Within the _Document Editor_ tab:
 +
---
-[{bash-header}]
-----
-tba
-----
---
-
-Create a Doc::
+.. Enter `get-started-bucket` as _Bucket_
+.. Enter `first` as _Document ID_
+.. kbd:[Enter]
 +
---
-[{bash-header}]
-----
-tba
-----
---
-
-Edit a Doc::
+You will see the response shown in <<img-cbs-view>>.
+The document should include any changes made through Sync Gateway, including the initial create.
 +
---
-[{bash-header}]
+[#img-cbs-view]
+.Couchbase Server Document Editor
+image::cbs-view-first-doc.png[]
+
+
+[#lbl-crud-get]
+=== Get a Document Using the API:
+
+.Request
+[{snippet-header}]
 ----
-tba
+curl --location --request GET 'http://localhost:4984/get-started-bucket/first-doc'
 ----
 
---
-=====
-====
+.Response
+[{snippet-header}]
+----
+{"_id":"first-doc","_rev":"1-a46e9c2f8ff4581e5662c47ae8519b0e","data":"any random string","name":"Verify-Install Topic","type":"get-started"}%
+----
+
+[#lbl-crud-upd]
+=== Update a Document using API:
+
+.Request
+[{snippet-header}]
+----
+curl --location -g --request PUT 'http://localhost:4984/get-started-bucket/first-doc' \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "_id": "first-doc",
+  "_rev": "1-a46e9c2f8ff4581e5662c47ae8519b0e", // <.>
+  "name": "Verify-Install Topic",
+  "type": "get-started",
+  "data": "an edited string" // <.>
+}'
+----
+<.> This revision is the one returned by the response to the initial POST request -- see: <<lbl-crud-add-resp>>
+<.> Here we change the text of the _data_ field.
+
+[#lbl-crud-upd-resp, reftext=Response to Update Document Request]
+.Response
+[{snippet-header}]
+----
+{"id":"first-doc","ok":true,"rev":"2-ecbdda61df3290beff4d0e433af8d745"}%  // <.>
+----
+
+<.> Here the `"ok":true` indicates success, whilst the revision shows it is the second change to this document.
+
+.Check
+<<lbl-check-cbs>>.
+Does the document contain the changed _data_ value?
+
+[#lbl-crud-upd-svr]
+=== Sync a Couchbase Server Change
+
+This will show that changes made using Couchbase Server are replicated to Sync Gateway.
+
+. Within the Couchbase Server Document Editor
+
+.. Retrieve `first_doc` if it is not currently displayed
+.. Edit the _data_ value to contain `"an edited string also changed in server"`
+.. btn:[Save] the change. +
+
+. In your terminal, use the API to get the document again -- see <<lbl-crud-get>> +
+You should see the change you made in Couchbase Server reflected in the response. For example:
++
+[{snippet-header}]
+----
+{"_id":"first-doc","_rev":"3-cc2e758ef63b0daf5b01b2baf98c72b6", // <.>
+"data":"an edited string also changed in server", // <.>
+"name":"Verify-Install Topic","type":"get-started"}
+----
+<.> Note that the revision sequence is now 3, up from the 2 returned in our <<lbl-crud-upd-resp>>
+<.> Note that the data field now contains both the change made in Sync Gateway ("an edited string") and that made in Couchbase Server ("also changed in server")
 
 
-== Step 5: Verify Changes
-To verify that documents have been replicated, you can:
+[#lbl-crud-del]
+=== Delete a Document Using API
 
-* Monitor the Sync Gateway sequence number returned by the database endpoint (xref:{rest-api--page}#/database/get\__db__[GET /{tkn-db}/]).
-The sequence number increments for every change that happens on the Sync Gateway database.
-* Query a document by ID on the Sync Gateway REST API as shown in <<ex-sync>>. Use (xref:{rest-api--page}#/document/get\__db___doc_[GET /{tkn-db}/{id}]) -- see: {rest-api-access--xref} for more.
+.Request
+[{snippet-header}]
+----
+curl --location -g --request DELETE 'http://localhost:4984/get-started-bucket/first-doc?rev=3-cc2e758ef63b0daf5b01b2baf98c72b6' // <.>
+----
+<.> Note that we provide here the revision ID of the latest revision (3), as returned in the response to the last GET request.
+
+.Response
+You should see the following response:
+[{snippet-header}]
+----
+{"id":"first-doc","ok":true,"rev":"4-03f1ba127340e8c50c31a36279298e60"}%  // <.>
+----
+<.> You can see here that the delete counts as the fourth change/revision. Again "ok":true indicates the delete was successful.
+
+.Check
+
+* <<lbl-check-cbs>> and you should now see "No Results"
+
+* Use the API to get the document -- see:  <<lbl-crud-get>>.
+Assuming the delete worked you should see the following response:
++
+[{snippet-header}]
+----
+{"error":"not_found","reason":"deleted"}%
+----
+
+
+== Ways to Verify Sync
+To verify that document changes have been replicated, you can:
+
+* Monitor the Sync Gateway revision number returned by the database endpoint (xref:{rest-api--page}#/database/get\__db__[GET /{tkn-db}/]).
+The revision number increments for every change that happens on the Sync Gateway database.
+* Query a document by ID on the Sync Gateway REST API as shown in <<lbl-check-cbs>>. Use (xref:{rest-api--page}#/document/get\__db___doc_[GET /{tkn-db}/{id}]) -- see: {rest-api-access--xref} for more.
 * Query a document from the Query Workbench on the Couchbase Server Console.
+
+
+== Next Steps
+
+Now you know Sync Gateway is deployed and operational.
+So, you can explore more complex scenarios with confidence.
+
+Maybe you want to learn more about Sync Gateway's {configuration-schema--xref} or how to {sync-with-couchbase-server--xref}. Or perhaps you want to explore how to:
+
+* Implement access controls for users and data -- see: {users--xref}, {roles--xref} and the {sync-function--xref} that ties it all together.
+
+* Implement secure connectivity using TLS/SSL, which is described in {authentication-users--xref} and {authentication-certs--xref}
+
+* Build more complex syncs, such as those that sync with:
+** Other Sync Gateway nodes, for which see {sync-inter-syncgateway-overview--xref}
+** Apps on mobile devices using Couchbase Lite -- see {sync-using-app--xref}
 
 
 include::partial$block-related-content-deploy.adoc[]
