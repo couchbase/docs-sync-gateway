@@ -2,18 +2,143 @@
 :page-layout: article
 :page-status:
 :page-content: conceptual
-:description: Sync Gateway configuration API
-:keywords: sync, data replication, cloud-to-edge,
+:description: Using environment variables in the configuration of Sync Gateway
+:keywords: sync, data replication, cloud-to-edge, configuration, variables
 
 include::partial$_std-hdr-sgw.adoc[]
 
-:topic-group: Sync Gateway Configuration
-:param-abstract: This content describes using Environment Variables in Sync Gateway's configuration
-:param-related: {get-started-verify-install--xref} | {rest-api-admin--xref} | {rest-api--xref} | {rest-api-client-app--xref}
+// Begin -- declare page attributes
+:double-dollar: $$
+:source-language: json
+// End -- declare page attributes
+
+
+:param-topic-group: configuration
+:param-abstract!:
+:param-related!:
+// {configuration-overview--xref} |  {configuration-javascript-functions--xref}  |  {configuration-schema--xref}  |  {configuration-rest-api--xref}
 include::partial$block-abstract.adoc[]
 
-== Introduction
 
-Sync Gateway ...
+== Introduction
+include::partial$feature-catalog.adoc[tags=config-env-vars-def]
+
+The use of environment variables within the configuration file increases the flexibility of the configuration process.
+It makes the switching of the runtime behavior -- for example during development, experimentation or testing -- much easier.
+
+
+== Syntax
+To use an environment variable, simply insert its name as a token using `$var` or `${var}` where you would normally put the configuration value you are substituting for.
+
+You can define inline default values using the notation +
+`${var:-default}`.
+The default value is used if the referenced environment variable is empty or undefined.
+
+If you need to include a configuration file value that contains a literal `$` symbol, you must use `{double-dollar}` instead.
+This enables the parser to differentiate between a literal `$` and the start of a variable name; so `pa{double-dollar}{double-dollar}` resolves to the value `pa{double-dollar}`.
+
+[#ex-syntax]
+.Configuring with Environment Variables
+====
+[{json-header}]
+----
+
+{
+  "databases": {
+    "db1": {
+      "bucket": "bucket1",
+      "server": "couchbase://localhost",
+      "username": "$USERNAME", // <.>
+      "password": "$PASSWORD"
+    }
+    "db2": {
+      "bucket": "${var_bucket:-this_bucket}", // <.>
+      "server": "couchbase://localhost",
+      "username": "$USERNAME",
+      "password": "pa{double-dollar}{double-dollar}word" // <.>
+    }
+  }
+}
+
+----
+
+<.> Here we provide a reference to the environment variables `$USERNAME` footnote:[On Windows systems USERNAME is already in use as a System Variable used by the operating system] and `$PASSWORD`.
+The values of those variable are substituted here immediately prior to the parsing of the configuration file.
+
+<.> The variable `var_bucket` is given a default value of 'this_bucket', which is used only if the `var_bucket` environment variable itself is empty or undefined.
+
+<.> This password value contains dollar symbols, so we need to use the `{double-dollar}` notation.
+The value is interpreted as `pa{double-dollar}word`.
+
+====
+
+
+== Usage
+
+Each variable is replaced immediately prior to the parsing of the configuration file at each Sync Gateway startup.
+
+The variables are immutable.
+This means changes to the values of the environment variables are not detected by Sync Gateway whilst it is running.
+Such changes only become effective after a restart of Sync Gateway.
+
+All environment variable names are case-sensitive in this context.
+So `$username` and `$USERNAME` are not the same variable
+
+Any references to undefined variables are replaced by an empty string.
+This can result in an invalid configuration, which will cause the start-up to abandoned and an error reported.
+
+
+== Variable Definition
+
+How you define the environment variables will depend on the platform used to host Sync Gateway.
+
+[{tabs}]
+=====
+Linux or Mac OS Terminal::
++
+--
+[{snippet-header}]
+----
+export USERNAME=Administrator
+export PASSWORD=pa$$word
+----
+--
+
+Windows CLI::
++
+--
+[source, dos, subs="+attributes, +macros"]
+----
+setx USERNAME Administrator // <.>
+set PASSWORD=pa$$word // <.>
+----
+<.> Permanently set the `USERNAME` variable.
+Note `setx` does not require the `=` symbol
+<.> Sets the `PASSWORD` variable, but only for the duration of the current 'Command Line' session.
+This may not be what you want.
+
+--
+
+Windows System Properties::
++
+--
+. Open a _System Properties_ panel
+. On the _Advanced System Settings_ tab, select btn:[Environment Variables] +
+This displays the _Environment Variables_ panel
+. Here you can create btn:[NEW] variables as well as btn:[EDIT] and btn:[DELETE] existing variables
+
+--
+
+Powershell::
++
+--
+[source, powershell, subs="+attributes, +macros"]
+----
+$ENV:USERNAME=Administrator
+$ENV:PASSWORD=pa{double-dollar}word
+----
+--
+=====
+
 
 include::partial$block-related-content-api.adoc[]
