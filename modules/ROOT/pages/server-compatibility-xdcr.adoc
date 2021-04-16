@@ -1,0 +1,102 @@
+= XDCR -- Server Compatibility
+:idprefix:
+:idseparator: -
+:description: How Sync Gateway works with Couchbase Server's Cross Data Center Replication
+:keywords: high-availability, disaster recovery, sync, replicate, edge, cloud, dr, ha, sync gateway cluster, mobile cluster, data migration. data provisioning, active standby, lift-and-shift, in hybrid cloud
+
+
+include::partial$_std-hdr-sgw.adoc[]
+
+
+:topic-group: compatibility
+:param-related: {server-compatibility-xdcr--xref}  |  {server-compatibility-eventing--xref}  |   {server-compatibility-transactions--xref}  |   {server-compatibility-collections--xref}  | {compatibility--xref}
+:param-abstract: Sync Gateway is specifically designed for mobile synchronization, but it can work alongside Couchbase Servers Cross Data Centre Replication (XDCR) to provide a comprehensive solution.
+include::partial$block-abstract.adoc[]
+
+
+== Introduction
+
+Couchbase Server provides the backing data store for Sync Gateway and it is compatible -- see: {compatibility--xref}.
+However, there are considerations you needs to be aware of when using some Couchbase Server features with Sync Gateway.
+
+One of those instances concerns the use of Couchbase Mobile and {server-xdcr--xref} (XDCR), which use different replication technologies.
+Here we show how you can combine the two, maximizing the strengths of both, whist minimizing any functional or performance impact.
+
+
+[#lbl-isgr]
+== Inter Sync Gateway Replication
+
+If you need to sync mobile clusters, you should use Inter-Sync Gateway replication -- see: {sync-inter-sync-gateway-overview--xref}.
+It was designed to keep mobile clusters in different data centers in sync.
+The ideal use-case being the need to replicate edge clusters containing active Sync{nbsp}Gateway nodes between geographically separate cloud-based Sync Gateway deployments.
+A typical architecture for this use case is shown in <<icr-active-mobile>>
+
+[[icr-active-mobile]]
+.Active-to-active mobile synchronization
+image::icr-active-mobile-sync200713.svg[,600]
+
+
+[#lbl-isgr-rsns]
+.Reasons to Use Inter-Sync Gateway
+
+Currently, XDCR replicates all of Sync Gateway’s metadata (_sync xattr) along with associated documents.
+This can overwrite existing metadata on the target cluster.
+
+In contrast, using Inter-Sync Gateway replication ensures that:
+
+* Cluster specific security is observed, since the appropriate Sync Function is invoked.
+* The integrity of security history is maintained. Historical access rules are help and maintained in the Sync Gateway metadata. This history is necessary to consistently handle the revocation of access grants.
+* A consistent Revision Id is used across all clusters, allowing clients to identify a revision regardless of the cluster it is on.
+* Cluster-specific _sync documents are not replicated to other mobile clusters
+
+
+
+[#lbl-xdcr]
+== Cross Data Center Replication
+
+Like inter-Sync Gateway Replication, Couchbase Server's Cross Data Center Replication (xref:server:manage:manage-xdcr/xdcr-management-overview.adoc[XDCR]) can be used to replicate between Couchbase Mobile clusters.
+
+Your default preference should always be to use inter-Sync{nbsp}Gateway replication for replication between mobile clusters.
+As stated in <<lbl-isgr-rsns>>, inter-Sync Gateway Replication is specifically designed for that purpose.
+
+However, there are use-case categories where it makes sense to use XDCR to replicate Couchbase Mobile clusters, for example:
+
+* Data provisioning from a central to a regional data center -- <<fig-prov-data>>
++
+--
+In this use-case, unidirectional XDCR (typically with a filter) is used to push data from a central/master data center to regional data centers, where the data is subsequently pulled by downstream clients.
+There are no updates coming in from regional data centers.
+
+[#fig-prov-data]
+.Using XDCR in Data Provisioning Scenarios
+image::data-provisioning-xdcr.png[,600]
+--
+
+* In a Disaster Recovery scenario where you need to setup target mobile clusters.
++
+--
+This category of use-cases includes, for example, active standby, disaster recovery, data migration, _lift-and-shift_ cases in hybrid cloud.
+These are all cases where the entire dataset from a source is replicated to the target -- see: <<lbl-prov-drc>> for more on the Disaster Recover use-case.
+--
+
+Note that running import at both ends (source and target) of an XDCR-replicated bucket is not a supported configuration.
+It can lead to sequence issues on the target cluster.
+
+
+[#lbl-prov-drc]
+== Using XDCR in Disaster Recovery Scenarios
+
+Here XDCR serves an important role in supporting Disaster Recovery and Data Migration, even though Sync Gateway is the operational replicator of choice for mobile data.
+
+
+=== Clusters in Same Region
+
+include::deploy-dr-cluster.adoc[tags=clusters-in-same-region]
+
+
+=== Clusters in Different Regions
+
+include::deploy-dr-cluster.adoc[tags=clusters-in-diff-region]
+
+
+include::partial$block-related-content-sync.adoc[]
