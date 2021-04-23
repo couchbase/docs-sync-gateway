@@ -1,42 +1,66 @@
 = OS Level Tuning
-:url-keepalive: https://tldp.org/HOWTO/TCP-Keepalive-HOWTO
-include::partial$_std-hdr-sgw.adoc[]
+:description: pass:q[OS level parameters you can use to tune _Couchbase Sync&nbspGateway]
+
 
 include::partial$_std-hdr-sgw.adoc[]
+
+
+// BEGIN -- Page Attributes
+:url-keepalive: https://tldp.org/HOWTO/TCP-Keepalive-HOWTO
+// END -- Page Attributes
+
+
+// BEGIN -- Page Heading
+:param-abstract!:
+:param-related!:
+include::partial$block-abstract.adoc[]
+// END -- Page Heading
+
+
+== Introduction
+
 
 To get the most out of Sync Gateway, it may be necessary to tune a few parameters of the OS.
 
-== File Descriptors
-
 Raising the maximum number of file descriptors available to Sync Gateway is important because it directly affects the maximum number of *sockets* the Sync Gateway can have open, and therefore the maximum number of endpoints that the Sync Gateway can support.
 
-=== Linux Instructions (CentOS)
+The instructions here are geared towards CentOS deployments.
 
-The following instructions are geared towards CentOS.
 
-==== Global Limits
+== Operating System File Descriptor Limits
 
 Increase the max number of file descriptors available to *all processes*.
-To specify the number of system wide file descriptors allowed, open up the `/etc/sysctl.conf` file and add the following line.
 
+
+Set the number of system wide file descriptors::
+
+. Edit the `/etc/sysctl.conf` file
+. Add the following line.
++
 [source,bash]
 ----
 fs.file-max = 500000
 ----
 
-Apply the changes and persist them (this will last across reboots) by running the following command.
-
+. Apply the changes by running the following command.
++
 [source,bash]
 ----
-$ sysctl -p
+$ sysctl -p // <.>
 ----
+<.> The `-p` will persist the change across reboots
 
-==== Sync Gateway Config Limits
 
-The maximum number of open files descriptors should also be configured in the Sync Gateway configuration file.
-Refer to the {legacy-configuration-properties-pfx}#server-configuration[server section] of the configuration guide and to the example below.
+== Sync Gateway File Descriptor Limits
 
-[source,javascript]
+Configure the maximum number of open files descriptors in Sync Gateway in line with the above changes.
+
+See the {legacy-configuration-properties--pfx}#maxFileDescriptors[maxFileDescriptors property] in the configuration file and <<ex-max-file-desc>>.
+
+[#ex-max-file-desc]
+.Set the Maximum File Descriptors
+====
+[source,json]
 ----
 {
   "maxFileDescriptors": 250000,
@@ -45,52 +69,58 @@ Refer to the {legacy-configuration-properties-pfx}#server-configuration[server s
   }
 }
 ----
+====
 
-==== Ulimits systemd config
+
+== Service File Descriptor Limits
+
+For systemd config::
 
 The `/usr/lib/systemd/system/sync_gateway.service` has a hardcoded limit specified by `LimitNOFILE=65535`.
++
 To increase that, edit the `/sync_gateway.service` file to your desired value and restart the service.
 
-==== Ulimits CLI
+== Process File Descriptor Limits
 
-If you are running Sync Gateway outside of systemd, use the following instructions.
-If you are using systemd, you can skip this section.
+If you are running Sync Gateway outside of _systemd_, use the following instructions.
 
-Increase the *ulimit* setting for max number of file descriptors available to a single process.
+TIP: If you are using systemd, you can skip this section.
+
+. Increase the *ulimit* setting for max number of file descriptors available to a single process.
 For example, setting it to 250K will allow the Sync Gateway to have 250K connections open at any given time, and leave 250K remaining file descriptors available for the rest of the processes on the machine.
 These settings are just an example, you will probably want to tune them for your own particular use case.
-
++
 [source,bash]
 ----
 $ ulimit -n 250000
 ----
 
-In order to persist the ulimit change across reboots, add the following lines to `/etc/security/limits.conf`.
-
+. To persist the ulimit change across reboots, add the following lines to: +
+ `/etc/security/limits.conf`.
++
 [source,bash]
 ----
 * soft nofile 250000
 * hard nofile 250000
 ----
 
-Verify your changes by running the following commands.
-
+. Verify your changes by running the following commands.
++
 [source,bash]
 ----
 $ cat /proc/sys/fs/file-max
 $ ulimit -n
 ----
++
+The output value of both commands above should be `250000`.
 
-The value of both commands above should be `250000`.
-
-=== References
-
-* https://glassonionblog.wordpress.com/2013/01/27/increase-ulimit-and-file-descriptors-limit/[Increasing ulimit and file descriptors limit on Linux]
+See also: https://glassonionblog.wordpress.com/2013/01/27/increase-ulimit-and-file-descriptors-limit/[Increasing ulimit and file descriptors limit on Linux]
 
 
 == TCP Keepalive Parameters
 
 If you have already raised the maximum number of file descriptors available to Sync Gateway, but you are still seeing "too many open files" errors, you may need to tune the TCP Keepalive parameters.
+
 
 === Understanding the Problem
 
@@ -107,6 +137,7 @@ $ lsof -p <sync_gw_pid> | grep -i established | wc -l
 ----
 
 If the value returned is near your max file descriptor limit, then you can either try increasing the max file descriptor limit even higher, or tuning the TCP Keepalive parameters to reduce the amount of time that dead peers will cause a socket to be held open on their behalf.
+
 
 [[_linux_instructions_centos_1]]
 === Linux Instructions (CentOS)
@@ -146,6 +177,7 @@ $ sysctl -p
 
 See {url-keepalive}/usingkeepalive.html[Using TCP keepalive under Linux] for more details on setting these parameters.
 
+
 === References
 
 * {url-keepalive}/overview.html[TCP Keepalive HOWTO]
@@ -154,4 +186,7 @@ See {url-keepalive}/usingkeepalive.html[Using TCP keepalive under Linux] for mor
 * https://linux.die.net/man/7/tcp[TCP man page]
 * https://github.com/couchbase/sync_gateway/issues/742[Sync Gateway Issue 742]
 
+
+// BEGIN -- Page Footer
 include::partial$block-related-content-api.adoc[]
+// END -- Page Footer
