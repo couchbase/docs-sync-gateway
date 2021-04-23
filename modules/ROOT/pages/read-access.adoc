@@ -23,38 +23,57 @@
 include::partial$_std-hdr-sgw.adoc[]
 
 :topic-group: access-control
-:param-abstract: The sync function API provides several methods that you can use to validate document creation, updates and deletions.
+:param-related: {sync-function--xref}  |  {write-access--xref}
+:param-abstract: pass:q[The sync function API provides several methods that you can use to validate user access.]
 include::partial$block-abstract.adoc[]
 
+
 == Introduction
-Every user and role has a set of channels that they're allowed to read.
+Every _user_ and _role_ has a set of channels that they are allowed to read.
+
 A user can only read documents that are in at least one of the user's channels (or the channels of roles that user has.)
 
 After a user is granted access to a new channel, the changes feed incorporates all existing documents in that channel, even those from earlier sequences than the current request's `since` parameter.
 That way the next pull request retrieves all documents to which the user now has access.
 
+
 == Add Access
 
-User/role channel access can be assigned directly through the admin API, the configuration file or via the Sync Function when a document is updated.
+User and-or role channel access can be assigned:
+
+* Directly through the admin API
+* In the configuration file
+* Dynamically, in the Sync Function when a document is accessed
+
 The Sync Function is the preferred method for granting access to channels programmatically.
+
 
 === Sync Function
 
 Calling xref:{sgw-pg-def-sync-function}#accessusername-channelname[access(user, channel)] grants a user access to a channel.
 This allows documents to act as membership lists or access-control lists.
 
-A typical example is a document that represents a shared resource (like a chat room or photo gallery).
-In the following example, a chat room is represented by a document with a `type` property set to `chatroom`.
-The `channel_id` property names the associated channel (with which the actual chat messages are tagged) and the `members` property lists the users who have access to that channel.
+A typical example is a document that represents a shared resource (like a chat room or photo gallery) -- see: <<ex-helper>>.
 
+
+[#ex-helper]
+.Using the Access helper function
+====
 [source,javascript]
 ----
 function (doc) {
-  if (doc.type == "chatroom") {
-    access(doc.members, doc.channel_id);
+  if (doc.type == "chatroom") {  // <.>
+    access(doc.members, // <.>
+      doc.channel_id);  // <.>
   }
 }
 ----
+In this example:
+
+<.> A chat room is represented by a document with a `type` property set to `chatroom`.
+<.> The `channel_id` property names the associated channel, with which the actual chat messages are tagged
+<.> The `members` property lists the users who have access to that channel.
+====
 
 The `access()` function can also operate on roles.
 If a user name string begins with `role:` then the remainder of the string is interpreted as a role name.
@@ -62,13 +81,16 @@ There's no ambiguity here, because ":" is an illegal character in a user or role
 
 Because anonymous requests are authenticated as the user "GUEST", you can make a channel and its documents public by calling `access` with a username of `GUEST`.
 
+
 === Configuration File
 
 A user can be granted access to a channel through the {configuration-properties-pfx}#databases-this_db-users-this_user-admin_channels[admin_channels] property in the configuration file.
 
+
 === Admin REST API
 
 A user can be granted access to a channel through the `admin_channels` property on the {rest-api-admin-pfx}#/user/put\__db___user__name_[/+\{db}+/user/+{name}+] admin REST API endpoint.
+
 
 == Revoke Access
 
@@ -116,6 +138,7 @@ Its value is derived from the union of:
 * The user's `admin_channels` property, which is settable via the admin REST API.
 * The channels that user has been given access to by `access()` calls from sync functions invoked for current revisions of documents.
 * The `all_channels` properties of all roles the user belongs to, which are themselves computed according to the above two rules.
+
 
 == Replication
 

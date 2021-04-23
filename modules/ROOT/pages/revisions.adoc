@@ -1,17 +1,19 @@
 = Revisions
 :page-layout: article
-:page-role:
-:page-status:
 :page-content: conceptual
-:description: About Revisions, Trees and Caches
+:description: About Sync Gateway's use of Revisions, Revision Trees and Revision Caches.
+
 
 include::partial$_std-hdr-sgw.adoc[]
 
-:topic-group: Concepts
-:param-abstract: Revisions are at the heart of Couchbase Mobile's ability to respond flexibly and securely to changing data from server to edge
-:param-related: {url-blog-dbsizemng-pruning}  |  {url-blog-doc-conflicts-repl-protocol-revisions}  |  {url-blog-doc-conflicts-demystifying-mvcc}
 
+// BEGIN -- Page Heading
+:topic-group: concept
+:param-abstract: pass:q[Revisions are at the heart of Couchbase Mobile's ability to respond flexibly and securely to changing data from server to edge.]
+:param-related: pass:q,a[{channels--xref}  |  {revisions--xref}  |  {roles--xref}  |  {what-are-tombstones--xref}  |  {users--xref} <br>_Related Blogs_: {url-blog-dbsizemng-pruning}  |  {url-blog-doc-conflicts-repl-protocol-revisions}  |  {url-blog-doc-conflicts-demystifying-mvcc}]
 include::partial$block-abstract.adoc[]
+// END -- Page Heading
+
 
 == Introduction
 
@@ -30,6 +32,7 @@ revision history as a  <<lbl-revtree, revision tree>>.
 
 Note that binary data such images, audio or other multimedia objects are stored separately from the document,in an entity known as a _blob_ (or _attachment_).
 Changes to _blobs_ do not generate revisions.
+
 
 [#lbl-revs]
 == Revisions
@@ -50,6 +53,7 @@ The contents of remote revision IDs are implementation dependent.
 Do not base any processing logic on their contents.
 * a hash derived from the document contents
 
+
 [#lbl-revtree]
 == Revision Trees
 
@@ -59,12 +63,14 @@ The tip of that tree, the _leaf_ node, is the _current revision_ -- the most rec
 A revision tree's growth is unlimited and obsolete revisions need to be removed in order to maintain performance levels.
 This process is know as <<lbl-prune>>.
 
+
 [#lbl-prune]
 ==  Revision Tree Pruning
 In the section::
 <<lbl-alg>> | <<lbl-rtctrl>> | <<lbl-rtcons>> | <<lbl-rt-more>>
 
 The process of removing obsolete revisions (_pruning_) runs automatically every time a revision is added.
+
 
 [#lbl-alg]
 === Algorithm
@@ -73,6 +79,7 @@ Although fundamentally the same, the pruning algorithm works slightly differentl
 On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
 
 The algorithm allows the branch to retain a configurable number of revisions (revs_limit) and removes all older revisions.
+
 
 [#lbl-rtctrl]
 === Controls
@@ -86,6 +93,7 @@ Do not set `revs_limit` below 100 when `allow_conflicts = true` +
 *Otherwise* ... you may adversely affect the conflict resolution process, as there may be insufficient revision history to resolve a given conflict.
 --
 
+
 [#lbl-rtcons]
 === Constraints
 The default and minimum values of `revs_limit` are dependent on whether {configuration-properties--xref--databases-allow-conflicts} is  True or False.
@@ -93,14 +101,11 @@ The default and minimum values of `revs_limit` are dependent on whether {configu
 The presence of multiple unresolved conflicts in a revision tree can impair the pruning process.
 This may result in obsolete revisions not being pruned, or in revisions being pruned prematurely.
 
+
 [#lbl-rt-more]
 === Learn More
 To learn more about revision pruning and database size management in general see our blog: {url-blog-dbsizemng-pruning}.
 
-// == Purging
-
-// See also:
-// - Sync Gateway purge endpoint --{xref-sgw-ep-admin-api-document-post-purge}.
 
 [#lbl-caching]
 == Revision Caching
@@ -109,13 +114,13 @@ In this section::
 
 Whenever a document is accessed its revision tree (or at least some portion of its revision tree) is also cached.
 
+
 [#lbl-ctrl]
 === Control
 You can control the size of the revision cache using the {configuration-properties--xref--databases-cache-revs} settings within the configuration file, specifically:
 
 * {configuration-properties--xref--databases-cache-revs-size}
 * {configuration-properties--xref--databases-cache-revs-shard}
-
 
 
 [#lbl-size]
@@ -126,6 +131,7 @@ When the revision cache is full, Sync Gateway will remove older document revisio
 
 By adjusting this setting you can fine-tune Sync Gateway's memory consumption.
 This can be useful when working on servers with limited memory and in cases when Sync Gateway creates and-or updated many new documents relative to the number of read operations.
+
 
 [#lbl-sharding]
 === Sharding
@@ -138,6 +144,7 @@ You can control the number of shards ino which Sync Gateway will split its revis
 More shards means lower cache contention when accessing distinct revisions, at the cost of some memory overhead per-shard.
 
 NOTE: Do not change the default {configuration-properties--xref--databases-cache-revs-shard} unless advised to do so by Couchbase Support -- see: {url-cb-support-policy}.
+
 
 [#lbl-deltasync]
 === Delta Sync and Revisions
@@ -163,6 +170,7 @@ Equating to: `(4 * 100 * 86400)/86400 = 400 KB`
 ====
 
 Setting {configuration-properties--xref--databases-delta-sync-max-age} to zero will generate deltas opportunistically on pull replications, with no additional storage requirements.
+
 
 [#lbl-disable]
 === Disabling the Revision Cache
