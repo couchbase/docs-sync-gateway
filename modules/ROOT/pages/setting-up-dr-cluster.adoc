@@ -61,8 +61,9 @@ When you are ready to switch to Disaster Recovery operations:
 
 . Stop the replication (XDCR) from the Primary cluster to Disaster Recovery cluster.
 . *When XDCR is stopped:* Switch the Load Balancer to point to the Sync Gateway on the Disaster Recovery cluster.
+This maintains the deployment of Sync Gateway at only one end of the XDCR replication.
 . Promote the Disaster Recovery cluster to Primary and the *old* Primary to Disaster Recovery.
-. Flush all buckets in the Primary cluster; this prevents any writes coming into the Primary cluster that had not been replicated when XDCR was stopped.
+. Flush all replicated buckets in the Primary cluster; as a precaution against any spurious writes coming into the Primary cluster that had not been replicated when XDCR was stopped.
 . Reverse the XDCR to replicate from the newly promoted Primary to the old Primary to set up a new Backup.
 
 [#fig-dr-same-regn-in-recovery]
@@ -76,7 +77,7 @@ image::{image-sgw-xdcr-dr-same-regn-in-recovery}[,{std-image-size}]
 // tag::clusters-in-diff-region[]
 
 This model caters for situations where the Active and Disaster Recovery clusters are in different regions or data centers.
-It has a separate Sync Gateway cluster attached to the Disaster Recovery cluster.
+Although the model has a separate Sync Gateway cluster attached to the Disaster Recovery cluster, it maintains the deployment of Sync Gateway at only one end of the XDCR replication.
 The optional optimization step will ensure that there is no downtime during the activation stage.
 
 
@@ -102,7 +103,7 @@ When you are ready to switch to Disaster Recovery operations -- see: <<fig-dr-di
 . Ensure that any and all Load Balancer(s) are updated to direct all traffic to the new Sync Gateway cluster(s).
 . Turn on the Sync Gateway cluster(s) in the Disaster Recovery cluster.
 . Promote the Disaster Recovery cluster to be the *new* Primary cluster, and make the *old* Primary cluster the *new* Disaster Recovery cluster
-. Flush all buckets in the *new* Primary cluster; this prevents any writes coming into the Primary cluster that had not been replicated when XDCR was stopped.
+. Flush all replicated buckets in the  Primary cluster; as a precaution against any spurious writes coming into the Primary cluster that had not been replicated when XDCR was stopped.
 . Reverse the original XDCR to replicate from the newly promoted Primary to the old Primary, to set up a new Backup.
 
 [#fig-dr-diff-regn-in-recovery]
