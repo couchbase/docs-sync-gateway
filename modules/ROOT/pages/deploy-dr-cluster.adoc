@@ -1,0 +1,98 @@
+= Using XDCR for Disaster Recovery in Mobile Clusters
+:page-layout: article
+:page-status:
+:page-partial:
+:page-content: reference
+:description: How to set up a Sync Gateway mobile cluster for Disaster Recovery (DR) using Couchbase Server's Cross Data Center Replication (XDCR)
+:keywords: high-availability, disaster recovery, sync, replicate, edge, cloud, dr, ha, sync gateway cluster, mobile cluster, data migration
+
+
+include::partial$_std-hdr-sgw.adoc[]
+
+
+:topic-group: deploy
+:param-related: {get-started-verify-install--xref} | {rest-api-admin--xref} | {rest-api--xref} | {rest-api-client-app--xref}
+include::partial$block-abstract.adoc[]
+
+
+== Introduction
+
+{server-xdcr--xref} (XDCR) replicates data between two or more autonomous Couchbase Server clusters.
+It serves an important role in supporting Disaster Recovery (DR) and Data Migration, even where Sync Gateway is the normal replicator of choice for mobile data.
+
+
+== Recommended Deployment Models
+
+=== Clusters in Same Region
+// tag::clusters-in-same-region[]
+
+This model caters for situations where the Active and Disaster Recovery clusters are in the same region or data center -- see: <<fig-dr-same-rgns>>.
+It includes an optional optimization step, which will ensure that there is no downtime during the activation stage.
+
+.Set Up
+To set up and maintain a disaster recovery cluster:
+
+. [_Optional step -- for optimization_] Connect Sync Gateway to the Disaster Recovery cluster just long enough to create indexes.
+Having everything reindexed lowers switching costs. +
+If you skip this test, you will incur latency when Sync Gateway is switched to the Disaster Recovery cluster and Sync Gateway rebuilds its indexes.
+. Connect Sync Gateway to your Primary cluster.
+. Initiate the *unidirectional* XDCR from the Primary cluster to the Disaster Recovery cluster.
+
+[#fig-dr-same-rgns]
+.DR for Clusters in Same Regions
+image::sgw-xdcr-dr-same-regn.png[,600]
+
+
+.Activation
+When you are ready to switch to Disaster Recovery operations:
+
+. Stop the replication (XDCR) from the Primary cluster to Disaster Recovery cluster.
+. *When XDCR is stopped:* Switch the Load Balancer to point to the Sync Gateway on the Disaster Recovery cluster.
+. Promote the Disaster Recovery cluster to Primary and the *old* Primary to Disaster Recovery.
+. Flush all buckets in the Primary cluster; this prevents any writes coming into the Primary cluster that had not been replicated when XDCR was stopped.
+. Reverse the XDCR to replicate from the newly promoted Primary to the old Primary to set up a new Backup.
+
+// end::clusters-in-same-region[]
+
+
+=== Clusters in Different Regions or Data Centers
+// tag::clusters-in-diff-region[]
+
+This model caters for situations where the Active and Disaster Recovery clusters are in different regions or data centers.
+It has a separate Sync Gateway cluster attached to the Disaster Recovery cluster.
+The optional optimization step will ensure that there is no downtime during the activation stage.
+
+
+.Set Up
+To set up and maintain a disaster recovery cluster - see: <<fig-dr-diff-regn-setup>>:
+
+. [_Optional step -- for optimization_] Turn on _Sync Gateway_ in the Disaster Recovery cluster just long enough to create indexes.
+Having everything re-indexed lowers switching costs. +
+If you skip this test, you will incur latency when Sync Gateway is switched to the Disaster Recovery cluster and Sync Gateway rebuilds its indexes.
+. [_Critical step_] Turn off *all* the Sync Gateways in the Disaster Recovery cluster.
+. Initiate the *unidirectional* XDCR from the Primary cluster to the Disaster Recovery cluster.
+
+[#fig-dr-diff-regn-setup]
+.DR Cluster Setup (Clusters in Different Regions)
+image::sgw-xdcr-dr-diff-regn-setup.png[,600]
+
+
+.Activation
+When you are ready to switch to Disaster Recovery operations -- see: <<fig-dr-diff-regn-recovery>>:
+
+. Stop Sync Gateway on the Primary cluster
+. Stop the replication (XDCR) from the Primary cluster to the Disaster Recovery cluster.
+. Ensure that any and all Load Balancer(s) are updated to direct all traffic to the new Sync Gateway cluster(s).
+. Turn on the Sync Gateway cluster(s) in the Disaster Recovery cluster.
+. Promote the Disaster Recovery cluster to be the *new* Primary cluster, and make the *old* Primary cluster the *new* Disaster Recovery cluster
+. Flush all buckets in the *new* Primary cluster; this prevents any writes coming into the Primary cluster that had not been replicated when XDCR was stopped.
+. Reverse the original XDCR to replicate from the newly promoted Primary to the old Primary, to set up a new Backup.
+
+[#fig-dr-diff-regn-recovery]
+.DR In-Recovery (clusters in different regions)
+image::sgw-xdcr-dr-diff-regn-in-disaster.png[,600]
+
+// end::clusters-in-diff-region[]
+
+
+include::partial$block-related-content-api.adoc[]
