@@ -1,18 +1,27 @@
 = Data Modelling
-:description: Couchbase Sync Gateway - data model for synchronization
+:description: pass:q[_Couchbase Sync Gateway's_ data model; for secure cloud-to-edge synchronization of enterprise data.]
 
-:xref-sdk-nodejs-pg-start: xref:nodejs-sdk:hello-world:start-using-sdk.adoc[Node.js Server SDK]
-:xref-sdk-java-encryption: xref:java-sdk:concept-docs:encryption.adoc#format[field encryption format]
 
 include::partial$_std-hdr-sgw.adoc[]
 
-:param-attributes!:
+
+// BEGIN -- Page Attributes
+:xref-sdk-nodejs-pg-start: xref:nodejs-sdk:hello-world:start-using-sdk.adoc[Node.js Server SDK]
+:xref-sdk-java-encryption: xref:java-sdk:concept-docs:encryption.adoc#format[field encryption format]
+// END -- Page Attributes
+
+
+// BEGIN -- Page Heading
+:param-abstract!:
 :param-related:  {revisions--xref} | {what-are-tombstones--xref}
 include::partial$block-abstract.adoc[]
+// END -- Page Heading
+
 
 == Introduction
 The guidance and constraints documented here relate to the design of data buckets and documents that you require, or may potentially require, to replicate using sync gateway functionality.
 They do not necessarily align with constraints on the local storage and use of such documents.
+
 
 == Property Naming
 
@@ -55,15 +64,12 @@ You should change any top-level user properties that have a key with a leading u
 * Wrapping them inside another object with a key that doesn't have a leading underscore.
 
 
-// == Buckets and Databases
-
-
-
 == Document Structure
 
 Couchbase's unit of data is a document, this is the NOSQL equivalent of a row or record.
 
 Documents are stored as a key-value pair, which comprises a unique and immutable key, the _Id_, and a value representing the users' data (a JSON-object or binary blob).
+
 
 === Key
 
@@ -74,6 +80,7 @@ The document key, the _Id_, is:
 * Unique within the bucket
 * Automatically generated (as a UUID) or be set by the user or application when saved
 * Immutable; that is, once saved the _Id_ cannot be changed.
+
 
 === Value
 The document value is either:
@@ -87,6 +94,7 @@ As a result documents can represent highly-complex data structures in a readily 
 These attachments provide a means to store large media files or any other non-textual data.
 Couchbase Lite supports attachments of unlimited size, although the Sync Gateway currently imposes a 20MB limit for attachments synced to it.
 
+
 == Document Attributes
 Each _Document_ has the following attributes:
 
@@ -96,7 +104,6 @@ Each _Document_ has the following attributes:
 * A body in the form of a JSON object, i.e. a set of key/value pairs
 * Zero or more named binary attachments
 
-//For more on document and data basics see: xref:server:learn:data/data.adoc[]
 
 == Document Change History
 
@@ -104,8 +111,6 @@ Each _Document_ has the following attributes:
 Its main purpose being to enable the replicator to determine the data to sync and any conflicts arising.
 
 Each document change is assigned a unique revision ID. The IDs of past revisions are available. The content of past revisions may be available if the revision was created locally and the database has not yet been compacted.
-
-
 
 
 include::partial$block-related-content-data.adoc[]
