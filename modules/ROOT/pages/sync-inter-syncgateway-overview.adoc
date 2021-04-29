@@ -3,19 +3,20 @@
 :page-role: conceptual
 :description: Use inter-Sync Gateway replication to keep clusters in different mobile data centers in sync.
 
+
 include::partial$_std-hdr-sgw.adoc[]
 
-:topic-group: {tg-rep-icr}
-:param-related: {legacy-configuration-properties--xref} | {rest-api-admin--xref} | {xref-sgw-pg-icr-running}
-:param-abstract: Inter-Sync Gateway replication supports resilient, secure, scalable bidirectional synchronization of data between cloud and edge data centers. +
-It incorporates content presented under Manage>Replicate>Inter-Sync Gateway to give an integrated view.
+
+:param-topic-group: inter-syncgateway
+:param-related:  {legacy-configuration-properties--xref} | {rest-api-admin--xref}
+//  {sync-inter-syncgateway-overview--xref} |
+:param-abstract: pass:q[_Inter-Sync Gateway_ replication supports resilient, secure, scalable bidirectional synchronization of data cloud-to-edge.]
 include::partial$block-abstract.adoc[]
 
 // Footnotes
 :fn-arch: footnote:arch[This architecture is also known as ship-to-shore or hub-and-spoke.]
 :fnref-arch: footnote:arch[]
 :fnxdcr: footnote:[If one-directional XDCR is used alongside Sync Gateway, then Sync Gateway cluster must be in read-only mode.]
-
 
 include::partial$block-caveats.adoc[tags=sgr2-only]
 
@@ -38,9 +39,11 @@ image::icr-replication-overview.svg[]
 // end::intro-img[]
 // end::intro-full[]
 
+
 == Use Cases
 
 // tag::use-cases[]
+
 
 === Cloud-to-edge synchronization
 
@@ -68,6 +71,7 @@ image::icr-active-mobile-sync200713.svg[,600]
 
 // end::use-cases[]
 
+
 == Replication Characteristics
 _In this section_:  <<context>>  |  <<protocol>>  |  <<types-of-replication>>  |  <<delta-sync>>  |  <<directionality>>  |  <<security>>
 
@@ -85,6 +89,7 @@ Sync Gateway nodes can opt-out of participating in the replication process using
 
 _Related configuration elements_:  {legacy-configuration-properties--xref--databases}  |  {legacy-configuration-properties--xref--db-replications}  |  {legacy-configuration-properties--xref--db-rep-remote} |  {legacy-configuration-properties--xref--databases-sgr-enabled}
 
+
 === Protocol
 
 Inter-Sync{nbsp}Gateway replications are based on websockets. This is the exact same protocol that is used for replication with Couchbase Lite 2.x clients.
@@ -94,6 +99,7 @@ NOTE: For users on releases prior to 2.8, SG Replicate provides a HTTP-based rep
 The bi-directional, persistent, nature of websocket connections is ideal for applications such as a _continuous_ Sync Gateway replication, which is constantly waiting-for and synchronizing change events.
 
 // === General Characteristics
+
 
 === Types of Replication
 
@@ -120,6 +126,7 @@ For instance a replication that needs to be to be run only periodically can be c
 
 _Related configuration elements_:  {legacy-configuration-properties--xref--db-replications}  |  {legacy-configuration-properties--xref--db-rep-continuous} |  {legacy-configuration-properties--xref--db-rep-adhoc}
 
+
 === Delta Sync
 include::partial$block-caveats.adoc[tag=ee-only-feature]
 
@@ -135,6 +142,7 @@ NOTE: Push replications to pre-2.8 targets do not use Delta Sync
 _Related configuration elements_:  {legacy-configuration-properties--xref--databases}  |  {legacy-configuration-properties--xref--db-replications}  |
 {legacy-configuration-properties--xref--databases-delta-sync}  |  {legacy-configuration-properties--xref--db-rep-delta}
 
+
 === Directionality
 
 Replications are bi-directional.
@@ -149,11 +157,13 @@ Transport level security is provided for. Use the appropriate prefix in URL (WSS
 
 // end::security[]
 
+
 ==== Authentication
 // tag::authentication[]
 Support for Basic Authentication using username and password credentials is provided
 
 // end::authentication[]
+
 
 ==== Access Control
 // tag::access-control[]
@@ -193,6 +203,7 @@ _Related replication definition elements_:  {legacy-configuration-properties--xr
 == High Availability
 
 include::partial$incpg-icr-availability.adoc[leveloffset=+1]
+
 
 == Conflict Resolution
 
