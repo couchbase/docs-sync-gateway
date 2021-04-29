@@ -9,50 +9,30 @@
 
 // tag::overview-full[]
 // tag::overview[]
+Inter-Sync Gateway *pull* replications support automatic conflict resolution by default (no conflict mode).
 
-Inter-Sync Gateway replication supports automatic conflict resolution to resolve conflicting document changes.
-It delivers this by applying one of its built-in {glos-term-conflict-resolver-policies}, which can be easily included in your own replications.
+In _Pull_ replications the _active_ Sync Gateway detects and resolves conflicts based on its configured {configuration-properties--xref--db-rep-conflict} and _conflict resolver policy_.
+This policy will determine the _winner_  or return an error if it cannot.
 
-include::{concepts}rep-auto-conflict-resolution.adoc[]
+Conflicts are *not* resolved in *push* replications though.
+The passive end of the push simply detects and rejects any conflicting revisions (`409 Conflict` response).
+
+Both approaches reflect the way conflicts are handled by Couchbase Lite clients.
+Not surprising since in both instances Couchbase Lite is acting like the active node in an inter-sync gateway exchange.
+
 
 // end::overview[]
+[NOTE]
+--
+Conflicts are only resolved during a *pull* replication.
+If conflicts are likely, you should configure a `pushAndPull` replication when using Conflict Free mode.
+
+_Alternatively_: Run the replicator from the other side; flipping the direction (to `pull`) and the resolution policy (for example `localWins` becomes `remoteWins`).
+
+See also -- our blog post: {url-blog-doc-how-conflicts-work}
+--
 
 For {enterprise}, a custom conflict resolver policy is available, providing additional flexibility by allowing users to provide their own conflict resolution logic -- see: {xref-sgw-pg-icr-conflict-resolution-custom}.
-
-== How Resolution Works
-
-Conflict Response on Active Replicator::
-As soon as the _active_ Sync Gateway database detects a conflict in a replicated document revision, it initiates its configured _conflict resolver policy_ to determine a _winning_ revision.
-This policy assesses the conflicting revisions and either determines the winning revision or returns an error if it fails while doing so.
-
-Conflict Response by Passive Replicator::
-When a passive Sync Gateway database detects a conflict it responds to the active with a `409` response and rejects the revision.
-It is expected that the active Sync Gateway will pull the conflicting revision from the passive, resolve it on the active, and then subsequently push the resolved conflict back up.
-
-Pull Replications::
-+
---
-For _Pull_ replications the _active_ Sync Gateway is responsible for detecting and resolving conflicts based on the configured _conflict_resolution_type_  -- see configuration item: {configuration-properties--xref--db-rep-conflict}.
-
-This is also how conflicts are handled when Couchbase Lite clients pull down documents to Sync Gateway.
-
-*Note:* Resolved conflicts are only transferred from active to passive Sync Gateways if a replication is setup between them.
---
-
-Push Replications::
-+
---
-Passive Sync Gateway::
-The _passive_ Sync Gateway will automatically detect and reject conflicting revisions being _pushed_ to it.
-+
-Note that conflicts are not resolved.
-The revision is rejected and the document returned -- with a `409 Conflict` -- response to the active Sync Gateway.
-
-Active Sync Gateway::
-It is  the responsibility of the active sync Gateway to address rejected revisions in accordance with its specified _conflict_resolution_type_.
---
-+
-This approach is the same as that adopted when Couchbase Lite clients push documents to Sync Gateway.
 
 // end::overview-full[]
 
