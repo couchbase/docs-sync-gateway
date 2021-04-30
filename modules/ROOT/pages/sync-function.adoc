@@ -32,8 +32,7 @@ include::partial$_std-hdr-sgw.adoc[]
 
 
 // BEGIN -- Page Heading
-:topic-group: access control
-:param-related: {read-access--xref}  |  {write-access--xref}
+:param-topic-group: access-control
 :param-abstract: pass:q[The sync function is crucial to the security of an app. It is in charge of data validation, access control and routing.]
 include::partial$block-abstract.adoc[]
 // END -- Page Heading
@@ -95,26 +94,28 @@ Your implementation of the sync function can omit the `oldDoc` parameter if you 
 
 If you don't supply a sync function, Sync Gateway uses the {legacy-configuration-properties-pfx}#databases-this_db-sync[default Sync Function].
 
-// == An Example Sync Function
-// This section shows a simple Sync Function definitions which could be included in your `sync-gateway-config.json` -- see <<sync-example>>
+== An Example Sync Function
+This section shows a simple Sync Function definitions which could be included in your `sync-gateway-config.json` -- see <<sync-example>>
 
-// [#sync-example]
-// .A Simple Sync Function
-// ====
-// [source,json]
-// ----
-// include::{example-cfg}[tag="sync-function-config"]
-// ----
-// Configuration properties:
+[#sync-example]
+.A Simple Sync Function
+====
+[source,json]
+----
+include::{example-cfg}[tag="sync-function-config"]
+----
+Configuration properties:
 
-// <1> This is the username of the user you created on the Couchbase Server Admin Console.
-// <2> The password of the user that you created on the Couchbase Server Admin Console.
-// <3> The {xref-sgw-pg-shared-bucket-access} feature allows Couchbase Server SDKs to also perform operations on this bucket.
-// <4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with GSI/N1QL indexing -- see {xref-sgw-pg-indexing}.
-// If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
-// <5> The sync function -- a javascript function enclosed in backticks, which is actioned every time a new document, document revision or deletion is made to a database -- see the:
-//  {legacy-configuration-properties-pfx}#databases-this_db-sync[databases.$db.sync] property.
-// ====
+<1> This is the username of the user you created on the Couchbase Server Admin Console.
+<2> The password of the user that you created on the Couchbase Server Admin Console.
+<3> The {xref-sgw-pg-shared-bucket-access} feature allows Couchbase Server SDKs to also perform operations on this bucket.
+<4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with GSI/N1QL indexing -- see {xref-sgw-pg-indexing}.
+If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
+<5> The sync function -- a javascript function enclosed in backticks, which is actioned every time a new document, document revision or deletion is made to a database -- see the:
+ {legacy-configuration-properties-pfx}#databases-this_db-sync[databases.$db.sync] property.
+====
+
+If you don't supply a sync function, Sync Gateway uses the {legacy-configuration-properties--pfx}#databases-this_db-sync[default Sync Function].
 
 
 == channel(channelname)
@@ -154,6 +155,8 @@ As a convenience, either argument may be `null` or `undefined`, in which case no
 If a user name begins with the prefix `role:`, the rest of the name is interpreted as a role rather than a user.
 The call then grants access to the specified channels for all users with that role.
 
+You can use the _all channels_ wildcard ('***') to grant the user access to all documents in all channels.
+
 NOTE: The effects of all access calls by all active documents are effectively unioned together, so if _any_ document grants a user access to a channel, that user has access to the channel.
 Calling `access(username, channelname)` multiple times to grant the same user access to the same channel will result in negative performance implications.
 
@@ -189,9 +192,14 @@ role ("ed", null);  // no-op
 ----
 
 NOTE: Roles, like users, have to be explicitly created by an administrator.
-So unlike channels, which come into existence simply by being named, you can't create new roles with a `role()` call.
+
+Unlike channels, which come into existence simply by being named, you can't create new roles with a `role()` call.
+Like _users_, they must be defined in the configuration or by API.
+
 Nonexistent roles don't cause an error, but have no effect on the user's access privileges.
-You can create a role after the fact; as soon as a role is created, any pre-existing references to it take effect.
+
+TIP: You can create roles retrospectively.
+As soon as a role is created, any pre-existing references to it take effect.
 
 == requireUser(username)
 
@@ -247,7 +255,13 @@ if (oldDoc) {
 
 The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
 
-If a user was granted access to the xref:{sgw-pg-channels}#special-channels[star channel] (noted `+*+`), a call to `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `+*+` channel). To allow a user to perform a document update in this case, you can specify multiple channel names (`requireAccess('any channel name', '*')'`)
+You can specify multiple channel names, for example: +
+`requireAccess('any channel name', '*')'`
+
+If a user was granted access using only the xref:{sgw-pg-channels}#lbl-all-channels[all channels wildcard]] (`+*+`), then `requireAccess('any channel name')'` will fail because the user wasn't granted access to that channel (only to the `+*+` channel).
+
+NOTE: requireAccess() will only recognize grants made explicitly using a channel name (not by wildcard).
+
 
 == requireAdmin()
 
