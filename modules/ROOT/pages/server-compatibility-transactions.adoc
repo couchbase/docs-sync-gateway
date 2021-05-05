@@ -3,4 +3,44 @@
 :idprefix:
 :idseparator: -
 
+
+include::partial$_std-hdr-sgw.adoc[]
+
+
+// BEGIN -- Page Attributes
+:url-api-method-database-in-batch: http://docs.couchbase.com/mobile/{version-full}/couchbase-lite-swift/Classes/Database.html#/s:18CouchbaseLiteSwift8DatabaseC7inBatch5usingyyyKXE_tKF[Database.inBatch()]
+// END -- Page Attributes
+
+
+// BEGIN -- Page Heading
+:param-topic-group: compatibility
+:param-related: {compatibility--xref}
+include::partial$block-abstract.adoc[]
+// END -- Page Heading
+
+
+== Introduction
+
+Couchbase Server provides the backing data store for Sync Gateway.
+
+TIP: See: {compatibility--xref} for version compatibility information.
+
+Both Couchbase Server and Couchbase mobile (Sync Gateway and Couchbase Lite) support transactions.
+Here we look at how they relate.
+
+
+== Local Transactions
+
+Within the Couchbase mobile ecosystem all transactions are local, either to the Couchbase Server or to the Couchbase Lite database:
+
+* Couchbase Server supports server side transactions -- see: {server-transactions--xref}. +
+Changes made on the server within a transaction block are guaranteed to be imported by the Sync Gateway only after all the changes in a transaction are committed.
+
+* Similarly, Couchbase Lite supports transactions that are local to the Couchbase Lite database -- see: {url-api-method-database-in-batch}. +
+Only committed transactions will ever reach Sync Gateway.
+
+Typically, mobile replication does not replicate transactions atomically.
+There is no guarantee that a series of updates made within a transaction block, on either the Couchbase Server or Couchbase Lite client side, will be ACID compliant when they sync to the other end.
+
+
 include::partial$block-related-content-sync.adoc[]
