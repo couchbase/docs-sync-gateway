@@ -21,14 +21,17 @@ include::partial$block-abstract.adoc[]
 
 == Introduction
 
-Couchbase Server provides the backing data store for Sync Gateway and it is compatible -- see: {compatibility--xref}.
-However, there are considerations you needs to be aware of when using some Couchbase Server features with Sync Gateway.
-One of those instances concerns the use of Couchbase Server Transactions.
+Couchbase Server provides the backing data store for Sync Gateway.
+
+TIP: See: {compatibility--xref} for version compatibility information.
+
+Both Couchbase Server and Couchbase mobile (Sync Gateway and Couchbase Lite) support transactions.
+Here we look at how they relate.
 
 
 == Local Transactions
 
-Within the Couchbase Mobile cluster all transactions are local, either to the Couchbase Server or to the Couchbase Lite database:
+Within the Couchbase mobile ecosystem all transactions are local, either to the Couchbase Server or to the Couchbase Lite database:
 
 * Couchbase Server supports server side transactions -- see: {server-transactions--xref}. +
 Changes made on the server within a transaction block are guaranteed to be imported by the Sync Gateway only after all the changes in a transaction are committed.
@@ -36,11 +39,8 @@ Changes made on the server within a transaction block are guaranteed to be impor
 * Similarly, Couchbase Lite supports transactions that are local to the Couchbase Lite database -- see: {url-api-method-database-in-batch}. +
 Only committed transactions will ever reach Sync Gateway.
 
-Sync Gateway is not transaction-aware.
+Typically, mobile replication does not replicate transactions atomically.
 There is no guarantee that a series of updates made within a transaction block, on either the Couchbase Server or Couchbase Lite client side, will be ACID compliant when they sync to the other end.
-
-If there is a use-case to build end-to-end transactions between Couchbase Server and Couchbase Lite clients, you would implement it within the application layer.
-Perhaps by having a separate _control document_ of transaction log entries, which must be synced from the clients that capture the list of related changes.
 
 
 include::partial$block-related-content-sync.adoc[]
