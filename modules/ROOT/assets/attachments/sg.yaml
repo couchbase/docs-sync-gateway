@@ -277,7 +277,7 @@ properties:
                   enable_star_channel:
                     type: boolean
                     description: |+
-                      Enable the star (*) channel.
+                      Enable the all documents (*) channel -- sometimes referred to as the 'star' channel.
                     default: 'true'
                   max_length:
                     type: integer
@@ -612,9 +612,11 @@ properties:
                 properties:
                   admin_channels:
                     type: array
-                    description: |
+                    description: |+
                       The list of channels this role is automatically granted access to when Sync Gateway starts.
-                      If "*" is specified then the role is granted access to the star channel which contains all documents.
+
+                      If you use the all channels wildcard ("*") the role is granted access to all channels and to all documents within all channels. This will be inherited by any user assigned this role.
+
                     items:
                       type: string
           send_www_authenticate_header:
@@ -806,7 +808,11 @@ properties:
                     description: The user's password.
                   admin_channels:
                     type: array
-                    description: The list of channels this user is automatically granted access to when Sync Gateway starts. If `"*"` is specified then the user is granted access to the [star channel](sync-gateway-channels.html#special-channels) which contains all documents.
+                    description: |+
+                      The list of channels this user is automatically granted access to when Sync Gateway starts.
+
+                      If you use the all channels wildcard ("*") the user is granted access to all channels and to all documents within all channels -- see: [all channels wildcard](channels.html#lbl-all-channels).
+
                     items:
                       type: string
                   admin_roles:
@@ -1301,6 +1307,11 @@ properties:
                         These details are used to authenticate credentials and approve access to data
 
                         Once provided and recorded, the username data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
+
+                        Replications initiated by this user will pull all documents in all channels the user has access grants for.
+                        If the all channels wildcard was used to grant access then the sync will pull *ALL* documents.
+                        Use a filter to avoid syncing excessive amounts of data to mobile devices.
+
   facebook:
     description: Configuration for Facebook Login authentication.
     type: object
