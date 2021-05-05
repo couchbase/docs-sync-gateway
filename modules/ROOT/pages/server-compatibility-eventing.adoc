@@ -13,8 +13,8 @@ include::partial$_std-hdr-sgw.adoc[]
 
 
 // BEGIN -- Page Header
-:param-topic-group: compatibility
-:param-related: {compatibility--xref}
+:topic-group: compatibility
+:param-related: {server-compatibility-xdcr--xref}  |  {server-compatibility-eventing--xref}  |   {server-compatibility-transactions--xref}  |   {server-compatibility-collections--xref}  | {compatibility--xref}
 include::partial$block-abstract.adoc[]
 // END -- Page Header
 
@@ -39,7 +39,10 @@ You can use Eventing and Sync Gateway connected to the same bucket, when Eventin
 To do this, you must write your Eventing function to be *idempotent*; to behave correctly when the same mutation is seen more than once.
 This is necessary because:
 
-* When _Sync Gateway_ executes a single document update, it appears over DCP as multiple mutations for the same document update; some modifying the document body and others modifying its metadata (XATTRs).
+* When a single document update is made directly by Sync Gateway, such as those replicated from Couchbase Lite, it generates a single server mutation that writes both the document body and the metadata.
++
+But when an update originates outside of Couchbase mobile then multiple mutations are generated.
+That is because Sync Gateway must update both the document's body and its _sync metadata (XATTRs).
 
 * _Eventing_ detects these mutations and invokes its `OnUpdate` *for each*; whether it is for the modified body of the document, XATTRs, or both.
 It is here that you need to code the function to apply the same update once only.
