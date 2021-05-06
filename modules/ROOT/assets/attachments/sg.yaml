@@ -1,4 +1,3 @@
-type: object
 properties:
   adminInterface:
     description: Port or TCP network address (IP address and the port) that the Admin REST API listens on. The loopback address prefix before the port (`127.0.0.1`) means the interface will not be reachable from other hosts. To make it reachable, change it to ":4985".
@@ -86,13 +85,26 @@ properties:
             default: the database name
           bucket_op_timeout_ms:
             type: integer
-            description: |+
-              Configures how long Sync Gateway should wait for a bucket operation to complete before timing out and trying again. The value can be increased in scenarios where there is a heavy load on Couchbase Server and operations are likely to take more than 2.5 seconds to complete. The default value is 2500 milliseconds.
             default: 2500
+            description: |+
+              The ```bucket_op_timeout_ms``` value defines the period (in milliseconds) that Sync Gateway should wait for a bucket operation to complete before timing-out and trying again.
+
+              You can increase the period when there is a heavy load on Couchbase Server and operations are likely to take more than 2.5 seconds to complete.
+
+              The default value is 2500 milliseconds.
+          compact_interval_days:
+            type: integer
+            description: |+
+              The ```compact_interval_days``` value defines the interval (in days) between scheduled compaction runs.
+              It is a decimal number -- float32
+                - A Zero value means do not run compaction
+                - Minimum non-zero value -- 0.04 (approximately 1 hour)
+                - Maximum value -- 60 days
+                - Default -- 1 day
           delta_sync:
             type: object
             description: |+
-              *NOTE:* Delta Sync is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
+              NOTE: Delta Sync is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
 
               Delta Sync is the ability to replicate only parts of the Couchbase mobile document that have changed. This can result in significant savings in bandwidth consumption as well as throughput improvements, especially when network bandwidth is typically constrained.
 
