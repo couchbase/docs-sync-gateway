@@ -35,9 +35,9 @@ Here we provide details on how {server-eventing--xref} relates to data changes i
 
 == Using Eventing
 
-You can use Eventing and Sync Gateway connected to the same bucket, when Eventing operates in *read only* mode.
+You can use Eventing and Sync Gateway connected to the same bucket, when Eventing operates on server buckets in *read only* mode -- see {server-eventing-terminologies--xref-bindings} for how to do this.
 
-To do this, you must write your Eventing function to be *idempotent*; to behave correctly when the same mutation is seen more than once.
+You should write your Eventing function to be *idempotent*; to behave correctly when the same mutation is seen more than once.
 This is necessary because:
 
 * When a single document update is made directly by Sync Gateway, such as those replicated from Couchbase Lite, it generates a single server mutation that writes both the document body and the metadata.
@@ -45,9 +45,9 @@ This is necessary because:
 But when an update originates outside of Couchbase mobile then multiple mutations are generated.
 That is because Sync Gateway must update both the document's body and its _sync metadata (XATTRs).
 
-* _Eventing_ detects these mutations and invokes its `OnUpdate` *for each*; whether it is for the modified body of the document, XATTRs, or both.
+* _Eventing_ detects these mutations and invokes its `OnUpdate` *for each*; whether it is for the modified body of the document, Sync Gateway metadata, or both.
 It is here that you need to code the function to apply the same update once only.
-One way to do this is to use the crc64 function call -- see: {server-eventing-constructs-crc64--xref} for more on how to do this.
+One way to do this is to use the crc64 function call to identify when an update is to the Sync Gateway metadata only -- see: {server-eventing-constructs-crc64--xref} for more on how to do this.
 
 _Eventing_ prevents inadvertent use of its functions on _Sync Gateway_ read-write buckets.
 You will see the following  warning if you try to do this: +
