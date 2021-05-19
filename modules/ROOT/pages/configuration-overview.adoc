@@ -11,25 +11,42 @@ include::partial$_std-hdr-sgw.adoc[]
 :param-related!:
 include::partial$block-abstract.adoc[]
 
-[NOTE]
---
-For information on 2.x-style Sync Gateway configuration -- see: {legacy-configuration-properties--xref}.
---
-
 
 == Introduction
 
-Sync Gateway 3.x provides for a modular and persistent approach to configuring Sync Gateways.
-This makes configuration maintenance and propagation simpler and safer in multi-node, multi-cluster deployments.
+In addition to the established, static configuration method, Sync Gateway 3.x provides for a dynamic, modular, and persistent approach to configuring Sync Gateways.
+This approach makes configuration, maintenance and propagation simpler and safer in multi-node, multi-cluster deployments.
 
-For information on configuration prior to 3.x -- see: {legacy-configuration-properties--xref}.
 
-Sync Gateway configuration data is held in:
 
-* A JSON configuration file, which defines Sync Gateways run time behavior and static parameter settings
+== Static Configuration
 
-* Specified Couchbase Server buckets, which define dynamic data, including databases and replications.
-This configuration is maintained using the REST API.
+Sync Gateway's established method of configuration is to use a centralized JSON configuration file to hold all configuration settings -- see: {configuration-schema-static--xref}.
+
+Changes can be made using the {rest-api-admin--xref} but these are not persistent beyond a Sync Gateway restart.
+
+Persistent changes require edits to the central configuration file.
+
+
+== Dynamic Persistent Configuration
+
+Sync Gateway's dynamic persistent configuration approach
+relies on a small bootstrap configuration with dynamic configuration of databases, replications and users being done using the REST API.
+
+In the dynamic persistent configuration approach you will provide:
+
+* A bootstrap configuration file, which contains a core amount of configuration in JSON form.
+This defines Sync Gateways run time behavior and static settings.
+
+* A database configuration for each replicated database.
+The {configuration-schema-database--xref} defines the required database settings. It is provisioned using the {rest-api-admin-database--xref}.
+Changes persist across Sync Gateway restarts.
+
+* An access-control configuration using the {configuration-schema-access-control--xref}, which defines the settings provisioned using the {rest-api-admin-access-control--xref}.
+Changes persist across Sync Gateway restarts.
+
+* An inter-Sync Gateway Replication configuration using the {configuration-schema-isgr--xref}, which defines the settings provisioned using the {rest-api-admin-isgr--xref}.
+Changes persist across Sync Gateway restarts.
 
 
 
