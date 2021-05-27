@@ -9,6 +9,9 @@ include::partial$_std-hdr-sgw.adoc[]
 
 // Begin -- declare page attributes
 :double-dollar: $$
+:braces-open: {
+:braces-close: }
+
 :source-language: json
 // End -- declare page attributes
 
@@ -28,14 +31,18 @@ It makes the switching of the runtime behavior -- for example during development
 
 
 == Syntax
-To use an environment variable, simply insert its name as a token using `$var` or `${var}` where you would normally put the configuration value you are substituting for.
 
-You can define inline default values using the notation +
-`${var:-default}`.
+To use environment variables in your configuration file, insert the variable name -- prefixed by a `$` symbol -- wherever you would normally put the configuration value you are substituting for -- see <<ex-syntax>>.
+
+You can define inline default values using the notation `${var:-default}`.
 The default value is used if the referenced environment variable is empty or undefined.
 
-If you need to include a configuration file value that contains a literal `$` symbol, you must use `{double-dollar}` instead.
+If you need to include a string containing one or more literal `$` symbols, use `{double-dollar}` instead of `$`.
 This enables the parser to differentiate between a literal `$` and the start of a variable name; so `pa{double-dollar}{double-dollar}` resolves to the value `pa{double-dollar}`.
+
+Variable names are case-sensitive in this context.
+So `$\{username\}` and `$\{USERNAME\}` are not the same variable
+
 
 [#ex-syntax]
 .Configuring with Environment Variables
@@ -48,13 +55,13 @@ This enables the parser to differentiate between a literal `$` and the start of 
     "db1": {
       "bucket": "bucket1",
       "server": "couchbase://localhost",
-      "username": "$USERNAME", // <.>
-      "password": "$PASSWORD"
+      "username": "${USERNAME}", // <.>
+      "password": "${PASSWORD}"
     }
     "db2": {
       "bucket": "${var_bucket:-this_bucket}", // <.>
       "server": "couchbase://localhost",
-      "username": "$USERNAME",
+      "username": "${USERNAME}",
       "password": "pa{double-dollar}{double-dollar}word" // <.>
     }
   }
@@ -62,13 +69,14 @@ This enables the parser to differentiate between a literal `$` and the start of 
 
 ----
 
-<.> Here we provide a reference to the environment variables `$USERNAME` footnote:[On Windows systems USERNAME is already in use as a System Variable used by the operating system] and `$PASSWORD`.
+<.> Here we provide a reference to the environment variables `USERNAME` footnote:[On Windows systems USERNAME is already in use as a System Variable used by the operating system] and `PASSWORD`.
 The values of those variable are substituted here immediately prior to the parsing of the configuration file.
 
 <.> The variable `var_bucket` is given a default value of 'this_bucket', which is used only if the `var_bucket` environment variable itself is empty or undefined.
 
-<.> This password value contains dollar symbols, so we need to use the `{double-dollar}` notation.
-The value is interpreted as `pa{double-dollar}word`.
+<.> The password value itself contains dollar symbols.
+We can use the `{double-dollar}` notation.
+So, the value is interpreted as `pa{double-dollar}word`.
 
 ====
 
@@ -81,9 +89,6 @@ The variables are immutable.
 This means changes to the values of the environment variables are not detected by Sync Gateway whilst it is running.
 Such changes only become effective after a restart of Sync Gateway.
 
-All environment variable names are case-sensitive in this context.
-So `$username` and `$USERNAME` are not the same variable
-
 Any references to undefined variables are replaced by an empty string.
 This can result in an invalid configuration, which will cause the start-up to abandoned and an error reported.
 
@@ -92,16 +97,28 @@ This can result in an invalid configuration, which will cause the start-up to ab
 
 How you define the environment variables will depend on the platform used to host Sync Gateway.
 
+As with the configuration file, you may need to define strings containing meta-characters (for example, symbols such as `$\*/`).
+
+Depending on the shell environment you can use a number of options:
+
+* Enclose the string in single-quotes, which will remove the special meaning of every character between the quotes.
+Everything inside single quotes becomes a literal string.
+* Precede the meta-character with an escape character, typically a reverse solidus (`\`) (a backtick (```) in Powershell).
+Note -- This works in double-quote enclosed strings or in strings with no enclosing quotes, but not in single-quotes since as stated above, the remove the special meaning of the enclosed characters including any escape characters.
+
+
 [{tabs}]
 =====
-Linux or Mac OS Terminal::
+Linux/Mac OS::
 +
 --
 [{snippet-header}]
 ----
 export USERNAME=Administrator
-export PASSWORD=pa$$word
+export PASSWORD='pa$$word' // <.>
 ----
+<.> Use quotes to prevent interpolation of the literal string's `$` symbols, alternatively use "pa\$\$word"
+
 --
 
 Windows CLI::
@@ -110,12 +127,13 @@ Windows CLI::
 [source, dos, subs="+attributes, +macros"]
 ----
 setx USERNAME Administrator // <.>
-set PASSWORD=pa$$word // <.>
+set PASSWORD='pa$$word' // <.>
 ----
 <.> Permanently set the `USERNAME` variable.
 Note `setx` does not require the `=` symbol
 <.> Sets the `PASSWORD` variable, but only for the duration of the current 'Command Line' session.
 This may not be what you want.
+Note we use single-quotes because of the password value's {double-dollar} symbols, alternatively use "pa\$\$word"
 
 --
 
@@ -135,8 +153,10 @@ Powershell::
 [source, powershell, subs="+attributes, +macros"]
 ----
 $ENV:USERNAME=Administrator
-$ENV:PASSWORD=pa{double-dollar}word
+$ENV:PASSWORD='pa{double-dollar}word' // <.>
 ----
+<.> Note we use single-quotes because of the password value's {double-dollar} symbols, alternatively use "pa\`$`$word"
+
 --
 =====
 
