@@ -2,6 +2,7 @@
 //  Begin -- Inclusion Definition
 //    Params -- None
 //    Used-by --
+//      rest-api-admin-database.adoc
 //      configuration-properties.adoc
 //      sync-function.adoc
 //    Requires -- partial$_page-index.adoc attributes
@@ -23,7 +24,7 @@ These functions are referenced from within the Sync Gateway Configuration and ma
 // end::intro[]
 
 == Operation
-During database setup, Sync Gateway inspects the config file to identify and provision:
+During database setup, Sync Gateway inspects the database configuration to identify and provision:
 
 * Any inline JavaScript defined against any of the eligible configuration options
 * Any external file or HTTP/S endpoint specified against any of the eligible configuration options that resolves to a Javascript function.
@@ -40,9 +41,9 @@ Inline or external Javascript functions can be provided for any or all of the fo
 
 == Configuration
 // tag::config-full[]
-Configuration of Javascript functions, whether inline or external, is done within the configuration file -- see: <<ex-jsfunc-opts>>
+Configuration of Javascript functions, whether inline or external, is done within the database configuration -- see: <<ex-jsfunc-opts>>
 
-* Inline Javascript functions provided within the Configuration file must be enclosed by a backtick pair (``).
+* Inline Javascript functions provided within the database configuration must be enclosed by a backtick pair (``).
 
 * {empty}
 +
@@ -63,25 +64,36 @@ Do not use in Production deployments.
 ====
 This example shows the different ways you might provide a Javascript Sync Function.
 Although the example uses the Sync Function, the same approach applies wherever a Javascript function is valid (including with Import Filter, Webhook and Custom Conflict Resolver).
+
 [source, json]
 ----
-{
-   "databases": {
-      "db1": { // <.>
-         "bucket": "bucket1",
-         "server": "couchbase://localhost1",
-         "sync": "/opt/couchbase-sync-gateway/sync.js"
+
+curl -X PUT 'http://localhost:4985/db1/_config' \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+         "sync": "/opt/couchbase-sync-gateway/sync.js" // <.>
       },
-      "db2": { // <.>
-         "bucket": "bucket2",
-         "server": "couchbase://localhost2",
-         "sync": "https://localhost/sync/func2"
-      },
-      "db3": { // <.>
-         "bucket": "bucket3",
-         "server": "couchbase://localhost3",
-         "sync": `function(doc,oldDoc){ if (doc.published) { channel("public");} }`
+    }
+}'
+
+
+  curl -X PUT 'http://localhost:4985/db2/_config' \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+         "sync": "https://localhost/sync/func2" // <.>
       }
+   }
+}
+
+
+curl -X PUT 'http://localhost:4985/db3/_config' \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+         "sync": `function(doc,oldDoc, meta){ if (doc.published) { channel("public");} }`
+      } // <.>
    }
 }
 ----
