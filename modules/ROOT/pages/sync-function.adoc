@@ -39,6 +39,9 @@ include::partial$block-abstract.adoc[]
 
 
 == Sync Function Basics
+
+<<introduction>> | <<operation>> | <<provision>> | <<arguments>>
+
 === Introduction
 *The sync function is crucial to the security of your application.*
 It is in charge of data validation, and of authorizing both read and write access to documents.
@@ -57,13 +60,13 @@ If the document is later updated, the sync function will be called again on the 
 
 It can do the following things:
 
-* Validate documents -- see: {xref-sgw-pg-write-access-data-val}
+* Grant user access to channels -- see: {access-grants--xref}
+* Validate documents -- see: <<link TBD>>
+* Authorize changes -- see: {access-grants--xref-control-write-access}
+* Assign documents to channels -- see: {channels-xref}
 // xref:write-access.adoc#data-validation[Write Access -- data validation]
-* Authorize changes -- see: {xref-sgw-pg-write-access-authchange}
 // xref:write-access.adoc#write-access[Write Access -- authorize the change]
-* Grant user access to channels -- see: {xref-sgw-pg-read-access-add}
 // xref:read-access.adoc#add-access[Read Access -- add access]
-* Assign documents to channels -- see: {xref-sgw-pg-channels-add}
 
 For simple applications it might be the only server-side code you need to write.
 For more complex applications it is still a primary touchpoint for managing data routing and access control.
@@ -72,12 +75,13 @@ For more complex applications it is still a primary touchpoint for managing data
 
 include::partial$common-cfg-ext-javascript.adoc[tag=intro]
 
-You can learn more about this property ($db.sync) in the Configuration Schema Reference -- see: {configuration-schema-static--xref--databases-sync}.
+You can learn more about this property ($db.sync) in the {configuration-schema-database--xref} or in the  {configuration-schema-static--xref--databases-sync}.
+// -- see: {legacy-configuration-properties--xref--databases-sync}.
 
 include::partial$common-cfg-ext-javascript.adoc[tag=config-full]
 
 
-== Arguments
+=== Arguments
 The sync function arguments are:
 
 `doc`::
@@ -86,6 +90,7 @@ It matches the JSON saved by the Couchbase Lite and replicated to Sync Gateway.
 * The `_id` property contains the document ID
 * The `_rev` property is the new revision ID.
 * If the document is being deleted, there will be a `_deleted` property with the value true.
+
 `oldDoc`::
 If the document has been saved before, the revision that is being replaced is available in this argument.
 Otherwise it's `null`.
@@ -93,6 +98,32 @@ Otherwise it's `null`.
 Your implementation of the sync function can omit the `oldDoc` parameter if you do not need it (JavaScript ignores extra parameters passed to a function).
 
 If you don't supply a sync function, Sync Gateway uses the {configuration-schema-static-pfx}#databases-this_db-sync[default Sync Function].
+
+`meta`::
+This object references the user extended attribute key designated as identifying access granta ad-or routing information.
+You can see a simple example of its use in <<ex-xattr-access-grant>>.
++
+NOTE: This is only available if the following configuration settings are in place: {configuration-schema-database--xref-enable-shared-bucket-access} is `true` and {configuration-schema-database--xref-user-xattr-key} is set to a valid, and existing, extended attribute.
+
+[#ex-xattr-access-grant]
+.Access Grants using Xattr
+====
+include::{examples-lib}[tags="syncfunc-args"]
+
+// [source, javascript]
+// ----
+// function (doc, oldDoc, meta) {
+//   // Additional processing as required
+
+//   // Route the document
+//     channel(meta.xattrs.myxattr.channels); // <.>
+
+//   // Additional processing as required
+// }
+// ----
+// <.> Here we reference 'myattr', the xattr defined in the database configuration as being the key for the access-grant xattr field.
+// We use it to set the channel(s) we need to route this document to.
+====
 
 == An Example Sync Function
 This section shows a simple Sync Function definitions which could be included in your `sync-gateway-config.json` -- see <<sync-example>>
@@ -117,7 +148,7 @@ If you're running a single Couchbase Server node for development purposes the `n
 
 If you don't supply a sync function, Sync Gateway uses the {configuration-schema-static--pfx}#databases-this_db-sync[default Sync Function].
 
-
+[#lbl-channel]
 == channel(channelname)
 
 The Sync Function provides the `channel()` function to route the document to the named channel(s).
@@ -128,7 +159,7 @@ Here is an example that routes all "published" documents to the "public" channel
 
 [source,javascript]
 ----
-function (doc, oldDoc) {
+function (doc, oldDoc, meta) {
    if (doc.published) {
       channel("public");
    }
@@ -142,6 +173,8 @@ This allows you to do something like `channel(doc.channels)` without having to f
 NOTE: Channels don't have to be predefined.
 A channel implicitly comes into existence when a document is routed to it.
 
+
+[#lbl-access]
 == access(username, channelname)
 
 Documents can grant users access to channels.
@@ -172,6 +205,8 @@ access (null, "hbo");  // no-op
 access ("snej", null);  // no-op
 ----
 
+
+[#lbl-role]
 == role(username, rolename)
 
 The `role()` function grants a user a role, indirectly giving them access to all channels granted to that role.
@@ -201,6 +236,8 @@ Nonexistent roles don't cause an error, but have no effect on the user's access 
 TIP: You can create roles retrospectively.
 As soon as a role is created, any pre-existing references to it take effect.
 
+
+[#lbl-require-user]
 == requireUser(username)
 
 The `requireUser()` function authorizes a document update by rejecting it unless it's made by a specific user or users, as shown in the following example:
@@ -219,6 +256,8 @@ All properties of the `doc` parameter should be considered _untrusted_, since th
 This may sound obvious, but it can be easy to make mistakes, like calling `requireUser(doc.owners)` instead of `requireUser(oldDoc.owners)`.
 When using one document property to validate another, look up that property in `oldDoc`, not `doc`!
 
+
+[#lbl-require-role]
 == requireRole(rolename)
 
 The `requireRole()` function authorizes a document update by rejecting it unless the user making it has a specific role or roles, as shown in the following example:
@@ -237,6 +276,8 @@ In the latter case, the user making the change must have one or more of the give
 
 The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
 
+
+[#lbl-require-access]
 == requireAccess(channels)
 
 The `requireAccess()` function authorizes a document update by rejecting it unless the user making it has access to at least one of the given channels, as shown in the following example:
@@ -263,6 +304,7 @@ If a user was granted access using only the xref:{sgw-pg-channels}#lbl-all-chann
 NOTE: requireAccess() will only recognize grants made explicitly using a channel name (not by wildcard).
 
 
+[#lbl-require-admin]
 == requireAdmin()
 
 The `requireAdmin()` function authorizes a document update by rejecting it unless it is being sent to the Sync Gateway Admin REST API.
@@ -273,6 +315,8 @@ The `requireAdmin()` function authorizes a document update by rejecting it unles
 requireAdmin();
 ----
 
+
+[#lbl-throw]
 == throw()
 
 At the most basic level, the sync function can prevent a document from persisting or syncing to any other users by calling `throw()` with an error object containing a `forbidden`: property.
@@ -298,6 +342,8 @@ We recommend that you not create invalid documents in the first place.
 As much as possible, your app logic and validation function should prevent invalid documents from being created locally.
 The server-side sync function validation should be seen as a fail-safe and a guard against malicious access.
 
+
+[#lbl-expiry]
 == expiry(value)
 
 Calling `expiry(value)` from within the sync function will set the expiry value (TTL) on the document.
@@ -326,17 +372,23 @@ As with the existing explicit purge mechanism, this applies only to the local da
 This expiration time is not propagated when the document is replicated.
 The purge of the document does not cause it to be deleted on any other database.
 
+
+[#lbl-document-conflicts]
 == Document Conflicts
 
 If a document is in conflict there will be multiple current revisions.
 The default, "winning" one is the one whose channel assignments and access grants take effect.
 
+
+[#lbl-handling-deletions]
 == Handling deletions
 
 Validation checks often need to treat deletions specially, because a deletion is just a revision with a `"_deleted": true` property and usually nothing else.
 Many types of validations won't work on a deletion because of the missing properties -- for example, a check for a required property, or a check that a property value doesn't change.
 You'll need to skip such checks if `doc._deleted` is true.
 
+
+[#lbl-practical-example]
 == A Practical Example
 
 Here's an example of a complete, useful sync function that properly validates and authorizes both new and updated documents.
@@ -349,7 +401,7 @@ The requirements are:
 +
 [source,javascript]
 ----
-function (doc, oldDoc) {
+function (doc, oldDoc, meta) {
   if (doc._deleted) {
     // Only editors with write access can delete documents:
     requireRole("role:editor");

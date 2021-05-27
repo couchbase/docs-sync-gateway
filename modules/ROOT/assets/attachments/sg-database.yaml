@@ -1,58 +1,5 @@
+type: object
 properties:
-  adminInterface:
-    description: Port or TCP network address (IP address and the port) that the Admin REST API listens on. The loopback address prefix before the port (`127.0.0.1`) means the interface will not be reachable from other hosts. To make it reachable, change it to ":4985".
-    type: string
-    default: '127.0.0.1:4985'
-  adminUI:
-    description: (**Deprecated**) URL of the Sync Gateway Admin Console HTML page.
-    type: string
-    default: ':4985/_admin/'
-  metricsInterface:
-    description: |+
-      This defines the Port or TCP network address (IP address and the port) that the Metrics REST API will listen on.
-
-      Using the loopback address prefix before the port (`127.0.0.1`) means the interface will not be reachable from other hosts.
-
-      For example
-      ```"metricsInterface": "127.0.0.1:4986"```
-
-    type: string
-    default: ':4986'
-
-  compressResponses:
-    description: Whether to compress HTTP responses. Set to false to disable compression of HTTP responses.
-    type: boolean
-    default: 'true'
-  configServer:
-    description: (**Deprecated**) URL of a Couchbase database-configuration server (for dynamic database discovery). A database-configuration server allows Sync Gateway to load a database configuration dynamically from a remote endpoint. If a database configuration server is defined, when Sync Gateway gets a request for a database that it doesn't know about, then Sync Gateway will attempt to retrieve the database configuration properties from the URL ConfigServer/DBname, where DBname is the database name.
-    type: string
-  CORS:
-    description: Configuration object for allowing CORS (cross-origin resource sharing). This is a useful to interact directly with Sync Gateway from HTML 5 applications via XHR.
-    type: object
-    properties:
-      Origin:
-        type: array
-        description: List of allowed origins; use an asterisk (*) to allow access from everywhere. Note that the asterisk (*) cannot be used if you plan to authenticate users as well (by using the `withCredentials` flag on the client side). In this case, the explicit domain(s) must be specified in the `Origin` and `LoginOrigin` properties of the configuration file.
-        items:
-          type: string
-      LoginOrigin:
-        type: array
-        description: List of allowed login origins.
-        items:
-          type: string
-      Headers:
-        type: array
-        description: |+
-          List of HTTP headers that can be used by domains specified in the `Origin` and `LoginOrigin` properties.<br>
-          A common value is `["Content-Type"]` as clients use the `Content-Type: application/json` header when sending data as JSON in the body of POST/PUT requests.
-        items:
-          type: string
-      MaxAge:
-        type: integer
-        description: Value for the Access-Control-Max-Age header. This is the the number of seconds that the response to a CORS preflight request can be cached before sending another preflight request.
-  couchbaseKeepaliveInterval:
-    description: TCP keep-alive interval in seconds between Sync Gateway and Couchbase Server.
-    type: integer
   databases:
     description: Database settings.
     type: object
@@ -85,27 +32,13 @@ properties:
             default: the database name
           bucket_op_timeout_ms:
             type: integer
+            description: |+
+              Configures how long Sync Gateway should wait for a bucket operation to complete before timing out and trying again. The value can be increased in scenarios where there is a heavy load on Couchbase Server and operations are likely to take more than 2.5 seconds to complete. The default value is 2500 milliseconds.
             default: 2500
-            description: |+
-              The ```bucket_op_timeout_ms``` value defines the period (in milliseconds) that Sync Gateway should wait for a bucket operation to complete before timing-out and trying again.
-
-              You can increase the period when there is a heavy load on Couchbase Server and operations are likely to take more than 2.5 seconds to complete.
-
-              The default value is 2500 milliseconds.
-          compact_interval_days:
-            type: number
-            default: 1.00
-            description: |+
-              The ```compact_interval_days``` value defines the interval (in days) between scheduled compaction runs.
-              It is a decimal number -- float32
-                - A Zero value means do not run compaction
-                - Minimum non-zero value -- 0.04 (approximately 1 hour)
-                - Maximum value -- 60 days
-                - Default -- 1 day
           delta_sync:
             type: object
             description: |+
-              NOTE: Delta Sync is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
+              *NOTE:* Delta Sync is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
 
               Delta Sync is the ability to replicate only parts of the Couchbase mobile document that have changed. This can result in significant savings in bandwidth consumption as well as throughput improvements, especially when network bandwidth is typically constrained.
 
@@ -348,7 +281,7 @@ properties:
             description: |+
               Introduced in Sync Gateway 1.5, this property specifies whether to enable Mobile-Server Data Sync (a.k.a _mobile convergence_). You can learn more about this functionality in [Syncing Mobile and Server](./../shared-bucket-access.html)
 
-              This property works in conjunction with the [import_docs](#databases-this_db-import_docs) property, which determines whether a node participates in import processing.
+              This property works in conjunction with the [import_docs](#databases-foo_db-import_docs) property, which determines whether a node participates in import processing.
 
               Set `enable_shared_bucket_access` to `true` on all nodes participating in such a configuration.
 
@@ -805,16 +738,26 @@ properties:
                   `sgr_tls_skip_verify` can be used to skip validation of TLS certs used for Inter-Sync Gateway Replication.
 
                   NOTE: Due to the unsupported nature of this option, there is no guarantee on its continued availability.
-              remote_config_tls_skip_verify:
-                type: boolean
-                default: 'false'
-                description: |+
-                  Unsupported option for use in development and testing environment ONLY
+          user_xattr_key:
+            type: string
+            default: none
+            description: |+
+              The ```user_xattr_key``` identifies the user xattr used to hold the channel access grants for documents in this database.
+              If it is not specified or its value is spaces or null then no `user_xattr_key` will be used.
 
-                  `remote_config_tls_skip_verify` can be used to skip validation of TLS certs used for external Javascript function endpoints.
+              This feature is not enabled by default.
 
-                  NOTE: Due to the unsupported nature of this option, there is no guarantee on its continued availability.
+              If you change the value of this key, no existing grant assignments will be changed until a document mutation is triggered.
+              This can be done in a number of ways:
+              - a mutation to the document which we’ll see via DCP
+              - an on-demand import either through write or get
+              - by using the resync function.
 
+
+              *Dependencies:*
+                The `user_xattr_key` feature requires that --
+                - `enable_shared_bucket_access` be = `true`
+                - xattrs be supported on the connected Couchbase Server
           username:
             type: string
             description: The RBAC user's username for authenticating to Couchbase Server. There is no default.
@@ -1335,372 +1278,3 @@ properties:
                         If the all channels wildcard was used to grant access then the sync will pull *ALL* documents.
                         Use a filter to avoid syncing excessive amounts of data to mobile devices.
 
-  facebook:
-    description: Configuration for Facebook Login authentication.
-    type: object
-    properties:
-      register:
-        description: Whether the `POST /{db}/_facebook` endpoint should register a user if one doesn't already exist. The email returned by Facebook is used to determine if that user already exists in Sync Gateway.
-        type: boolean
-        default: 'false'
-  google:
-    description: Configuration for Google Login authentication.
-    type: object
-    properties:
-      register:
-        description: Whether the `POST /{db}/_google` endpoint should register a user if one doesn't already exist. The username and email returned by Google are used to determine if that user already exists in Sync Gateway.
-        type: boolean
-        default: 'false'
-      app_client_id:
-        description: The Google App Client ID.
-        type: string
-  hide_product_version:
-    description: |2
-      Determines whether product versions are removed from Server headers and REST API responses.
-      This setting does not apply to the Admin REST API.
-
-      This customization of the Sync Gateway response avoids revealing the version of the Sync Gateway to HTTP requests to the root path.
-    type: boolean
-    default: 'false'
-  interface:
-    description: Public REST API port.
-    type: string
-    default: ':4984'
-  log:
-    description: |+
-      **NOTE:** This property is being deprecated in Sync Gateway 2.1 and replaced by the new [logging](#logging) property.
-
-      Comma-separated list of log keys to enable for diagnostic logging. Use ["*"] to enable logging for all log keys.
-
-      - Access: Anytime an access() call is made in the sync function.
-      - Attach: Attachment processing.
-      - Auth: Authentication.
-      - Bucket: Sync Gateway interactions with the bucket (verbose logging).
-      - Cache: Interactions with Sync Gateway's in-memory channel cache.
-      - Changes: Processing of _changes requests.
-      - CRUD: Updates made by Sync Gateway to documents.
-      - DCP: DCP-feed processing (verbose logging).
-      - Events: Event processing (webhooks).
-      - Feed: Server-feed processing.
-      - HTTP: All requests made to the Sync Gateway REST APIs (Sync and Admin). Note that the log keyword HTTP is always enabled, which means that HTTP requests and error responses are always logged (in a non-verbose manner). HTTP+ provides more verbose HTTP logging.
-      - Replicate: Log messages related to replications between Sync Gateways (using sg-replicate). This tag cannot be used for replications initiated by Couchbase Lite.
-      - Import+: This logging key was introduced in Sync Gateway 1.5 to help troubleshoot the import process of a document (this is the Sync Gateway process to make a document that was added through N1QL or the Server SDKs mobile-aware). This log key can be useful to troubleshoot why a given document was not successfully imported.
-      - Sync: Activity which relates to synchronization between Couchbase Lite and Sync Gateway (`Sync+` and `Sync++` can be used for additional logging output).
-    type: string
-    default: '["HTTP"]'
-  logFilePath:
-    description: |+
-      **NOTE:** This property is being deprecated in Sync Gateway 2.1 and replaced by the new [logging](#logging-log_file_path) property.
-
-      Absolute or relative path on the filesystem to the log file. A relative path is from the directory that contains the Sync Gateway executable file.
-    type: string
-    default: 'stderr'
-  logging:
-    description: The logging object.
-    type: object
-    properties:
-      log_file_path:
-        description: Absolute or relative path on the filesystem to the log file. A relative path is from the directory that contains the Sync Gateway executable file.
-        type: string
-      redaction_level:
-        description: |+
-          Optionally, log files can be redacted. This means that user-data, considered to be private, is removed. Such data includes:
-            - Key/value pairs in JSON documents
-            - Usernames
-            - Query-fields that reference key/value pairs and/or usernames
-            - Names and email addresses retrieved during product registration
-            - Extended attributes
-
-          This redaction of user-data is referred to as partial redaction. To enable it, the value must be `"partial"` in the configuration file:
-
-          ```json
-          {
-            "logging": {
-              "redaction_level": "partial"
-            }
-          }
-          ```
-        type: string
-        default: 'none'
-      console:
-        description: Settings for the console output logging.
-        type: object
-        properties:
-          log_level:
-            description: The level of logging. Log levels accumulate as you read down the table (i.e log entries at WARN will also be included in the INFO and DEBUG logs).
-            type: string
-            default: 'info'
-          log_keys:
-            description: |+
-              List of log keys to enable for diagnostic logging. Example:
-
-              ```json
-              {
-                "logging": {
-                  "console": {
-                    "log_keys": ["HTTP", "CRUD", "Import"]
-                  }
-                }
-              }
-              ```
-
-              Available log key values include:
-
-              - *: Wildcard log key. Enables all log keys
-              - `none`:Disables all log keys
-              - `Admin`: Admin processes in Sync Gateway.
-              - `Access`: Anytime an `access()` call is made in the sync function.
-              - `Auth`: Authentication.
-              - `Bucket`: Sync Gateway interactions with the bucket (`trace` level only).
-              - `Cache`: Interactions with Sync Gateway's in-memory channel cache.
-              - `Changes`: Processing of `/{db}/_changes` requests.
-              - `CRUD`: Updates made by Sync Gateway to documents.
-              - `DCP`: DCP-feed processing.
-              - `Events`: Event processing (webhooks).
-              - `gocb`: All logging emitted by the GoCB SDK
-              - `HTTP`: All requests made to the Sync Gateway REST APIs. This is the default setting.
-              - `HTTP+`: Additional information about HTTP requests (response times, status codes).
-              - `Import`: Introduced in Sync Gateway 1.5 to help troubleshoot the import process of a document (this is the Sync Gateway process to make a document that was added through N1QL or the Server SDKs mobile-aware). This log key can be useful to troubleshoot why a given document was not successfully imported.
-              - `Javascript`: All logging from Javascript. This includes: sync function, import filters, webhook filter function, and the custom ISGR conflict resolvers
-              - `Migrate`: Logs messages that show when old inline document metadata is upgraded to xattrs
-              - `Query`: Query is used for Sync Gateway code related to N1QL queries
-              - `Replicate`: Log messages related to replications between Sync Gateways (using sg-replicate). This tag cannot be used for replications initiated by Couchbase Lite.
-              - `SGCluster`: Log messages related to the sharded import and HA sg-replicate
-              - `Sync`: Activity which relates to synchronization between Couchbase Lite and Sync Gateway
-              - `SyncMsg`: Can be used for additional Sync logging output
-              - `WS`: Websocket replication log messages
-              - `WSFrame`: Can be used for additional WS logging output
-            type: array
-            items:
-              type: string
-            default: '["HTTP"]'
-          color_enabled:
-            description: Use ANSI color codes in the console output (Linux/MacOS only).
-            type: boolean
-            default: 'false'
-      default:
-        type: string
-        description: |+
-          Logging configuration. This property is being **deprecated** in Sync Gateway 2.1 and replaced with 4 different log levels.
-
-          See the [`logging.$level`](#logging-$level) property for more detail.
-        default: ''
-        deprecated: true
-      $level:
-        description: |+
-          The level of logging as a key. Log levels accumulate as you read down the table (i.e log entries at WARN will also be included in the INFO and DEBUG logs).
-
-          | Level| Description| Minimum max_age| Log File Name|
-          | :---| :---| :---| :---|
-          | ERROR| Critical error messages.| 180 days| sg_error.log|
-          | WARN| Something is wrong but SG can still service requests| 90 days| sg_warn.log|
-          | INFO| Important diagnostics for support and customers| 3 days| sg_info.log|
-          | DEBUG| Lower level development analysis| 1 day| sg_debug.log|
-
-          Each log level takes a dictionary as value and various properties can set for each log level. For example:
-
-          ```javascript
-          "logging": {
-              "log_file_path": "/home/sync_gateway/logs", // Where to put log files
-              "console": {
-                  "log_level": "info",  // What level to output to console - [error|+warn|+info|+debug|+none]
-                  "log_keys": ["HTTP"], // What log keys to output to console (comma separated)
-                  "color_enabled": true
-              },
-              "error": {
-                  "enabled": true,
-                  "rotation": {
-                      "max_size": 100,    // Threshold in megabytes to rotate logs
-                      "max_age": 360,     // Maximum days to retain log files (Min: 180)
-                      "localtime": false // Use local computer's time on backup timestamps (false=UTC)
-                  }
-              },
-              "warn": {
-                  "enabled": true,
-                  "rotation": {
-                      "max_size": 100,
-                      "max_age": 180,     // (Minimum: 90)
-                      "localtime": false
-                  }
-              },
-              "info": {
-                  "enabled": true,
-                  "rotation": {
-                      "max_size": 100,
-                      "max_age": 6,     // (Minimum: 3)
-                      "localtime": false
-                  }
-              },
-              "debug": {
-                  "enabled": false,
-                  "rotation": {
-                      "max_size": 100,
-                      "max_age": 2,     // (Minimum: 1)
-                      "localtime": false
-                  }
-              }
-          }
-
-          ```
-        type: object
-        properties:
-          enabled:
-            description: |+
-              Whether to enable this log level.
-              The *error*, *warn* and *info* log levels are enabled by default.
-              The *debug* log level is disabled by default.
-
-              Note, however, that you are advised to keep this log level enabled to troubleshoot issues. Enabling this log level is a requirement to receive [Enterprise Support](https://www.couchbase.com/support-policy).
-            type: boolean
-          rotation:
-            description: The log file may be rotated by defining a "rotation" sub document. See details in the table below.
-            type: object
-            properties:
-              max_size:
-                type: integer
-                description: The maximum size in MB of the log file before it gets rotated.
-                default: 100
-              max_age:
-                type: integer
-                description: The maximum number of days to retain old log files. This can't be set below the minimum allowed value for the given level.
-              localtime:
-                type: boolean
-                description: If true, it uses the computer's local time to format the backup timestamp. False uses UTC.
-                default: 'false'
-              rotated_logs_size_limit:
-                description: |+
-                  Controls how much disk space the rotated (and compressed) log files for this level can take up.
-
-                  The value is expressed in megabytes.
-                  The minimum value is `10` and there is no maximum value.
-                type: integer
-                default: 1024
-  maxFileDescriptors:
-    description: Maximum number of open file descriptors.
-    type: integer
-    default: 5000
-  maxHeartbeat:
-    description: |2
-      This specifies the Maximum Heartbeat value for the ```_changes feed``` requests; the time in second between heartbeats.
-      - The default value of ```maxHeartbeat``` is 0 (zero)
-      - The minimum value of ```maxHeartbeat``` is 25 (25,000 ms)
-    type: integer
-    default: 0
-  maxIncomingConnections:
-    description: Maximum number of incoming HTTP connections to accept.
-    type: integer
-    default: 0
-  pretty:
-    description: (**Deprecated**) Whether to pretty-print JSON responses.
-    type: boolean
-    default: 'false'
-  profileInterface:
-    description: (**Deprecated**) TCP network address (IP address and the port) that the Go profile API listens on. You can obtain go profiling information from the interface. You can omit the IP address.
-    type: string
-
-  replications:
-    type: array
-    description: |+
-      **Support Notice**
-      (**Deprecated**) This SG-Replicate 1.0 method of configuring replication is deprecated at version 2.8. For replication using the SG-Replicate 2.0 protocol configure the replication properties under _database.replications_ instead -- see [SG-Replicate 2.0 Replications](./../refer/config-properties.html#databases-this_db-replications).
-
-      **NOTE:** Sync Gateway will fail to start if any replications defined at this level do involve at least one local database (source and-or target); an error is recorder in the log.
-
-      **About**
-      SG-Replicate 1.0 replications :
-
-      - default to a 'Running' state
-      - do not support built-in, or custom, conflict resolution -- see [Resolving Conflicts](./../resolving-conflicts.html) and [SG-Replicate 2.0 Conflict Resolution](./../learn/icr-conflict-resolution.html)
-      - use `source` and `target` to derive replication direction
-    items:
-      type: object
-      properties:
-        replication_id:
-          type: string
-          description:  |+
-            (**Deprecated**)
-            This is the ID to assign this replication with. If no replication_id is given for a new replication it is assigned a random UUID.
-        source:
-          type: string
-          description: |+
-            (**Deprecated**)
-            Identifies the database to copy revisions from.
-
-            Valid options:
-              - a string containing a local database name
-              - a remote database URL
-              - an object whose url property contains the database name or URL.
-                Also an object can contain a headers property that contains custom header values such as a cookie.
-        target:
-          type: string
-          description: |+
-            (**Deprecated**)
-            Identifies the database to copy revisions to. Same format and interpretation as source.
-        continuous:
-          type: boolean
-          default: 'false'
-          description:  |+
-            (**Deprecated**)
-            Specifies whether the replication should be in continuous mode.
-        changes_feed_limit:
-          type: integer
-          description: |+
-            (**Deprecated**)
-            The maximum number of change entries to pull in each loop of a continuos changes feed.
-          default: 50
-        filter:
-          type: string
-          description:  |+
-            (**Deprecated**)
-            Indicates that the documents should be filtered using the specified filter function name. A common value used when replicating from Sync Gateway is sync_gateway/bychannel to limit the pull replication to a set of channels.
-        query_params:
-          type: array
-          description: |+
-            (**Deprecated**)
-            A set of key/value pairs to use in the querystring of the replication. For example, the channels field can be used to pull from a set of channels (in this particular case, the filter key must be set for the channels field to work as expected).
-          items:
-            # type: object
-            # properties:
-            #   param-string-1:
-            type: string
-            description: query parameter string
-  replicator_compression:
-    description: |+
-      This sets the 'deflate' compression level to use when compressing messages sent via the WebSocket protocol, where 0 means no compression, 1 means fastest (least) compression, and 9 means slowest (most) compression.
-    type: integer
-    default: 6
-  readHeaderTimeout:
-    description: Maximum duration (in seconds) allowed to read request Headers
-    type: integer
-    default: 5
-  idleHeaderTimeout:
-    description: Maximum duration (in seconds) to wait for the next request when keep-alives are enabled
-    type: integer
-    default: 90
-  serverReadTimeout:
-    description: Maximum duration in seconds before timing out the read of an HTTP(S) request. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
-    type: integer
-  serverWriteTimeout:
-    description: Maximum duration in seconds before timing out the write of an HTTP(S) response. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
-    type: integer
-  slowQueryWarningThreshold:
-    description: Log warnings if N1QL or View queries made by Sync Gateway take this many milliseconds or longer.
-    type: integer
-    default: 500
-  SSLCert:
-    description: Absolute or relative path on the filesystem to the TLS certificate file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
-    type: string
-  SSLKey:
-    description: Absolute or relative path on the filesystem to the TLS private key file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
-    type: string
-  tls_minimum_version:
-    description: |+
-      Enforce a minimum TLS version to be used in replications with Couchbase Lite.
-
-      Possible values are:
-
-      - "tlsv1"
-      - "tlsv1.1"
-      - "tlsv1.2"
-    type: string
-    default: 'tlsv1'
