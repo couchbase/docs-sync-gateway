@@ -13,10 +13,11 @@
 == Introduction
 // tag::intro[]
 Sync Gateway supports the use of Javascript functions to customize the sync process.
-These functions are referenced from within the {configuration-schema--xref} file and may be provided either as:
+These functions are referenced from within the Sync Gateway Configuration and may be provided either as:
 
 * An inline Javascript function
-* An external Javascript file or HTTP/HTTPS endpoint
+* An external Javascript file
+* An external HTTP/HTTPS endpoint serving a JS function
  footnote:[Sync Gateway 3.0 or later].
 
 // end::intro[]
@@ -27,6 +28,7 @@ During database setup, Sync Gateway inspects the config file to identify and pro
 * Any inline JavaScript defined against any of the eligible configuration options
 * Any external file or HTTP/S endpoint specified against any of the eligible configuration options that resolves to a Javascript function.
 
+
 == Eligible Options
 Inline or external Javascript functions can be provided for any or all of the following configurable options:
 
@@ -34,6 +36,7 @@ Inline or external Javascript functions can be provided for any or all of the fo
 * Import Filter
 * Custom Conflict Resolver
 * Webhook Filter
+
 
 == Configuration
 // tag::config-full[]
@@ -48,6 +51,10 @@ To use an external Javascript function for any of the eligible options, you need
 The format and content of the external Javascript is the same as that provided inline.
 
 NOTE: You must register a CA certificate for the appropriate server if external Javascript functions are hosted on HTTPS endpoints.
+
+TIP: For testing purposes you may use the unsupported configuration option `{configuration-schema-static--xref--databases-unsupp-remote-config-tls-skip-verify}`.
+Setting this `true` will side-step essential security checks.
+Do not use in Production deployments.
 --
 
 // tag::config-example[]
