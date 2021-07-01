@@ -34,12 +34,40 @@ For example, `-bucket=db`, or as a following item on the command line, for examp
 
 
 [#option-fmt]
-.Command line option format
+.Command line options
 ====
+
+[{tabs}]
+=====
+
+Format::
++
+--
+When specifying command-line options use this format:
+
 [source,bash]
 ----
-sync_gateway [command-line options]
+sync_gateway [ -{option} ]
 ----
+
+<.> Seperate multiple options by a comma or a space
+
+--
+
+List CLI Arguments::
++
+--
+You can check the latest position by navigating to the folder containing the Sync Gateway executable and using:
+
+[source,bash]
+----
+$ ./sync_gateway -help <.>
+----
+
+<.> This command lists all Sync Gateway's current command line arguments
+--
+
+=====
 ====
 // Here we use lower camel case.
 
@@ -48,103 +76,92 @@ sync_gateway [command-line options]
 The following command-line options can be used when starting Sync Gateway  see <<cmd-opts>>
 
 .*Deprecation Notice*
-WARNING: The `-bucket` command line option is deprecated at Release 2.7 and will be removed following release 2.8. +
+WARNING: The `-bucket` command line option, deprecated at Release 2.7, will be removed following release 2.8. +
 Use the JSON configuration file option `bucket` -- see {configuration-properties--xref--databases-bucket}.
 
 [#cmd-opts]
 .Available command-line options
-[#cmd-opts,cols="1,1,2"]
+[#cmd-opts,cols="^3m,3,4a"]
 |===
 |Option |Default |Description
 
-|`‑adminInterface`
-|`127.0.0.1:4985`
+|‑adminInterface
+|127.0.0.1:4985
 |Port or TCP network address (IP address and the port) that the Admin REST API listens on.
 
-|`-bucket`
-|`sync_gateway`
-|*_Deprecated_* Name of the Couchbase Server bucket.
+|-bucket
+|sync_gateway
+|*_Deprecated_* Name of the Couchbase Server bucket. +
+Instead use {configuration-properties--xref--databases-bucket}
 
-|`-dbname`
-|`sync_gateway`
+|-cacertpath
+|none
+|Root CA certificate path
+
+|-certpath
+|none
+|Client certificate path
+
+|-configServer
+|none
+|URL of server that can return database configs
+
+|-dbname
+|sync_gateway
 |Name of the Couchbase Server database to serve through the Public REST API.
 
-|`-defaultLogFilePath`
+|-defaultLogFilePath
 |none
 |Path to log files, as a fallback default value when `logFilePath` is not specified.
 This option is generally used in service scripts.
 
-|`-help`
+|-deploymentID
+|none
+|Customer/project identifier for stats reporting
+
+|--help
 |none
 |Lists the available options and exits.
 
-|`-interface`
-|`:4984`
+|-interface
+|:4984
 |Port or TCP network address (IP address and the port) that the Public REST API listens on.
 
-|`-log`
-|`HTTP`
-|Comma-separated list of log keywords to enable.
-The log keyword `HTTP` is enabled by default, which means that HTTP requests and error responses are always logged.
-Omitting `HTTP` from your list does not disable HTTP logging. HTTP logging can be disabled through the Admin API.
+|-keypath
+|none
+|Client certificate key path
 
-|`-logFilePath`
+|-log
+|HTTP
+|A comma-separated list of log keywords to be enabled. +
+The log keyword `HTTP` is enabled by default, which means that HTTP requests and error responses are always logged. +
+Omitting `HTTP` from your list does not disable HTTP logging. You can disable HTTP logging using the Admin API.
+
+|-logFilePath
 |none
 |Path to log files.
 
-|`-pool`
-|`default`
+|-pool
+|default
 |Name of the Couchbase Server pool in which to find buckets.
 
-|`-pretty`
-|`false`
+|-pretty
+|false
 |Pretty-print JSON responses to improve readability.
 This is useful for debugging, but reduces performance.
 
-|`-url`
-|`walrus:`
-|URL of the database server.
-(*Deprecated*) An HTTP URL implies Couchbase Server.
-A `walrus:` URL implies the built-in Walrus database.
-A combination of a Walrus URL and a file-style URI (for example, `walrus:///tmp/walrus`) implies the built-in Walrus database and persisting the database to a file.
+|-profileInterface
+|
+|Address to bind the profile interface to
 
-|`-verbose`
+|-url
+m|DefaultServer
+|The URL of the database server
+
+|-verbose
 |Non-verbose logging
 |Logs more information about requests.
 |===
 
-[[_examples]]
-=== Examples
-
-The following command does not include any parameters and just uses the default values.
-It connects to the bucket named `sync_gateway` in the pool named `default` of the built-in Walrus database.
-It is served from port 4984, with the Admin interface on port 4985.
-
-[source,bash]
-----
-$ sync_gateway
-----
-
-The following command creates an ephemeral, in-memory Walrus database, served as `db`, and specifies use of pretty-printed JSON responses.
-Because Walrus is the default database, the option `-url` could be omitted.
-
-[source,bash]
-----
-$ sync_gateway -url=walrus: -bucket=db -pretty
-----
-
-The following command starts Sync Gateway and specifies the address of a Couchbase Server instance (instead of using the default database server, which is Walrus):
-
-[source,bash]
-----
-$ ./sync_gateway -url http://cbserver:8091
-----
-
-The following command accomplishes the same things as the prior command, persists the Walrus database to a file named `/tmp/walrus/db.walrus`, and turns on additional logging for the log keys `HTTP+` and `CRUD`.
-
-[source,bash]
-----
-$ sync_gateway -url=walrus:///tmp/walrus -bucket=db -log=HTTP+,CRUD
-----
 
 include::partial$block-related-content-api.adoc[]
