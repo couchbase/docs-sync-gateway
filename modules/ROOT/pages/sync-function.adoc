@@ -24,3 +24,35 @@ include::{howto}sync-function-api.adoc[leveloffset={ouroffset}]
 
 
 include::partial$block-related-content-sync.adoc[]
+// END -- Page Footer
+
+
+
+// Stuff for consideration from config file
+// Sync Gateway invokes this function whenever a document, revision or deletion is added to a databases.
+
+
+// If a document is in conflict there will be multiple current revisions. The default, the "winning" one is the one whose channel assignments and access grants take effect.
+
+// If you don't supply a sync function, Sync Gateway uses the following default sync function:
+
+// ```javascript
+// `function (doc, oldDoc) {
+//     channel(doc.channels);
+// }`
+// ```
+
+// What this does is: Assign a document to the channels listed in its ```channels``` property -- this value must be a string or an array of strings.
+
+// Since there is no validation, any user can change any document. For this reason, the default sync function is really only useful for experimentation and development.
+
+// The `channels` property is an array of strings that contains the names of the channels to which the document belongs.
+// If you do not include a `channels` property in a document, the document does not appear in any channels.
+
+// Adding a `channels` property to each document is the easiest way to map documents to channels but if you need more advanced behavior such as read and write access, you'll probably need to write your own Sync Function.
+
+
+
+
+
+// END -- PAGE -- sync-function.adoc

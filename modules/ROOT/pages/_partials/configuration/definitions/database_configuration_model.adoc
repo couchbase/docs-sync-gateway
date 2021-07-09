@@ -1,0 +1,759 @@
+
+[[_database_configuration_model]]
+=== database_configuration_model
+
+
+// tag::content[]
+
+The `database_configuration_model` object defines the configuration of a given Sync Gateway database.
+
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**bucket_configuration** +
+__optional__|Defines the Couchbase Server bucket to be used for this Sync Gateway database|<<_bucket_configuration_model,bucket_configuration_model>>
+|**name** +
+__optional__|Use `name` to define the Sync Gateway database name.
+
+Change initiates database restart|string
+|**sync** +
+__optional__||<<_sync_function_model,sync_function_model>>
+|**users** +
+__optional__|Defines the user(s) for this Sync Gateway database|<<_user_configuration_model,user_configuration_model>>
+|**roles** +
+__optional__|Defines the role(s) for this Sync Gateway database|<<_role_configuration_model,role_configuration_model>>
+|**revs_limit** +
+__optional__|This property defines the maximum depth to which a document's revision tree can grow; its value governs the point at which to prune a document's revision tree.
+
+The default and minimum values of `revs_limit` are dependent on whether link:config-properties.html#databases-this_db-allow_conflicts[allow_conflicts] is set True or False – see the _Default and Minimum Values_ table below.
+
+The process to remove obsolete revisions is called pruning and runs automatically every time a revision is added. Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite. On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
+
+If there are conflicting revisions, the document may end up with *disconnected branches* after the pruning process. In the animation below, the document has a conflicting branch (revisions `4&#39;` - `1001&#39;`). When the shortest branch (in this case the conflicting branch) reaches the 1003rd update, it gets is cut off. The revision tree is not in a corrupted state and the logic that chooses the winning revision still applies. But it may make it impossible to do certain merges (n-way merge) to resolve conflicts and will occupy disk space that could have been freed if the conflict was resolved early on.<br><br>
+
+![](https://cl.ly/3C1G3t3R1v19/pruning-sg.gif)
+
+If the revision tree gets into this state then the only option to resolve the conflict is to pick a winning branch and tombstone all the non-winning conflicting branches.
+
+*NOTE:* Setting the `revs_limit` to a value below 100 when `allow_conflicts = true` may adversely affect the conflict resolution process, as there may be insufficient revision history to resolve a given conflict.
+
+==== Default and Minimum Values
+
+*For Releases 2.6+*
+
+allow_conflicts =\|+ True \|+ False
+ :— \|+ :——-: \|+ :——-:
+`revs_limit` default \|+ 100 \|+ 50 \|+
+`revs_limit` minimum \|+ 20 \|+ 1 \|+
+
+*For Releases 2.0 - 2.5*
+
+allow_conflicts = \|+ &lt;– True –&gt; \|+&lt;– False –&gt;
+ :— \|+ :——-: \|+ :——-:
+ `revs_limit` default \|+ 100 \|+ 1000
+ `revs_limit` minimum \|+ 50 \|+ 1
+
+*For Release 1.x*
+- `revs_limit` default = 1000
+- `revs_limit` minimum = 20
+
+See also:
+- Sync Gateway purge endpoint link:admin-rest-api.html#/document/post__db___purge[/{db}/_purge].
+- Sync Gateway link:admin-rest-api.html#/document/put__db___doc_[document TTLs].
+
+minimum – see Default and Minimum Values table in description|integer
+|**import_docs** +
+__optional__|Use the `import_docs` property to define whether the Sync Gateway node should automatically import Couchbase Server documents;
+
+This property works in conjunction with the `enable_shared_bucket_access` property, which enables Xattrs.
+
+Since Sync Gateway 2.7, all Sync Gateway nodes can be configured as import nodes. This results in performance benefits as the import process is shared across all Sync Gateway nodes.
+Prior to version 2.7, `import_docs` can only be set to `true` on a single node.
+
+Changes initiate a database restart +
+**Default** : `false`|boolean
+|**import_partitions** +
+__optional__|Use the `import_partitions` property to define how many import partitions should be used for import sharding.
+
+Partitions are distributed among all Sync Gateway nodes participating in import processing (import_docs:true), and each process a subset of the server's vbuckets.
+
+Each partition is processed by a separate goroutine, so `import_partitions` can be used to tune concurrency based on the number of Sync Gateway nodes, and the number of cores per node.|integer
+|**import_filter** +
+__optional__|Use the `import_filter` property to define whether a document written to the Couchbase Server bucket should be made available to Couchbase Mobile clients (that is, it should be imported).
+
+This JavaScript filter function takes the document body as parameter and is expected to return a boolean to indicate whether the document should be imported.
+
+[source,json]
+----
+{
+  "databases": {
+    "db": {
+      "server": "http://localhost:8091",
+      "bucket": "default",
+      "password": "password",
+      "import_docs": true,
+      "enable_shared_bucket_access": true,
+      "import_filter": `
+    function(doc) {
+      if (doc.type != "mobile") {
+        return false
+      }
+      return true
+    }
+    `,
+    }
+  }
+}
+---- +
+**Default** : `"function(doc) {return false;}"`|string
+|**import_backup_old_rev** +
+__optional__|Use the `import_backup_old_rev` property to define whether import should attempt to create a temporary backup of the previous revision body, when available|string
+|**event_handlers** +
+__optional__|Webhooks in Sync Gateway are designed to minimize performance impacts on Sync Gateway's regular processing.
+
+Sync Gateway manages the number of processes that are spawned for webhook event handling, so that slow response times from the HTTP POST operations don't consume available CPU resources on Sync Gateway nodes.
+
+When a `webhook` event handler is defined, after Sync Gateway has updated a document, Sync Gateway adds a `document_changed` event to an asynchronous event-processing queue (the event queue).
+
+New processes are then spawned to apply the `filter` function to the documents and to perform the HTTP POST operations.
+
+When an event is not added to the event queue, but is instead discarded, a warning message is written to the the Sync Gateway log.
+
+You can configure Sync Gateway to log information about event handling, by including either the log key `Event` or `Events+` in the `Log` property in your Sync Gateway configuration file. `Events+` is more verbose.
+
+See also: {webhooks–xref}|<<_event_handler_model,Event Handler Model>>
+|**allow_empty_password** +
+__optional__|Use `allow_empty_password` to define whether to Sync Gateway users can be created with empty passwords. +
+**Default** : `false`|boolean
+|**cache** +
+__optional__|The `cache` group of properties define the configuration for this database's channel and revision caches|<<_cache_model,Cache Model>>
+|**offline** +
+__optional__|Use `offline` to determine whether Sync Gateway should start the database in offline mode.
+
+The default of false means the database will be online. +
+**Default** : `false`|boolean
+|**unsupported** +
+__optional__|This group comprises an unrelated collection of unsupported properties that may, potentially, be useful in controlled testing scenarios.
+
+NOTE: Due to the unsupported nature of these options, there is no guarantee on their continued availability.|<<_unsupported_properties_model,Unsupported Properties Model>>
+|**oidc** +
+__optional__|Use the `oidc` object properties to defined any OpenID Connect providers and associated credentials.|<<_oidc_group_model,OIDC Group Model>>
+|**old_rev_expiry_seconds** +
+__optional__|Use the `old_rev_expiry_seconds` property to define the number of seconds before old revisions are removed from Couchbase Server buckets.|integer
+|**view_query_timeout_secs** +
+__optional__|Use the `view_query_timeout_secs` property to define the view query timeout in seconds.
+
+This is the time Sync Gateway should wait for a view query response from Couchbase Server before it times out.
+
+The timeout applies to both view and N1QL queries issued by Sync Gateway.|integer
+|**local_doc_expiry_secs** +
+__optional__|Use the `local_doc_expiry_secs` property to define an expiry value for local documents managed on Sync Gateway.
+
+Local documents are used by the Couchbase Lite replicator to track up to which sequence number a given client has synchronized and where it should resume the next time it connects to Sync Gateway.
+
+Clients failing to replicate within the expiry window are forced to restart their replication from the beginning (sequence zero).
+
+This property is intended to minimize accumulation of obsolete replication checkpoint documents in the Couchbase Server bucket.
+
+The default is `7776000` seconds (90 days).|integer
+|**enable_shared_bucket_access** +
+__optional__|*Deprecated at 3.0*
+
+use the `enable_shared_bucket_access` property to define whether to use extended attributes to store sync metadata; this is required to enable mobile-to-server data sync (_mobile convergence_).
+
+You can learn more about this functionality in link:sync-with-couchbase-server.html[Syncing with Couchbase Server]
+
+This property works in conjunction with the `import_docs` property, which determines whether a node participates in import processing.
+
+Set `enable_shared_bucket_access` to `true` on all nodes participating in such a configuration.
+
+On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
+
+Change initiates a database restart +
+**Default** : `false`|boolean
+|**session_cookie_secure** +
+__optional__|Override secure cookie flag (that is, disable secure cookies).
+
+If SSLCert is set, then secure cookies are also used by default. However, this flag can be set `false` to override this behavior and allow insecure cookies to be used alongside SSL.
+
+If SSLCert is not set then this flag defaults to false. +
+**Default** : `true`|boolean
+|**session_cookie_name** +
+__optional__|Starting in Sync Gateway 2.0, it is possible to customize the session cookie name that is used for this database.
+
+This property is mostly used by web applications interacting with multiple Sync Gateway databases.
+
+Browsers typically have two methods of determining which cookie to use for a given request: the `URL` path, or the cookie name.
+
+Use this property, to set different cookie names for each database specified in the configuration file. Let's consider the following configuration file:
+
+[source,json]
+----
+{
+    "interface":":4984",
+    "log":["*"],
+    "databases": {
+      "db1": {
+        "session_cookie_name": "CustomName1",
+        "server": "http://localhost:8091",
+        "bucket": "bucket-1",
+        "users": {
+            "user_1": {"password":"1234"}
+        },
+        "db2": {
+          "session_cookie_name": "CustomName2",
+          "server": "http://localhost:8091",
+          "bucket": "bucket-2",
+          "users": {
+              "adam_2": {"password":"5678"}
+          }
+        }
+      }
+    }
+}
+
+----
+
+With this configuration, the `Set-Cookie` response header of the POST `:4984/{db}/_session` endpoint (Public REST API) would then have the form "CustomName1=3cad4b95524179bf144fe0d92b8f09877bb86bf5;path=/db1/".
+
+When using POST `:4985/{db}/_session` (Admin REST API) to create a session, the cookie value is returned in the response body instead of the `Set-Cookie` header. In this case, it could also be set by the client, for web applications it would be the following in JavaScript:
+
+[source,javascript]
+----
+cookie1String = "CustomName1=3cad4b95524179bf144fe0d92b8f09877bb86bf5;path=/db1/";
+document.cookie = cookie1String;
+---- +
+**Default** : `"SyncGatewaySession"`|string
+|**session_cookie_http_only** +
+__optional__|This flag disallows cookies from being used by Javascript; by default javascript CAN use them +
+**Default** : `false`|boolean
+|**allow_conflicts** +
+__optional__|**Deprecated at 3.0 **
+
+Use `allow_conflict` to define whether Sync Gateway will handle conflicts.
+
+The default of `true` indicates that conflicts are handled.
+
+Set the value to `false` to cause Sync Gateway to reject any attempt to write conflicting revisions (returning a `409` HTTP status code).
+It will be up to the client to resolve the conflict.
+
+Restarting Sync Gateway with this property enabled will not automatically result in disk space savings (compaction on a document won't occur until a document is updated).
+
+_Constraints:_
+- Push replications to pre-2.8 targets do not support the `&quot;allow_conflicts&quot;: false` setting; the target must use `&quot;allow_conflicts&quot;: true`.
+
+Change initiates a database restart. +
+**Default** : `true`|boolean
+|**num_index_replicas** +
+__optional__|use `num_index_replicas` property to define the number of index replicas used when creating the core Sync Gateway indexes.
+
+Only applicable if `databases.$db.use_views` is set to `false` (default value).
+
+Change initiates a database restart.|integer
+|**use_views** +
+__optional__|If set to `true`, Sync Gateway will use views instead of GSI for system functions like authentication and replication. +
+**Default** : `false`|boolean
+|**send_www_authenticate_header** +
+__optional__|Whether to send WWW-Authenticate header in 401 responses. +
+**Default** : `true`|boolean
+|**bucket_op_timeout_ms** +
+__optional__|Use `bucket_op_timeout_ms` to define how long Sync Gateway will wait for a bucket operation to complete before timing out and trying again.
+
+You may increase this value where there is a heavy load on Couchbase Server and operations are likely to take more than 2.5 seconds to complete.
+
+The default value is 2500 milliseconds.
+
+Changes initiate a database restart.|integer
+|**delta_sync** +
+__optional__|_NOTE:_ Delta Sync is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
+
+Use the `delta_sync` object to specify the delta sync configuration properties.
+
+In this context, delta-sync, is the ability to replicate only those parts of a Couchbase mobile document that have changed.
+This results in significant savings in bandwidth consumption as well as throughput improvements; both useful benefits when network bandwidth is typically constrained.
+
+Delta Sync does not apply to attachment contents.
+
+Delta Sync is disabled by default on the Sync Gateway. You can enable it through the `enabled` property.
+
+If delta sync is enabled on Sync Gateway, then Couchbase Lite clients will switch to using delta sync automatically.
+Similarly, if delta sync is disabled on Sync Gateway, clients will switch to normal mode.
+
+Changes initiate a database reload|<<_delta_sync_model,Delta Sync Model>>
+|**compact_interval_days** +
+__optional__|Use `` property to define the interval between scheduled compaction runs (in days).
+
+Set a zero (0) value to suppress running compactions.
+
+Change initiates a database restart.|number
+|**isgr_enabled** +
+__optional__|Use the `isgr_enabled` property to define whether this Sync Gateway node can be assigned inter-Sync Gateway replications for this database.
+
+If set to false, the Sync Gateway node will not participate in inter-Sync Gateway replications. +
+**Default** : `true`|boolean
+|**isgr_websocket_heartbeat_secs** +
+__optional__|If set, this duration (in seconds) is used as a custom heartbeat interval for websocket ping frames in inter-Sync Gateway replications.|integer
+|**serve_insecure_attachment_types** +
+__optional__|The sending of a content-disposition header for attachments with headers such as "text/html"
+forces a download, rather than browser rendering.
+
+Use this option to suppress sending the content-disposition, allowing the browser to render the attachment. +
+**Default** : `false`|boolean
+|**query_pagination_limit** +
+__optional__|Use the `query_pagination_limit` property to define the Query limit to be used during pagination of large queries.
+
+Change initiates a database restart.|integer
+|**slow_query_warning_threshold** +
+__optional__|The maximum wait time, in milliseconds,for N1QL or View queries made by Sync Gateway
+
+Log warnings if the run time of a N1QL or View query, made by Sync Gateway, exceeds this value.|integer
+|**user_xattr_key** +
+__optional__|The `user_xattr_key` identifies the user xattr used to hold the channel access grants for documents in this database.
+
+If it is not specified or its value is spaces or null then this feature is disabled (default).
+
+If you change the value of this key, no existing grant assignments will be changed until a document mutation is triggered.
+This can be done in a number of ways:
+– a mutation to the document which we’ll see via DCP
+– an on-demand import either through write or get
+– by using the resync function.
+
+_Dependencies:_
+ The `user_xattr_key` feature requires that –
+ - `enable_shared_bucket_access` be = `true`
+ - xattrs be supported on the connected Couchbase Server
+
+Change initiates a database restart +
+**Default** : `"none"`|string
+|**client_partition_window_secs** +
+__optional__|Use `` property to define how long clients can remain offline for without losing replication metadata.
+
+Default 2 592 000 seconds (30 days) +
+**Default** : `"2592000"`|string
+|===
+
+[[_event_handler_model]]
+**Event Handler Model**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**document_changed** +
+__optional__|The configuration for the action to perform when a document change is detected.|< <<_document_changed_model,Document Changed Model>> > array
+|**db_state_changed** +
+__optional__|Use the `db_state_changed` property group to define the actions to perform when a `db_state` change is detected.|< <<_db_state_changed_model,db_state_changed model>> > array
+|**max_processes** +
+__optional__|Maximum number of events that can be processed concurrently, that is, no more than `max_processes` concurrent processes will be spawned for event handling.
+
+The default value should work well in the majority of cases.
+You should not need to adjust it to tune performance.
+However, if you wish to ensure that most webhook posts are sent, you can set it to sufficiently high value.|integer
+|**wait_for_process** +
+__optional__|Maximum wait time in milliseconds before canceling event processing for an event that is detected when the event queue is full.
+
+If you set the value to 0 (zero), then incoming events are discarded immediately if the event queue is full.
+
+If you wish to avoid any blocking of standard Sync Gateway processing this may be a desirable value to use.
+
+The default value should work well in the majority of cases. You should not need to adjust it to tune performance. +
+**Default** : `"100"`|string
+|===
+
+[[_document_changed_model]]
+**Document Changed Model**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**filter** +
+__optional__|Use `document_changed.filter` to define a JavaScript function that determines which documents to post.
+
+The filter function accepts the document body as input and returns a boolean value.
+
+– If the filter function returns true, then Sync Gateway posts the document.
+– If the filter function returns false, then Sync Gateway does not post the document.
+– If no filter function is defined, then Sync Gateway posts all changed documents.
+
+Filtering only determines which documents to post.
+It does not extract specific content from documents and post only that.|string
+|**handler** +
+__optional__|Specify the type of event handler.
+
+This must be `webhook` currently).|string
+|**options** +
+__optional__|Options can be specified per-handler, and are specific to each handler type.|string
+|**timeout** +
+__optional__|Defines the period in seconds to wait for a response to the POST operation.
+
+Using a timeout ensures that slow-running POST operations don't cause the webhook event queue to back up.
+
+Slow-running POST operations are discarded (if they time out), so that new events can be processed. When the timeout is reached, Sync Gateway stops listening for a response.
+
+A value of 0 (zero) means no timeout.
+
+You should not need to adjust it to tune performance as he default value should work well in the majority of cases.|integer
+|**url** +
+__optional__|Defines the URL to post documents to (for a webhook event handler).|string
+|===
+
+[[_db_state_changed_model]]
+**db_state_changed model**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**filter** +
+__optional__|Use `db_state_changed.filter``` to define a JavaScript function that determines which state changes to post.|string
+|**handler** +
+__optional__|Specify the type of event handler.
+
+This must be `webhook` currently).|string
+|**options** +
+__optional__|Options can be specified per-handler, and are specific to each handler type.|string
+|**timeout** +
+__optional__|Defines the period in seconds to wait for a response to the operation.|integer
+|**url** +
+__optional__|Defines the URL to post to (for a webhook event handler).|string
+|===
+
+[[_cache_model]]
+**Cache Model**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**rev_cache** +
+__optional__|Use the `rev_cache` properties to configure the revision cache|<<_revision_cache_model,Revision Cache Model>>
+|**channel_cache** +
+__optional__|Use the `channel_cache` group's properties to configure the database's channel cache
+
+Changes initiate a database restart|<<_channel_cache_model,Channel Cache Model>>
+|===
+
+[[_revision_cache_model]]
+**Revision Cache Model**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**size** +
+__optional__|Size of the revision cache, specified as the total number of document revisions to cache in memory for all recently accessed documents. When the revision cache is full, Sync Gateway removes less recent document revisions to make room for new document revisions. Adjust this property to tune memory consumption by Sync Gateway, for example on servers with less memory and in cases when Sync Gateway creates many new documents and/or updates many documents relative to the number of read operations.
+
+_Disabling the revision cache_
+
+Disabling the revision cache is an https://www.couchbase.com/products/editions[Enterprise Edition] feature.
+
+To disable the revision entirely, set this property to 0. Setting this property to 0 on the Community Edition is ignored.
+
+Disabling the revision cache would be useful when there are very large documents or if you expect a very low cache hit rate. Otherwise it could negatively impact the latency of replications. It is generally not recommended to disable the revision cache, unless advised by Couchbase https://www.couchbase.com/support-policy[Enterprise Support].|integer
+|**shard_count** +
+__optional__|Tuning this property is an https://www.couchbase.com/products/editions[Enterprise Edition] feature.
+The Community Edition is configured with the default value, and will ignore any value in the configuration file.
+
+Number of shards the rev cache should be split into. More shards allows for lower cache contention when accessing distinct revisions, at the cost of some memory overhead per-shard. This generally should not greatly exceed the number of CPU threads available to Sync Gateway.
+
+It is generally not recommended to set this property, unless advised by Couchbase https://www.couchbase.com/support-policy[Enterprise Support].|integer
+|===
+
+[[_channel_cache_model]]
+**Channel Cache Model**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**compact_high_watermark_pct** +
+__optional__|Use `compact_high_watermark_pct` to define the trigger value for starting channel cache eviction.
+Specify the value as a percentage (of `max_number`)
+
+When the cache size, determined by `max_number`, reaches the high watermark, the eviction process iterates through the cache, removing inactive channels.|integer
+|**compact_low_watermark_pct** +
+__optional__|Use `compact_low_watermark_pct` to define the trigger value for stopping channel cache eviction.
+Specify the value as a percentage (of `max_number`)
+
+When the cache size, determined by `max_number` returns to a value lower than `compact_low_watermark_pct`, the cache eviction process is stopped.|integer
+|**enable_star_channel** +
+__optional__|Use `enable_star_channel` to define whether Sync GAteway should use the all documents (*) channel – sometimes referred to as the 'star' channel. +
+**Default** : `true`|boolean
+|**expiry_seconds** +
+__optional__|Use `expiry_seconds` to define how long (in seconds) Sync Gateway should keep cached entries beyond the minimum retained.|integer
+|**max_length** +
+__optional__|Maximum number of entries maintained in cache per channel.|integer
+|**max_num_pending** +
+__optional__|Use `max_num_pending` to define the maximum number of pending sequences before skipping the sequence.|integer
+|**max_number** +
+__optional__|Use `max_number` to define the maximum number of channel caches allowed at any one point.
+This property is used alongside the associated eviction watermarks `compact_low_watermark_pct` and `compact_high_watermark_pct` to control the cache size.
+
+The default value for this property is 50000.
+Assuming the default channel `min_length` and `max_length` values, this would result in a memory usage under 1GB.
+
+Tuning this property is an https://www.couchbase.com/products/editions[Enterprise Edition] feature – in the Community Edition any change to the default value is ignored.
+
+_Enterprise Edition Only_: The `max_number` value can be tuned to optimize for cache hits (requests that are handled using the cache), as opposed to cache misses (requests that require a round-trip to Couchbase Server to fetch data). The cache hit/miss ratio can be obtained with the following:
+
+`cache hit/miss ratio` = `cache.chan_cache_hits` / `cache.chan_cache_misses`
+
+Increasing the `max_number` value can increase the cache hit/miss ratio, resulting in better cache utilization.
+
+If the cache size grows to reach the high watermark (`compact_high_watermark_pct`), channels with no connected replications will be evicted before channels which are associated with an active pull replication (i.e a blip-based pull replication in Couchbase Lite 2.x, or an active `/{db}/_changes` request in Couchbase Lite 1.x).
+
+The minimum allowed value is 100.
+
+It isn't possible to remove the limit altogether, users who wish to remove the limit would need to set `max_number` to an arbitrarily high value.|integer
+|**max_wait_pending** +
+__optional__|Maximum wait time in milliseconds for a pending sequence before skipping sequences.|integer
+|**max_wait_skipped** +
+__optional__|Maximum wait time in milliseconds for a skipped sequence before abandoning the sequence.|integer
+|**min_length** +
+__optional__|Minimum number of entries maintained in cache per channel.|integer
+|**query_limit** +
+__optional__|Limit used for channel queries|integer
+|===
+
+[[_unsupported_properties_model]]
+**Unsupported Properties Model**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**api_endpoints** +
+__optional__||<<_database_configuration_model_api_endpoints,api_endpoints>>
+|**oidc_tls_skip_verify** +
+__optional__|Unsupported option for use in development and testing environment ONLY
+
+`oidc_tls_skip_verify` can be used to enable the use of self-signed certs for OpenID Connection testing. +
+**Default** : `false`|boolean
+|**oidc_test_provider** +
+__optional__|Config settings for OIDC test provider|<<_database_configuration_model_oidc_test_provider,oidc_test_provider>>
+|**remote_config_tls_skip_verify** +
+__optional__|Unsupported option for use in development and testing environment ONLY
+
+Use only to enable self signed certificates for testing external JavaScript load. +
+**Default** : `false`|boolean
+|**sgr_tls_skip_verify** +
+__optional__|Unsupported option for use in development and testing environment ONLY
+
+`sgr_tls_skip_verify` can be used to skip validation of TLS certs used for Inter-Sync Gateway Replication. +
+**Default** : `false`|boolean
+|**user_views** +
+__optional__|Configuration settings for user views|<<_database_configuration_model_user_views,user_views>>
+|**warning_thresholds** +
+__optional__||<<_warning_threshold_model,Warning Threshold Model>>
+|**disable_clean_skipped_query** +
+__optional__|Clean skipped sequence processing bypasses final check|boolean
+|===
+
+[[_database_configuration_model_api_endpoints]]
+**api_endpoints**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**enable_couchbase_bucket_flush** +
+__optional__|Determines whether Couchbase buckets can be flushed using the Admin REST API.
+
+Use _only_ for testing purposes if it is necessary to flush data in between tests to start with a clean DB.|boolean
+|===
+
+[[_database_configuration_model_oidc_test_provider]]
+**oidc_test_provider**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**enabled** +
+__optional__|Unsupported option for use in development and testing environment ONLY
+
+Determines whether the oidc_test_provider endpoints should be exposed on the public API.|boolean
+|===
+
+[[_database_configuration_model_user_views]]
+**user_views**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**user_views_enabled** +
+__optional__|Unsupported option for use in development and testing environment ONLY
+
+Use to determine whether pass-through view query is supported through public API|boolean
+|===
+
+[[_warning_threshold_model]]
+**Warning Threshold Model**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**access_and_role_grants_per_doc** +
+__optional__|Number of access and role grants per document to be used as a threshold for grant count warnings|boolean
+|**channels_per_doc** +
+__optional__|Number of channels per document to be used as a threshold for channel count warnings|boolean
+|**channels_per_user** +
+__optional__|Number of channels per user to be used as a threshold for channel count warnings|boolean
+|**channel_name_size** +
+__optional__|Number of channel name characters to be used as a threshold for channel name warnings|boolean
+|**xattr_size_bytes** +
+__optional__|Number of bytes to be used as a threshold for XATTR size limit warnings|boolean
+|===
+
+[[_oidc_group_model]]
+**OIDC Group Model**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**default_provider** +
+__optional__|Use this `default_provider` property to identify the provider to use for OIDC requests that do not specify a provider.
+
+If only one provider is specified in the providers map, then that is used as the default provider.
+If multiple providers are defined and default_provider is not specified, requests to `/db/_oidc` must specify the provider parameter.|string
+|**providers** +
+__optional__|Include an entry for each OIDC provider|<<_oidc_providers_model,OIDC Providers Model>>
+|===
+
+[[_oidc_providers_model]]
+**OIDC Providers Model**
+
+[options="header", cols=".^3a,.^4a"]
+|===
+|Name|Schema
+|**this_provider** +
+__optional__|<<_oidc_provider_model,OIDC Provider Model>>
+|===
+
+[[_oidc_provider_model]]
+**OIDC Provider Model**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**issuer** +
+__optional__|The OpenID Connect Provider issuer.|string
+|**register** +
+__optional__|Whether Sync Gateway should automatically create users for successfully authenticated users that don't have an already existing user in Sync Gateway.
+
+Optional.|string
+|**client_id** +
+__optional__|The client ID defined in the provider for Sync Gateway.|string
+|**validation_key** +
+__optional__|Client secret associated with the client. Required for auth code flow.|string
+|**callback_url** +
+__optional__|The callback URL to be invoked after the end-user obtains a client token.
+When not provided, Sync Gateway will generate it based on the incoming request.
+
+_Optional_|string
+|**disable_session** +
+__optional__|By default, Sync Gateway will create a new session for the user upon successful OIDC authentication, and set that session in the usual way on the _oidc_callback and _oidc_refresh responses.
+
+If disable_session is set to true, the session is not created (clients must use the ID token for subsequent authentications).
+
+_Optional_|string
+|**include_access** +
+__optional__|Optional. When true, the oidccallback response will include the access_token, expires_at and token_type properties returned by the OP.|string
+|**user_prefix** +
+__optional__|Optional. Specifies the prefix for Sync Gateway usernames for the provider. When not specified, defaults to issuer.|string
+|**discovery_url** +
+__optional__|Optional. Discovery URL used to obtain the OpenID Connect provider configuration. If not specified, the default discovery endpoint of [issuer]/.well-known/openid-configuration will be used.|string
+|**disable_cfg_validation** +
+__optional__|Couchbase Sync Gateway, by default, applies strict validation of the OpenID Connect configuration based on the OIDC specification.
+
+Set `&quot;disable_cfg_validation&quot;: true` when you do not want strict validation of the OIDC configuration. +
+**Default** : `false`|boolean
+|**disable_callback_state** +
+__optional__|DisableCallbackState determines whether or not to maintain state between the `/_oidc` and
+`/_oidc_callback` endpoints.
+
+Disabling this action is NOT recommended as it will increase vulnerability to Cross-Site Request Forgery (CSRF, XSRF).
+
+Set `&quot;disable_callback_state&quot;: true` to switch-off callback state. +
+**Default** : `false`|boolean
+|**username_claim** +
+__optional__|You can use `username_claim` to specify a claim other than subject to use as the Sync Gateway username.
+
+The specified claim must be a string, as numeric claims may be un-marshalled inconsistently between Sync Gateway and the underlying OIDC library.
+
+When authenticating incoming OIDC tokens, Sync Gateway currently treats the username as [user_prefix]_[subject].
+By default user_prefix is the issuer, but can be customized in the Sync Gateway provider config.
+Subject is always the sub claim in the token.
+
+Behavior:
+
+* If username_claim is set but user_prefix is not set, use that claim as the Sync Gateway username.
+* If username_claim is set and user_prefix is also set, use [user_prefix]_[username_claim] as the Sync Gateway username.
+* If username_claim is not set and user_prefix is set, use [user_prefix]_[subject] as the Sync Gateway username (existing behavior).
+* If neither username_claim nor user_prefix are set, use [issuer]_[subject] as the Sync Gateway username (existing behavior). +
+**Default** : `"optional"`|string
+|**allow_unsigned_provider_tokens** +
+__optional__|Unsigned provider tokens are not accepted.
+
+Set `&quot;allow_unsigned_provider_tokens&quot;: true` to opt-in to accepting unsigned tokens from providers. +
+**Default** : `false`|boolean
+|===
+
+[[_delta_sync_model]]
+**Delta Sync Model**
+
+[options="header", cols=".^3a,.^11a,.^4a"]
+|===
+|Name|Description|Schema
+|**enabled** +
+__optional__|Use the `delta_sync.enabled` property to turn delta sync mode on or off for the given database.
+
+The following configuration example enables delta sync.
+
+[source,json]
+----
+{
+  "logging": {
+    "console": {
+      "log_keys": ["*"]
+    }
+  },
+  "databases": {
+    "db": {
+      "server": "http://localhost:8091",
+      "bucket": "default",
+      "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
+      "allow_conflicts": false,
+      "revs_limit": 20,
+      "delta_sync": {
+        "enabled": true,
+        "rev_max_age_seconds": 86400
+      }
+    }
+  }
+}
+----
+
+Footnotes
+
+– Use of Delta Sync incurs additional bucket storage requirements which can be tuned with the <<databases-this_db-delta_sync-rev_max_age_seconds,`rev_max_age_seconds`>> property.
+
+– Delta Sync is automatically enabled for peer-to-peer sync between Couchbase Lite clients.
+
+– Delta sync is disabled for Couchbase Lite database replicas.
+
+– Push replications do not use Delta Sync when pushing to a pre-2.8 target. +
+**Default** : `false`|boolean
+|**rev_max_age_seconds** +
+__optional__|Use `delta_sync.rev_max_age_seconds` to adjust the time box within which deltas can be generated.
+
+On a write operation, the revision body is backed up in the bucket and retained for `rev_max_age_seconds` to calculate future revision deltas.
+As a result, new deltas can only be generated for read requests that come in within the `rev_max_age_seconds` time window.
+The storage of backed up revision bodies for delta sync incurs additional bucket storage requirements.
+
+The additional storage can be calculated with the following formula: `(doc_size * updates_per_day * 86400) / rev_max_age_seconds`.
+
+For example, with `rev_max_age_seconds`'s default value, an average document size of 4 KB and 100 writes/day, enabling delta sync would take up an additional 400 KB of storage on Couchbase Server (`(4 * 100 * 86400)/86400`).
+
+Setting this value to 0 will generate deltas opportunistically on pull replications, with no additional storage requirements.|integer
+|===
+
+
+
+// end::content[]
+
+
+

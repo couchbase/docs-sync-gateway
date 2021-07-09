@@ -1,0 +1,185 @@
+= Database Security Configuration
+:page-edition: 3.0
+:page-content: Reference
+:description: Using Sync Gateway's Admin REST API to configure users and roles
+
+:ouroffsetlevel: +1
+
+include::partial$_std-hdr-sgw.adoc[]
+
+
+== Upsert Role
+
+overview of usage goes here
+
+----
+
+PUT /{db}/_role/{name}
+
+----
+
+include::partial$configuration/operations/upsert_role.adoc[tags=description,leveloffset=-2]
+
+=== Parameters
+include::partial$configuration/operations/upsert_role.adoc[tags=parameters,leveloffset=-2]
+
+=== Responses
+include::partial$configuration/operations/upsert_role.adoc[tags=responses,leveloffset=-2]
+
+
+=== Example
+
+====
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://127.0.0.1:4985/travel25/_role/newrole' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ // <.>
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "newrole",
+    "admin_channels": ["newrolechannel"]
+}'
+
+----
+
+--
+
+HTTP::
++
+--
+
+[source, bash]
+----
+
+PUT /travel25/_role/newrole HTTP/1.1 // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk // <.>
+Content-Type: application/json
+Content-Length: 67
+
+{
+    "name": "newrole",
+    "admin_channels": ["newrolechannel"]
+}
+
+----
+
+--
+
+=====
+
+<.> Add role `newrole` to the `travel25` database
+<.> Note we are using Basic Auth to authenticate to an existing RBAC user
+
+====
+
+
+[#_role]
+=== Model
+
+include::partial$configuration/definitions/role_configuration_model.adoc[tags=content]
+
+== Upsert User
+
+overview of usage goes here
+
+----
+
+PUT /{db}/_user/{username} // <.>
+
+----
+
+<.> where `{db}` is the Sync Gateway database and `{username}` is the name for the new user
+
+include::partial$configuration/operations/upsert_user.adoc[tags=description,leveloffset=-3]
+
+=== Parameters
+include::partial$configuration/operations/upsert_user.adoc[tags=parameters,leveloffset=-3]
+
+=== Responses
+include::partial$configuration/operations/upsert_user.adoc[tags=responses,leveloffset=-3]
+
+
+=== Example
+
+====
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+curl --location --request PUT 'http://127.0.0.1:4985/travel25/_user/newuser' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ <.>
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "password": "pass",
+    "admin_channels": ["newrole"]
+}
+'
+
+----
+
+--
+
+HTTP::
++
+--
+[source, bash]
+----
+
+PUT /travel25/_user/newuser HTTP/1.1 // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk
+Content-Type: application/json
+Content-Length: 63
+
+{
+    "password": "pass",
+    "admin_channels": ["newrole"]
+}
+
+----
+--
+
+=====
+
+<.> Add user `newuser` to the `travel25` database
+<.> Note we are using Basic Auth to authenticate to an existing RBAC user
+
+====
+
+
+[#_user]
+=== Model
+
+include::partial$configuration/definitions/user_configuration_model.adoc[tags=content]
+
+
+
+
+
+// :param-abstract!:
+// :param-related!:
+// :param-topic-group: persistent-configuration
+// include::partial$block-abstract.adoc[]
+
+
+// :param-yaml: rest-api-admin-access-control.yaml
+// include::partial$rest-api-explorer.adoc[]
+
+
+include::partial$block-related-content-api.adoc[]

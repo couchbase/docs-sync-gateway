@@ -1,24 +1,183 @@
-= Database Configuration -- Admin REST API
-:page-layout: article
-:page-status:
-:page-edition:
-:page-role: -toc
+= Database Configuration
+:page-edition: 3.0
 :page-content: Reference
-:description: Using Sync Gateway's Admin REST API to create and manage databases, documents and queries/
+:description: Using Sync Gateway's Admin REST API to configure and manage databases
 
+// BEGIN -- DO NOT EDIT
 include::partial$_std-hdr-sgw.adoc[]
 
+
 :param-abstract!:
-:param-related: {rest-api--xref}  |  {rest-api-metrics--xref}  |  {rest-api-client-app--xref}
-:param-topic-group: configuration
+:param-related!:
+:param-topic-group: persistent-configuration
 include::partial$block-abstract.adoc[]
 
-== API Explorer
-The API explorer below groups all the endpoints by functionality.
-You can click on a label to expand the list of endpoints and also generate a curl request for each endpoint.
+:ouroffsetlevel: 2
+// END -- DO NOT EDIT
 
 
-swagger_ui::{attachmentsdir}/rest-api-admin-database.yaml[]
-// swagger_ui::{attachmentsdir}/rest-api-admin.yaml[]
+== Create Database
 
+----
+PUT {db}/
+----
+
+include::partial$configuration/operations/create_db.adoc[tags=description,leveloffset=-3]
+
+=== Parameters
+include::partial$configuration/operations/create_db.adoc[tags=parameters,leveloffset=-3]
+
+=== Responses
+include::partial$configuration/operations/create_db.adoc[tags=responses,leveloffset=-3]
+
+
+=== Example
+
+.Create database
+====
+Here we create a new {sgw} database.
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://127.0.0.1:4985/travel25/' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ // <.>
+--header 'Content-Type: application/json' \
+--data-raw '{
+"bucket": "todo", // <.>
+"num_index_replicas": 0}'
+
+----
+
+--
+
+HTTP::
++
+--
+[source,http]
+----
+PUT /travel25/ HTTP/1.1 // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk // <.>
+Content-Type: application/json
+Content-Length: 44
+
+{
+"bucket": "todo", // <.>
+"num_index_replicas": 0}
+----
+--
+
+=====
+
+<.> Here we create a {sgw} database called `travel25`
+<.> Note we are using Basic Authentication here to authenticate against an existing Couchbase Server RBAC user
+<.> Here we point to the Couchbase Server bucket called `todo`
+
+====
+
+
+== Configure Database
+
+----
+PUT {db}/_config
+----
+
+include::partial$configuration/operations/upsert_db_config.adoc[tags=description,leveloffset=-3]
+
+=== Parameters
+include::partial$configuration/operations/upsert_db_config.adoc[tags=parameters,leveloffset=-3]
+
+=== Responses
+include::partial$configuration/operations/upsert_db_config.adoc[tags=responses,leveloffset=-3]
+
+
+=== Example
+
+.Configure database
+====
+Here we configure an existing {sgw} database.
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://127.0.0.1:4985/travel25/_config/' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ // <.>
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "enable_shared_bucket_access": true,
+  "import_docs": true
+}' // <.>
+
+----
+
+--
+
+HTTP::
++
+--
+[source,http]
+----
+PUT /travel25/_config/ HTTP/1.1  // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk  // <.>
+Content-Type: application/json
+Content-Length: 120
+
+{
+"enable_shared_bucket_access": true,
+"import_docs": true
+} // <.>
+----
+--
+
+=====
+
+<.> Here we choose to configure (`_config`) a {sgw} database called `travel25`
+<.> Note we are using Basic Authentication here to authenticate against an existing Couchbase Server RBAC user
+<.> Here we toggle a couple of database properties
+
+====
+
+
+
+// [#_database-configuration]
+== Schemas
+
+include::partial$configuration/definitions/database_configuration_model.adoc[]
+
+include::partial$configuration/definitions/bucket_configuration_model.adoc[]
+
+:leveloffset: 0
+
+
+// include::partial$database-config-schema.adoc[]
+
+// [#lbl-schema]
+// .Configuration Schema
+
+// json_config_ui::{attachmentsdir}/configuration-properties-database.yaml[]
+
+
+== {empty}
+
+
+
+// BEGIN -- DO NOT EDIT
 include::partial$block-related-content-api.adoc[]
+
+END -- DO NOT EDIT

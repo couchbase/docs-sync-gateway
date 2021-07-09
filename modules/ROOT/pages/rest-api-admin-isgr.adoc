@@ -1,0 +1,111 @@
+= Inter-Sync{nbsp}Gateway Replication Configuration
+:page-role: -toc
+:page-content: Reference
+:description: Using Sync Gateway's Admin REST API to configure and manage inter-Sync{nbsp}Gateway replications
+
+
+include::partial$_std-hdr-sgw.adoc[]
+
+
+:param-abstract!:
+:param-related!:
+:param-topic-group: persistent-configuration
+include::partial$block-abstract.adoc[]
+
+
+// :param-yaml: rest-api-admin-isgr.yaml
+// include::partial$rest-api-explorer.adoc[]
+
+
+:ouroffsetlevel: 2
+// END -- DO NOT EDIT
+
+
+== Upsert Replication
+
+----
+PUT {db}/_config/
+----
+
+include::partial$configuration/operations/upsert_replication.adoc[tags=description,leveloffset=-3]
+
+== Parameters
+include::partial$configuration/operations/upsert_replication.adoc[tags=parameters,leveloffset=-3]
+
+== Responses
+include::partial$configuration/operations/upsert_replication.adoc[tags=responses,leveloffset=-3]
+
+
+== Example
+
+====
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://localhost:4985/db1-local/_replication/db1-rep-id1 '\
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "direction": "push",
+  "purge_on_removal": false,
+  "remote": "http://user1:password1@example.com:4984/db1-remote",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+    "channels":["channel.user1"]
+  },
+  "continuous": false
+  }'
+
+----
+
+--
+
+HTTP::
++
+--
+
+[source, http]
+----
+
+PUT /db1-local/_replication/db1-rep-id1 HTTP/1.1
+Host: localhost:4985
+Content-Type: application/json
+Content-Length: 235
+
+{"direction": "push",
+  "purge_on_removal":false,
+  "remote": "http://user1:password1@example.com:4984/db1-remote",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+    "channels":["channel.user1"]
+  },
+  "continuous": false
+}
+
+----
+--
+
+=====
+
+====
+
+
+// [#_database-configuration]
+== Model
+
+include::partial$configuration/definitions/replication_configuration_model.adoc[]
+
+
+:leveloffset: 0
+
+// BEGIN -- DO NOT EDIT
+include::partial$block-related-content-api.adoc[]
+
+// END -- DO NOT EDIT

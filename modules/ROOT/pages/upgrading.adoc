@@ -48,7 +48,44 @@ At a high level, a rolling upgrade consists of the following steps:
 . The upgrade is performed on the given node
 . The load balancer configuration is updated to re-balance the HTTP traffic across all nodes.
 
-Those steps are then repeated for each node in the Sync Gateway cluster.
+Those steps are then repeated for each node in the {sgw} cluster.
+
+== Use Enhanced Configuration
+
+{sgw-te} provides an automatic migration path for existing users.
+
+NOTE: To continue using {sgw} in pre-3.0 mode, that-is using file-based configuration, you need to use the `-disable_persistent_config` option at the command line when starting {sgw}.
+
+Startup a {sgw} node using a pre-3.0 configuration properties file and {sgw} will take the appropriate upgrade path as shown in <<tbl-enhancedcfg>>.
+
+If you want the {sgw} to associate with a specific configuration group Id, you must add the `config_group_id` value to the configuration file prior to startup.
+Failing to do so may result in the configuration being overridden by one configured on  a different {sgw} node that has already started and registered its configuration.
+
+.Upgrade Paths
+[#tbl-enhancedcfg,cols="1,^1,3a,3a", options="header"]
+|===
+
+|Node Type
+|Group ID Set?
+|Configuration exists in bucket
+|No configuration exists
+
+|Homogenous-cluster or single node
+|No
+
+|{sgw-s} ignores supplied file and uses the default group configuration
+|{sgw-s} uses the file-based configuration to derive and persist a configuration for this node and any subsequent members of the default group that startup.
+
+|Non-Homogenous
+|Yes
+
+|{sgw-s} ignores supplied file and uses the identified group's configuration
+|{sgw-s} uses the file-based configuration to derive and persist a configuration for this node and any subsequent members of the identified group that startup.
+
+|===
+
+
+
 
 == 1.x to 2.x No Views
 
@@ -146,7 +183,7 @@ In this upgrade path, the upgrade process will trigger views in Couchbase Server
 During the re-indexing, operations that are dependent on those views will not be available.
 The main operations relying on views to be indexed are:
 
-* A user requests data that doesn't reside in the {configuration-schema-static--pfx}#databases-this_db-cache-channel_cache_max_length[channel cache].
+* A user requests data that doesn't reside in the {configuration-properties--pfx}#databases-this_db-cache-channel_cache_max_length[channel cache].
 * A new channel or role is granted to a user in the {xref-sgw-pg-adv-sgw-cfg-sync-function}.
 
 The unavailability of those operations may result in some requests not being processed.
@@ -176,7 +213,7 @@ When Sync Gateway starts, it will publish a Design Document which contains the V
 ----
 ====
 
-=== Avoding Downtime
+=== Avoiding Downtime
 
 *Potential Downtime*: Following the Design Document creation, it must run against all the documents in the Couchbase Server bucket to build the index. An index rebuild may also be required during a Sync Gateway upgrade, if the Design Document definition has changed.
 
@@ -277,13 +314,13 @@ Caveats:
 == SG Replicate to Inter-Sync Gateway
 
 === Out of the box behavior
-Any {configuration-schema-static--xref--db-replications} ({configuration-schema-static--xref--db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {configuration-schema-static--xref--databases} section will run using the SG{nbsp}Replicate protocol.
+Any {configuration-properties--xref--db-replications} ({configuration-properties--xref--db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {configuration-properties--xref--databases} section will run using the SG{nbsp}Replicate protocol.
 This is subject to any compatibility constraints defined in the {compatibility--xref}.
 
 Existing replications implementing custom {xref-sgw-pg-resolving-conflicts} strategies (via the REST endpoint) will continue to function in the same manner as for SG{nbsp}Replicate replications after upgrade
 
 === Upgrading existing replications
-To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replication, reconfigure them using Inter-Sync Gateway Replication's {configuration-schema-static--xref--db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
+To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replication, reconfigure them using Inter-Sync Gateway Replication's {configuration-properties--xref--db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
 
 === Post-upgrade behavior
 
@@ -298,7 +335,7 @@ The `replicationId` is used to ensure that any replications previously setup wit
 The restart point will be the last checkpoint used, unless over-ridden.
 
 Over-riding restart point::
-To restart a sync from zero: After the upgrade reconfigure the inter-Sync Gateway replication {configuration-schema-static--xref--db-replications} to use a different {configuration-schema-static--xref--db-rep-id}
+To restart a sync from zero: After the upgrade reconfigure the inter-Sync Gateway replication {configuration-properties--xref--db-replications} to use a different {configuration-properties--xref--db-rep-id}
 
 === Constraints
 
@@ -452,13 +489,13 @@ Strategy::
 * Upgrade sequence
 .. Stop SG{nbsp}Replicate replications
 // .. Remove the SG{nbsp}Replicate replication configuration
-.. Add the Inter-Sync Gateway replication configuration, including Javascript function as {configuration-schema-static--xref--db-rep-resolver}
+.. Add the Inter-Sync Gateway replication configuration, including Javascript function as {configuration-properties--xref--db-rep-resolver}
 .. Upgrade each cluster to Hydrogen
 * Restart Outcomes
 ** When the active cluster is restarted it will automatically switch to Inter-Sync Gateway Replication
 ** Replication will continue from the last checkpoint, unless over-ridden.
 ** {enterprise} The replication will distribute automatically
-* Conflict resolution -- Conflicts will be handled by the function  specified as the as {configuration-schema-static--xref--db-rep-resolver}
+* Conflict resolution -- Conflicts will be handled by the function  specified as the as {configuration-properties--xref--db-rep-resolver}
 * Upgrade Constraint -- The `allow_conflicts` flag is ignored for any inter-Sync Gateway replication replications configured.
 ====
 --
@@ -525,6 +562,27 @@ Use of GSI requires Couchbase Server 5.5, with at least one node running the Que
 Users wanting to run Sync Gateway 2.1 or above with an older version of Couchbase Server will need to continue to use views, by setting the `use_views` property.
 
 == Upgrade to Shared Bucket
+
+=== Implementation notes for XATTRs:
+
+Mobile applications require additional metadata in order to manage security and replication. In previous versions of Sync Gateway, this information has always been stored in the document body. Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (x-attributes) to store that metadata into an external document fragment.
+
+Extended attributes (xattrs) are JSON objects that can be associated with Couchbase documents. Each document can be associated with zero or more extended attributes. There are currently three types (user, system, virtual). Mobile Convergence uses a system extended attribute, which has the following characteristics central to convergence:
+
+  - Shares lifetime with the document metadata - when a document is deleted, system xattrs are preserved with the tombstone.
+  - Allocated 1MB of storage, independent of the 20MB available for the document
+
+Extended attributes are stored as part of the document, and are replicated with the document (both intra-cluster replication and XDCR).
+
+Extended attributes can be accessed via the SDKs using the sub-document API, via command-line tools, and via views.
+
+They are also accessible from N1QL in Couchbase Server 5.5 or above with the `().xattrs` property. For example, `SELECT meta().xattrs._sync from travel-sample where Meta().id = "user::demo";`.
+
+WARNING: The sync metadata is maintained internally by Sync Gateway and its structure can change at any time. It should not be used to drive business logic of applications. The direct use of the N1QL query is unsupported and must not be used in production environments.
+
+The {rest-api-admin--pfx}#/document/get__db___raw__doc_[raw]
+ endpoint on Sync Gateway's Admin REST API returns both the document and its associated mobile metadata.
+
 
 === Configuration Changes
 

@@ -1,55 +1,191 @@
 = Configuration Overview
-:page-layout: article
+:page-edition: 3.0
 :page-content: conceptual
-:description: How to configure Sync Gateway for secure cloud-to-edge data sync
+:description: pass:q,a[How to configure _Sync{nbsp}Gateway_ for secure cloud-to-edge data sync]
 :keywords: sync, data replication, cloud-to-edge, configuration
 
+// BEGIN -- DO NOT EDIT
 include::partial$_std-hdr-sgw.adoc[]
 
 :param-abstract!:
-:param-topic-group: configuration
+:param-topic-group: persistent-configuration
 :param-related!:
 include::partial$block-abstract.adoc[]
+
+// END -- DO NOT EDIT
+
+:ec-te: pass:q,a[_Enhanced{nbsp}Configuration_]
+:ec-l: pass:q,a[enhanced{nbsp}configuration]
+:ec-s: pass:q,a[Enhanced{nbsp}configuration]
+
+:fnfbc-text: pass:q,a[You can continue using file-based configuration by using the CLI option `-disable_persistent_config` when starting Sync Gateway]
+:fnfbc: footnote:fnfbc[{fnfbc-text}]
 
 
 == Introduction
 
-Sync Gateway can be configured to operate in static or dynamic-persistent configuration modes.
+{Sgw-te} 3.0 introduces {ec-te}, to better suit its use in increasingly prevalent multi-node, multi-cluster deployments.
+{ec-s} replaces the established, file-based configuration method {fnfbc}, supporting the move away from a reliance on increasingly monolithic central configuration files.
+It enables simpler, more agile configuration updates and encompasses:
 
-The static approach allows for a controlled transition to a dynamic and persistent configuration process that delivers simpler and safer configuration maintenance (and propagation) for multi-node, multi-cluster deployments.
+* *Bootstrap Startup* -- A minimal configuration file is used to bootstrap a {sgw} node and attach it to its Couchbase Server cluster; these files and their settings are node-specific
+
+* *Dynamic Configuration* -- The ability to make remote in-flight configuration changes to database settings, access-control policies and inter-{Sgw} replications, enables simpler and more agile maintenance.
+
+* *Cluster-aware Updates* -- Configuration changes made to a node through the API endpoints are propagated to other {Sgw} nodes belonging to the same cluster (or to a user-defined subset of nodes)
+
+* *Persistent Updates* -- Any database changes made using the API endpoints are persisted and survive {sgw} node restarts.
+
+* *Secure REST API* -- by default the REST API requires TLS authentication. This can be disabled for test purposes only.
 
 
-== Static Configuration
+.Configuration Relationship Diagram
+====
+PLACEHOLDER FOR DIAGRAM
 
-Sync Gateway's established method of configuration is to use a centralized JSON configuration file to hold all configuration settings -- see: {configuration-schema-static--xref}.
+Show relationship/interaction between different configuration elements
+====
 
-Changes can be made using the {rest-api-admin--xref} but these are not persistent beyond a Sync Gateway restart.
+== Using Enhanced Configuration
 
-Persistent changes require edits to the central configuration file.
+In the {sgw-te} {ec-l} ecosphere you are required to:
+
+. Set up or disable Authentication of the REST API user(s)
++
+--
+For test purposes *only* you can disable TLS using the bootstrap configuration setting `api.https.allow_insecure_tls_connections`
+--
+
+. Provide a bootstrap configuration file, in JSON format, which contains:
++
+--
+
+** Mandatory bootstrap configuration settings, which define the {sgw} node's run time behavior
+** Optional static configuration setting, default values are used for setting not explicitly included
+
+
+Bootstrap configuration is node-specific.
+Any changes require a {Sgw} restart.
+--
+
+. Configure required databases
++
+--
+Provide a database configuration for each database participating in replication.
+You will provision these using the REST API endpoint -- see {rest-api-admin-database--xref}.
+Updates are persisted across {Sgw} restarts.
+--
+. Add access-control configuration
++
+--
+Here you will define the users and roles, using the REST API endpoint -- see{rest-api-admin-access-control--xref}.
+Changes persist across {Sgw} restarts.
+--
+. Define your replications
++
+--
+An inter-{Sgw} replication configuration for each replication, provisioned using the using the {rest-api-admin-isgr--xref}.
+Changes persist across {Sgw} restarts.
+--
+
+== Key Terms
+
+[#tbl-keyterms,cols="1,4", options="header"]
+|===
+
+|Term
+|Description
+
+|{Sgw} Cluster
+|A collection of {sgw} nodes connected to a common {svr} cluster
+
+|Homogeneous {Sgw} Cluster
+|A {Sgw} cluster where every node in cluster shares common configuration
+
+|{Sgw} Config Group
+|A group of {sgw} nodes within a {Sgw} cluster sharing common configuration.
+Each node in the group will continue to have node-specific config.
+
+|Static
+|In a configuration context, this term is used to identify changes requiring a {sgw} node restart to take effect.
+
+|Dynamic
+|In a configuration context, this term is used to identify changes requiring NO {sgw} restart.
+So, for example, anything modifiable using REST API endpoint is a dynamic configuration property.
+
+Note that, in some cases, such changes may require the database be taken offline/online before it takes effect.
+
+|===
+
+
+== Configuration Levels
+
+All the configuration properties, whether defined in the bootstrap configuration file or by the REST API endpoint belong to one of three core 'levels': _node_, _database_  or _replication_ -- see <<tbl-cfg-levels>>
+
+.Configuration levels in {ec-l}
+[#tbl-cfg-levels,cols="1,1,2,2,2", options="header"]
+|===
+2+|Level
+|Use
+|Scope
+|Requires
+
+.3+|Node
+|Bootstrap properties
+|Minimal set of configuration properties required for connection to {svr} bucket, for example server credentials, and group id
+|Node-specific; unshared
+|Restart required
+
+|Static system properties
+|Static node level properties including, for example, `api.tls.cert_path` and `max_file_descriptors`
+|Node-specific; unshared
+|Restart required
+
+|Dynamic system properties
+|All logging-related properties are dynamic
+|Node-specific; unshared; not persisted
+|No restart
+
+
+2+|Database
+| Database configuration properties including, for example, `bucket`, or access control policies such as `users` and `sync`
+|May be node-specific, but typically shared across nodes in same group
+|Restart initiated as needed
+
+
+2+|Replication
+|inter-{Sgw} replication properties
+|Shared across all participating replication nodes
+|Restart initiated as needed
+
+|===
 
 To continue operating in this mode ensure that you use the command-line interface option `disable_persistent_config=true`.
 This ensures the pre-3.0 configuration approach is continued.
 
-== Dynamic Persistent Configuration
+[#lbl-auth]
+== Authenticated API Access
 
-Sync Gateway's dynamic persistent configuration approach
-relies on a small bootstrap configuration with dynamic configuration of databases, replications and users being done using the REST API.
+Secure TLS access (_https_ and-or _wss_) to the {sgw} ADMIN API is enabled by default.
+You can disable it, for testing purposes *ONLY*, using {bootstrap-schema--xref--allow_insecure_tls_connections}.
 
-In the dynamic persistent configuration approach you will provide:
+To use the {ec-te} you need to create an RBAC-user on {svr}
+with an appropriate {sgw} role.
+The user/TLS credentials are then declared in the bootstrap configuration.
+This node-level user is used when connecting to database by default; unless over-ridden in the database configuration.
 
-* A bootstrap configuration file, which contains a core amount of configuration in JSON form.
-This defines Sync Gateways run time behavior and static settings.
+Cluster connection failures are subject to retries.
 
-* A database configuration for each replicated database.
-The {configuration-schema-database--xref} defines the required database settings. It is provisioned using the {rest-api-admin-database--xref}.
-Changes persist across Sync Gateway restarts.
+== Configuration Groups
 
-* An access-control configuration using the {configuration-schema-access-control--xref}, which defines the settings provisioned using the {rest-api-admin-access-control--xref}.
-Changes persist across Sync Gateway restarts.
+You can group {sgw} nodes using a `Config-Group-ID` property, which defines the database configuration group to which a node belongs.
+All nodes in the group share the same database configuration.
+Changes made from one node are propagated to other nodes in the group automatically.
 
-* An inter-Sync Gateway Replication configuration using the {configuration-schema-isgr--xref}, which defines the settings provisioned using the {rest-api-admin-isgr--xref}.
-Changes persist across Sync Gateway restarts.
+All nodes in a cluster belong, by default, to a common shared group `default`.
 
+If you move a {sgw} node to a new group, it will inherit the configuration associated with that group.
+This applies also if you move a group (back) into the `default` group.
 
 
 

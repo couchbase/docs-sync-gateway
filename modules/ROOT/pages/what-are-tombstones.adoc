@@ -28,6 +28,25 @@ The actual tombstone artefact is a document revision comprising only:
 * a revision ID
 * a key value pair `deleted:true`.
 
+
+
+=== Tombstones and Mobile Convergence
+
+When `enable_shared_bucket_access` is enabled, mobile tombstones are now also server tombstones. The document body is deleted, and only the mobile sync metadata required to replicate the tombstone is retained in the mobile extended attribute.
+
+The server's metadata purge interval becomes an important consideration for mobile deployments under convergence. When the server purges a tombstone (based on the metadata purge interval), that tombstone will no longer be replicated to mobile clients.
+
+Users should set the server's metadata purge interval based on their expected client replication frequency, to ensure that clients are notified of the tombstone prior to that tombstone being purged.
+
+NOTE: The default Metadata Purge Interval is set to 3 days which can potentially result in tombstones being purged before all clients have had a chance to get notified of it.
+
+Ways to tune the Metadata Purge Interval on Couchbase Server:
+
+- Bucket settings [on UI](https://docs.couchbase.com/server/current/manage/manage-settings/configure-compact-settings.html)
+- Bucket endpoint [on the REST API](https://docs.couchbase.com/server/current/rest-api/rest-bucket-create.html)
+
+
+
 .Example tombstone artefact
 [source,json]
 ----
@@ -98,7 +117,7 @@ Whether your synchronizations are purely sync gateway or you use Couchbase Lite,
 == See also:
 * {xref-sgw-pg-managing-tombstones}
 * xref:{sgw-pg-shared-bucket-access}#metadata-purge-interval[Metadata Purge Interval]
-* {configuration-schema-static--pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access]
+* {configuration-properties--pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access]
 * xref:server:learn:buckets-memory-and-storage/storage.adoc#tombstones[Server Tombstones]
 
 

@@ -1,3 +1,4 @@
+
 swagger: '2.0'
 info:
   title: Sync Gateway
@@ -20,8 +21,7 @@ paths:
   /_active_tasks:
     get:
       tags:
-      - server
-      - inter-sync-gateway_replication
+      - replication-status
       summary: Return status of Inter-Sync Gateway Replication (v1) replications
       description: |+
         <h5>**Deprecated @ 2.8** replaced by Inter-Sync Gateway Replication (v2)'s *[_replicationStatus](#/server/get__replicationStatus)* endpoint. This **_active_tasks** endpoint is retained **solely** for backward compatibility.<h5>
@@ -40,7 +40,7 @@ paths:
             type: array
             items:
               type: object
-              $ref: '#/definitions/ActiveTaskResponseBody'
+              $ref: '#/definitions/ReplicationBpdy'
 ################################################################################
 # Replication endpoint path
 ################################################################################
@@ -266,7 +266,7 @@ paths:
             type: array
             items:
               type: object
-              $ref: '#/definitions/ReplicationStatusResponseBody'
+              $ref: '#/definitions/ReplicationStatusBody'
               config:
                 type: object
                 description: Optional response content. Returned only when `includeConfig=true`
@@ -290,7 +290,7 @@ paths:
             # type: array
             # items:
             type: object
-            $ref: '#/definitions/ReplicationStatusResponseBody'
+            $ref: '#/definitions/ReplicationStatusBody'
 
   /{db}/_replicationStatus/{replicationID}?action={action}:
     put:
@@ -330,100 +330,12 @@ paths:
             # type: array
             # items:
             type: object
-            $ref: '#/definitions/ReplicationStatusResponseBody'
+            $ref: '#/definitions/ReplicationStatusBody'
 
 
-  /{db}/_revs_diff:
-    parameters:
-      - $ref: '#/parameters/db'
-    post:
-      tags:
-      - database
-      summary: Used by the replicator
-      description: Given a set of document/revision IDs, returns the subset of those that do not correspond to revisions stored in the database.
-      parameters:
-      - in: body
-        name: body
-        description: Request body
-        schema:
-          description: A dictionary with document IDs as keys.
-          type: object
-          additionalProperties:
-            description: An array of revision IDs for that document.
-            type: array
-            items:
-              type: string
-      responses:
-        200:
-          description: The request was successful
-          schema:
-            description: A dictionary with document IDs as keys.
-            type: object
-            additionalProperties:
-              type: object
-              properties:
-                missing:
-                  type: array
-                  description: A list of revision IDs for that document (the ones that are not stored in the database).
-  /_config:
-    get:
-      tags:
-      - server
-      summary: Server configuration
-      description: |
-        Returns the Sync Gateway configuration of the running instance. This is a good method to check if a particular key was set correctly on the config file.
-      responses:
-        200:
-          description: Sync Gateway configuration of the running instance.
 
-  /{db}/_resync:
-    parameters:
-    - $ref: '#/parameters/db'
-    post:
-      tags:
-      - database
-      summary: Reprocess all documents by the database in the sync function.
-      description: |
-        This request causes all documents to be reprocessed by the database sync function. The _resync operation should be called if the sync function for a database has been modified in such a way that the channel or access mappings for any existing document would change as a result.
-
-        When the sync function is invoked by _resync, the requireUser() and requireRole() calls will always return 'true'.
-
-        A _resync operation on a database that is not in the offline state will be rejected (503 Service Unavailable).
-
-        A _resync operation will block until all documents in the database have been processed.
-      responses:
-        200:
-          description: OK – The _resync operation has completed
-          schema:
-            type: object
-            description: The number of documents that were successfully updated.
-            properties:
-              changes:
-                type: integer
-                description: The number of documents that were successfully updated
-  /{db}/_revtree/{doc}:
-    parameters:
-    - $ref: '#/parameters/db'
-    - $ref: '#/parameters/doc'
-    get:
-      produces:
-      - text/plain
-      tags:
-      - database
-      summary: Revision Tree structure in Graphviz Dot format | not officially supported
-      description: |
-        Returns the dot syntax of the revision tree which can be rendered into a PNG image with the [CLI dot tool](http://www.graphviz.org/).
-
-        - Install the dot tool via `brew install graphviz`.
-        - Save the response text to a file (for example, **revtree.dot**).
-        - Render a PNG by calling `dot -Tpng revtree.dot > revtree.png`.
-
-        **Note:** This endpoint is useful for debugging purposes only. It is not officially supported.
-      responses:
-        200:
-          description: Success and returns the revtree as plain text.
 definitions:
-  ActiveTaskResponseBody:
+  ReplicationBpdy:
     type: object
     properties:
       source:
@@ -1112,33 +1024,12 @@ definitions:
             $ref: '#/definitions/ReplicationResponse'
 
 # REPLICATIONSTATUS new at 2.8
-  ReplicationStatusResponseBody:
+  ReplicationStatusBody:
     type: object
     properties:
       replication_id:
         type: string
         description: The replication Id.
-      # continuous:
-      #   type: boolean
-#        description: Whether the replication is continuously monitoring for changes on the source database to send them to the target.
-#      direction:
-#        type: string
-#        description: |
-#          The direction* property determines the direction of the replications.
-#          valid values are
-#            - push
-#            - pull
-#            - pushAndPull
-      # source:
-      #   type: string
-      #   description: |
-      #     ** Not used for Inter-Sync Gateway Replication (v2) replications -- ignore**
-      #     The URL of the source database (i.e `"http://example.com:4985/source"`).
-      # target:
-      #   type: string
-      #   description: |
-      #     The URL of the remote database (i.e `"http://example.com:4985/target"`).
-      #     ** For Inter-Sync Gateway Replication (v2) replications -- this is always the remote database; whether it is a source or target is determined by the *direction* property.
       docs_read:
         type: integer
         description: The number of docs that have been read (fetched) from the source database.
@@ -1225,45 +1116,6 @@ definitions:
       #   description: Flag indicating whether the replication is using delta sync
 #
 #
-  Server:
-    type: object
-    properties:
-      couchdb:
-        type: string
-        description: Contains the string 'Welcome' (this is required for compatibility with CouchDB)
-      vendor/name:
-        type: string
-        description: The server type ('Couchbase Sync Gateway)
-      vendor/version:
-        type: string
-        description: The server version
-      version:
-        type: string
-        description: Sync Gateway version number
-
-  Session:
-    type: object
-    properties:
-      authentication_handlers:
-        type: array
-        description: List of authentication methods.
-        items:
-          type: string
-      ok:
-        type: boolean
-        description: Always true if the operation was successful.
-      userCtx:
-        $ref: '#/definitions/UserContext'
-  UserContext:
-    type: object
-    description: Context for this user.
-    properties:
-      channels:
-        type: object
-        description: Key-value pairs with a channel name as the key and the sequence number that granted the user access to the channel as value. `!` is the public channel and every user has access to it.
-      name:
-        type: string
-        description: The user's name.
 
   ReplicationStatusResponse-Success:
     type: object
@@ -1275,7 +1127,7 @@ definitions:
       type: array
       items:
         type: object
-        $ref: '#/definitions/ReplicationStatusResponseBody'
+        $ref: '#/definitions/ReplicationStatusBody'
 
 
   ReplicationResponseBody:
@@ -1613,205 +1465,9 @@ definitions:
 
                 This field is redacted a string of '****' is displayed in its place.
 
-  block-rep-cancel-text:
-    description: |+
-      You can cancel continuous replications by adding the cancel field to the JSON request object and setting the value to true.
-
-      Note that the structure of the request must be identical to the original for the cancellation request to be honoured.
-
-      For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
 
 # END: Define sync-gateway replications
 
-  ReplicationStatistics-SGR1:
-    type: array
-    description: This is the replication definition set returned in response to an ExpVars `GET` request.
-    properties:
-      replname:
-        type: object
-        description: |+
-          This object comprises the stats collected and recorded for the inter-sync-gateway replication named $replname (which equates to a `replication_id`).
-          The same structure is used to return statistics from inter-sync-gateway replications versions 1 and 2, but not all items are populated by each version.
-        properties:
-          sgr_active:
-            type: boolean
-            description: |+
-              Whether the replication is active at this time.
-              **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-
-          sgr_docs_checked_sent:
-              type: integer
-              description: |+
-                The total number of documents checked for changes since replication started.
-                This represents the number of potential change notifications pushed by Sync Gateway.
-
-                **Constraints**
-                - This is not necessarily the number of documents pushed, as a given target might already have the change.
-                - Used by versions 1 and 2.
-
-          sgr_num_attachments_transferred:
-              type: integer
-              description: |+
-                The total number of attachments transferred since replication started.
-                **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-
-          sgr_num_attachment_bytes_transferred:
-              type: integer
-              description: |+
-                The total number of attachment bytes transferred since replication started.
-                **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-
-          sgr_num_docs_failed_to_push:
-              type: integer
-              description: |+
-                The total number of documents that failed to be pushed since replication started.
-
-                Used by versions 1 and 2.
-          sgr_num_docs_pushed:
-              type: integer
-              description: |+
-                The total number of documents that were pushed since replication started.
-
-                Used by versions 1 and 2.
-
-
-  perReplicationStats-SGR1:
-            # $ref: "#/definitions/perReplicationStats-SGR1"
-            per_replication:
-              type: array
-              description: |+
-                An array of stats for each replication declared in the config file
-
-                **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-              items:
-                type: object
-                description: Stats for a given replication_id
-                properties:
-                  $replication_id:
-                    type: object
-                    properties:
-                      sgr_active:
-                        type: boolean
-                        description: |+
-                          Whether the replication is active at this time.
-                          **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-                      sgr_docs_checked_sent:
-                        type: integer
-                        description: |+
-                          The total number of documents checked for changes since replication started.
-                          This represents the number of potential change notifications pushed by Sync Gateway.
-                          **Constraints**
-                            This is not necessarily the number of documents pushed, as a given target might already have the change.
-                            Used by versions 1 and 2.
-                      sgr_num_attachments_transferred:
-                        type: integer
-                        description: |+
-                          The total number of attachments transferred since replication started.
-                          **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-                      sgr_num_attachment_bytes_transferred:
-                        type: integer
-                        description: |+
-                          The total number of attachment bytes transferred since replication started.
-                          **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-                      sgr_num_docs_failed_to_push:
-                        type: integer
-                        description: |+
-                          The total number of documents that failed to be pushed since replication started.
-                          Used by versions 1 and 2.
-                      sgr_num_docs_pushed:
-                        type: integer
-                        description: |+
-                          The total number of documents that were pushed since replication started.
-                          Used by versions 1 and 2.
-
-
-  perReplicationStats-SGR2:
-      type: array
-      description: This is the replication definition set returned in response to an ExpVars `GET` request.
-      items:
-          type: object
-          properties:
-            replname:
-              type: object
-              description: |+
-                This object comprises the stats collected and recorded for the inter-sync-gateway replication named $replname (which equates to a `replication_id`).
-                The same structure is used to return statistics from inter-sync-gateway replications versions 1 and 2, but not all items are populated by each version.
-              properties:
-                sgr_active:
-                  type: boolean
-                  description: |+
-                    Whether the replication is active at this time.
-                    **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-
-                sgr_docs_checked_sent:
-                    type: integer
-                    description: |+
-                      The total number of documents checked for changes since replication started.
-                      This represents the number of potential change notifications pushed by Sync Gateway.
-
-                      **Constraints**
-                      - This is not necessarily the number of documents pushed, as a given target might already have the change.
-                      - Used by versions 1 and 2.
-
-                sgr_num_attachments_transferred:
-                    type: integer
-                    description: |+
-                      The total number of attachments transferred since replication started.
-                      **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-
-                sgr_num_attachment_bytes_transferred:
-                    type: integer
-                    description: |+
-                      The total number of attachment bytes transferred since replication started.
-                      **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-
-                sgr_num_docs_failed_to_push:
-                    type: integer
-                    description: |+
-                      The total number of documents that failed to be pushed since replication started.
-
-                      Used by versions 1 and 2.
-                sgr_num_docs_pushed:
-                    type: integer
-                    description: |+
-                      The total number of documents that were pushed since replication started.
-
-                      Used by versions 1 and 2.
-
-                sgr_delta_pull_replication_count:
-                    type: integer
-                    description: |+
-                      The total number documents with deltas pulled
-
-                sgr_delta_push_doc_count:
-                    type: integer
-                    description: |+
-                      The total number of documents with deltas pushed
-
-                sgr_deltas_sent:
-                    type: integer
-                    description: |+
-                      The total number of deltas sent
-
-                sgr_deltas_requested:
-                    type: integer
-                    description: |+
-                      The total number of deltas requested
-
-                sgr_conflict_detected:
-                    type: integer
-                    description: |+
-                      The total number of documents where conflicts were detected
-
-                sgr_conflict_resolved:
-                    type: integer
-                    description: |+
-                      The total number of conflicting documents that were resolved successfully (by the active node)
-
-                sgw_conflict_skipped_error:
-                    type: integer
-                    description: |+
-                        The total number of documents that were skipped during sync because of an error in conflict resolution
 parameters:
   access:
     name: access
@@ -2857,11 +2513,11 @@ parameters:
     default: false
     required: false
 tags:
-  - name: database
-    description: Groups all endpoints for database activities
+  # - name: database
+  #   description: Groups all endpoints for database activities
   - name: replication
     description: Groups all endpoints for sync and replication activities
   - name: replication-status
     description: Groups all endpoints for sync and replication activities
-  - name: server
-    description: Groups all endpoints for server activities
+  # - name: server
+  #   description: Groups all endpoints for server activities
