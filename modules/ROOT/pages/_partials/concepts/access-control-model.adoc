@@ -57,6 +57,62 @@ Client apps can use this ability to intelligently sync with a subset of the avai
 include::partial$blocklinks-cbl.adoc[]
 
 
+[#lbl-access-revocation]
+== Channel Access Revocation
+
+.3.0 Breaking Change
+[NOTE]
+Whenever a user loses access to a channel (or channels) all document in the channel(s) are auto-purged from local Couchbase Lite databases. +
+In {Sgw-te} 2.x these documents remain in the local database on channel access loss.
+
+Users may lose access to documents for many reasons, including:
+
+* The User loses direct access to channel
+* The User is removed from a role
+* A role the user belongs to is revoked access to channel
+
+By default, when a user loses access to a channel, the next Couchbase Lite Pull replication auto-purges all documents in the channel from local Couchbase Lite databases (on devices belonging to the user) *unless* they belong to any of the user’s other channels -- see: <<tbl-sgw-behavior>>.
+
+
+.{sgw-t} behavior following access revocation
+[#tbl-sgw-behavior, cols="^1,2a,2a", options="header"]
+|===
+
+2+|System State
+|Impact on Sync
+
+h|Replication Type
+h|Access Control on Sync Gateway
+h|Expected behavior (auto-purge enabled- default)
+
+|Pull only
+|User revoked access to channel.
+
+Sync Function includes `requireAccess(revokedChannel)`
+|Previously synced documents are auto purged on local
+
+|Push only
+|User revoked access to channel. Sync Function includes `requireAccess(revokedChannel)`
+|No impact of auto-purge
++
+Documents get pushed but will be rejected by Sync Gateway
+
+|Push-pull
+|User revoked access to channel
++
+Sync Function includes 'requireAccess(revokedChannel)'
+|Previously synced documents are auto purged on Couchbase Lite.
++
+Local changes continue to be  pushed to remote but are rejected by Sync Gateway
+
+|===
+
+
+
+
+
+
+
 == Provisioning
 
 * {channel--xref} -- the channels topic discusses how channels are created and how documents can be assigned to channels.
