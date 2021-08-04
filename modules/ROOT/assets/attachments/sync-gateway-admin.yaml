@@ -88,6 +88,23 @@ paths:
             items:
               type: object
               $ref: '#/definitions/ActiveTaskResponseBody'
+
+  /_all_dbs:
+    get:
+      tags:
+      - server
+      summary: Lists node's databases
+      description: |+
+        Return a list all databases running on the node
+      responses:
+        200:
+          description: |+
+            OK -- Operation successful
+
+            The response body contains a string array containing the names of all databases running on this sync gateway node
+          schema:
+            $ref: '#/definitions/all_dbs'
+
   /{db}/_bulk_docs:
     parameters:
       - $ref: '#/parameters/db'
@@ -1795,6 +1812,16 @@ definitions:
       status:
         type: string
         description: The current status of sgcollect_info
+  all_dbs:
+    type: object
+    properties:
+      db-names:
+        type: array
+        description: |+
+          A string array containing the names of all databases running on this sync gateway node
+
+          For example  ```["db1","db2"]```
+
   ExpVars:
     type: object
     properties:
