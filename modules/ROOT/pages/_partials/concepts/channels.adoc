@@ -1,0 +1,211 @@
+// -- concept -- Channels
+:loc-sync-function--xref: pass:q,a[{sgw--xref}{sync-function--page}[Sync Function]]
+
+include::partial$topic-group-access-control-concepts.adoc[]
+
+== Concept
+
+// tag::full[]
+// tag::summary[]
+Sync Gateway uses _Channels_ to make it easy to share a database's documents across a large user base whilst retaining effective access control.
+They serve as a security conduit between the document and a user:
+
+// end::summary[]
+// tag::body[]
+== Overview
+
+Every document in the database is assigned a list of channels it is distributed to.
+Every user (or role) is granted access to a list of channels.
+This dual-purpose is reflected in the way you use channels:
+
+* By granting a user access to a channel, you are imposing access control
+* By assigning a document to a channel you are imposing document routing
+
+You typically will use channels to:
+
+* Control who can access what
+* Partition your data set
+* Enable users to access just the documents they need
+* Minimize the amount of data synced to mobile devices
+
+Sync Gateway provides two special channels and a channel wildcard character.
+
+
+[#lbl-usecase]
+== Use Case
+Consider the case where two users require, and are allowed, access to a private set of documents  and one shared shared of documents — see <<fig-channel-example>>.
+
+
+[#fig-channel-example]
+.Channels in Access Control
+
+image::channels-example-all.png["Access Control using Channels",400]
+
+In this case, each user is assigned to a private channel with a subset of documents that only the user can access and a shared channel that contains common documents.
+The users in this example could be replaced by roles.
+
+An example of this model could be a retail chain, where every store corresponds to a Sync Gateway User.
+Each store has a store specific channel that contains documents that are store specific like pricing, promotions, inventory etc.
+In addition, all the stores may need to have access to a common set of documents like retail locations, product catalog that are stored in a common shared channel.
+
+[#lbl-config]
+== Configuration
+
+[{tabs}]
+====
+
+Version 3.0+::
++
+--
+
+image::channel-access-grant-3.0.png["Access Control Points 3.x",400]
+
+<1> Using the Admin REST API: +
+You can provide the `admin_channels` property using the *Admin REST API* endpoint ({rest-api-admin-user-put--xref}).
+
+<2> Programmatically using Access Grant Document: +
+The {loc-sync-function--xref} provides a flexible and secure method for controlling document access and routing.
+You can program it to derive appropriate access and channel routing information from document properties. +
+Optionally, the access grant can be specified via a designated extended attribute (XATTR) — see: {access-control-how-use-xattrs-for-access-grants--xref} for how to define the XATTR.
+
+--
+
+Pre-3.0::
++
+--
+
+image::channel-access-grant-pre3.0.png["Access Control Points pre 3.x",400]
+
+<1> Using the Admin REST API :
+You can provide the `admin_channels` property using the *Admin REST API* endpoint ({rest-api-admin-user-put--xref}).
+
+<2> Programmatically using Access Grant Document:
+ The {sync-function--xref} provides a flexible and secure method for controlling document access and routing. +
+You can program it to derive appropriate access and channel routing information from data embedded within document properties.
+
+<3> File-based Configuration Properties:
+This is only available in 3.0 and is typically used for dev/test environments.
+You can do it in the Sync Gateway JSON Configuration File ({configuration-properties--xref} ) by adding the appropriate channel to the user’s admin_channels property -- see: {configuration-properties--xref--databases-user-admin-channels}.
+
+--
+====
+
+
+[#lbl-syschan]
+== System Channels
+
+
+[#lbl-public-channel]
+=== Public Channel
+
+The <<lbl-public-channel>> ('*!*') -- is a channel for publicly available documents.
+It is ideal for use in making information available across the user community.
+
+You assign a document to the _public_ (*!*) channel using the {sync-function-api-channel-cmd--xref} function.
+
+Documents assigned to this channel can be accessed by all users; even users assigned no specific channel access.
+
+New users are automatically granted access to the channel.
+
+// For an example of how to use the public channel -- see: <<ex-using-wildcard-channels>>
+
+
+[#lbl-alldocs-channel]
+=== All Documents Channel
+
+The <<lbl-alldocs-channel>> ('***') footnote:[Sometimes referred to as the *star* channel] -- is a single, internal channel, comprising all documents from all channels.
+
+Assignment to this channel is automatic and implicit.
+You cannot explicitly assign documents to the channel or remove documents from it.
+
+This channel should not be confused with the use of the <<lbl-all-channels>> in access grants.
+
+
+[#lbl-all-channels]
+=== All Channels Wildcard
+
+The <<lbl-all-channels>> ('***') -- used when granting user access, this wildcard grants access to any document in any channel.
+
+You make dynamic user access grants in the sync function using the {sync-function-api-access-cmd--xref} method.
+
+Granting a user access with the _all channels_ wildcard gives them access to any channel, and any document in any channel, including those from private channels.
+
+Replications by users with _all channels_ wildcard access will pull *all* documents.
+Because of this potential for syncing large volumes of data (sync pulls all documents in the bucket), users with _all channels_ wildcard access should use a channel filter to explicitly name the channel(s) to be sync'd.
+
+*Note:* Users granted access using the _all channels_ wildcard *do not* inherit {sync-function-api-require-access-cmd--xref} rights to any specific channel.
+
+TIP: Always use a filter in conjunction with the _all channels_ wildcard, to avoid sync unnecessarily pulling large numbers of documents to mobile devices.
+
+// For an example of how to use the _all channels_ wildcard -- see: <<tbd>>
+
+// ADD THS TO HOW-tO/SYNC FUNCTION EXAMPLES
+
+You assign documents to channels in the {loc-sync-function--xref}.
+
+Channels are created as documents are assigned to them.
+
+Valid channel names consist of text letters [`A–Z`, `a–z`], digits [`0–9`], and a few special characters [`= + / . , _ @`].
+Channel names are case-sensitive.
+Channels with no documents assigned to them are empty.
+
+
+[#lbl-chan-limits]
+== Channel Limits
+
+.Guidance on Channel Assignment Limits
+[#tbl-limits, cols="2,4,^3", options="header"]
+!===
+
+| Element
+| Limiting factor
+| Guidance Limit (Channels)
+
+| Channels per document
+| The amount of memory consumed by the combined number of channels and access grants must fit within the maximum 1Mb xattr size limit -- see: <<tbl-metadata-size>>.
+| 50
+
+| Channels per user
+a| The amount of memory consumed by channels must fit within the 20 MB available on Couchbase Server docs for storing metadata -- see: <<tbl-metadata-size>> +
+Note that the memory is retained for as long as the replication remains active.
+| 1,000
+
+!===
+
+
+[#lbl-metda-limits]
+== Sync Metadata Limits
+
+Every time a document is assigned to a new channel, the channel name is appended to that document's sync metadata.
+
+Therefore, a document's set of channels is limited by the allowed sync metadata size described in <<tbl-metadata-size>>.
+
+.Size Limits for Sync Metadata
+[#tbl-metadata-size,cols="^4,^4", options="header"]
+|===
+
+|Value of `enable_shared_bucket_access`
+|Size (Mb per Document)
+
+m|false
+|20
+
+m|true
+|1
+
+|===
+
+Sync Gateway will assign a document to a new channel as long as the sync metadata remains under the allowed limit.
+
+*What to do when your channel count exceeds the usable space for sync metadata?*
+
+In order to lower the sync metadata size per document, you can do one of the following:
+
+* Lower the number of channels per document.
+* Shorten the channel names.
+A shorter channel name will occupy less space ("customer==0030169303" vs "cs==0030169303").
+* Lower the {configuration-properties--pfx}#databases-this_db-revs_limit[revs_limit] value.
+Indeed, a copy of channel metadata is retained for each revision of a document.
+
+// end::body[]
+// end::full[]

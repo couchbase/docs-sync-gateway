@@ -1,0 +1,129 @@
+// concept -- Access
+include::partial$topic-group-access-control-concepts.adoc[]
+
+== Concept
+// tag::full[]
+// tag::summary[]
+
+You control document access by routing it to a channel and by making that channel accessible to the users or roles you want to be able to access documents of that type.
+
+// end::summary[]
+// tag::body[]
+== Model
+In the Couchbase Mobile ecosystem access to documents is governed by three key entities: {sgw--xref}{users--page}[users], {sgw--xref}{roles--page}[roles] and {sgw--xref}{channels--page}[channels].
+
+[#img-access-control-model]
+.Access Control Model
+image:access-control-triangle.png[Access,400]
+
+Conceptually, the _channel_ can be considered as a _tag_ associated with a document.
+Every document processed by the Sync Gateway is assigned to a channel (user-defined or system-defined).
+A channel is the fundamental way to segregate documents and for enforcing access control.
+
+Every Sync Gateway user is granted access to zero, one or more channels.
+It is the channels membership that determines the documents users can access -- as illustrated in <<img-access-control-model>>
+
+A Sync Gateway role is a way of logically grouping users.
+Like the channel, a role is granted access to zero, one or more channels.
+
+A user can only read documents that are in at least one of their assigned channels; whether directly or as part of an assigned role.
+
+
+== Context
+You control document access by routing it to a channel and by making that channel accessible to the users or roles you want to be able to access documents of that type.
+
+
+=== Sync Gateway
+
+All users can implicitly access any document in the public channel.
+In addition, there can be user-defined channels that users can be assigned to.
+
+Once a user is granted access to a new channel, the next replication pull request from the client will retrieve all documents to which the user now has access.
+
+Revoking access to a channel means that users who previously used the channel to get replicated documents will no longer see any synced updates.
+
+Note that access grants neither confer, nor constrain, the *type* of access.
+Instead you can explicitly implement write access controls within the Sync Function; perhaps restricting updates to specific users or roles — for more on this see {access-control-how-control-document-access--xref-write-access}.
+
+
+=== Couchbase Lite
+
+By default, Couchbase Lite gets all the channels to which the configured user account has access.
+Optionally, a Couchbase Lite "pull" replication can also specify a comma-separated list of channel names to receive documents from.
+In this case, the replication from Sync Gateway will only pull documents tagged with those channels.
+Client apps can use this ability to intelligently sync with a subset of the available documents from the database.
+
+:param-bookmark: channels
+include::partial$blocklinks-cbl.adoc[]
+
+
+== Provisioning
+
+* {channel--xref} -- the channels topic discusses how channels are created and how documents can be assigned to channels.
+
+* {user--xref} -- the user topic discusses provisioning of users and providing users access to channels.
+
+* {role--xref} -- the role topic discusses roles, assignment of users to roles created and providing roles access to channels.
+
+
+// == Use
+
+// There are a number of ways in which you can control access to documents, as illustrated in <<img-channel-access>>.
+
+// * Configuration -- You can do it in the {configuration-properties--xref} by adding the appropriate channel to the user's `admin_channels` property in the  see {configuration-properties--xref--databases-user-admin-channels}
+
+// * Admin REST API -- You can provide that same `admin_channels` property using the *Admin REST API* endpoint ({rest-api-admin-user-put--xref}).
+
+// * Programmatically -- The {sync-function--xref} provides a flexible and secure method for controlling document access and routing.
+// +
+// It can be programmed to derive appropriate access and routing information from document properties or, more securely, from a designated extended attribute (XATTR) -- see: {access-control-how-use-xattrs-for-access-grants--xref} for how to define the XATTR.
+
+
+// [#img-channel-access]
+// .Access Control Points
+// ====
+
+// image::channel-access-grant-all.png["Channel access",300]
+
+// <.> Documents are assigned to channel using the Sync Function's {sync-function-api-channel-cmd--xref} API.
+
+// <.> User can be granted access to channels by any one of the means defined here.
+
+// ====
+
+// == Example
+
+// Consider the situation where two roles require, and are allowed, access to two distinct information flows and one shared flow -- see <<img-channels-example>>.
+
+// This can be achieved by:
+
+// . Creating two roles (Edge1 and Edge2) for the two groups of users.
+// +
+// --
+// Do this either by using the Admin REST API endpoint  {rest-api-admin-role-post--xref} or statically by adding the role to the database in the {configuration-properties--xref}.
+// In either case specify that role Edge1 can access `Channel1`, Edge2 can access `Channel2`, and both roles can access & `Channel3` -- see: {access-control-how-create-roles--xref}
+// --
+
+// . Adding the roles to the appropriate users, again using either the configuration file or API -- see {access-control-how-assign-users-to-roles--xref}
+
+// . Creating a Sync Function that
+
+// ** Identifies and assigns appropriate documents to the right channel (or channels)
+// ** Requires that any user accessing those channels has the right to do so; either directly or as in this case through a role assigned to them(Edge1 or Edge2).
+
+
+// [#img-channels-example]
+// .Access Control Example
+// ====
+// This example shows three channels; one shared and two private.
+// Here {Edge1} and {Edge2} represent two groups of Sync Gateway users with the assigned roles Edge1 and Edge2 respectively.
+
+// image::channels-example-all.png[Channels,400]
+
+// <.> Documents are routed to the appropriate channels by Sync Function logic
+// <.> The Sync Function requires users (or one of their roles) has access to the channel
+
+// ====
+
+// end::body[]
+// end::full[]

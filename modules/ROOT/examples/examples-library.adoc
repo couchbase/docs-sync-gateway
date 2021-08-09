@@ -652,11 +652,52 @@ You will set the value of the xattr using the SDK API when the document is creat
 
 
 
+// OIDC EXAMPLES
+// tag::oidc-config-simple[]
 
+[source,json]
+----
+{
+  "interface":":4984",
+  "log":["*"],
+  "databases": {
+    "default": {
+      "server": "http://localhost:8091",
+      "bucket": "default",
+      "oidc": {
+        "providers": {
+          "google_implicit": {
+            "issuer":"https://accounts.google.com",
+            "client_id":"yourclientid-uso.apps.googleusercontent.com",
+            "register":true // <.>
+          },
+        },
+      }
+    }
+  }
+}
+----
 
-
-
-
+// end::oidc-config-simple[]
+// tag::oidc-rest-api-simple[]
+[source, bash]
+----
+curl --location --request PUT 'http://localhost:4985/ourdb/_config' \
+--header 'accept: application/json' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  oidc: {
+    providers: {
+      google_implicit: {
+        issuer:https://accounts.google.com,
+        client_id:yourclientid-uso.apps.googleusercontent.com,
+        register:true // <.>
+      },
+    },
+  }
+}'
+----
+// end::oidc-config-simple[]
 
 
 

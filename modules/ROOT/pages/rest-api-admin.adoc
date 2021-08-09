@@ -5,7 +5,7 @@
 :page-edition:
 :page-role: -toc
 :page-content: Reference
-:description: Description of the Sync Gateway Admin Rest API
+:description: Description of the Sync Gateway Admin REST API
 
 include::partial$_std-hdr-sgw.adoc[]
 
@@ -14,12 +14,29 @@ include::partial$_std-hdr-sgw.adoc[]
 :topic-group: REST API
 include::partial$block-abstract.adoc[]
 
+
+
+== Introduction
+
+The Admin REST API is for administrator use only, and hence is *not* accessible from the clients directly.
+
+To allow users to sign up, it is recommended to have an app server sitting alongside Sync Gateway that performs the user validation, creates a new user on this API and then returns the response to the application.
+
+Additionally, this API can be used in conjunction with a 3rd party server for the authentication process (see xref:{authentication-users--page}#custom-authentication[Custom authentication]).
+
+Sync Gateway supports xref:{authentication-users--page}#openid-connect[OpenID Connect authentication].
+In this case, Sync Gateway can automatically create users for successfully authenticated users that don't have an already existing user in Sync Gateway.
+
+NOTE: For document changes sent to Sync Gateway through the Admin REST API, the Sync Function executes with *admin* privileges. +
+Calls to `requireUser`, `requireAccess` and `requireRole` will be no-ops, and will always appear successful.
+
+
 == API Explorer
 The API explorer below groups all the endpoints by functionality.
 You can click on a label to expand the list of endpoints and also generate a curl request for each endpoint.
 
-// json_config_ui::{attachmentsdir}/rest-api-admin.yaml[]
 
 swagger_ui::{attachmentsdir}/rest-api-admin.yaml[]
+
 
 include::partial$block-related-content-api.adoc[]

@@ -1,45 +1,41 @@
-= Using Extended Attribute Access Grants
-:description: pass:q[How to set access grants using extended attributes (xattrs).]
-:keywords: access control, sync, replicate, secure,
+// BEGIN how-to -- HOW-TO WRITE ACCESS
+// Parameters -- use-topic-header -- to show the topic heading (optional)
 
+_Related Concepts_: {access-control-model--xref} |  {access-control-how-control-document-access--xref}
 
-include::partial$_std-hdr-sgw.adoc[]
+// == Use Extended Attributes (XATTRS)
 
-
-// BEGIN -- Page Attributes
 :sgw: pass:q[_Sync Gateway_]
 :fn-3x0: footnote:fn-3x0[From release 3.0]
 :fnref-3x0: footnote:fn-3x0[]
-// END -- Page Attributes
-
-
-//  BEGIN -- Page Heading
-:param-topic-group: access-control
-:param-abstract: pass:q[Here we introduce the concept of _XATTRS_ for access grants and their role in assuring secure access control within _Sync Gateway_.]
-// :param-related: {channels--xref}  |  {revisions--xref}  |  {roles--xref}  |  {what-are-tombstones--xref}
-include::partial$block-abstract.adoc[]
-//  END -- Page Heading
 
 
 == Introduction
 
-Access grants are one of the cornerstone concepts behind {sgw}'s access control feature.
+Access grant information such as {channels--xref} and {roles--xref} can be derived or specified as a property within the document body.
+In this case, the document content itself is used to govern access and routing.
 
-Using the {sync-function--xref}, you can grant users access to specific documents and channels based on the contents of the document being processed.
-
-Alternatively, you can instead nominate a specific _extended attribute_ (XATTR) to determine the access grants{fn-3x0}.
-This approach has the benefit of:
-
-* Providing an added level of security, users can no longer identify the channels and users a document is available to from reading its contents, because the information is in metadata that is inaccessible to them
-* Removing the necessity to create a new revision and push the full document to a client following changes to access-control information only
-
-Sync Gateway exposes a single user-definable XATTR for this purpose.
+Starting *v3.0*, you can use user XATTRs for specifying channels and roles.
 
 
+== Why use XATTRS
+
+XATTRs can be used to hold data used for document routing and access control
+When retrieved by the Sync Function, the data can be used to drive access grants.
+This approach has a few benefits:
+
+* It provide an added level of security, users can no longer identify the channels and users a document is available to by reading its contents, because the information is in metadata that is inaccessible to them
+* Separation of concerns.
+By separating access grant metadata from document contents, changes to access grants will not create a new document revision that is subsequently pushed to a client
+
+Sync Gateway exposes a single user-definable XATTR for this purpose. Learn how to configure it in <<lbl-config>> and how to use it in <<lbl-set>> and <<lbl-using>>.
+
+
+[#lbl-config]
 == Configuration
 
 Name the XATTR
-(see: {configuration-schema-database--xref-user-xattr-key}) to be used for channel routing by defining it using the Admin Rest API's {rest-api-admin-database--xref} -- see: <<ex-config>>.
+(see: {configuration-schema-database--xref-user-xattr-key}) to be used for channel routing by defining it using the Admin REST API's {rest-api-admin-database--xref} -- see: <<ex-config>>.
 
 The actual value of this XATTR can be anything that enables the Sync Function to make an appropriate access grant.
 Its data type can be string, array, object -- any valid JSON that meets the required use case.
@@ -48,7 +44,7 @@ Its data type can be string, array, object -- any valid JSON that meets the requ
 [#ex-config]
 .Define the User Extended Attribute Key
 ====
-This example uses the Admin Rest API to specify the required XATTR name as `channelXattr` on the database `hotels`.
+This example uses the Admin REST API to specify the required XATTR name as `channelXattr` on the database `hotels`.
 
 [{tabs}]
 =====
@@ -91,12 +87,14 @@ Content-Length: 999
 <.> Here _channelXattr_ is set as the name of the XATTR designated to hold channel routing information.
 ====
 
+
+[#lbl-set]
 == Setting
 
 You can set and maintain the value of the XATTR using a Couchbase Server SDK API.
-You cannot set it using the {sgw} REST API.
+You cannot set it using the Sync Gateway REST API.
 
-For an example of setting the value of the XATTR using the C# SDK, see <<ex-cbs-metadata-setting>>, this cn be easily translated to any of the available SDK languages.
+For an example of setting the value of the XATTR using the C# SDK, see <<ex-cbs-metadata-setting>>, this can be easily translated to any of the available SDK languages.
 See <<ex-cbs-metadata>> for an example of the metadata model.
 
 [#ex-cbs-metadata-setting]
@@ -119,7 +117,8 @@ include::{examples-code-csharp}[tags="sdk-add-user-xattr-key"]
 <.> Insert the XATTR -- specify the item to add (`channelXattr`)
 <.> Insert the XATTR -- set the required value using `channelXattrValue`
 <.> Insert the XATTR -- specify the item is an XATTR
-<.> Running the code produces the following output:
+
+Running the code produces the following output:
 +
 [source, bash]
 ----
@@ -143,18 +142,14 @@ Completed Changes
 
 include::{examples-lib}[tags="sdk-add-xattr-xattrs"]
 
-====
-
 For more on Couchbase Server metadata and extended attributes -- see Couchbase Server topics:  {server-data--xref-metadata} | {server-data-xattr-fundamentals--xref}
 
-// https://docs.couchbase.com/server/current/learn/data/data.html#metadata
-// https://docs.couchbase.com/server/6.5/learn/data/extended-attributes-fundamentals.html
-
-// Before using extended attributes in Couchbase Server buckets you need to check that your bucket's capabilities allow there use -- see: Couchbase Server topic: using https://docs.couchbase.com/sdk-api/couchbase-net-client/html/T_Couchbase_Core_Configuration_Server_BucketCapabilities.htm
+====
 
 
 
-== Sync Function
+[#lbl-using]
+== Use XATTRs in a Sync Function
 
 The designated XATTR is exposed to the {sync-function--xref} as an additional argument `meta.xattrs.<xattr name>`
 
@@ -173,6 +168,6 @@ include::{examples-code-js}[tags="sync-function-using-xattr-notation"]
 
 See: {sync-function--xref} topic for more information.
 
-// BEGIN -- Page Footer
-include::partial$block-related-content-data.adoc[]
-// END -- Page Footer
+
+
+// END how-to -- HOW-TO WRITE ACCESS

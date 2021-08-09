@@ -1,0 +1,47 @@
+// BEGIN -- Inclusion-- requireUser()
+// TARGET sync-function-api.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/_partials/sync-api/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+// END PAGE DEFINITION
+
+[#lbl-require-role]
+Function:: requireRole(rolename)
+
+
+
+== Purpose
+Use the `requireRole()` function to reject document updates that are not made by user with the specified role or roles, as shown in <<ex-requirerole>>.
+
+
+== Arguments
+
+include::partial$sync-api/syncargs.adoc[tags=args;args-role]
+
+
+== Context
+
+The function requires that the user has at least one of the specified roles.
+If that is not the case it signals rejection by throwing an exception.
+The rest of the sync function will not be run.
+
+
+== Use
+
+[#ex-requirerole]
+.requireRole(rolename)
+====
+
+[source,javascript]
+----
+requireRole("admin"); // <.>
+
+requireRole(["admin", "old-timer"]); // <.>
+----
+<.> Throw an error unless the user has the "admin" role:
+<.> Throw an error unless the user has one or more of those roles:
+====

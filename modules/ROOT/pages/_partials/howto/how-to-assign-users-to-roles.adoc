@@ -1,0 +1,109 @@
+// BEGIN how-to -- HOW-TO ADD A ROLE TO A USER
+// Parameters -- use-topic-header -- to show the topic heading (optional)
+ifdef::include-related[]
+_Related Concepts_: {roles--xref} | {users--xref}
+endif::[]
+
+== Process
+
+You can assign (or remove) users to (or from) roles using any of the following mechanisms:
+
+* Admin REST API +
+Assign a user to a role via the {rest-api-admin--xref}
+
+* Configuration Properties file (Pre v3.x+)
++
+Roles can be configured within using the DB section -- see: {configuration-properties--xref}. +
++
+include::partial$block-caveats.adoc[tags=disable-persistent-config]
+
+* Sync Function +
+Programmatically assign users to roles.
+
+Removing a role effectively revokes access to the channel that role is associated with.
+This may mean users will lose access to required documents.
+
+.Assign user to role
+====
+[{tabs}]
+=====
+
+Admin REST API::
++
+--
+
+NOTE: This is the recommended method from 3.0
+
+Assign a user to a role by sending a PUT request to the Admin REST API `_user` endpoint ({rest-api-admin-user-put--xref} ).
+
+Specify the roles to be assigned in the `admin_roles` array.
+
+[source,bash]
+----
+$ curl -vX PUT "http://localhost:4985/mydatabase/_user/{user}" -H <.>
+"accept: application/json" -H "Content-Type: application/json" -d
+'{ "admin_roles": ["Edge1"]}' // <.>
+----
+<.> {user} is the user name to be updated, e.g. "Edge1User"
+<.> Include the role that the user is to be assigned to in `admin_roles`
+
+See also: {rest-api-admin-role-put--xref}
+--
+
+Sync Function::
++
+--
+You can also use the Sync Function's {sync-function-api-role-cmd--xref} function to assign users to roles programmatically.
+
+In this use case, where role assignment is done dynamically via the sync function, the role(s) to which user is assigned can be identified in two ways:
+
+* By document content -- the role can be derived or specified as a property within the document body.
+* By user defined XATTR (3.0+) -- the role can be specified within a special user-defined XATTR associated with the document -- see: {access-control-how-use-xattrs-for-access-grants--xref}
+
+Note that both role and user must already exist.
+Nonexistent roles don’t cause an error, but have no effect on the user’s access privileges.
+
+[source, javascript]
+----
+role ("Edge1User", "role:Edge1");
+role ("Edge2User", "role:Edge2":);
+----
+
+--
+
+
+File-based Configuration Properties::
++
+--
+
+include::partial$block-caveats.adoc[tags=disable-persistent-config]
+
+Add the role the user is to be assigned to in the configuration file.
+This method is convenient for testing and to get started.
+Use the *Admin REST API* for production systems.
+
+[source,json]
+----
+{
+  "databases": {
+    "mydatabase": {
+      "users": { // <.>
+        "GUEST": {"disabled": true},
+        "Edge1User": {"password": "pass", "admin_roles": ["Edge1"], // <.>
+                      "admin_channels": ["RandomChannel"]},
+        "Edge2User": {"password": "pass", "admin_roles": ["Edge2"]}
+      }
+    }
+  }
+}
+----
+<.> Within `users` find the `user` you want to assign to a `role`
+<.> Add the role the user is to be assigned to in `admin_roles` -- see: {configuration-properties--pfx}#databases-this_db-users-this_user-admin_roles[databases.$db.users.$user.admin_roles]
+--
+
+====
+
+
+
+// END how-to -- HOW-TO ADD A ROLE TO A USER
+

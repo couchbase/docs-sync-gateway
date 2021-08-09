@@ -1,0 +1,131 @@
+// BEGIN how-to -- HOW-TO VERIFY ACCESS
+// Parameters -- use-topic-header -- to show the topic heading (optional)
+
+Related Concepts::
+  {access-control-model--xref}
+
+
+== Purpose
+
+Use the Admin REST API to see the:
+
+* Channels a user has access to
+* Channels a role has access to
+* Channels a document is assigned to
+
+
+== Context
+The `all_channels` property of a user account determines the channels a user can access.
+Its value is derived from the union of:
+
+* The user's `admin_channels` property, which is set using the Admin REST API.
+* The channels the user has been granted access to by {sync-function-api-access-cmd--xref} calls from sync functions invoked for current revisions of documents.
+* The `all_channels` properties of any roles the user belongs to.
+These are themselves computed using the above rules.
+
+
+== Process
+
+[{tabs}]
+====
+Users::
++
+--
+Send a get request to the {rest-api-admin-user-get--xref} endpoint
+
+[source, bash]
+----
+curl http://localhost:4985/db/_user/pupshaw
+----
+
+The <<ex-output,output>> shows that the user `pupshaw` has access to the following channels:
+
+<.> `all` through its own `admin_channels` setting
+<.> `hoopy` through the `froods` role's `admin_channels` setting
+
+[#ex-output]
+[source,json]
+----
+{
+    "admin_channels": [
+        "all" // <.>
+    ],
+    "admin_roles": [
+        "froods"
+    ],
+    "all_channels": [
+        "all",
+        "hoopy" // <.>
+    ],
+    "name": "pupshaw",
+    "roles": [
+        "froods"
+    ]
+}
+----
+--
+
+Roles::
++
+--
+Send a get request to the {rest-api-admin-role-get--xref} endpoint
+
+[source, bash]
+----
+curl http://localhost:4985/db/_role/frood
+----
+
+The output shows that the role `froods` has access to the following channels:
+
+<.> `hoopy` through its role's `admin_channels` setting
+
+[source,json]
+----
+{
+    "name": "froods",
+    "admin_channels": [
+        "hoopy" // <.>
+    ],
+    "admin_roles": [
+        "froods"
+    ],
+    "all_channels": [
+        "hoopy" // <.>
+    ]
+}
+----
+--
+
+Document::
++
+--
+Send a get request to the {rest-api-admin-doc-channels-get--xref} endpoint
+
+[source, bash]
+----
+curl http://localhost:4985/ourdb/_all_docs?channels=true&keys=[ourdoc]" -H "accept: application/json"
+----
+
+<.> The <<ex-outdoc,output>> shows that the document `ourdoc` is assigned to the channels: `all` and `hoopy` +
+That assignment to `hoopy` is what makes it available to our `froods` role and therefore to our user `pupshaw`.
+
+[#ex-outdoc]
+[source,json]
+----
+{
+  "id": "ourdoc",
+  "key": "ourdoc",
+  "value": {
+      "channels": [ // <.>
+          "short",
+          "hoopy"
+      ],
+      "rev": "1-86effb929acbf953905dd0e3974f6051"
+  }
+}
+----
+--
+
+====
+
+// END how-to -- HOW-TO VERIFY ACCESS

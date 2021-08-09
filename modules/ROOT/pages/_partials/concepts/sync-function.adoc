@@ -1,0 +1,312 @@
+// -- concept -- Sync Function
+//
+include::partial$topic-group-access-control-concepts.adoc[]
+
+== Concept
+
+// tag::full[]
+// tag::summary[]
+
+The sync function is crucial to the security of your application.
+It is in charge of data validation, access control and routing.
+The function executes every time a new revision/update is made to a document.
+
+image::sync-function-context.png["Sync Function Context",300]
+
+The sync function should be a focus of any security review of your application.
+
+// end::summary[]
+// tag::body[]
+
+== Use
+
+The Sync Function exposes a number of helper functions to control access — see reference information in {sync-function-api--xref}.
+For example, to grant a user access to a channel use the {sync-function-api-access-cmd--xref} helper function in the Sync Function.
+
+The `access()` function can also operate on roles.
+If a user name string begins with role: then the remainder of the string is interpreted as a role name.
+There’s no ambiguity here, because ":" is an illegal character in a user or role name.
+
+Because anonymous requests are authenticated as the user "GUEST", you can make a channel and its documents public by calling access with a username of GUEST.
+
+You will likely need to include a check for deleted documents and to treat these differently when validating.
+A deletion is just a revision with a "_deleted": true property; and usually nothing else.
+
+Any validation checks will probably fail because of the missing properties, so build -in a check for `doc._deleted == true`.
+
+:note-for-prototype: [This prototype shows the default Sync Function -- see <<lbl-args>> for more on the arguments.]
+
+== Sync Function Prototype
+
+[#ex-prototype]
+.Prototype Sync Function
+====
+
+[{tabs}]
+=====
+
+Version 3.0+::
++
+--
+
+[source, javascript]
+----
+function (doc, oldDoc, meta) { // <.>
+   channel(doc.channels); // <.>
+
+}
+----
+
+<.> In version 3.0+ we can use XATTR contents to drive access control.
+To support this, an additional optional argument `meta` is exposed -- see <<lbl-args>>
+<.> {note-for-prototype}
+
+--
+
+All Versions::
++
+--
+
+[source, javascript]
+----
+function (doc, oldDoc) {
+   channel(doc.channels); // <.>
+}
+----
+
+<.> {note-for-prototype}
+
+--
+
+=====
+
+====
+
+
+[#lbl-args]
+== Arguments
+
+The sync function arguments are:
+
+[sf,cols="1m,4a", options="header"]
+|===
+
+|Name
+|Description
+
+|doc
+|This object references the content of the document that is being saved.
+It matches the JSON saved by the Couchbase Lite application and replicated to Sync Gateway.
+
+The document's `_id` property contains the document ID
+The document's `_rev` property is the new revision ID.
+If the document is being deleted, it will have  a `_deleted` property with the value `true`.
+
+|oldDoc
+|If the document has been saved before, this object references the revision being replaced; otherwise it is null. +
+*Note:*  In the case of a document with conflicts, the current provisional winning revision is passed in `oldDoc`.
+
+Your implementation of the sync function can omit the oldDoc parameter if you do not need it (JavaScript ignores extra parameters passed to a function).
+
+|Meta (optional)
+|Starting 3.0, the Sync Function includes support for a new `meta` argument.
+
+This argument references the user defined XATTR that you are using to hold access grant data.
+
+The referenced object can include items such as channels or roles. So instead of embedding channel information directly within the document body, users can specify this user-defined XATTR which is associated with the document -- see {access-control-how-use-xattrs-for-access-grants--xref}.
+
+|===
+
+
+== Configuration
+
+If you don’t supply a sync function, Sync Gateway uses the {configuration-properties--pfx}#databases-this_db-sync[default Sync Function].
+
+[#ex-prov]
+.Configuring a Sync Function
+====
+
+[{tabs}]
+=====
+
+Version 3.0+::
++
+--
+Here we use the Database Configuration API to provision our Sync Function -- see: {rest-api-admin-database--xref}
+
+The example uses _CURL_ to do this, but you may use a mechanism of your choice.
+
+:backticks: pass:q[` <.> `]
+[source, bash]
+----
+curl --location --request PUT 'http://localhost:4985/getting-started-db/_config' \
+--header 'accept: application/json' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "sync": ` /* sync function code */ `  <.>
+        }'
+----
+
+--
+
+All Versions::
++
+--
+NOTE: Users running version v3.0+ must run with `disable-persistent-configuration=true`
+
+Here we embed our Sync Function in our Sync Gateway configuration file.
+
+[source, json]
+----
+  //  ... may be preceded by additional configuration data as required by the user ...
+  "databases": {
+    "getting-started-db": {
+      "server": "http://localhost:8091",
+      "bucket": "getting-started-bucket",
+      "username": "sync_gateway",
+      "password": "password",
+      "enable_shared_bucket_access": true,
+      "import_docs": true,
+      "num_index_replicas": 0,
+      "users": {
+        "GUEST": { "disabled": false, "admin_channels": ["*"] },
+      },
+      "sync": `/* sync function code */` // <.>
+  }
+}
+----
+
+--
+
+=====
+
+<.> Insert the Sync Function code, for example from <<ex-sample-function>> here.
+Note the sync function is enclosed in backticks.
+
+====
+
+
+== Example
+
+When you come to build your Sync Function you will need to decide the access control and document distribution requirements. For example:
+
+* The document types it will process
+* The users it will serve
+* Which users need to access which document types
+* What constraints are to be be placed on creating, updating and-or deleting documents
+
+
+Our requirements for this example are:
+
+<1> That all documents have the following properties: +
+_creator_, _writers_, _title_  _channels_
+
+<2> That we allow only create and-or delete access to users with the role `editor`
+
+<3> That we only allow changes, including deletions, to be made by users identified in the document's _writers_ property
+
+<4> That the _creator_ is immutable
+
+<5> That we will assign the document to the channel(s) identified within the documents contents or metadata (v3.0+).
+
+
+[#ex-sample-function]
+.Sync Function Example
+====
+
+[{tabs}]
+=====
+
+Version 3.0+::
++
+--
+In versions 3.0+ we can use XATTR contents to drive access control.
+
+[source, javascript]
+----
+// Note the new (3.0), optional, argument `meta`
+function (doc, oldDoc, meta) {
+  if (doc._deleted) {
+    // Only editors with write access can delete documents:
+    requireRole("role:editor"); // <2>
+    requireUser(oldDoc.writers); // <3>
+    // Skip other validation because a deletion has no other properties:
+    return;
+  }
+  // Required properties:
+  if (!doc.title || !doc.creator ||
+        !doc.channels || !doc.writers) { // <1>
+    throw({forbidden: "Missing required properties"});
+  } else if (doc.writers.length == 0) {
+    throw({forbidden: "No writers"});
+  }
+  if (oldDoc == null) {
+    // Only editors can create documents:
+    requireRole("role:editor"); // <2>
+    // The 'creator' property must match the user creating the document:
+    requireUser(doc.creator)
+  } else {
+    // Only users in the existing doc's writers list can change a document:
+    requireUser(oldDoc.writers); // <3>
+    // The "creator" property is immutable:
+    if (doc.creator != oldDoc.creator) {
+            throw({forbidden: "Can't change creator"}); // <4>
+    }
+  }
+  // Finally, assign the document to the channels in the list:
+  channel(meta.XattrChannels.channels); // <5>
+}
+----
+
+
+--
+
+All Versions::
++
+--
+
+Here we will use the document content to drive the channels to be accessed -- using `doc.channels`
+
+[source, javascript]
+----
+function (doc, oldDoc) {
+  if (doc._deleted) {
+    // Only editors with write access can delete documents:
+    requireRole("role:editor"); // <2>
+    requireUser(oldDoc.writers); // <3>
+    // Skip other validation because a deletion has no other properties:
+    return;
+  }
+  // Required properties:
+  if (!doc.title || !doc.creator ||
+        !doc.channels || !doc.writers) { // <1>
+    throw({forbidden: "Missing required properties"});
+  } else if (doc.writers.length == 0) {
+    throw({forbidden: "No writers"});
+  }
+  if (oldDoc == null) {
+    // Only editors can create documents:
+    requireRole("role:editor"); // <2>
+    // The 'creator' property must match the user creating the document:
+    requireUser(doc.creator)
+  } else {
+    // Only users in the existing doc's writers list can change a document:
+    requireUser(oldDoc.writers); // <3>
+    // The "creator" property is immutable:
+    if (doc.creator != oldDoc.creator) {
+            throw({forbidden: "Can't change creator"}); // <4>
+    }
+  }
+  // Finally, assign the document to the channels in the list:
+  channel(doc.channels); // <5>
+}
+
+----
+--
+
+=====
+
+====
+
+// end::body[]
+// end:full[]
