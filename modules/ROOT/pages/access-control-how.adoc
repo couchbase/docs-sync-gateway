@@ -1,0 +1,547 @@
+= Access Control How-To
+// BEGIN -- PAGE -- access-control-model.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/pages/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+//  INCLUSION USAGE --
+//    This module uses attributes from:
+//    - /modules/ROOT/pages/_partials/_page-index.adoc -- xref page links
+//
+//    This module uses these inclusions:
+//    - /modules/ROOT/pages/_partials/_std-hdr-sgw.adoc -- std attribute environment
+//    - /modules/ROOT/pages/_partials/block-abstract.adoc --  std text block for page header content
+//    - /modules/ROOT/pages/_partials/block-related-content-deploy.adoc --  std text block for page footer content
+//    - modules/ROOT/assets/images -- .png/.jpeg images
+//  INCLUSION USAGE
+// END PAGE DEFINITION
+:description: How to implement Sync Gateway access controls using Configuration File, Admin REST API and-or the Sync Function to manage documents, users, roles and channels
+
+include::partial$_std-hdr-sgw.adoc[]
+
+// BEGIN -- Page Attributes
+:our-offset: +1
+
+:SGW: pass:q[_Sync Gateway_]
+:channel1: pass:q,a[_Channel #1_]
+:channel2: pass:q,a[_Channel #2_]
+:channel3: pass:q,a[_Channel #3_]
+
+:Edge1: pass:q,a[_Edge #1_]
+:Edge2: pass:q,a[_Edge #2_]
+// END -- Page Attributes
+
+
+:param-topic-group: access-control
+:param-abstract: pass:q[The sync function API provides several methods that you can use to validate and control user access to databases and documents.]
+include::partial$block-abstract.adoc[]
+
+
+== Introduction
+
+include::{access-control-concepts--page}[tags=overview]
+
+This topic will show how to use the various {access-control-concepts--xref} to provide effective and secure document distribution and control.
+
+== Mechanism
+
+There are a number of ways in which you can control document distribution and user access, both statically a dynamically; these are itemized in <<#lst1>> and illustrated in <<img-channel-access>>.
+
+[#lst1]
+.Ways to configure access
+* Using the Sync Gateway Configuration Properties file's {configuration-properties--xref--databases-user-admin-channels} setting
+* Dynamically
+** At the time of user creation with Admin REST Endpoint  {rest-api-admin-user-post--xref} using `admin_channel`
+** Using the Sync Function's {sync-function-api-access-cmd--xref}.
+
+.Control Points
+[#img-channel-access]
+====
+image::channel-access-grant-all.png[,400]
+
+<.> Documents are assigned to channel using the Sync Function's {sync-function-api-channel-cmd--xref} API.
+
+<.> User and-or roles are granted access to channels by one of the means defined in <<lst1>>
+====
+
+// == Creating Users and Roles
+
+[#lbl-acc-ctl-users]
+== Create Users
+// About users
+
+include::{howto}create-users.adoc[leveloffset={our-offset}]
+
+// == Create User
+// Each user must be created on Sync Gateway before it can be used for access control.
+// You can create and-or manage users statically using the {configuration-properties--xref} or dynamically through the {rest-api-admin--xref}.
+
+// [{tabs}]
+// ====
+
+// Admin REST API::
+// +
+// --
+// Create a new user by sending a POST request to the Admin Rest Api `_user` endpoint ({rest-api-admin-user-post--xref}).
+// Update existing users by sending a PUT instead; in this case include the user name at the end of the url.
+
+// The user credentials (**username**/**password**) are passed in the request body.
+
+// [source,bash]
+// ----
+// $ curl -vX POST "http://localhost:4985/mydatabase/_user/" -H
+// "accept: application/json" -H "Content-Type: application/json" -d
+// '{"name": "Edge1User", "password": "pass"}' // <.>
+
+// $ curl -vX PUT "http://localhost:4985/mydatabase/_user/Edge1User" -H
+// "accept: application/json" -H "Content-Type: application/json" -d
+// '{"name": "Edge1User", "admin_channels": ["RandomChannel"]}' // <.>
+// ----
+
+// <.> Add new user "Edge1User", no `access_channel` or `role` is specified here.
+// <.> Update existing user "Edge1User" and add `access_channels` data
+
+// --
+
+// Configuration File::
+// +
+// --
+// Create users by hardcoding their credentials in the {configuration-properties--xref}.
+// This method is convenient for testing and to get started.
+// Use the *Admin REST API* for production system changes.
+// +
+// [source,json]
+// ----
+// {
+//   "databases": {
+//     "mydatabase": {
+//       "users": { // <1>
+//         "GUEST": {"disabled": true},
+//         "Edge1User": {"password": "pass",
+//                       "admin_channels": ["RandomChannel"]},
+//       }
+//     }
+//   }
+// }
+// ----
+
+// <.> {configuration-properties--pfx}#databases-this_db-users[databases.$db.users]
+
+// --
+// <.> Here we add the Edge1 role used in the example in this topic.
+
+// ====
+
+[#lbl-acc-ctl-roles-create]
+== Create Roles
+// == Create Role
+:include-related:
+include::{howto}create-roles.adoc[leveloffset={our-offset}]
+:include-related!:
+
+// As with users, you create and-or manage roles using either the {rest-api-admin--xref} or {configuration-properties--xref}.
+
+
+// [{tabs}]
+// ====
+
+// Admin REST API::
+// +
+// --
+// Create a new role using the {rest-api-admin-role-post--xref} endpoint.
+
+// [source,bash]
+// ----
+// $ curl -vX POST "http://localhost:4985/mydatabase/_roler/" -H
+// "accept: application/json" -H "Content-Type: application/json" -d
+// '{"name": "Edge1", "admin_channels": ["channel1", "channel3"]]}' // <.>
+// ----
+
+// --
+
+// Configuration File::
+// +
+// --
+// Create users by hardcoding their credentials in the {configuration-properties--xref}.
+// This method is convenient for testing and to get started.
+// It is recommended to use the *Admin REST API* for production systems.
+
+// [source,json]
+// ----
+// {
+//   "databases": {
+//     "mydatabase": {
+//       "roles": { // <.>
+//         "Edge1": {"admin_channels": ["channel1", "channel3"]}, // <.>
+//         "Edge2": {"admin_channels": ["channel2", "channel3"]},
+//         "GUEST": {"disabled": true}
+//       }
+//     }
+//   }
+// }
+// ----
+
+// <.> {configuration-properties--pfx}#databases-this_db-users[databases.$db.users]
+
+// --
+// <.> Here we add the Edge1 role used in the example in this topic.
+
+// ====
+
+
+[#lbl-acc-ctl-roles-add]
+== Assign Users to Roles
+
+include::{howto}assign-users-to-roles.adoc[leveloffset={our-offset}]
+
+// You can add and remove roles from users using either the {rest-api-admin--xref} or {configuration-properties--xref}.
+
+// Note that removing a role effectively revokes access to the channel that role is associated with and may mean users will lose access to required documents.
+
+// [{tabs}]
+// ====
+
+// Admin REST API::
+// +
+// --
+// Add a role to an existing user by sending a PUT request to the Admin REST API `_role` endpoint ({rest-api-admin-user-put--xref} ).
+
+// Specify the roles to be assigned in the `admin_roles` array.
+
+// [source,bash]
+// ----
+// $ curl -vX PUT "http://localhost:4985/mydatabase/_user/{user}" -H
+// "accept: application/json" -H "Content-Type: application/json" -d
+// '{ "admin_roles": ["Edge1"]}' // <.>
+// ----
+// <.> {user} is the user name to be updated, e.g. "Edge1User"
+
+// See also: {rest-api-admin-role-post--xref}
+// --
+
+// Configuration::
+// +
+// --
+// Add a role to a user in the configuration file.
+// This method is convenient for testing and to get started.
+// Use the *Admin REST API* for production systems.
+
+// [source,json]
+// ----
+// {
+//   "databases": {
+//     "mydatabase": {
+//       "users": { // <.>
+//         "GUEST": {"disabled": true},
+//         "Edge1User": {"password": "pass", "admin_roles": ["Edge1"],
+//                       "admin_channels": ["RandomChannel"]},
+//         "Edge2User": {"password": "pass", "admin_roles": ["Edge2"]}
+//       }
+//     }
+//   }
+// }
+// ----
+// <.> {configuration-properties--pfx}#databases-this_db-users-this_user-admin_roles[databases.$db.users.$user.admin_roles]
+// --
+
+// Sync Function::
+// +
+// --
+// You can also use the Sync Function's `role(username, rolename)` function to assign roles to users programmatically.
+
+// Note that both role and user must already exist.
+// Nonexistent roles don’t cause an error, but have no effect on the user’s access privileges.
+
+// [source, javascript]
+// ----
+// role ("Edge1User", "role:Edge1");
+// role ("Edge2User", "role:Edge2":);
+// ----
+// --
+
+// ====
+
+
+[#lbl-control-document-access]
+== Control Document Access
+
+include::{howto}control-document-access.adoc[leveloffset={our-offset}]
+
+// You can allow roles and-or users access to channels using:
+
+// * Configuration -- using the appropriate `admin_channels` property in the {configuration-properties--xref}.
+
+// * Admin REST API -- alternatively provide that same `admin_channels` property using the admin REST API endpoint ({rest-api-admin-user-put--xref}).
+
+// * Sync Function -- using the exposed helper function `access()` -- see reference information in {sync-function--xref}.
+
+// You will often use the document content to govern access and routing.
+// The data to drive this can now be secured in metadata, providing an additional level of security -- see <<lbl-xattrs>>.
+
+// [{tabs}]
+// ====
+
+// Admin REST API::
+// +
+// --
+// Add a channel to an existing user by sending a PUT request to the Admin REST API `_role` endpoint ({rest-api-admin-role-put--xref} ).
+
+// Specify the roles to be assigned in the `admin_channels` array.
+
+// [source,bash]
+// ----
+// $ curl -vX PUT "http://localhost:4985/mydatabase/_user/{user}" -H //<.>
+// "accept: application/json" -H "Content-Type: application/json" -d
+// '{ "admin_channels": ["Channel1","Channel3]}' // <.>
+// ----
+
+// <.> {user} is the user name to be updated, e.g. "Edge1User"
+
+// <.> Here we add _Channel1_ and _Channel3_ to the user
+
+// --
+
+// Configuration::
+// +
+// --
+// Add a channel to a user in the configuration file.
+// This method is convenient for testing and to get started.
+// Use the *Admin REST API* for production systems.
+
+// [source,json]
+// ----
+// {
+//   "databases": {
+//     "mydatabase": {
+//       "users": {
+//         "GUEST": {"disabled": true},
+//         "Edge1User": {"password": "pass", "admin_roles": ["Edge1"],
+//               "admin_channels": ["Channel1","Channel3","RandomChannel"]} // <.>
+//       },
+//       "roles": {
+//         "Edge1": {"admin_channels": ["channel1", "channel3"]},
+//         "Edge2": {"admin_channels": ["Channel2","Channel3","SkyChannel"]} // <.>
+//       }
+//     }
+//   }
+// }
+// ----
+
+// <.> Here we have added the channel _RandomChannel_ to the user _Edge1User_ {configuration-properties--pfx}#databases-this_db-users-this_user-admin_channels[databases.$db.users.$user.admin_channel]
+
+// <.> Here we have added the channel _SkyChannel_ to the role _Edge2_ {configuration-properties--pfx}#databases-this_db-roles-this_role-admin_channels[databases.$db.users.$user.admin_channel]
+
+// --
+
+// Sync Function::
+// +
+// --
+// You can also use the Sync Function's `access(username, channelname)` function to allow channel access to roles and-or users programmatically.
+
+// [source, javascript]
+// ----
+
+// function (doc, olddoc, meta) {
+
+//   // user logic
+//     access ("Edge1User", "RandomChannel"); // <.>
+//     access ("role:Edge2", "SkyChannel"); // <.>
+
+//   // user logic
+// }
+// ----
+
+// <.> Here we add access to channel _RandomChannel_ to the user _Edge1User_
+
+// <.> The `access()` function can also operate on roles.
+// If a user name string begins with `role:` then the remainder of the string is interpreted as a role name.
+// There's no ambiguity here, because ":" is an illegal character in a user or role name.
+// Here we allow access to the channel _Sky1Channel_  for the role _Edge2_
+
+// --
+
+// ====
+
+
+[#lbl-verify-access]
+== Verify Access
+
+include::{howto}verify-access.adoc[leveloffset={our-offset}]
+
+
+// tag::write-access[]
+[#lbl-control-write-access]
+== Write Access
+
+include::{howto}write-access.adoc[leveloffset={our-offset}]
+
+
+[#lbl-xattrs]
+== Use Extended Attributes (XATTRS)
+
+:sgw: pass:q[_Sync Gateway_]
+:fn-3x0: footnote:fn-3x0[From release 3.0]
+:fnref-3x0: footnote:fn-3x0[]
+
+=== Why use XATTRS
+
+XATTRS can be used to hold data used for document routing and access control securely within a document.
+When retrieved by the Sync Function, the data can be used to drive access grants {fn-3x0}.
+This approach has the benefit of:
+
+* Providing an added level of security, users can no longer identify the channels and users a document is available to from reading its contents, because the information is in metadata that is inaccessible to them
+* Removing the necessity to create a new revision and push the full document to a client following changes to access-control information only
+
+Sync Gateway exposes a single user-definable XATTR for this purpose. Learn how to configure it in  <<lbl-config>> and how to use it in <<lbl-set>> and <<lbl-using>>.
+
+
+[#lbl-config]
+=== Configuration
+
+Name the XATTR
+(see: {configuration-schema-database--xref-user-xattr-key}) to be used for channel routing by defining it using the Admin REST API's {rest-api-admin-database--xref} -- see: <<ex-config>>.
+
+The actual value of this XATTR can be anything that enables the Sync Function to make an appropriate access grant.
+Its data type can be string, array, object -- any valid JSON that meets the required use case.
+
+
+[#ex-config]
+.Define the User Extended Attribute Key
+====
+This example uses the Admin REST API to specify the required XATTR name as `channelXattr` on the database `hotels`.
+
+[{tabs}]
+=====
+CURL::
++
+--
+[source, json]
+----
+curl -X PUT 'http://localhost:4985/hotels/_config' \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "user_xattr_key": "channelXattr" // <.>
+    }
+}'
+
+
+----
+--
+
+HTTP::
++
+--
+
+[source, http]
+----
+PUT /hotels/_config HTTP/1.1
+Host: http://localhost:4985
+Accept: application/json
+Content-Type: application/json
+Content-Length: 999
+
+{
+  “user_xattr_key”: “channelXattr” // <.>
+}
+----
+--
+
+=====
+<.> Here _channelXattr_ is set as the name of the XATTR designated to hold channel routing information.
+====
+
+[#lbl-set]
+=== Setting
+
+You can set and maintain the value of the XATTR using a Couchbase Server SDK API.
+You cannot set it using the {sgw} REST API.
+
+For an example of setting the value of the XATTR using the C# SDK, see <<ex-cbs-metadata-setting>>, this cn be easily translated to any of the available SDK languages.
+See <<ex-cbs-metadata>> for an example of the metadata model.
+
+[#ex-cbs-metadata-setting]
+.Set XATTR using Couchbase Server SDK
+====
+
+[source, c#]
+----
+include::{examples-code-csharp}[tags="sdk-add-user-xattr-key"]
+----
+
+<.> This is required to make the `MutateInSpec` class available, providing access to sub-documents, of which metadata is a special class
+<.> This string's value is what we want this document's XATTR to be called
+<.> This array contains the channels we want to include as the XATTR value
+<.> Here we get all documents that we want to set the XATTR on (type = 'hotel' in this instance)
+<.> Check if the XATTR has been defined yet
+<.> Update the XATTR -- specify the item to update
+<.> Update the XATTR -- set the required value
+<.> Update the XATTR -- specify the item is an XATTR
+<.> Insert the XATTR -- specify the item to add (`channelXattr`)
+<.> Insert the XATTR -- set the required value using `channelXattrValue`
+<.> Insert the XATTR -- specify the item is an XATTR
+<.> Running the code produces the following output:
++
+[source, bash]
+----
+Working with document id: 1000
+Updated Existing user_xattr_key:
+  channelXattr to this value: channel1, channel3, useradmin
+
+Working with document id: 1001
+Inserted New user_xattr_key:
+  channelXattr with this value: channel1, channel3, useradmin
+
+Completed Changes
+----
+
+====
+
+
+[#ex-cbs-metadata]
+.Metadata on Couchbase Server document
+====
+
+include::{examples-lib}[tags="sdk-add-xattr-xattrs"]
+
+====
+
+For more on Couchbase Server metadata and extended attributes -- see Couchbase Server topics:  {server-data--xref-metadata} | {server-data-xattr-fundamentals--xref}
+
+// https://docs.couchbase.com/server/current/learn/data/data.html#metadata
+// https://docs.couchbase.com/server/6.5/learn/data/extended-attributes-fundamentals.html
+
+// Before using extended attributes in Couchbase Server buckets you need to check that your bucket's capabilities allow there use -- see: Couchbase Server topic: using https://docs.couchbase.com/sdk-api/couchbase-net-client/html/T_Couchbase_Core_Configuration_Server_BucketCapabilities.htm
+
+
+[#lbl-using]
+=== Using
+
+The designated XATTR is exposed to the {sync-function--xref} as an additional argument `meta.xattrs.<xattr name>`
+
+[#ex-syncfunc-args]
+.Sync Function Arguments
+====
+
+[source, javascript]
+----
+include::{examples-code-js}[tags="sync-function-using-xattr"]
+----
+
+include::{examples-code-js}[tags="sync-function-using-xattr-notation"]
+
+====
+
+See: {sync-function--xref} topic for more information.
+
+
+
+
+
+
+include::partial$block-related-content-sync.adoc[]
+
+// END -- PAGE -- access-control-model.adoc

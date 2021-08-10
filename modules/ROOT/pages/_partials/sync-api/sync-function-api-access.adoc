@@ -1,0 +1,62 @@
+// BEGIN -- Inclusion-- sync-function.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/_partials/sync-api/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+// END PAGE DEFINITION
+
+Function:: access(username, channelname)
+
+== Purpose
+
+Use the `access()` function to grant a user access to a channel.
+
+
+== Arguments
+
+include::partial$sync-api/syncargs.adoc[tags=args;args-user;args-channel]
+
+
+NOTE: As a convenience, the resolved value of either argument may be `null` or `undefined`, in which case nothing happens.
+
+
+== Context
+
+You can invoke this function multiple times from within your Sync Function.
+But note that, invoking it multiple times to grant the same user access to the same channel, will result in negative performance implications.
+
+TIP: Prefix the `username` argument value with `role:` to apply this function to a role rather than a user.
+This grants access to the specified channel(s) for all users assigned that role.
+
+The effects of all access calls by all active documents are effectively combined in a union, so if _any_ document grants a user access to a channel, that user has access to the channel.
+
+You can use the _all channels_ wildcard ('***') to grant the user access to all documents in all channels.
+
+
+== Use
+
+.access(username, channel)
+====
+This example shows some valid ways to call `access()`:
+
+[source,javascript]
+----
+access ("jchris", "mtv"); // <.>
+access ("jchris", ["mtv", "mtv2", "vh1"]); // <.>
+access (["snej", "jchris", "role:admin"], "vh1"); // <.>
+access (["snej", "jchris"], ["mtv", "mtv2", "vh1"]); // <.>
+access (null, "hbo");  // <.>
+access ("snej", null);
+----
+<.> Allow access of single channel to single user
+<.> Allow access of multiple channels to single user
+<.> Allow access of single channel to multiple users
+<.> Allow access of multiple channels to multiple users
+<.> The null arguments mean these are treated as no-ops
+====
+
+
+// END

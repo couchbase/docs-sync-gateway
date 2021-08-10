@@ -1,0 +1,57 @@
+// BEGIN -- Inclusion-- sync-function.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/_partials/sync-api/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+// END PAGE DEFINITION
+
+Function:: role(username, rolename)
+
+[#lbl-role]
+== Purpose
+
+Use the `role()` function to add a role to a user.
+This indirectly gives them access to any channels assigned to that role.
+
+NOTE: Roles, like users, have to be explicitly created by an administrator.
+
+
+== Arguments
+
+include::partial$sync-api/syncargs.adoc[tags=args;args-user;args-role]
+
+
+== Context
+
+This function affects the user's ability to revise documents, if the access function requires role membership to validate certain types of changes.
+Its use is similar to `access`.
+
+Nonexistent roles don't cause an error, but have no effect on the user's access privileges.
+
+TIP: You can create roles retrospectively.
+As soon as a role is created, any pre-existing references to it take effect.
+
+
+== Use
+
+.role(username, rolename)
+====
+[source,javascript]
+----
+role ("jchris", "role:admin"); <.>
+role ("jchris", ["role:portlandians", "role:portlandians-owners"]); <.>
+role (["snej", "jchris", "traun"], "role:mobile"); <.>
+role ("ed", null);  // <.>
+----
+<.> The role `admin` is assigned to the user
+<.> Both the named roles are assigned to the user
+<.> The role `mobile` is assigned to all the named users
+<.> No op
+
+
+====
+
+// END

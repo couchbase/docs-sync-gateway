@@ -1,0 +1,173 @@
+// BEGIN how-to -- HOW-TO WRITE ACCESS
+// Parameters -- use-topic-header -- to show the topic heading (optional)
+
+_Related Concepts_: {access-control-model--xref} |  {access-control-how-control-document-access--xref}
+
+// == Use Extended Attributes (XATTRS)
+
+:sgw: pass:q[_Sync Gateway_]
+:fn-3x0: footnote:fn-3x0[From release 3.0]
+:fnref-3x0: footnote:fn-3x0[]
+
+
+== Introduction
+
+Access grant information such as {channels--xref} and {roles--xref} can be derived or specified as a property within the document body.
+In this case, the document content itself is used to govern access and routing.
+
+Starting *v3.0*, you can use user XATTRs for specifying channels and roles.
+
+
+== Why use XATTRS
+
+XATTRs can be used to hold data used for document routing and access control
+When retrieved by the Sync Function, the data can be used to drive access grants.
+This approach has a few benefits:
+
+* It provide an added level of security, users can no longer identify the channels and users a document is available to by reading its contents, because the information is in metadata that is inaccessible to them
+* Separation of concerns.
+By separating access grant metadata from document contents, changes to access grants will not create a new document revision that is subsequently pushed to a client
+
+Sync Gateway exposes a single user-definable XATTR for this purpose. Learn how to configure it in <<lbl-config>> and how to use it in <<lbl-set>> and <<lbl-using>>.
+
+
+[#lbl-config]
+== Configuration
+
+Name the XATTR
+(see: {configuration-schema-database--xref-user-xattr-key}) to be used for channel routing by defining it using the Admin REST API's {rest-api-admin-database--xref} -- see: <<ex-config>>.
+
+The actual value of this XATTR can be anything that enables the Sync Function to make an appropriate access grant.
+Its data type can be string, array, object -- any valid JSON that meets the required use case.
+
+
+[#ex-config]
+.Define the User Extended Attribute Key
+====
+This example uses the Admin REST API to specify the required XATTR name as `channelXattr` on the database `hotels`.
+
+[{tabs}]
+=====
+CURL::
++
+--
+[source, json]
+----
+curl -X PUT 'http://localhost:4985/hotels/_config' \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "user_xattr_key": "channelXattr" // <.>
+    }
+}'
+
+
+----
+--
+
+HTTP::
++
+--
+
+[source, http]
+----
+PUT /hotels/_config HTTP/1.1
+Host: http://localhost:4985
+Accept: application/json
+Content-Type: application/json
+Content-Length: 999
+
+{
+  “user_xattr_key”: “channelXattr” // <.>
+}
+----
+--
+
+=====
+<.> Here _channelXattr_ is set as the name of the XATTR designated to hold channel routing information.
+====
+
+
+[#lbl-set]
+== Setting
+
+You can set and maintain the value of the XATTR using a Couchbase Server SDK API.
+You cannot set it using the Sync Gateway REST API.
+
+For an example of setting the value of the XATTR using the C# SDK, see <<ex-cbs-metadata-setting>>, this can be easily translated to any of the available SDK languages.
+See <<ex-cbs-metadata>> for an example of the metadata model.
+
+[#ex-cbs-metadata-setting]
+.Set XATTR using Couchbase Server SDK
+====
+
+[source, c#]
+----
+include::{examples-code-csharp}[tags="sdk-add-user-xattr-key"]
+----
+
+<.> This is required to make the `MutateInSpec` class available, providing access to sub-documents, of which metadata is a special class
+<.> This string's value is what we want this document's XATTR to be called
+<.> This array contains the channels we want to include as the XATTR value
+<.> Here we get all documents that we want to set the XATTR on (type = 'hotel' in this instance)
+<.> Check if the XATTR has been defined yet
+<.> Update the XATTR -- specify the item to update
+<.> Update the XATTR -- set the required value
+<.> Update the XATTR -- specify the item is an XATTR
+<.> Insert the XATTR -- specify the item to add (`channelXattr`)
+<.> Insert the XATTR -- set the required value using `channelXattrValue`
+<.> Insert the XATTR -- specify the item is an XATTR
+
+Running the code produces the following output:
++
+[source, bash]
+----
+Working with document id: 1000
+Updated Existing user_xattr_key:
+  channelXattr to this value: channel1, channel3, useradmin
+
+Working with document id: 1001
+Inserted New user_xattr_key:
+  channelXattr with this value: channel1, channel3, useradmin
+
+Completed Changes
+----
+
+====
+
+
+[#ex-cbs-metadata]
+.Metadata on Couchbase Server document
+====
+
+include::{examples-lib}[tags="sdk-add-xattr-xattrs"]
+
+For more on Couchbase Server metadata and extended attributes -- see Couchbase Server topics:  {server-data--xref-metadata} | {server-data-xattr-fundamentals--xref}
+
+====
+
+
+
+[#lbl-using]
+== Use XATTRs in a Sync Function
+
+The designated XATTR is exposed to the {sync-function--xref} as an additional argument `meta.xattrs.<xattr name>`
+
+[#ex-syncfunc-args]
+.Sync Function Arguments
+====
+
+[source, javascript]
+----
+include::{examples-code-js}[tags="sync-function-using-xattr"]
+----
+
+include::{examples-code-js}[tags="sync-function-using-xattr-notation"]
+
+====
+
+See: {sync-function--xref} topic for more information.
+
+
+
+// END how-to -- HOW-TO WRITE ACCESS

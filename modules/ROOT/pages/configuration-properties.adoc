@@ -1,0 +1,94 @@
+= File-based Configuration
+:page-aliases: refer/config-properties.adoc, config-properties.adoc
+:page-status: deprecated
+:page-content: reference
+:description: pass:q[Configuring _Sync Gateway_ to provide secure cloud-to-edge synchronization of enterprise data using the standard, static, configuration file.]
+:keywords:
+
+
+// BEGIN -- DO NOT EDIT
+include::partial$_std-hdr-sgw.adoc[]
+
+
+// :topic-group: configuration
+:param-topic-group: file-based-configuration
+:param-abstract!:
+// :param-related: {get-started-verify-install--xref} | {rest-api-admin--xref} | {rest-api--xref} | {rest-api-client-app--xref}
+include::partial$block-abstract.adoc[]
+
+// END -- DO NOT EDIT
+
+
+== Introduction
+
+This is Sync Gateway's long-established method of configuration.
+It uses a centralized Configuration Properties file to hold all configuration settings in JSON form -- see:<<lbl-schema,the schema>> for the file contents.
+
+include::partial$block-caveats.adoc[tags=disable-persistent-config]
+
+Many configuration settings can be changed using the {rest-api-admin--xref} but these are not persisted beyond a Sync Gateway restart.
+To make persistent changes you must edit the central Configuration Properties file.
+
+
+[#lbl-format]
+== File Format
+
+The Configuration Properties file defines sync gateway's runtime behavior.
+Its contents include, for example:
+
+* Details of the connected Couchbase databases
+* How replications are conducted
+* What security is to be used
+* What logging options are to be applied, and
+* Any customization of import filtering and synchronization.
+
+The majority of the configuration is achieved using standard JSON syntax -- see <<lbl-schema,the schema>> for more.
+
+[NOTE]
+--
+The `sync-gateway-config.json` file relies on the use of one _relaxed_ JSON feature; the use of back ticks  (`++`++`).
+Text between back ticks is treated as a string.
+It can span multiple lines and contain double-quotes.
+Those features make it ideal for the incorporation of inline JavaScript, which can be used to provision, for example, `sync` and `import_filter` functions.
+--
+
+
+[#lbl-running]
+== Running
+
+Use the following command to run Sync Gateway with a configuration file:
+
+[#ex-run]
+.Run Sync Gateway
+
+[source, bash]
+----
+
+sync_gateway -disable_persistent_configuration sync-gateway-config.json
+
+----
+
+See also -- {command-line-options--xref}
+
+
+[#lbl-schema]
+== Schema
+
+.Configuration Schema
+[#schema-ref]
+
+json_config_ui::{attachmentsdir}/configuration-properties-legacy.yaml[]
+
+
+[#lbl-example]
+== Example
+
+[source, json]
+----
+include::{example-cfg}[tags=icr-sample-sync-gateway-config, indent=0]
+----
+
+
+// BEGIN -- Page Footer
+include::partial$block-related-content-api.adoc[]
+// END -- Page Footer

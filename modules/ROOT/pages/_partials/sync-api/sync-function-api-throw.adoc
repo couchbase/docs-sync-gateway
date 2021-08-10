@@ -1,0 +1,59 @@
+// BEGIN -- Inclusion-- sync-function.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/_partials/sync-api/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+// END PAGE DEFINITION
+
+Function:: throw()
+
+
+== Purpose
+
+Use `throw()` to prevent a document from persisting or syncing to any other users.
+
+
+== Arguments
+
+No arguments
+
+
+== Context
+
+You enforce the validity of document structure by checking the necessary constraints and throwing an exception if they're not met.
+
+In validating a document, you'll often need to compare the new revision to the old one, to check for illegal changes in state.
+For example, some properties may be immutable after the document is created, or may be changeable only by certain users, or may only be allowed to change in certain ways.
+That's why the current document contents are given to the sync function, as the `oldDoc` parameter.
+
+We recommend that you not create invalid documents in the first place.
+As much as possible, your app logic and validation function should prevent invalid documents from being created locally.
+The server-side sync function validation should be seen as a fail-safe and a guard against malicious access.
+
+
+== Use
+
+
+[#ex-throw]
+.throw(forbidden:)
+====
+In this example the sync function disallows all writes to the database it is in.
+
+[source,javascript]
+----
+function(doc) {
+
+   throw({forbidden: "read only!"}) // <.>
+
+}
+----
+
+<.> The document update will be rejected with an HTTP 403 "Forbidden" error code, with the value of the `forbidden:` property being the HTTP status message. +
+This is the preferred way to reject an update.
+
+====
+
+// END

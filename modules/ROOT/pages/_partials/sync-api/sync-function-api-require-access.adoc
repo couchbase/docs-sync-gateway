@@ -1,0 +1,52 @@
+// BEGIN -- Inclusion-- sync-function.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/_partials/sync-api/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+// END PAGE DEFINITION
+
+[#lbl-require-access]
+Function:: requireAccess(channels)
+
+
+== Purpose
+
+Use the `requireAccess()` function to reject document updates that are not made by the a user with access to at least one of the given channels, as shown in <<ex-requireaccess>>
+
+
+== Arguments
+
+include::partial$sync-api/syncargs.adoc[tags=args;args-channel]
+
+
+== Context
+The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
+
+Note that `requireAccess()` will only recognize grants made explicitly using a channel name (not by a wildcard).
+
+So, if a user was granted access using only the {sgw--xref}{channels--page}#lbl-all-channels[all channels wildcard]] (`+*+`), then `requireAccess('anychannelname')'` will fail because the user wasn't granted access to that channel (only to the `+*+` channel).
+
+
+== Use
+
+[#ex-requireaccess]
+.requireAccess(channels)
+====
+[source,javascript]
+----
+requireAccess("events"); // <.>
+
+if (oldDoc) {
+    requireAccess(oldDoc.channels); // <.>
+}
+----
+<.> Throw an exception unless the user has access to read the "events" channel:
+<.> Throw an exception unless the user can read one of the channels in the previous revision's `channels` property:
+====
+
+
+
+// END

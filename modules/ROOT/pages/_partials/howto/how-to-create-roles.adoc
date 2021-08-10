@@ -1,0 +1,86 @@
+// BEGIN how-to -- HOW-TO CREATE A ROLE
+// Parameters -- use-topic-header -- to show the topic heading (optional)
+ifdef::include-related[]
+
+_Related Concepts_: {roles--xref}
+
+endif::[]
+
+
+== Provisioning
+
+The creation of roles is optional.
+It depends on the use case whether there is a need to logically group users.
+
+You can create and-or manage roles using the following options
+
+* Admin REST API: +
+Roles are created via the Sync Gateway Admin REST API -- see: {rest-api-admin--xref}.
+
+* File-based Configuration Properties ( PRE 3.0) +
+Roles can be configured using the Sync Gateway Configuration Properties file -- see: {configuration-properties--​xref}.
++
+include::partial$block-caveats.adoc[tags=disable-pesisitent-config]
+
+*Note* To use this option in v3.x, you must use the `-disable_persistent_config` CLI option.
+
+*Note* that removing a role effectively revokes access to the channel that role is associated with and may mean users will lose access to required documents.
+
+
+[ex-crt-role]
+.How to Create a Role
+====
+
+[{tabs}]
+=====
+
+Admin REST API::
++
+--
+
+NOTE: This is the default recommended option starting 3.0..
+
+Create a new role using the {rest-api-admin-role-post--xref} endpoint.
+
+[source,bash]
+----
+$ curl -vX POST "http://localhost:4985/mydatabase/_roles/" -H
+"accept: application/json" -H "Content-Type: application/json" -d
+'{"name": "Edge1", "admin_channels": ["channel1", "channel3"]]}' // <.>
+----
+<.> Here we add the Edge1 role.
+
+--
+
+File-based Configuration Properties::
++
+--
+
+include::partial$bloc-caveats.adoc[tags=disable-persistent-cinfig]
+
+Create roles by hardcoding them in the {configuration-properties--xref}.
+This method is convenient for testing and to get started.
+It is recommended to use the *REST API* for production systems.
+
+[source,json]
+----
+{
+  "databases": {
+    "mydatabase": {
+      "roles": { // <.>
+        "Edge1": {"admin_channels": ["channel1", "channel3"]}, // <.>
+        "Edge2": {"admin_channels": ["channel2", "channel3"]},
+        "GUEST": {"disabled": true}
+      }
+    }
+  }
+}
+----
+<.> {configuration-properties--pfx}#databases-this_db-users[databases.$db.users]
+<.> Here we add the Edge1 role.
+--
+
+=====
+====
+
+// END how-to -- HOW-TO CREATE A ROLE

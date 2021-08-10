@@ -1,0 +1,48 @@
+// BEGIN -- Inclusion-- requireUser()
+// TARGET sync-function-api.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/_partials/sync-api/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+// END PAGE DEFINITION
+
+
+[#lbl-require-user]
+Function:: requireUser(username)
+
+
+== Purpose
+
+Use the `requireUser()` function to reject document updates that are not made by the specified user or users.
+
+== Arguments
+
+include::partial$sync-api/syncargs.adoc[tags=args;args-user]
+
+
+== Context
+The function signals rejection by throwing an exception, so the rest of the sync function will not be run.
+
+When validating a document, you should treat all properties of the `doc` parameter as _untrusted_. That is because it *is* the object that you're validating.
+This may sound obvious, but it can be easy to make mistakes, like calling `requireUser(doc.owners)` instead of `requireUser(oldDoc.owners)`.
+
+When using one document property to validate another, look up that property in `oldDoc`, not `doc`!
+
+
+== Use
+[#ex-requireuser]
+.requireUser(username)
+====
+[source,javascript]
+----
+requireUser("snej"); // <.>
+
+requireUser(["snej", "jchris", "tleyden"]); // <.>
+----
+<.> Throw an error if the user is not "snej":
+<.> Throw an error if user's name is not in the list `username`
+====
+

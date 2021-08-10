@@ -16,7 +16,7 @@ include::partial$_std-hdr-sgw.adoc[]
 // End -- declare page attributes
 
 
-:param-topic-group: static-configuration
+:param-topic-group: file-based-configuration
 :param-abstract!:
 :param-related!:
 // {configuration-overview--xref} |  {configuration-javascript-functions--xref}  |  {configuration-schema-bootstrap--xref}  |  {configuration-rest-api--xref}
@@ -84,7 +84,7 @@ So, the value is interpreted as `pa{double-dollar}word`.
 
 == Usage
 
-Insert the required environment variable references in a {configuration-schema-bootstrap--xref}, or in a {configuration-schema-static--xref} with `disable_persistent_config=true`.
+Insert the required environment variable references in a {configuration-schema-bootstrap--xref}, or in a {configuration-properties--xref} with `disable_persistent_config=true`.
 
 Sync Gateway will replace each variable occurrence immediately prior to the parsing of the configuration file at each startup.
 
@@ -92,8 +92,8 @@ The variables are immutable.
 This means changes to the values of the environment variables are not detected by Sync Gateway whilst it is running.
 Such changes only become effective after a restart of Sync Gateway.
 
-Any references to undefined variables are replaced by an empty string.
-This can result in an invalid configuration, which will cause the start-up to abandoned and an error reported.
+Any references to undefined variables found in the configuration will cause {sgw} to throw an error.
+This will prevent an invalid configuration being processed.
 
 
 == Variable Definition

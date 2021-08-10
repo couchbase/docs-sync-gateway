@@ -90,7 +90,7 @@ include::{example-restapi}[tag=icr-rep-retrieve-replications-resp-all-for-db]
 
 == Updating a Replication
 
-You can update an existing replication's definition, whether configured or initialized by Admin Rest API, by providing the details you want to change in an API call  (<<update-replication-definition>>).
+You can update an existing replication's definition, whether configured or initialized by Admin REST API, by providing the details you want to change in an API call  (<<update-replication-definition>>).
 Changes will only be made to those parameters provided in the call.
 
 If you change the remote URI it must be to a valid URI.
@@ -322,7 +322,7 @@ include::{example-restapi}[tag=icr-rep-reset-replications-resp]
 This is an *unsupported* configuration option. It must not be used in a production environment. Its ongoing availability is not guaranteed.
 --
 
-The configuration setting. `database.this_db.unsupported.sgr_tls_skip_verify`, can be used to skip the validation of TLS certificates, simplifying development and testing -- see: <<using-sgr-tls-skip-verify>> and the configuration item {configuration-schema-static--xref--databases-unsupp-sgr-tls-skip-verify}.
+The configuration setting. `database.this_db.unsupported.sgr_tls_skip_verify`, can be used to skip the validation of TLS certificates, simplifying development and testing -- see: <<using-sgr-tls-skip-verify>> and the configuration item {configuration-properties--xref--databases-unsupp-sgr-tls-skip-verify}.
 
 [#using-sgr-tls-skip-verify]
 .Using sgr_tls_skip_verify
@@ -351,3 +351,119 @@ The configuration setting. `database.this_db.unsupported.sgr_tls_skip_verify`, c
 }
 ----
 ====
+
+
+== Handling Channel Access Revocation
+
+Users may lose access to channels for many reasons, including:
+
+* The User loses direct access to channel
+* The User is removed from a role
+* A role the user belongs to is revoked access to channel
+
+By default, documents are *not* auto purged on the active sync gateway even if the user on the passive sync gateway loses channel access.
+// .Breaking Change at 3.0
+// [NOTE]
+// Whenever a user loses access to a channel (or channels) all document in the channel(s) are auto-purged from local Couchbase Lite databases.
+
+Note: that _users_  are cluster-specific; _userA_ in custer A is not the same entity as _userA_ in cluster B.
+
+If required, you can override this behavior using the configurable option (`enable_auto_purge-true`).
+
+NOTE: The behavior of the config flag is the *reverse* of what is done on Couchbase Lite.
+
+Using this option auto-purges documents on the active Sync Gateway that are no longer accessible, unless a document belongs to another of replicating user’s channels.
+This applies even if they are not actively replicating that channel.
+
+TIP: When `enable_auto_purge-true=true`, documents in revoked user channels are auto purged from Sync Gateway.
+
+This is consistent with {sgw-te}'s handling of document access revocation using the `purge-on-removal` option
+
+
+=== Access Reassignment
+
+Where a user loses access to a channel and is then reassigned access to a channel, any previously auto-purged documents still assigned to any of the user’s channels are automatically pulled down by the active Sync Gateway.
+
+NOTE: This will not impact active nodes that have turned off auto-purge behavior.
+Auto-purged documents removed from a user’s channels subsequent to the purge will not be synced again.
+
+If you want to control whether to sync previous auto purged versions of the document and do not want to pull down purged documents, you must remove the documents from all of the users channels to ensure they are not synced down again.
+
+
+=== Pull-only Replication
+The expected impact of the enablement of auto purge behavior when
+
+Scenario::
++
+--
+The replicating user of a pull-only replication is revoked channel access. +
+ISGR is configured to run as admin user on active peer
+
+In ISGR, by default,  access control policies are only enforced at remote cluster.
+The `_sync` function  on an active node is by default run in context of admin user and as such there is no enforcement of access policies on the active side.
+--
+
+[,cols="1,1,2", options="header"]
+|===
+
+2+|System State
+|Impact on Sync
+
+h|Active Sync Gateway (Local) (Running as admin user)
+h|Passive Sync Gateway (Remote)
+h|Expected behavior when enable_auto_purge is TRUE
+
+|N/A
+|User revoked access to channel
+|Previously synced documents are auto purged on local
+
+|===
+
+Scenario::
++
+--
+The replicating user of a pull-only replication is revoked channel access.
+
+ISGR is configured to run as a non-admin user on active peer.
+
+NOTE: Depends on availability of a new feature (3.0) wherein the active peer is also running as the replicating user.
+--
+
+[,cols="1a,1a,2a", options="header"]
+|===
+
+2+^|System State
+^|Impact on Sync
+
+h|Active Sync Gateway (Local) (Running as non-admin user `user1`)
+h|Passive Sync Gateway (Remote)
+h|Expected behavior when enable_auto_purge is TRUE
+
+|User1 revoked access to channel
+|User2 revoked access to channel
+|Previously synced documents for User2 are auto purged on local
+
+|User1 revoked access to channel
+
+Sync Function includes
+requireAccess
+(“channel”)
+|User2 still has access to channel
+|Config option has no impact.
+
+Previously synced documents for User2 remain on local
+
+Subsequent remote changes synced down are rejected by local
+
+|User still has access to channel
+|User revoked access to channel
+Sync Function access policy is a Noop
+|Previously synced documents are auto purged on local
+
+|===
+
+
+
+
+// From 3.0 the default action during a Sync Gateway Pull replication when a user loses access to a channel, is that all documents in the channel are auto-purged from local Couchbase Lite databases (in devices belonging to the user), *unless* the document belongs to any of user’s other channels.
+

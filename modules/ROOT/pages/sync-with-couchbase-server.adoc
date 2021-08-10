@@ -16,7 +16,7 @@ include::partial$block-standard-footnotes.adoc[tags=sgw1x5;cbs5x0]
 :fn-sgw: footnote:fn-sgw[Prior to Release 2.5, Server 5.0 all writes had to go through Sync Gateway, or had to use bucket shadowing to ensure that the security and replication metadata needed by mobile applications was preserved.]
 // :fn-sgw-ref: footnote:fn-sgw[]
 
-:enable-sba-config-item: {configuration-schema-static--pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access]
+:enable-sba-config-item: {configuration-properties--pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access]
 :xattr--page: xref:server:learn:data/extended-attributes-fundamentals.adoc[Extended Attributes (XATTR)]
 
 include::partial$block-caveats.adoc[tag="cbs6.0ke-xattrs"]
@@ -127,8 +127,8 @@ It must be `_true_` on all nodes participating in such a configuration.
 Configuration file references:
 
 * {enable-sba-config-item} to enable convergence for a given database.
-* {configuration-schema-static--pfx}#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
-* {configuration-schema-static--pfx}#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+* {configuration-properties--pfx}#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+* {configuration-properties--pfx}#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
 
 [#import-process]
 == Import Processing
@@ -145,9 +145,9 @@ The document is first run through the Sync Function to compute read security and
 This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
 * During import, `oldDoc` is `nil` when the Sync Function is executed.
 
-You can specify a filter function using the {configuration-schema-static--pfx}#databases-this_db_import_filter[import_filter] property, which will only import specific documents.
+You can specify a filter function using the {configuration-properties--pfx}#databases-this_db_import_filter[import_filter] property, which will only import specific documents.
 
-TIP: Use the {configuration-schema-static--pfx}#log[Import+] log key to troubleshoot import processing issues in the logs.
+TIP: Use the {configuration-properties--pfx}#log[Import+] log key to troubleshoot import processing issues in the logs.
 
 === Configuration
 
@@ -214,6 +214,15 @@ The following diagram shows an example architecture of two Sync Gateway nodes ha
 
 image:workload-isolation.png[]
 
+// # #### Workload Isolation
+
+// # Starting in version 2.7, if `enable_shared_bucket_access` is set to `true` and `import_docs` is set to `false`, the node will not be participating in the import process.
+
+// # This configuration is specifically recommended for workload isolation: to isolate import nodes from the client-facing nodes. Workload isolation is preferable in deployments with a large write throughput.
+
+// # Prior to Release 2.1 a value of 'continuous' was also allowed. This was deprecated at Release 2.1 and replaced with the boolean value True. There is no change to the behavior or functionality (that is, a value of 'continuous' was interpreted as True and had the same effect).
+
+
 === Reference
 
 The reference to the configuration properties can be found below.
@@ -221,9 +230,9 @@ The reference to the configuration properties can be found below.
 // * link:config-properties.html#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
 // * link:config-properties.html#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
 
-* {configuration-schema-static--pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
-* {configuration-schema-static--pfx}#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
-* {configuration-schema-static--pfx}#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+* {configuration-properties--pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
+* {configuration-properties--pfx}#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+* {configuration-properties--pfx}#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
 
 
 include::partial$block-related-content-api.adoc[]

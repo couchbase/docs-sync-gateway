@@ -1,0 +1,284 @@
+// BEGIN how-to -- CONTROL DOCUMENT ACCESS
+// Parameters -- use-topic-header -- to show the topic heading (optional)
+_Related{nbsp}Concepts_: {access-control-model--xref} | {channels--xref} | {users--xref} | {roles--xref}
+
+
+[#lbl-read-access]
+== Read Access Control
+
+Channels form the core of the Sync Gateway Access Control model.
+
+Every document in the database is assigned a list of channels it is distributed to.
+Every user (or role) is granted access to a list of channels -- as shown in <<ex-read-access>>.
+
+Channels can be user-defined or they can be system channels (like the public, all-docs, wildcard)
+
+This dual-purpose is reflected in the way you use channels:
+
+* By granting a user (or role) access to a channel, you are imposing access control. Users can only access documents that are channels that they have been granted access to.
+
+* By assigning a document to a channel you are imposing document routing and data segregation
+
+You grant roles and-or users access to channels using:
+
+* Admin REST API +
+ Using admin_channels property using the admin REST API endpoint -- see {rest-api-admin-user-put--xref}
+* Dynamically via Sync Function  +
+ Programmatically within the sync function using the exposed helper function access() — see {sync-function-api--xref}
+* Configuration File (pre 3.0) +
+Using the appropriate `admin_channels` property in the {configuration-properties--xref}. +
+*Note:* This option is disabled by default in 3.0. To use it in 3.0, you must set the `disable_persistent_config` flag to `true`
+
+[#ex-read-access]
+.Allow Access
+====
+[{tabs}]
+=====
+
+Admin REST API::
++
+--
+
+Add a channel to an existing user by sending a PUT request to the Admin REST API `_role` endpoint ({rest-api-admin-role-put--xref} ).
+
+Specify the roles to be assigned in the `admin_channels` array.
+
+[source,bash]
+----
+$ curl -vX PUT "http://localhost:4985/mydatabase/_user/{user}" -H //<.>
+"accept: application/json" -H "Content-Type: application/json" -d
+'{ "admin_channels": ["Channel1","Channel3]}' // <.>
+----
+
+<.> {user} is the user name to be updated, e.g. "Edge1User"
+<.> Here we add _Channel1_ and _Channel3_ to the user
+
+--
+
+Sync Function::
++
+--
+
+You can also use the Sync Function's {sync-function-api-access-cmd--xref} function to allow channel access to roles and-or users programmatically.
+
+In the case where channel assignment is done dynamically via the sync function, the channel(s) to which user/role is assigned is identified in two ways:
+
+* The user/role can be derived or specified as a property within the document body.
+In this case, the document content itself is used to govern access and routing
+
+* Starting 3.0, the role can be specified within a special user-defined xattr associated with the document -- see: {access-control-how-use-xattrs-for-access-grants--xref}.
+
+
+[{tabs}]
+======
+
+Version 3.0+::
++
+Here we are using a specific XATTR to determine which users need access to the document's contents -- for more on how to configure ths see {access-control-how-use-xattrs-for-access-grants--xref}.
++
+[source, javascript]
+----
+
+include::{examples-code-js}[tags="sync-function-using-xattr"]
+
+----
++
+
+include::{examples-code-js}[tags="sync-function-using-xattr-notation"]
+
+
+All Versions::
++
+Here we are using the document content (`type`) to determine which users need access to the document's contents.
++
+[source, javascript]
+----
+
+function (doc, olddoc) {
+
+  // user logic
+
+  if (doc.type=="type1") {
+    access("Edge1User", "channel1") // <.>
+  } else if (doc.type="type2") {
+    access("role:Edge2", "channel2") // <.>
+  } else {
+    access("Edge1User", "Edge2User", "channel3")
+  }
+
+  // user logic
+}
+----
++
+<.> Here we add access to channel _channel1_ to the user _Edge1User_
+<.> The `access()` function can also operate on roles.
+If a user name string begins with `role:` then the remainder of the string is interpreted as a role name.
+*NOTE* There's no ambiguity here, because `:` is an illegal character in a user or role name.
+<.> Here we allow access to the channel _channel2_  for the role _Edge2_
+
+======
+
+--
+
+File-base Configuration Properties::
++
+--
+Add a channel to a user in the configuration file.
+This method is convenient for testing and to get started.
+Use the *Admin REST API* for production systems.
+
+[source,json]
+----
+{
+  "databases": {
+    "mydatabase": {
+      "users": {
+        "GUEST": {"disabled": true},
+        "Edge1User": {"password": "pass", "admin_roles": ["Edge1"],
+              "admin_channels": ["Channel1","Channel3","RandomChannel"]} // <.>
+      },
+      "roles": {
+        "Edge1": {"admin_channels": ["channel1", "channel3"]},
+        "Edge2": {"admin_channels": ["Channel2","Channel3","SkyChannel"]} // <.>
+      }
+    }
+  }
+}
+----
+
+<.> Here we have added the channel _RandomChannel_ to the user _Edge1User_ {configuration-properties--pfx}#databases-this_db-users-this_user-admin_channels[databases.$db.users.$user.admin_channel]
+
+<.> Here we have added the channel _SkyChannel_ to the role _Edge2_ {configuration-properties--pfx}#databases-this_db-roles-this_role-admin_channels[databases.$db.users.$user.admin_channel]
+
+--
+
+=====
+
+====
+
+
+[#lbl-write-access]
+== Write Access Control
+
+Channels enforce read access control to the documents.
+Any user who has access to a document can update the document.
+
+Write access can be enforced at a document property level by implementing suitable logic within the Sync Function, using its helper functions to control the users allowed to make document updates and deletions -- as shown in <<ex-check-write-access>>.
+
+You can build user validation into your Sync Function.
+For example, you can require that the user making the change has a specific name, role or channel access -- as shown in <<ex-helper-functions>>.
+Do this using any combination of: {sync-function-api-require-user-cmd--xref},
+{sync-function-api-require-role-cmd--xref} or {sync-function-api-require-access-cmd--xref}.
+
+Note that when sending a change to Sync Gateway through the Admin REST API, the Sync Function executes with admin privileges.
+Calls to `requireUser`, `requireAccess` and `requireRole` will be no-ops, and will always appear successful.
+
+
+[#ex-check-write-access]
+.Check Write Access
+====
+This example shows Sync Function logic that allows only the document owner to make changes.
+It does so by requiring that the current user is the one recorded as an owner on the old document.
+
+[{tabs}]
+=====
+
+Version 3.0+::
++
+--
+This example makes use of channel data stored in XATTRS, an option introduced in 3.0 -- see {access-control-how-use-xattrs-for-access-grants--xref} for more on this topic.
+
+[source, javascript]
+----
+function (doc, oldDoc, meta) { // <.>
+  if (oldDoc) {
+    requireUser(oldDoc.owner); // <.>
+  }
+  if (meta.xattr.channelxattr) {
+    requireAccess(meta.xattr.channelxattr); // <.>
+  } else
+    {
+      throw("No channel access granted") // <.>
+    }
+}
+----
+<.> Note the additional, optional, `meta` argument, which gives acsess to XATTR objects.
+<.> If the user making the change is not an owner of the pre-change document, an exception is thrown and the update is rejected with an error.
+<.> Here we check the designated XATTR for the document channel(s) and require the user making the change to have access to on or more of the channels.
+<.> If the XATTR is not set we throw an exception.
+
+--
+
+All Versions::
++
+--
+This example makes use of document contents to store channel data.
+
+[source, javascript]
+----
+function (doc, oldDoc) {
+  if (oldDoc) {
+    requireUser(oldDoc.owner); // <.>
+  }
+  if (olddoc.channels) {
+    requireAccess(olddoc.channels); // <.>
+  } else
+    {
+      throw("No channel access defined or granted") // <.>
+    }
+}
+----
+
+<.> If the user making the change is not an owner of the pre-change document, an exception is thrown and the update is rejected with an error.
+<.> Here we check the designated document content for the document channel(s) and require the user making the change to have access to on or more of the channels.
+<.> If the `olddoc.channels` value is not set we throw an exception.
+
+--
+
+=====
+====
+
+
+[#ex-helper-functions]
+.Helper Function examples
+====
+
+Here we show various ways to use some of the Sync Function API's helper functions:
+
+[source, javascript]
+----
+requireUser("snej") // <.>
+
+requireUser(["snej", "jchris", "tleyden"]) // <.>
+
+requireRole("admin") // <.>
+
+requireRole(["admin", "old-timer"]) // <.>
+
+requireAccess("events")  // <.>
+
+requireAccess(["events", "messages"]) // <.>
+----
+
+<.> throw an error if username is not "snej"
+
+<.> throw if username is not in the list
+
+<.> throw an error unless the user has the "admin" role
+
+<.> throw an error unless the user has one of those roles
+
+<.> throw an error unless the user has access to read the "events" channel
+
+<.> throw an error unless the can read one of these channels
+
+====
+
+
+
+
+
+
+
+
+// END how-to -- ALLOW ACCESS

@@ -1,0 +1,102 @@
+// BEGIN how-to -- HOW-TO CREATE A USER
+// Parameters -- use-topic-header -- to show the topic heading (optional)
+ifdef::include-related[]
+
+_Related Concepts_: {users--xref}
+
+endif::[]
+
+
+== Process
+A user must be created on Sync Gateway before it can be granted access to documents.
+
+You create and-or manage users using the following options -- as shown in <<ex-create-users>>:
+
+* Admin REST API +
+Users are created via the Sync Gateway {rest-api-admin--xref}.
+* OIDC +
+Configure _OIDC_ authentication to auto-register a user following successful validation of an ID Token -- {authentication-users--xref}.
+* Static Configuration (Pre 3.0): +
+Users can be statically configured within the Sync Gateway Configuration File -- see: {configuration-properties--xref}. +
+*Note*, to use this option in version 3.0+x users must run Sync Gateway with the `disable_persistent_config` flag set to `true`.
+
+[#ex-create-users]
+.How to Create Users
+====
+
+[{tabs}]
+=====
+
+Admin REST API::
++
+--
+NOTE: This is the default recommended option starting 3.0.
+
+Create a new user by sending a POST request to the Admin Rest Api `_user` endpoint ({rest-api-admin-user-post--xref}).
+Update existing users by sending a PUT instead; in this case include the user name at the end of the url.
+
+The user credentials (**username**/**password**) are passed in the request body.
+
+[source,bash]
+----
+$ curl -vX POST "http://localhost:4985/mydatabase/_user/" -H
+"accept: application/json" -H "Content-Type: application/json" -d
+'{"name": "Edge1User", "password": "pass"}' // <.>
+
+$ curl -vX PUT "http://localhost:4985/mydatabase/_user/Edge1User" -H
+"accept: application/json" -H "Content-Type: application/json" -d
+'{"name": "Edge1User", "admin_channels": ["RandomChannel"]}' // <.>
+----
+
+<.> Add new user "Edge1User", no `admin_channels` or `role` is specified here.
+<.> Update existing user "Edge1User" and add `admin_channels` data
+
+--
+
+OIDC::
++
+--
+
+include::{examples-lib}[tags="oidc-rest-api-simple"]
+
+<.> Use `register=true` to automatically create a Sync Gateway user on successful completion of validation.
+
+--
+
+File-based Configuration Properties File::
++
+--
+
+include::partial$block-caveats.adoc[tags=disable-persistent-config]
+
+
+Create users by hardcoding their credentials in the Configuration Properties file.
+This method is convenient for testing and to get started. +
+Use the Admin REST API for production system changes.
+
+
+[source,json]
+----
+{
+  "databases": {
+    "mydatabase": {
+      "users": { // <.>
+        "GUEST": {"disabled": true},
+        "Edge1User": {"password": "pass", // <.>
+                      "admin_channels": ["RandomChannel"]},
+      }
+    }
+  }
+}
+----
+
+<.> {configuration-properties--pfx}#databases-this_db-users[databases.$db.users]
+
+<.> Here we add the Edge1 user
+
+--
+=====
+
+====
+
+// END how-to -- HOW-TO CREATE A USER

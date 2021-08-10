@@ -154,30 +154,27 @@ In the algorithm dropdown, make sure to select `RS256` as the signing algorithm 
 
 Since Open ID tokens are typically large, the usual approach is to use the Open ID token to obtain a Sync Gateway session id (using the xref:rest-api.adoc#/session/post\__db___session[POST /db/_session] endpoint), and then use the returned session id for subsequent authentication requests.
 
+====
+
+REST API::
++
+--
+include::{examples-lib}[tags="oidc-rest-api-simple"]
+--
+
+Configuration File::
++
+--
+
 Here is a sample Sync Gateway config file, configured to use the Implicit Flow.
 
-[source,javascript]
-----
-{
-  "interface":":4984",
-  "log":["*"],
-  "databases": {
-    "default": {
-      "server": "http://localhost:8091",
-      "bucket": "default",
-      "oidc": {
-        "providers": {
-          "google_implicit": {
-            "issuer":"https://accounts.google.com",
-            "client_id":"yourclientid-uso.apps.googleusercontent.com",
-            "register":true
-          },
-        },
-      }
-    }
-  }
-}
-----
+include::{examples-lib}[tags="oidc-config-simple"]
+
+--
+
+<.> Use `register` to auto-register a Sync Gateway user on successful completion of the validation
+
+====
 
 ==== Client Authentication
 

@@ -1,0 +1,98 @@
+// BEGIN -- Inclusion-- sync-function.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/_partials/sync-api/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+// END PAGE DEFINITION
+
+Function:: expiry(value)
+
+
+== Purpose
+
+Use `expiry(value)` to set the expiry value (TTL) on the document.
+
+== Arguments
+
+include::partial$sync-api/syncargs.adoc[tags=args;args-expiry]
+
+
+// [args,cols="^1m,4", options="header"]
+// |===
+
+// |Arguments
+// |Description
+
+// |value
+// a|The value can be specified in two ways:
+
+// * As an *ISO-8601 format:* date string -- or example the 6th of July 2016 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`;
+// * As a numeric Couchbase Server expiry value ^1^
+
+// |===
+
+// ^1^ Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server).
+
+
+== Context
+
+Under the hood, the expiration time is set and managed on the Couchbase Server document (TTL is not supported for databases in walrus mode).
+
+=== Impact
+
+The impact on the resulting document when the expiry value is reached depends on the setting of shared-bucket-access:
+
+Enabled::
++
+--
+The *active* revision of the document is tombstoned.
+
+If there is another non-tombstoned revision for this document (i.e a conflict) it will become the active revision.
+
+The tombstoned revision will be purged when the server's metadata purge interval is reached.
+--
+
+Disabled::
++
+--
+The document will be purged from the database.
+
+--
+
+As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication.
+
+This expiration time is not propagated when the document is replicated.
+
+The purge of the document does not cause it to be deleted on any other database.
+
+=== Inspect a Document Expiry Value
+You can retrieve a document's expiration time, as it is returned in the response of GET xref:{rest-api--page}##/document/get__db___doc_[+/\{db/\{doc}] use `show_exp=true` as the querystring.
+
+[source, bash]
+----
+curl -X GET "http://localhost:4985/ourdb/ourdoc?show_exp=true" -H "accept: application/json"
+----
+
+// include::partial$sync-api/sync-function-api-expiry.adoc[levelofset={ouroffset}]
+
+
+
+== Use
+
+.expiry(value)
+====
+[source,javascript]
+----
+
+expiry("2022-06-23T05:00:00+01:00") // <.>
+
+----
+
+<.> Sets the expiry date to 5am on the 23rd June 2022.
+
+====
+
+// END
