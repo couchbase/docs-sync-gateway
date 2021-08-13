@@ -47,17 +47,47 @@ properties:
         description: |+
           Absolute or relative path on the filesystem to the TLS certificate file to be used to connect to the Couchbase Server.
           Your relative path will be relative to the directory that contains the Sync Gateway executable.
-      cacertpath:
-        type: string
-        description: |+
-          Absolute or relative path on the filesystem to the root CA certificate to verify the certificate chain and hostname of the Couchbase Server cluster.
-          Required for X509 Authentication.
 
       keypath:
         type: string
         description: |+
           Absolute or relative path on the filesystem to the TLS private key file to be used to connect to the Couchbase Server.
-          Your relative path will be relative to the directory that contains the Sync Gateway executable.
+
+      ca_cert_path:
+        type: string
+        summary: Root CA cert path for TLS connection
+        description: |+
+          Absolute or relative path on the filesystem to the root CA certificate to verify the certificate chain and hostname of the Couchbase Server cluster.
+
+      server_tls_skip_verify:
+        type: boolean
+        description:
+          Defaults to `false`, which requires a valid CA Cert Path.
+
+          Set `true` to allow an empty server `CA Cert Path` without attempting to use system root pool.
+
+      x509_cert_path:
+        type: string
+        summary: Cert path (public key) for X.509 bucket auth
+        description: |+
+          Use x509_cert_path to define the absolute or relative path on the filesystem to the x509 certificate.
+
+          Relative paths are relative to the directory containing the Sync Gateway executable.
+
+      x509_key_path:
+        type: string
+        summary: Key path (private key) for X.509 bucket auth
+        description: |+
+          Absolute or relative path on the filesystem to the X509 key.
+
+          Relative paths are relative to the directory containing the Sync Gateway executable.
+
+      use_tls_server:
+        type: boolean
+        description:
+          Default to `true`, which forces the connection to Couchbase Server to use TLS.
+
+
   api:
     type: object
     description: |+
@@ -99,6 +129,11 @@ properties:
 
           By default the Metrics API requires Couchbase Server RBAC authentication.
           The user must provide credentials to an existing user with an appropriate Sync Gateway role.
+
+      enable_advanced_auth_dp:
+        type: boolean
+        description: |+
+          Whether to enable the DP permissions check feature of admin auth
 
       profile_interface:
         type: string
@@ -166,14 +201,38 @@ properties:
         type: object
         description: Group in which to specify any API HTTPS configuration properties
         properties:
-          allow_insecure_tls_connections:
-            type: boolean
-            default: false
-            description: |+
-              Secure TLS connections are used by default for all REST API dialogs.
+          # allow_insecure_tls_connections:
+          #   type: boolean
+          #   default: false
+          #   description: |+
+          #     Secure TLS connections are used by default for all REST API dialogs.
 
-              If necessary, for testing purposes, you can disable this by setting this property to ```true```.
-              *Note* tha insecure connections should NOT be used in production deployments.
+          #     If necessary, for testing purposes, you can disable this by setting this property to ```true```.
+          #     *Note* tha insecure connections should NOT be used in production deployments.
+          tls_minimum_version:
+            type: string
+            default: 'tlsv1.3'
+            summary: The minimum allowable TLS version for the REST APIs
+            description: |+
+              Enforce a minimum TLS version to be used in replications with Couchbase Lite.
+
+              Possible values are:
+
+              - "tlsv1"
+              - "tlsv1.1"
+              - "tlsv1.2"
+              - "tlsv1.3"
+
+          tls_cert_path:
+            type: string
+            summary: The TLS certificate file to use for the REST APIs
+            description: |+
+              Absolute or relative path on the filesystem to the TLS certificate file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
+          tls_key_path:
+            type: string
+            summary: The TLS key file to use for the REST APIs
+            description: |+
+              Absolute or relative path on the filesystem to the TLS private key file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
 
       idle_timeout:
         type: integer
@@ -209,31 +268,35 @@ properties:
         description: |+
           Maximum duration in seconds before timing out the write of an HTTP(S) response. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
 
-      tls:
-        type: object
-        description: |+
-          Holding object for TLS settings
-        properties:
-          cert:
-            type: string
-            description: |+
-              Absolute or relative path on the filesystem to the TLS certificate file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
-          key:
-            type: string
-            description: |+
-              Absolute or relative path on the filesystem to the TLS private key file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
-          minimum_version:
-            type: string
-            default: 'tlsv1'
-            description: |+
-              Enforce a minimum TLS version to be used in replications with Couchbase Lite.
+      # tls:
+      #   type: object
+      #   description: |+
+      #     Holding object for TLS settings
+      #   properties:
+          # tls_minimum_version:
+          #   type: string
+          #   default: 'tlsv1.3'
+          #   summary: The minimum allowable TLS version for the REST APIs
+          #   description: |+
+          #     Enforce a minimum TLS version to be used in replications with Couchbase Lite.
 
-              Possible values are:
+          #     Possible values are:
 
-              - "tlsv1"
-              - "tlsv1.1"
-              - "tlsv1.2"
+          #     - "tlsv1"
+          #     - "tlsv1.1"
+          #     - "tlsv1.2"
+          #     - "tlsv1.3"
 
+          # tls_cert_path:
+          #   type: string
+          #   summary: The TLS certificate file to use for the REST APIs
+          #   description: |+
+          #     Absolute or relative path on the filesystem to the TLS certificate file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
+          # tls_key_path:
+          #   type: string
+          #   summary: The TLS key file to use for the REST APIs
+          #   description: |+
+          #     Absolute or relative path on the filesystem to the TLS private key file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
   logging:
     type: object
     description: |+
