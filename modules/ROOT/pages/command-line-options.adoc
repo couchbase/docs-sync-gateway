@@ -15,14 +15,14 @@ include::partial$block-abstract.adoc[]
 
 == Overview
 
-You can configure some Sync Gateway features by specifying command-line options when you start it.
+You can configure some {sgw-te} features by specifying command-line options when you start it.
 
 For more comprehensive configuration options see: {configuration-overview--xref}
 
 
 == Configuration
 
-Configuration determines the runtime behavior of Sync Gateway, including server configuration and the database or set of databases with which a Sync Gateway instance can interact.
+Configuration determines the runtime behavior of {sgw-t}, including server configuration and the database or set of databases with which a {sgw} instance can interact.
 
 NOTE: Command-line options can only specify a sub-set of the available configuration properties, and cannot be used to configure multiple databases.
 
@@ -78,34 +78,384 @@ $ ./sync_gateway -help <.>
 
 
 == Available Options
-The following command-line options can be used when starting Sync Gateway  see <<cmd-opts>>
+
+The command-line options that can be used when starting Sync Gateway are outlined in <<cmd-opts-starter-cfg>> and <<cmd-opts-other>>.
 
 // .*Deprecation Notice*
 // WARNING: The `-bucket` command line option is deprecated at Release 2.7 and will be removed following release 2.8. +
 // Use the JSON configuration file option `bucket` -- see {configuration-properties--xref--databases-bucket}.
 
-[#cmd-opts]
-.Available command-line options
-[#cmd-opts,cols="^3m,3,4a"]
+.Configuration-related CLI flags
+[#cmd-opts-starter-cfg,cols="^2m,^1,5a", options="header"]
 |===
 |Option |Default |Description
 
-|‑adminInterface
-|127.0.0.1:4985
-|Port or TCP network address (IP address and the port) that the Admin REST API listens on.
+| -bootstrap.group_id
+|
+| The config group ID to use when discovering databases. Allows for non-homogenous configuration
 
-// |-bucket
-// |sync_gateway
-// |*_Deprecated_* Name of the Couchbase Server bucket. +
-// Instead use {configuration-properties--xref--databases-bucket}
+| -bootstrap.config_update_frequency
+|
+| How often to poll Couchbase Server for new config changes
 
-|-cacertpath
+| -bootstrap.server
+|
+| Couchbase Server connection string/URL
+
+| -bootstrap.username
+|
+| Username for authenticating to server
+
+| -bootstrap.password
+|
+| Password for authenticating to server
+
+|-bootstrap.ca_cert_path
 |none
 |Root CA certificate path
 
-|-certpath
+|-bootstrap.x509_cert_path
 |none
 |Client certificate path
+
+|-bootstrap.x509_key_path
+|none
+|Client private key path
+
+|-bootstrap.server_tls_skip_verify
+|false
+|Set to ignore certificate validation -- development and testing mode *only*
+
+|-bootstrap.use_tls_server
+|true
+| Forces the connection to Couchbase Server to use TLS. +
+Set to false to allow non-secure protocols for communication with Couchbase Server -- development and testing mode *only*
+
+// | bootstrap.x509_cert_path
+// | Cert path (public key) for X.509 bucket auth
+
+// | bootstrap.x509_key_path
+// | Key path (private key) for X.509 bucket auth
+
+// | bootstrap.use_tls_server
+// | Forces the connection to Couchbase Server to use TLS
+
+| api.public_interface
+| :4984
+| Network interface to bind public API to
+
+| api.admin_interface
+| :4985
+| Network interface to bind admin API to
+
+| api.metrics_interface
+| :4986
+| Network interface to bind metrics API to
+
+| api.profile_interface
+|
+| Network interface to bind profiling API to
+
+| api.admin_interface_authentication
+|
+| Whether the admin API requires authentication
+
+| api.metrics_interface_authentication
+|
+| Whether the metrics API requires authentication
+
+| api.enable_admin_authentication_permissions_check
+|
+| Whether to enable the DP permissions check feature of admin auth
+
+| api.server_read_timeout
+|
+| Maximum duration.Second before timing out read of the HTTP(S) request
+
+| api.server_write_timeout
+|
+| Maximum duration.Second before timing out write of the HTTP(S) response
+
+| api.read_header_timeout
+|
+| The amount of time allowed to read request headers
+
+| api.idle_timeout
+|
+| The maximum amount of time to wait for the next request when keep-alives are enabled
+
+| api.pretty
+|
+| Pretty-print JSON responses
+
+| api.max_connections
+|
+| Max number of incoming HTTP connections to accept
+
+| api.compress_responses
+|
+| If false, disables compression of HTTP responses
+
+| api.hide_product_version
+|
+| Whether product versions removed from Server headers and REST API responses
+
+| api.https.tls_minimum_version
+|
+| The minimum allowable TLS version for the REST APIs
+
+| api.https.tls_cert_path
+|
+| The TLS certificate filepath to use for the REST APIs
+
+| api.https.tls_key_path
+|
+| The TLS key filepath to use for the REST APIs
+
+| api.cors.origin
+|
+| List of comma separated allowed origins. Use '*' to allow access from everywhere
+
+| api.cors.login_origin
+|
+| List of comma separated allowed login origins
+
+| api.cors.headers
+|
+| List of comma separated allowed headers
+
+| api.cors.max_age
+|
+| Maximum age of the CORS Options request
+
+| logging.log_file_path
+|
+| Absolute or relative path on the filesystem to the log file directory. A relative path is from the directory that contains the Sync Gateway executable file
+
+| logging.redaction_level
+|
+| Redaction level to apply to log output. Options: none, partial, full, unset
+
+| logging.console.enabled
+|
+|
+
+| logging.console.rotation.max_size
+|
+|
+
+| logging.console.rotation.max_age
+|
+|
+
+| logging.console.rotation.localtime
+|
+|
+
+| logging.console.rotation.rotated_logs_size_limit
+|
+|
+
+| logging.console.collation_buffer_size
+|
+|
+
+| logging.console.log_level
+|
+| Options: none, error, warn, info, debug, trace
+
+| logging.console.log_keys
+| HTTP
+| A comma-separated list of log keywords to be enabled. +
+The log keyword `HTTP` is enabled by default, which means that HTTP requests and error responses are always logged. +
+Omitting `HTTP` from your list does not disable HTTP logging. You can disable HTTP logging using the Admin API.
+
+| logging.console.color_enabled
+|
+|
+
+| logging.console.file_output
+|
+| Can be used to override the default stderr output, and write to the file specified inst
+
+| logging.error.enabled
+|
+|
+
+| logging.error.rotation.max_size
+|
+|
+
+| logging.error.rotation.max_age
+|
+|
+
+| logging.error.rotation.localtime
+|
+|
+
+| logging.error.rotation.rotated_logs_size_limit
+|
+|
+
+| logging.error.collation_buffer_size
+|
+|
+
+| logging.warn.enabled
+|
+|
+
+| logging.warn.rotation.max_size
+|
+|
+
+| logging.warn.rotation.max_age
+|
+|
+
+| logging.warn.rotation.localtime
+|
+|
+
+| logging.warn.rotation.rotated_logs_size_limit
+|
+|
+
+| logging.warn.collation_buffer_size
+|
+|
+
+| logging.info.enabled
+|
+|
+
+| logging.info.rotation.max_size
+|
+|
+
+| logging.info.rotation.max_age
+|
+|
+
+| logging.info.rotation.localtime
+|
+|
+
+| logging.info.rotation.rotated_logs_size_limit
+|
+|
+
+| logging.info.collation_buffer_size
+|
+|
+
+| logging.debug.enabled
+|
+|
+
+| logging.debug.rotation.max_size
+|
+|
+
+| logging.debug.rotation.max_age
+|
+|
+
+| logging.debug.rotation.localtime
+|
+|
+
+| logging.debug.rotation.rotated_logs_size_limit
+|
+|
+
+| logging.debug.collation_buffer_size
+|
+|
+
+| logging.trace.enabled
+|
+|
+
+| logging.trace.rotation.max_size
+|
+|
+
+| logging.trace.rotation.max_age
+|
+|
+
+| logging.trace.rotation.localtime
+|
+|
+
+| logging.trace.rotation.rotated_logs_size_limit
+|
+|
+
+| logging.trace.collation_buffer_size
+|
+|
+
+| logging.stats.enabled
+|
+|
+
+| logging.stats.rotation.max_size
+|
+|
+
+| logging.stats.rotation.max_age
+|
+|
+
+| logging.stats.rotation.localtime
+|
+|
+
+| logging.stats.rotation.rotated_logs_size_limit
+|
+|
+
+| logging.stats.collation_buffer_size
+|
+|
+
+| auth.bcrypt_cost
+|
+| Most to use for bcrypt password hashes
+
+| replicator.max_heartbeat
+|
+| Max heartbeat value for _changes request
+
+| replicator.blip_compression
+|
+| LIP data compression level (0-9)
+
+| unsupported.stats_log_frequency
+|
+| How often should stats be written to stats logs
+
+| unsupported.use_stdlib_json
+|
+| Bypass the jsoniter package and use Go's stdlib instead
+
+| unsupported.http2.enabled
+|
+| Whether HTTP2 support is enabled
+
+| max_file_descriptors
+|
+| Max number of open file descriptors (RLIMIT_NOFILE)
+
+|===
+
+.Other CLI flags
+[#cmd-opts-other,cols="^2m,^1,5a", options="header"]
+|===
+|Option |Default |Description
 
 |-configServer
 |none
@@ -132,24 +482,6 @@ This option is generally used in service scripts.
 |none
 |Lists the available options and exits.
 
-|-interface
-|:4984
-|Port or TCP network address (IP address and the port) that the Public REST API listens on.
-
-|-keypath
-|none
-|Client certificate key path
-
-|-log
-|HTTP
-|A comma-separated list of log keywords to be enabled. +
-The log keyword `HTTP` is enabled by default, which means that HTTP requests and error responses are always logged. +
-Omitting `HTTP` from your list does not disable HTTP logging. You can disable HTTP logging using the Admin API.
-
-|-logFilePath
-|none
-|Path to log files.
-
 |-pool
 |default
 |Name of the Couchbase Server pool in which to find buckets.
@@ -170,6 +502,7 @@ m|DefaultServer
 |-verbose
 |Non-verbose logging
 |Logs more information about requests.
+
 |===
 
 
