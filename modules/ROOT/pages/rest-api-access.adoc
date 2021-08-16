@@ -1,4 +1,4 @@
-= REST API Access
+= Secure API Access
 :page-aliases: start/rest-api-access.adoc, start/get-started-access-rest-api.adoc, get-started-access-rest-api.adoc
 :page-layout: article
 :page-content: Reference
@@ -7,7 +7,7 @@
 include::partial$_std-hdr-sgw.adoc[]
 
 :param-abstract: Shows how to access Sync Gateway APIs
-:param-related: {rest-api--xref}  |  {rest-api-admin--xref}  |  {rest-api-metrics--xref}  |  {rest-api-client-app--xref}
+:param-related: {rest-api--xref}  |  {rest-api-admin--xref}  |  {rest-api-metrics--xref}
 :topic-group: REST API
 include::partial$block-abstract.adoc[]
 
@@ -15,48 +15,46 @@ include::partial$block-abstract.adoc[]
 
 == Overview
 
-Sync Gateway provides a number of different REST API endpoints targeted at specific user populations and-or functional areas, namely the:
+In addition to the {rest-api--xref}, Sync Gateway provides secure access to two REST API  targeted at specific user populations and functional areas, namely the:
 
-* Public REST API
-* Metrics REST API
-* Admin REST API
+* {rest-api-admin--xref}
+* {rest-api-metrics--xref}
 
-Each REST API is accessed through a different, user-specifiable, TCP port.
-This makes it easy to expose the Public REST API and Metrics REST API (if activated) to endpoints while keeping the Admin REST API secure behind your firewall.
+Each REST API is accessed through a different, <<lbl-port-cfg, user-specifiable>>, TCP port.
+This makes it easy to control their physical exposure, perhaps keeping the Admin REST API secure behind your firewall.
 
-In addition, {Sgw} 3.0 brings an additional layer of security to the Metrics and Admin interfaces by requiring Couchbase Server Role Based Access Control (RBAC) authentication for all activities -- see <<Basic Authentication>>
+{sgw-s} 3.0 brings additional layers of security to the Metrics and Admin interfaces by requiring Couchbase Server Role-Based Access Control (RBAC) authentication for all <<lbl-secure-users,secure API users>>, and by {sgw--xref}{security--page}[enforcing TLS encryption].
 
-RBAC-based authentication enables secure remote administration of {sgw} clusters.
+RBAC user authentication enables secure remote administration of {sgw} clusters.
 This is critical in cloud native deployments.
 It provides secure and fine-grained access control.
 
 
-== Basic Authentication
+[#lbl-secure-users]
+== Secure API Users
 
-=== Users
-In order to submit Admin and-or Metrics REST API requests you will need to provide a valid set of Couchbase Server credentials for a pre-configured Couchbase Server user.
+In order to submit Admin or Metrics REST API requests you must create Couchbase Server users for that purpose, and to then provide a valid set of Couchbase Server credentials for the pre-configured Couchbase Server user on each API request.
 
-This requirement for Basic Authentication is switched on by default in {Sgw} 3.0.
+This authentication requirement is switched *on* by default.
 You can disable it using the bootstrap configuration setting `api.admin_interface_authentication` or the CLI flag `-admin_interface_authentication=false`.
 
-Configure the users and their credentials in Couchbase Server.
 [NOTE]
 Authentication against an external system such as LDAP via Couchbase Server can increase the risk of performance and or connection issues -- for more on this see the Couchbase Server documentation {server-security-auth-domains--xref-ldap}
 
 Authenticated users will have full access to admin API functionality, application data and configuration settings, depending upon the selected role.
-Available roles, are:
+Currently available roles include:
 
 * Full Admin
 * Read-Only Admin
 * Application Access
 
-However, {enterprise} users can exert finer-grained control over functionality -- see: <<lbl-fine-grain>>
+{enterprise} users can exert finer-grained control over functionality by using  <<lbl-rbac-roles>>
 
-For more on creating these users see: the Couchbase Server content here {server-security-auth-overview--xref-pass-creds}.
+For more on creating Couchbase Server users see the Couchbase Server content here {server-manage-security-users-and-roles--xref}.
 
 
-[#lbl-fine-grain]
-=== Fine-Grained Control
+[#lbl-rbac-roles]
+== Authentication Roles
 
 include::partial$block-caveats.adoc[tags=ee-only-content]
 
@@ -65,7 +63,7 @@ This allows for fine-grained control, perhaps limiting database creation and con
 
 The roles available for assignment vary by Couchbase Server release -- see <<tbl-ee-svr-sgw-roles>>
 
-.{Sgw-te} role availability
+.{sgw-te} role availability
 [#tbl-ee-svr-sgw-roles,cols="2,^1,^1,^1,^1",options="header"]
 |===
 
@@ -106,6 +104,7 @@ h|All
 |===
 
 
+[#lbl-port-cfg]
 == Port Configuration
 Change the ports used for any of the interface types by editing the bootstrap configuration -- as shown in <<ex-port-cfg>> -- and restarting the {sgw} node.
 The default ports are shown in <<network-ports>>.
@@ -175,8 +174,11 @@ You can also include a host name or numeric IP address before the colon to bind 
 As a useful special case, the IP address 127.0.0.1 binds to the loopback interface, making the port unreachable from any other host.
 This is the default setting for the admin interface.
 
-[#]
+
+[#lbl-port-req]
 .Network Port Requirements
 include::partial$sgw-network-port-reqs.adoc[]
+
+For more on configuration see {}
 
 include::partial$block-related-content-api.adoc[]
