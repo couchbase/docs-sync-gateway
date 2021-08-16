@@ -12,28 +12,42 @@ include::partial$_std-hdr-sgw.adoc[]
 include::partial$block-abstract.adoc[]
 
 :xref--pfx: {sgw--xref}:
+:tls-encryption--xref: {sgw--xref}{secure-sgw-access--page}[enforcing TLS encryption]
 
 == Overview
 
-In addition to the {rest-api--xref}, Sync Gateway provides secure access to two REST API  targeted at specific user populations and functional areas, namely the:
+Sync Gateway provides secure access to its REST APIs, namely the:
 
-* {rest-api-admin--xref}
-* {rest-api-metrics--xref}
+* {rest-api--xref}
+* {rest-api-admin--xref} -- for the administration and configuration of {sgw}
+* {rest-api-metrics--xref} -- for the monitoring of {sgw} performance metrics
 
 Each REST API is accessed through a different, <<lbl-port-cfg, user-specifiable>>, TCP port.
-This makes it easy to control their physical exposure, perhaps keeping the Admin REST API secure behind your firewall.
+This makes it easy to control their physical exposure, perhaps to keep the Admin REST API secure behind your firewall.
 
-{sgw-s} 3.0 brings additional layers of security to the Metrics and Admin interfaces by requiring Couchbase Server Role-Based Access Control (RBAC) authentication for all <<lbl-secure-users,secure API users>>, and by {sgw--xref}{security--page}[enforcing TLS encryption].
+{sgw-s} 3.0 brings additional layers of security by {tls-encryption--xref} for all API traffic and by requiring Couchbase Server Role-Based Access Control (RBAC) authentication for all <<lbl-secure-users,Admin and Metrics API users>>.
 
 RBAC user authentication enables secure remote administration of {sgw} clusters.
 This is critical in cloud native deployments.
 It provides secure and fine-grained access control.
 
 
-[#lbl-secure-users]
-== Secure API Users
+== Basic Authentication
 
-In order to submit Admin or Metrics REST API requests you must create Couchbase Server users for that purpose, and to then provide a valid set of Couchbase Server credentials for the pre-configured Couchbase Server user on each API request.
+In 3.0, TLS is enabled by default.
+It will use the use credentials provided with the request for authentication.
+That will be the {sgw} user on the Public REST API and the appropriated Couchbase Server RBAC-user credentials for Metrics and Admin APIs.
+
+The only exception to this is the use of the Public REST API's _GUEST_ mode; which is for use in testing and-or development environments only.
+
+For more on TLS, see: {tls-encryption--xref}.
+
+
+[#lbl-rest-users]
+== RBAC Users
+
+In order to submit Admin or Metrics REST API requests you must create specific Couchbase Server users for that purpose.
+You will then provide a valid set of Couchbase Server credentials for these RBAC-users in each API request.
 
 This authentication requirement is switched *on* by default.
 You can disable it using the bootstrap configuration setting `api.admin_interface_authentication` or the CLI flag `-admin_interface_authentication=false`.
@@ -54,7 +68,7 @@ For more on creating Couchbase Server users see the Couchbase Server content her
 
 
 [#lbl-rbac-roles]
-== Authentication Roles
+== RBAC Roles
 
 include::partial$block-caveats.adoc[tags=ee-only-content]
 
