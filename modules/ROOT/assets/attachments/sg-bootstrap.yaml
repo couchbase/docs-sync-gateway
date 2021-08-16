@@ -42,19 +42,22 @@ properties:
         description: |+
           The password to be used when accessing the server.
 
-      ca_cert_path:
+      x509_ca_cert_path:
         type: string
         summary: Root CA cert path for TLS connection
         description: |+
           Absolute or relative path on the filesystem to the root CA certificate to verify the certificate chain and hostname of the Couchbase Server cluster.
+
+          Works in conjunction with `server_tls_skip_verify` to control whether system root pool is used or not.
+          Set this empty and `server_tls_skip_verify` true to avoid using system root pool
 
       server_tls_skip_verify:
         type: boolean
         description:
           Defaults to `false`, which requires a valid CA Cert Path.
 
-          Set `true` to allow an empty server `CA Cert Path` without attempting to use system root pool.
-
+          Works in conjunction with `ca_cert_path` to control whether system root pool is used or not.
+          Set this true and `ca_cert_path` empty to avoid using system root pool
       x509_cert_path:
         type: string
         summary: Cert path (public key) for X.509 bucket auth
@@ -73,9 +76,14 @@ properties:
 
       use_tls_server:
         type: boolean
-        description:
+        description: |+
           Default to `true`, which forces the connection to Couchbase Server to use TLS.
 
+          Use `use_tls_server` to enforce use of a secure scheme (for example, `couchbases://`) to connect to Couchbase Server.
+
+          Set this `false` to use a non-secure scheme (for example, `couchbase://`).
+
+          If the scheme used does not match that indicated by the `use_tls_server` value (for example, `couchbases://` with `use_tls_server` = `false`) then Sync Gateway will error and refuse to start.
 
   api:
     type: object
@@ -216,12 +224,20 @@ properties:
             type: string
             summary: The TLS certificate file to use for the REST APIs
             description: |+
-              Absolute or relative path on the filesystem to the TLS certificate file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
+              Absolute or relative path on the filesystem to the TLS certificate file, if TLS is used to secure Sync Gateway connections
+
+              To use plaintext, omit both this property and the `tls_key_path` property.
+
+              A relative path is from the directory that contains the Sync Gateway executable file.
           tls_key_path:
             type: string
             summary: The TLS key file to use for the REST APIs
             description: |+
-              Absolute or relative path on the filesystem to the TLS private key file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
+              Absolute or relative path on the filesystem to the TLS private key files.
+
+              To use plaintext, omit both this property and the `tls_cert_path` property.
+
+              A relative path is from the directory that contains the Sync Gateway executable file.
 
       idle_timeout:
         type: integer
