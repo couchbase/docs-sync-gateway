@@ -186,15 +186,14 @@ Set the certificate and key path:
 
 |* Sync Gateway will error non-secure server schemes (`couchbase:` or `ws:`) unless the opt-out is triggered
 * If a `ca_cert_path` is specified then only certificates from that CA will be accepted.
-* If `ca_cert_path` is omitted:
-** If `bootstrap.server_skip_tls_verify=true` +
-
-** th
-then only certificates from a trusted CA will be accepted, unless the opt-out is triggered (when no validation is performed)
+* If `ca_cert_path` is omitted
+** If `server_skip_tls_verify=true` +
+Then {sgw} will skip validation of any server cert.
+This includes skipping validation of certs that are from a trusted/well known CA
+** If `server_skip_tls_verify=false` +
+then only certificates from a trusted/well known CA will be accepted
 
 |use_tls_server=false
-bootstrap.server_skip_tls_verify=true
-ca_cert_path omitted
 
 |===
 
@@ -214,61 +213,15 @@ You can set TLS validation using the  following settings:
 
 You can set TLS validation using the  following command line flags:
 
-* -bootstrap.x509_cert_path
 * -bootstrap.ca_cert_path
+* -bootstrap.x509_cert_path
 * -bootstrap.x509_key_path
 * -bootstrap.server_skip_tls_verify
 
 Sync Gateway will error non-secure server schemes (`couchbase:` or `ws:`) unless the opt-out option is true.
  
-You can no longer start {sgw} without providing at least one parameter; with no configuration file specified, you would need to provide a TLS Cert/Key, or set  {bootstrap-schema--xref--bootstrap-server-tls-skip-verify}.
+You can no longer start {sgw} without providing at least one parameter; with no configuration file specified, you would need to provide a TLS Cert/Key, or set {bootstrap-schema--xref--bootstrap-server-tls-skip-verify}.
 
-
-
-// [#,cols="1,1,1,1", options="header"]
-// |===
-
-// |Comunication|Config|Note 1|Note 2
-
-// | CBL <-> SGW
-// |New config option to allow http/ws  scheme connections to 4984/4985.
-// |SSLCert and SSLKey required unless the new config option is set or if used in ssl-skip-verify mode (used in dev/test)**
-// |This config option will be supported via SGW CLI  (OUT OF SCOPE FOR LITHIUM)
-
-// | SGW <->CBS
-// |New config option to disable TLS connection.
-// |TLS is determined based on the server scheme (couchbases vs. couchbase). Allow only couchbases/https by default and allow all schemes if flag is set.  For instance, SGW would throw an error if the scheme isn't couchbases, if the flag isn't set?
-// |This config option will be supported via SGW CLI
-
-// |Launching Sync Gateway as a service
-// |The default config file (serviceconfg.json) currently uses walrus mode which is removed in Lithium. 
-// |The default services config will be updated to use couchbases:// URL but the server_tls_skip_verify will be set to true.
-// // | See reference link below for list of new TLS config flags
-
-// |Launching Sync Gateway from command line
-// |If no configuration file is provided in the command line arguments then
-// the SSLCert and SSLKey WILL BE required therefore a config file will need to be provided unless the relevant flag is used to disable this behavior. The flag to disable can be provided via the CLI (OUT OF SCOPE FOR LITHIUM)
-// |TLS will also be used to communicate with Couchbase Server by default if no flag is explicitly set (i.e only couchbases:// scheme is allowed in url CLI parameter). The config flag to disable can be provided via the CLI
-// |This change means that Sync Gateway cannot be run without any arguments (ie. can't do "./sync_gateway").
-// Behavior when config file is provided follows the same guidelines as described earlier.
-
-// |Server Compatibility
-// |Server is specified as couchbases://, the server_tls_skip_verify flag must be enabled to connect to 'default CBS'
-// |server_tls_skip_verify  will be supported starting SGW 3.0.
-// |The flag will be documented as recommended for dev/test mode but we will support on prod if user wants to deploy CBS with self signed cert. 
-
-// |Client Compatibility
-// |Couchbase lite clients must be updated to use TLS when connecting to SGW in default mode.
-// // | ** To be able to use non-TLS, SGW must be configured to disable TLS (OUT OF SCOPE FOR LITHIUM)
-// |
-
-// |Distribution
-// |The config examples distributed in the sync gateway must be updated to use couchbases:// URL 
-// ||Reference : TLS Config flags https://docs.google.com/spreadsheets/d/1r-PTqP1OJriofcS2k8_aI8JjBszLgn7F_FUBNv17S5g/edit#gid=0
-
-//  
-
-// |===
 
 For information on creating and installing certificates, see {authentication-certs--xref}.
 
