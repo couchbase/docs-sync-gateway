@@ -39,54 +39,38 @@ It enables simpler, more agile configuration updates and encompasses:
 * *Secure REST API* -- by default the REST API requires TLS authentication. This can be disabled for test purposes only.
 
 
-.Configuration Relationship Diagram
-====
-PLACEHOLDER FOR DIAGRAM
 
-Show relationship/interaction between different configuration elements
-====
+== Workflow
 
-== Using Enhanced Configuration
+In the {sgw-te} {ec-l} ecosphere you provide a minimal bootstrap configuration to get Sync Gateway started, then add users, roles, database and replications using the REST API.
 
-In the {sgw-te} {ec-l} ecosphere you are required to:
+.Configuration Workflow
+image::persistent-config.png[,750]
 
-. Set up or disable Authentication of the REST API user(s)
-+
---
-For test purposes *only* you can disable TLS using the bootstrap configuration setting `api.https.allow_insecure_tls_connections`
---
+. Set up a user for the Admin REST API on Couchbase Server +
+Alternatively, you can disable authentication of REST API user(s) -- for test purposes *only*
 
-. Provide a bootstrap configuration file, in JSON format, which contains:
-+
---
+. Provide a {sgw--xref}{configuration-schema-bootstrap--page}[bootstrap configuration file], in JSON format, which defines the {sgw} node's run time behavior.
+This configuration is node-specific.
+Any changes require a {sgw} restart.
 
-** Mandatory bootstrap configuration settings, which define the {sgw} node's run time behavior
-** Optional static configuration setting, default values are used for setting not explicitly included
+. Add or amend configuration items in-flight using the Admin Rest API. +
+All changes are persisted across {sgw} restarts.
+Auto restarts will be initiated for ny change that requires one.
+You will need to configure and maintain:
 
+.. Databases +
+Use the Admin REST API endpoint {sgw--xref}{rest-api-admin-database--page}[Database Configuration] endpoints to add required databases.
 
-Bootstrap configuration is node-specific.
-Any changes require a {Sgw} restart.
---
+.. Database Security +
+Use the {sgw--xref}{rest-api-admin-db-security--page}[Database Security] endpoints to configure users and roles.
 
-. Configure required databases
-+
---
-Provide a database configuration for each database participating in replication.
-You will provision these using the REST API endpoint -- see {rest-api-admin-database--xref}.
-Updates are persisted across {Sgw} restarts.
---
-. Add access-control configuration
-+
---
-Here you will define the users and roles, using the REST API endpoint -- see{rest-api-admin-access-control--xref}.
-Changes persist across {Sgw} restarts.
---
-. Define your replications
-+
---
-An inter-{Sgw} replication configuration for each replication, provisioned using the using the {rest-api-admin-isgr--xref}.
-Changes persist across {Sgw} restarts.
---
+.. Access Control +
+Use the {sgw--xref}{rest-api-admin-access-control--page}[Access Control] endpoints to configure your Sync Function.
+
+.. Inter-Sync Gateway replications +
+Use the {sgw--xref}{rest-api-admin-isgr--page}[inter-{Sgw} replication] endpoints to configure required replications.
+
 
 == Key Terms
 
@@ -163,11 +147,12 @@ All the configuration properties, whether defined in the bootstrap configuration
 To continue operating in this mode ensure that you use the command-line interface option `disable_persistent_config=true`.
 This ensures the pre-3.0 configuration approach is continued.
 
+
 [#lbl-auth]
 == Authenticated API Access
 
 Secure TLS access (_https_ and-or _wss_) to the {sgw} ADMIN API is enabled by default.
-You can disable it, for testing purposes *ONLY*, by providing null values for the {bootstrap-schema--xref--tls-cert-path} and {bootstrap-schema--xref--tls-key-path}.
+You can disable it, for testing purposes *ONLY*, by omitting the {bootstrap-schema--xref--api-https-tls-key-path} and {bootstrap-schema--xref--api-https-tls-cert-path} options from the bootstrap config.
 
 To use the {ec-te} you need to create an RBAC-user on {svr}
 with an appropriate {sgw} role.
@@ -175,6 +160,7 @@ The user/TLS credentials are then declared in the bootstrap configuration.
 This node-level user is used when connecting to database by default; unless over-ridden in the database configuration.
 
 Cluster connection failures are subject to retries.
+
 
 == Configuration Groups
 
