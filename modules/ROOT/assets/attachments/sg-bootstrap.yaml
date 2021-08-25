@@ -2,13 +2,14 @@ properties:
   bootstrap:
     type: object
     description: |+
-      Some text describing this object
+      Sync Gateway's start-up configuration file
     properties:
       group_id:
         type: string
         default:
         description: |+
-          Some text describing this object
+          The ID of the configuration group to which this node belongs.
+
       buckets:
         type: array
         description: |+
@@ -18,9 +19,10 @@ properties:
             type: string
             description: |+
               Name of a bucket storing configuration data
+
       config_update_frequency_secs:
         type: int
-        default: 0
+        default: 10
         description: |+
           Sets the interval, in seconds, between configuration update checks
       server:
@@ -28,19 +30,17 @@ properties:
         default: none
         description: |+
           Sets the endpoint for the Couchbase Server holding (database) configuration details.
-        tags:
-          - static
 
       username:
         type: string
         default: none
         description: |+
-          The username to be used when accessing the server.
+          The username to be used when authenticating to the server.
       password:
         type: string
         default: none
         description: |+
-          The password to be used when accessing the server.
+          The password to be used when authenticating to the server.
 
       ca_cert_path:
         type: string
@@ -57,7 +57,8 @@ properties:
           Defaults to `false`, which requires a valid CA Cert Path.
 
           Works in conjunction with `ca_cert_path` to control whether system root pool is used or not.
-          Set this true and `ca_cert_path` empty to avoid using system root pool
+          Set this true and `ca_cert_path` empty to avoid using system root pool for authentication.
+
       x509_cert_path:
         type: string
         summary: Cert path (public key) for X.509 bucket auth
@@ -74,16 +75,16 @@ properties:
 
           Relative paths are relative to the directory containing the Sync Gateway executable.
 
-      use_tls_server:
-        type: boolean
-        description: |+
-          Default to `true`, which forces the connection to Couchbase Server to use TLS.
+      # use_tls_server:
+      #   type: boolean
+      #   description: |+
+      #     Default to `true`, which forces the connection to Couchbase Server to use TLS.
 
-          Use `use_tls_server` to enforce use of a secure scheme (for example, `couchbases://`) to connect to Couchbase Server.
+      #     Use `use_tls_server` to enforce use of a secure scheme (for example, `couchbases://`) to connect to Couchbase Server.
 
-          Set this `false` to use a non-secure scheme (for example, `couchbase://`).
+      #     Set this `false` to use a non-secure scheme (for example, `couchbase://`).
 
-          If the scheme used does not match that indicated by the `use_tls_server` value (for example, `couchbases://` with `use_tls_server` = `false`) then Sync Gateway will error and refuse to start.
+      #     If the scheme used does not match that indicated by the `use_tls_server` value (for example, `couchbases://` with `use_tls_server` = `false`) then Sync Gateway will error and refuse to start.
 
   api:
     type: object
@@ -95,8 +96,11 @@ properties:
         type: string
         default: '127.0.0.1:4985'
         description: |+
-         Port or TCP network address (IP address and the port) that the Admin REST API listens on.
-         The loopback address prefix before the port (`127.0.0.1`) means the interface will not be reachable from other hosts. To make it reachable, change it to ":4985".
+          Port or TCP network address (IP address and the port) that the Admin REST API listens on.
+
+          The loopback address prefix before the port (`127.0.0.1`) means the interface will not be reachable from other hosts. To make it reachable, change it to ":4985".
+
+          Change requires restart of Admin API
       admin_interface_authentication:
         type: boolean
         default: true
@@ -145,9 +149,12 @@ properties:
         description: |+
           Public REST API port
 
+          Change requires restart of Public API
+
       compress_responses:
         description: |+
           Whether to compress HTTP responses. Set to false to disable compression of HTTP responses.
+
         type: boolean
         default: 'true'
       cors:
@@ -155,18 +162,25 @@ properties:
         description: |+
           Configuration object for allowing cross-origin resource sharing (CORS).
           This is useful to interact directly with Sync Gateway from HTML 5 applications via XHR.
+
+          Change requires HTTP server restart
         properties:
           headers:
             type: array
             description: |+
               List of HTTP headers that can be used by domains specified in the `origin` and `login_origin` properties.<br>
               A common value is `["Content-Type"]` as clients use the `Content-Type: application/json` header when sending data as JSON in the body of POST/PUT requests.
+
+              Change requires HTTP server restart
             items:
               type: string
           login_origin:
             type: array
             description: |+
               List of allowed login origins.
+
+              Change requires HTTP server restart
+
             items:
               type: string
           max_age:
@@ -175,6 +189,8 @@ properties:
               Value for the Access-Control-Max-Age header.
               This is the period of time, in seconds, that the response to a CORS preflight request is cached before sending another preflight request.
 
+              Change requires HTTP server restart
+
           origin:
             type: array
             description: |+
@@ -182,6 +198,8 @@ properties:
 
               Note that the wildcard (*) cannot be used if you plan to authenticate users as well (by using the `withCredentials` flag on the client side).
               In this case, the explicit domain(s) must be specified in the `origin` and `login_origin` properties of the configuration file.
+
+              Change requires HTTP server restart
             items:
               origin:
                 type: string
@@ -220,6 +238,8 @@ properties:
               - "tlsv1.2"
               - "tlsv1.3"
 
+              Change requires HTTP server restart
+
           tls_cert_path:
             type: string
             summary: The TLS certificate file to use for the REST APIs
@@ -229,6 +249,8 @@ properties:
               To use plaintext, omit both this property and the `tls_key_path` property.
 
               A relative path is from the directory that contains the Sync Gateway executable file.
+
+              Change requires HTTP server restart
           tls_key_path:
             type: string
             summary: The TLS key file to use for the REST APIs
@@ -239,18 +261,21 @@ properties:
 
               A relative path is from the directory that contains the Sync Gateway executable file.
 
+              Change requires HTTP server restart
       idle_timeout:
         type: integer
         default: 90
         description: |+
           Maximum duration (in seconds) to wait for the next request when keep-alives are enabled
 
+          Change requires HTTP server restart
       max_connections:
         type: integer
         default: 0
         description: |+
           Maximum number of incoming HTTP connections to accept.
 
+          Change requires HTTP server restart
       pretty:
         type: boolean
         default: false
@@ -263,16 +288,19 @@ properties:
         description: |+
           Maximum duration (in seconds) allowed to read request headers
 
+          Change requires HTTP server restart
       server_read_timeout:
         type: integer
         description: |+
           Maximum duration in seconds before timing out the read of an HTTP(S) request. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
 
+          Change requires HTTP server restart
       server_write_timeout:
         type: integer
         description: |+
           Maximum duration in seconds before timing out the write of an HTTP(S) response. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
 
+          Change requires HTTP server restart
       # tls:
       #   type: object
       #   description: |+
@@ -306,6 +334,7 @@ properties:
     type: object
     description: |+
       Holding object for all logging-related settings
+
     tags:
       - dynamic
     properties:
@@ -313,6 +342,8 @@ properties:
         type: string
         description: |+
           Absolute or relative path on the filesystem to the log file. A relative path is from the directory that contains the Sync Gateway executable file.
+
+          Changes require full logging re-initialization
       redaction_level:
         type: string
         default: none
@@ -422,7 +453,7 @@ properties:
           file_output:
             type: string
             description: |+
-
+              Changes require full logging re-initialization
       error:
         description: |+
           The level of logging as a key. Log levels accumulate as you read down the table (i.e log entries at WARN will also be included in the INFO and DEBUG logs).
@@ -479,6 +510,8 @@ properties:
           }
 
           ```
+
+          Changes require full logging re-initialization
         type: object
         properties:
           enabled:
