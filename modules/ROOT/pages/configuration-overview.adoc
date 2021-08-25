@@ -1,5 +1,5 @@
 = Configuration Overview
-:page-edition: 3.0
+:page-edition: New at 3.0
 :page-content: conceptual
 :description: pass:q,a[How to configure _Sync{nbsp}Gateway_ for secure cloud-to-edge data sync]
 :keywords: sync, data replication, cloud-to-edge, configuration
@@ -14,9 +14,10 @@ include::partial$block-abstract.adoc[]
 
 // END -- DO NOT EDIT
 
-:ec-te: pass:q,a[_Enhanced{nbsp}Configuration_]
-:ec-l: pass:q,a[enhanced{nbsp}configuration]
-:ec-s: pass:q,a[Enhanced{nbsp}configuration]
+:ec-te: pass:q,a[_Centralized{nbsp}Persistent{nbsp}Modular{nbsp}Configuration_]
+:ec-t: pass:q,a[Centralized{nbsp}Persistent{nbsp}Modular{nbsp}Configuration]
+:ec: pass:q,a[centralized persistent modular configuration]
+:ec-s: pass:q,a[Centralized persistent modular configuration]
 
 :fnfbc-text: pass:q,a[You can continue using file-based configuration by using the CLI option `-disable_persistent_config` when starting Sync Gateway]
 :fnfbc: footnote:fnfbc[{fnfbc-text}]
@@ -24,20 +25,28 @@ include::partial$block-abstract.adoc[]
 
 == Introduction
 
-{Sgw-te} 3.0 introduces {ec-te}, to better suit its use in increasingly prevalent multi-node, multi-cluster deployments.
+{sgw-te} 3.0 introduces {ec-te}, to better suit its use in increasingly prevalent multi-node, multi-cluster deployments.
 {ec-s} replaces the established, file-based configuration method {fnfbc}, supporting the move away from a reliance on increasingly monolithic central configuration files.
 It enables simpler, more agile configuration updates and encompasses:
 
-* *Bootstrap Startup* -- A minimal configuration file is used to bootstrap a {sgw} node and attach it to its Couchbase Server cluster; these files and their settings are node-specific
+* *Bootstrap Startup* +
+A minimal configuration file is used to bootstrap a {sgw} node and attach it to its Couchbase Server cluster; these files and their settings are node-specific -- see the {configuration-schema-bootstrap--xref}
 
-* *Dynamic Configuration* -- The ability to make remote in-flight configuration changes to database settings, access-control policies and inter-{Sgw} replications, enables simpler and more agile maintenance.
+* *Dynamic Configuration* +
+The ability to make remote in-flight configuration changes to database settings, access-control policies and inter-{sgw} replications, enables simpler and more agile maintenance.
 
-* *Cluster-aware Updates* -- Configuration changes made to a node through the API endpoints are propagated to other {Sgw} nodes belonging to the same cluster (or to a user-defined subset of nodes)
+* *Cluster-aware Updates* +
+Configuration changes made to a node through the API endpoints are propagated to other {sgw} nodes belonging to the same cluster (or to a user-defined subset of nodes) -- <<lbl-config-grp>>
 
-* *Persistent Updates* -- Any database changes made using the API endpoints are persisted and survive {sgw} node restarts.
+* *Persistent Updates* +
+Any database changes made using the API endpoints are persisted and survive {sgw} node restarts (this does note apply when running in file-base configuration mode).
 
-* *Secure REST API* -- by default the REST API requires TLS authentication. This can be disabled for test purposes only.
+* *Secure REST API* +
+by default the REST API requires TLS authentication -- see {secure-sgw-access--xref}.
+This can be disabled for test purposes only.
 
+* *Automatic upgrade path* +
+Your existing pre-3.x configuration files will (optionally) be automatically converted, on start-up, to the new format for {ec}.
 
 
 == Workflow
@@ -69,7 +78,7 @@ Use the {sgw--xref}{rest-api-admin-db-security--page}[Database Security] endpoin
 Use the {sgw--xref}{rest-api-admin-access-control--page}[Access Control] endpoints to configure your Sync Function.
 
 .. Inter-Sync Gateway replications +
-Use the {sgw--xref}{rest-api-admin-isgr--page}[inter-{Sgw} replication] endpoints to configure required replications.
+Use the {sgw--xref}{rest-api-admin-isgr--page}[inter-{sgw} replication] endpoints to configure required replications.
 
 
 == Key Terms
@@ -80,14 +89,14 @@ Use the {sgw--xref}{rest-api-admin-isgr--page}[inter-{Sgw} replication] endpoint
 |Term
 |Description
 
-|{Sgw} Cluster
+|{sgw-t} Cluster
 |A collection of {sgw} nodes connected to a common {svr} cluster
 
-|Homogeneous {Sgw} Cluster
-|A {Sgw} cluster where every node in cluster shares common configuration
+|Homogeneous {sgw-t} Cluster
+|A {sgw} cluster where every node in cluster shares common configuration
 
-|{Sgw} Config Group
-|A group of {sgw} nodes within a {Sgw} cluster sharing common configuration.
+|{sgw-t} Config Group
+|A group of {sgw} nodes within a {sgw} cluster sharing common configuration.
 Each node in the group will continue to have node-specific config.
 
 |Static
@@ -106,7 +115,7 @@ Note that, in some cases, such changes may require the database be taken offline
 
 All the configuration properties, whether defined in the bootstrap configuration file or by the REST API endpoint belong to one of three core 'levels': _node_, _database_  or _replication_ -- see <<tbl-cfg-levels>>
 
-.Configuration levels in {ec-l}
+.Configuration levels in {ec}
 [#tbl-cfg-levels,cols="1,1,2,2,2", options="header"]
 |===
 2+|Level
@@ -138,7 +147,7 @@ All the configuration properties, whether defined in the bootstrap configuration
 
 
 2+|Replication
-|inter-{Sgw} replication properties
+|inter-{sgw} replication properties
 |Shared across all participating replication nodes
 |Restart initiated as needed
 
@@ -162,17 +171,19 @@ This node-level user is used when connecting to database by default; unless over
 Cluster connection failures are subject to retries.
 
 
+[#lbl-config-grp]
 == Configuration Groups
 
-You can group {sgw} nodes using a `Config-Group-ID` property, which defines the database configuration group to which a node belongs.
-All nodes in the group share the same database configuration.
+You can group {sgw} nodes into homogenous clusters using the `Config-Group-ID` property ({bootstrap-schema--xref--bootstrap-group-id}).
+This defines the database configuration group to which a node belongs.
+
+All nodes in a group share the same database configuration.
 Changes made from one node are propagated to other nodes in the group automatically.
 
 All nodes in a cluster belong, by default, to a common shared group `default`.
 
 If you move a {sgw} node to a new group, it will inherit the configuration associated with that group.
 This applies also if you move a group (back) into the `default` group.
-
 
 
 include::partial$block-related-content-api.adoc[]
