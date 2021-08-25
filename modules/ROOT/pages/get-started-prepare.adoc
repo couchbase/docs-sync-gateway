@@ -115,14 +115,30 @@ image::cb-create-bucket-popup.png[]
 
 // tag::create-rbac-user[]
 
-To connect to Couchbase Server, you must create an RBAC user.
-These user credentials are used in a later section to start Sync Gateway.
+You will need to create at least one RBAC user in Couchbase Server as {sgw} requires RBAC user credentials to authenticate and authorize access not only to Couchbase Server buckets, but also to its Admin and Metrics API.
+If you plan to use these API then you are advised to create at least one user  for each of:
 
-. Open the *Security* tab and click the *Add User* button.
+* Couchbase Server Access +
+Add an RBAC user that Sync Gateway uses to authenticate and authorize access to Couchbase Server.
+Use the _sync_gateway_ role.
+* Admin API +
+Add an RBAC user that administrators can use to authenticate and authorize access to the {sgw} Admin REST API
+Use the _Full Admin_ role.
+* Metrics API +
+Add an RBAC user that devops can use to authenticate and authorize access to the {sgw} Metrics REST API
+Use the _Read-Only Admin_ or _Application Access_ roles.
+
+Enterprise edition users can exert a finer-grained control using additional roles appropriate to the functionality required for the specific user.
+
+For more on creating Couchbase Server users see: {server-manage-security-users-and-roles--xref}.
+
+.How-to
+
+. Within _Couchbase Server's Dashboard_, *Open* the *Security* tab and click the *Add User* button.
 +
 image::create-user.png[]
 
-. Create the RBAC user with appropriate access roles.
+. Create the RBAC user with appropriate access roles, this will differ for each of the user types.
 +
 The steps to do this are shown in <<rbac-roles>>. Note that they differ, depending on your Couchbase Server version.
 +
@@ -181,6 +197,9 @@ image::user-settings.png[,450]
 --
 ====
 =====
+
+
+
 // end::create-rbac-user[]
 
 
