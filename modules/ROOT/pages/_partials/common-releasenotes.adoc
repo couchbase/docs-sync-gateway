@@ -35,50 +35,153 @@
 
 // tag::features-300[]
 
-==== Version Vectors
-// tag::new-300-version-vectors[]
-Introduce and describe the key changes and benefits
-// end::new-300-version-vectors[]
-
-==== Centralized Configuration
+==== Centralized Persistent Modular Configuration
 // tag::new-300-centralized-cfg[]
-Introduce and describe the key changes and benefits
+// tag::new-300-centralized-cfg-full[]
+_Centralized Persistent Modular Configuration is a core enhancement that makes it simpler for administrators to configure and manage the Sync Gateway._
+
+This enhancement removes reliance on monolithic JSON configuration files whilst providing a modular and _cluster-aware_ approach to Sync Gateway node configuration.
+
+Basic startup configuration settings bootstrap your Sync Gateway nodes and securely connect them to a Couchbase Server.
+Configuration of cluster-wide Sync Gateway databases, access control policies and inter-Sync Gateway replications is then provided using the Admin REST API.
+
+Persistent configuration changes made to any node in a {sgw} cluster are automatically propagated throughout the cluster or -- by using {sgw-s} groups -- a defined cluster subset.
+These changes persist across {sgw} restarts.
+
+Your existing JSON configurations can be automatically converted to the new centralized persistent modular configuration format on start-up; there is an opt-out for user wishing to temporarily continue working in pre-3.0 mode.
 // end::new-300-centralized-cfg[]
+Additional Detail::
 
-==== Configuration using Environment Variables
-// tag::new-300-environment-vars[]
-Sync Gateway configuration is extended to allow the use of defined _environment variables_ as substitution values inside the configuration file.
-This allows users to determine, pick-up and substitute appropriate values during Sync Gateway start-up.
-// end::new-300-environment-vars[]
+// tag::new-300-centralized-cfg-extended[]
+* Ad Hoc database config changes made via REST API are persisted in corresponding server bucket and are not lost during sync gateway restarts - either crashes or deliberate restarts).
+* The ability to centrally update the database config in large clusters simplifies manageability and administration. Database changes made to a node are automatically applied to all nodes in a cluster or  can be scoped to a subset of nodes.
+* The ability to securely administer the Sync Gateway cluster using the admin REST endpoint enables programmatic control and simplifies remote administration in cloud deployments without relying on options like SSH-tunneling.
+* Maintaining a monolithic file is difficult especially if the configuration is complex. Multiple sync gateway databases may be defined in a single config file. This has potentially undesirable consequences in multi-tenant applications where database changes made for one tenant would require a restart of the node impacting all tenants.
+* A simple migration path ensures that existing JSON configurations are automatically converted to the new persistent modular cpnfiguration format on start-up.
+Users can opt-out of this should they wish to continue working in pre-3.x mode.
+// end::new-300-centralized-cfg-extended[]
+// tag::new-300-centralized-cfg[]
+
+More::
+  {configuration-overview--xref}
+// end::new-300-centralized-cfg[]
+// end::new-300-centralized-cfg-full[]
+
+==== TLS Encryption Enabled by Default
+// tag::new-300-tls-full[]
+// tag::new-300-tls[]
+_The default enabling of secure TLS connections for all Couchbase Server, Client and REST API communication ensures that all communication is encrypted; enforcing and encouraging security best practices._
+
+Sync Gateway supports v1.3 of TLS by default.
+No un-encrypted access using non-TLS schemes (for example, `couchbase://` or `http://`) is permitted for client side network traffic through Couchbase Lite replications, the REST API endpoints, nor Couchbase Server.
+
+While we strongly recommend always having TLS enabled, we recognize that users may want to disable it for development and testing environments; there is an opt-out option to do this.
+// end::new-300-tls[]
+// tag::new-300-tls-extended[]
+
+// end::new-300-tls-extended[]
+// tag::new-300-tls[]
+
+More::
+  {secure-sgw-access--xref}
+
+// end::new-300-tls[]
+// end::new-300-tls-full[]
 
 
-==== External Javascript Functions in Config File
-// tag::new-300-external-javascript[]
-Introduce and describe the key changes and benefits
-// end::new-300-external-javascript[]
+==== Secure Remote Administration
+// tag::new-300-secure-admin-full[]
+// tag::new-300-secure-admin[]
+_This major enhancement complements the introduction of the centralized persistent configuration by introducing secure administration of a cluster through the Admin REST API._
+
+The Admin REST API now enforces authentication and role-based access control by default.
+
+All Admin API traffic must be conducted using existing, valid, Couchbase Server RBAC user credentials.
+These users must be set-up with specific sync gateway roles.
+
+A similar approach is also adopted for users of the Metrics API.
+Public API users are not impacted by the change.
+// end::new-300-secure-admin[]
+// tag::new-300-secure-admin-extended[]
+With authentication support, the admin API can be securely accessed from external clients without the need for network infrastructure based access control mechanisms such as SSH tunneling or firewall rules to restrict access to certain subnets or machine(s). Remote administration is particularly important in distributed cloud deployments.Remote administration is essential in many cases. Backend server applications such as identity servers may require programmatic access to the admin REST API for configuring sync gateway users. With the new release, database administration and sync function updates can be securely handled via the REST endpoint.
+User-level access restrictions offer more flexibility than network-level firewalls. For instance, administrators may require temporary access to the Sync Gateway’s admin APIs from a network that is not in the allow-list per firewall policies.
+Different applications have different purposes and different users. With this enhancement, only users with a specific Sync Gateway role will be able to administer the Sync Gateway through the admin REST endpoint. Future releases of Couchbase Server will include support for finer grained Sync Gateway roles that would allow more granular control over the admin functionality. So stay tuned!
+// end::new-300-secure-admin-extended[]
+// tag::new-300-secure-admin[]
+
+More::
+  {rest-api-access--xref}
+
+// end::new-300-secure-admin[]
+// end::new-300-secure-admin-full[]
 
 
-==== Extended Attribute Access Grants
+==== User Defined Extended Attributes(XAttrs) for Access Control Metadata
 
+// tag::new-300-xattrs-full[]
 // tag::new-300-xattrs[]
-You can now use Extended Attributes (XATTRs) to specify channel access grants outside of the document body.
-This key architectural enhancement enforces separation of concerns.
-It ensures that changes to access grants do not impact document body content and are not propagated to the clients.
+_Use extended attributes (metadata) to avoid the need to embed sensitive access grant information such as channels and roles within document bodies._
 
-_Key benefits_: Bandwidth savings; Addresses privacy concerns; Avoids changes to existing data models.
+This key architectural enhancement enforces separation of concerns by providing you the option to use Extended Attributes (XATTRs) to specify channel access grants outside of your document bodies.
 
-// end:new-300-xattrs[]
+In addition to addressing privacy concerns, this feature can result in bandwidth savings as it ensures that changes to access grants do not impact document body content and so are no longer propagated to clients.
 
+// end::new-300-xattrs[]
+
+// tag::new-300-xattrs-extended[]
+The separation of access grant metadata from document body is logical and offers several benefits:
+
+* Embedding access grant metadata within the document body implies that changes to the access grants associated with a document will result in a corresponding update to the document body. The document update in turn will trigger a document replication to the clients. Access grant changes are irrelevant to clients resulting in “noise”. More importantly, if the channel list is large, then the document replications could result in significant bandwidth usage.
+* Embedding channel access grants within the document body will make that information accessible to all users who are syncing that document. This may raise certain privacy concerns. For example, if channel names correspond to user IDs, then a user replicating a document would have knowledge of other users who have access to the document.
+* The data model of existing documents do not have to be modified in order to retrofit access grant data with a dedicated property. So existing processes and applications do not have to be modified to use Sync Gateway for data sync.
+Of course, we recognize that there are instances where deriving the channel or access grant information based on contents of the document body is the best option. So that option will continue to be supported.
+// end::new-300-xattrs-extended[]
+// tag::new-300-xattrs[]
+
+More::
+  {access-control-how-use-xattrs-for-access-grants--xref}
+
+
+// end::new-300-xattrs[]
+// end::new-300-xattrs-full[]
+
+
+
+
+// tag::new-300-auto-purge-full[]
+// tag::new-300-auto-purge[]
+// tag::new-300-auto-purge-extended[]
+_This enhancement to inter-Sync Gateway replication technology helps with the enforcement of data privacy and governance in complex workflows._
+
+{sgw-s} nodes can replicate data with each other using
+{sgw--xref}{sync-inter-syncgateway-overview--page}[inter-Sync Gateway replication] technology.
+
+When a user loses access to a channel (and therefore the documents in it) you can opt to enable the initiating {sgw} cluster to auto-purge those documents in the revoked channel.
+
+// end::new-300-auto-purge[]
+// tag::new-300-auto-purge-extended[]
+
+// end::new-300-auto-purge-extended[]
+// tag::new-300-auto-purge[]
+More::
+  {auto-purge-channel-access-revocation--xref}
+
+// end::new-300-auto-purge[]
+// end::new-300-auto-purge-full[]
+
+// end::feature1-300[]
 
 // tag::feature1-300[]
 
 // end::feature1-300[]
+
+
 // end::features-300[]
 // end::new-300-all[]
 // end::feature-highlights-300[]
 
 [#improvements-300]
-=== Enhancements
+=== Other Enhancements
 // tag::enhancements-300[]
 
 ==== Configuration Changes
@@ -92,8 +195,20 @@ _Key benefits_: Bandwidth savings; Addresses privacy concerns; Avoids changes to
 
 ===== Environment Variables
 // tag::env-vars-300[]
+// tag::new-300-environment-vars[]
+Sync Gateway configuration is extended to allow the use of defined _environment variables_ as substitution values inside the configuration file.
+This allows users to determine, pick-up and substitute appropriate values during Sync Gateway start-up.
 
+More::
+  {configuration-environment-variables--xref}
+// end::new-300-environment-vars[]
 // end::env-vars-300[]
+
+==== External Javascript Functions in Config File
+// tag::new-300-external-javascript[]
+Introduce and describe the key changes and benefits
+// end::new-300-external-javascript[]
+
 
 ===== External Javascript
 // tag::extjs-300[]
