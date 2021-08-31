@@ -24,10 +24,9 @@ include::partial$block-abstract.adoc[]
 
 
 .Preparatory Steps
-NOTE: Before following the steps in this topic you must have read, and acted-upon, the information and steps in {get-started-prepare--xref} and {get-started-install--xref}.
+NOTE: Ensure you have read, and acted-upon, the information and steps in {get-started-prepare--xref} and {get-started-install--xref}
 
 
-== Introduction
 :param-page: {page-relative-src-path}
 include::partial$_get-started-topic-group.adoc[]
 
@@ -39,44 +38,34 @@ You will have successfully completed installation and can now build on this with
 
 
 [#lbl-config]
-== Configure Sync Gateway
+== Bootstrap Sync Gateway
 
 To configure Sync Gateway to connect to a Couchbase Server:
 
 . Ensure your Sync Gateway service is stopped/unloaded
 . Edit the configuration file you used in {get-started-install--xref} and replace the contents with those shown in <<sample-cfg>>.
 +
-The configuration points to the `get-started-bucket` which we will use to verify that you can synchronize changes made through the Sync Gateway API with those made through Couchbase Server.
+The configuration points to your Couchbase Server cluster, which we will use to verify that you can synchronize changes made through the Sync Gateway API with those made through Couchbase Server.
 . Ensure you start Couchbase Server
 . Restart/Load your Sync Gateway  to pick-up the changed configuration
 
-
 [#sample-cfg]
-.Simple Sync Gateway-Couchbase Server Config
+.Simple Sync Gateway Bootstrap Config
 ====
 [source,json]
 ----
 
 {
-  "adminInterface": "127.0.0.1:4985",
-  "interface": "0.0.0.0:4984",
-  "databases": {
-    "get-started-bucket": {
-      "server": "http://127.0.0.1:8091",
-      "bucket": "get-started-bucket", // <.>
-      "username": "sync_gateway", // <.>
-      "password": "password", //
-      "enable_shared_bucket_access": true, // <.>
-      "import_docs": true, // <.>
-      "num_index_replicas": 0, // <.>
-      "users": {
-        "GUEST": { "disabled": false, "admin_channels": ["*"] } // <.>
-      }
-    }
+  "bootstrap": {
+    "server": "couchbase://localhost", // <.>
+    "username": "sync_gateway", // <.>
+    "password": "password", //
+    "server_tls_skip_verify": true, // <.>
   },
   "logging": { // <.>
     "console": {
-      "log_level": "debug",
+      "enabled": true,
+      "log_level": "info",
       "log_keys": ["*"]
     }
   }
@@ -85,16 +74,104 @@ The configuration points to the `get-started-bucket` which we will use to verify
 ----
 
 About the Configuration Properties::
-<.> Here we point to the Couchbase Server bucket you created in {get-started-prepare--config-server--xref}
-<.> Provided the credentials for the RBAC user that you created on the Couchbase Server Admin Console -- see {get-started-prepare--config-server--xref}
-<.> Set `enable_shared_bucket_access` true to allow both Sync Gateway and Couchbase Server to make changes to the same bucket. This works in conjunction with `import_docs` to facilitate the replication of changes whether made through Sync Gateway or externally by an App or Couchbase Server SDK for example.
-<.> Set `import_docs` true to allow import processing to take place on this Sync Gateway node, thereby integrating document changes made outside of Sync Gateway
-<.> `num_index_replicas` is the number of index replicas stored in Couchbase Server -- see {xref-sgw-pg-indexing}. +
-*NOTE:* If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
-<.> Here `users` introduces a guest user with access to all channels and all documents
+<.> Here we point to the Couchbase Server cluster
+<.> Here we provide the credentials for the RBAC user that you created on the Couchbase Server Admin Console -- see {get-started-prepare--config-server--xref}
+<.> Here we allow non-TLS plaintext access to the Couchbase Server for test purposes
 <.> Define your logging requirements: +
 Here we set general diagnostic console logs on.
 If you're having issues then refer to {logging--xref} for how to tune diagnostics to provide additional troubleshooting help
+====
+
+.Start Sync Gateway
+
+Run the following in a terminal:
+----
+bin/sync_gateway -bootstrap.use_tls_server=false sgwconfig.json // <.>
+----
+<.> use CLI flag to signal non-TLS communications
+
+
+== Add a Database Configuration
+
+We can now use the Admin REST API to add a database to our {sgw} cluster.
+
+The `curl` command shown in <<ex-add-sgw-db>> requires basic authentication using the `api_admin` Couchbase Server RBAC user's credentials we created in <<tbd>>.
+It adds a `traveldb` database pointing to the Couchbase Server's `travel-sample` bucket.
+
+[#ex-add-sgw-db]
+.Add a Sync Gateway Database
+====
+----
+curl --location --request PUT 'http://127.0.0.1:4985/traveldb/' \  // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "bucket": "travel-sample", // <.>
+    "num_index_replicas": 0 // <.>
+    }
+----
+<.> Here we specify the name of the {sgw} database -- `traveldb`
+<.> Now we point `traveldb` at the Couchbase Server bucket `travel-sample`, which we created in {get-started-prepare--config-server--xref}
+<.> Set to zero for this example database
+// <.> Here we specify the {sgw} `users` able to access the databaseintroduces a guest user with access to all channels and all documents
+====
+
+
+
+
+== Add a Sync Gateway User
+
+We can now create a {sgw} user and role to allow secure access during replication on this {sgw} cluster.
+
+=== Add a role
+The `curl` command shown in <<ex-add-role>> requires basic authentication using the `api_admin` Couchbase Server RBAC user's credentials we created in <<tbd>>.
+It adds a role called `stdrole`.
+
+[#ex-add-sgw-db]
+.Add a Sync Gateway Role
+====
+----
+curl --location --request PUT 'http://127.0.0.1:4985/travel25/_role/stdrole' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "stdrole",
+    "admin_channels": ["newrolechannel"] // <.>
+}'
+
+----
+<.> Here we identify the name of the {sgw} database -- `traveldb` +
+The action, `_role` and +
+The role's name `stdrole`
+<.> Now we identify the channels accessible to users assigned this role; these will be used by the Sync Function to control access.
+
+====
+
+=== Add the user
+The `curl` command shown in <<ex-add-user>> requires basic authentication using the `api_admin` Couchbase Server RBAC user's credentials we created in <<tbd>>.
+It adds a user called `sgwuser1`.
+
+[#ex-add-sgw-db]
+.Add a Sync Gateway Role
+====
+----
+curl --location --request PUT 'http://127.0.0.1:4985/travel25/_user/sgwuser1' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "sgwuser1", //
+    "roles": ["stdrole"] // <.>
+    "admin_channels": ["public"] // <.>
+}'
+
+----
+<.> Here we identify +
+The name of the {sgw} database -- `traveldb` +
+The create user action, `_user` and +
+The user's name `sgwuser1`
+<.> Now we identify any roles accessible to this user; it will inherit any channels associated with the role(s).
+<.> Now we identify any channels accessible to this user, in addition to those inherited from the role; these will be used by the Sync Function to control access.
+
 ====
 
 
@@ -133,6 +210,8 @@ Here we will use CURL and Sync Gateway's REST API to
 . <<lbl-crud-upd-svr>> Update the document in Couchase Server and check the change in Sync Gateway
 . <<lbl-crud-del>> Delete our document and check its state on Couchbase Server and Sync Gateway.
 
+Remember to use the credentials of the Couchbase Server RBAC user for authentication.
+
 
 [#ex-sync]
 
@@ -144,14 +223,17 @@ Within a terminal use CURL to issue the following POST request, which adds a new
 .Request
 [{snippet-header}]
 ----
-curl --location -g --request POST 'http://localhost:4984/get-started-bucket/' \
---header 'Accept: application/json' \
+curl --location --request PUT 'http://localhost:4985/travel25/hotel_88801' \
+--header 'Authorization: Basic c2d3dXNlcjE6cGFzc3dvcmQ=' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-  "_id": "first-doc",
-  "name": "Verify-Install Topic",
-  "type": "get-started",
-  "data": "any random string"
+    "_id": "hotel_88801",
+    "id": "88801",
+    "type": "hotel",
+    "name": "Verify-Install Topic",
+    "address": "The Shambles",
+    "city": "Manchester",
+    "country": "United Kingdom"
 }'
 ----
 
@@ -159,7 +241,9 @@ curl --location -g --request POST 'http://localhost:4984/get-started-bucket/' \
 .Response
 [{snippet-header}]
 ----
-{"id":"first-doc","ok":true,"rev":"1-a46e9c2f8ff4581e5662c47ae8519b0e"}%
+{"id":"hotel_88801",
+"ok":true,
+"rev":"1-f28b5cc13a38892f4f85913d4e654270"}
 ----
 
 [#lbl-check-cbs, reftext=Check Document on Couchbase Server]
@@ -170,8 +254,9 @@ View the document in Couchbase Server Admin Console to verify it syncs from Sync
 
 . Within the _Document Editor_ tab:
 +
-.. Enter `get-started-bucket` as _Bucket_
-.. Enter `first` as _Document ID_
+.. Enter `travel-sample` as _Bucket_
+.. Leave _Scope_ and _Collection_ as `_default`
+.. Enter `id="88801"` as _M1QL WHERE_ query
 .. kbd:[Enter]
 +
 You will see the response shown in <<img-cbs-view>>.
@@ -188,13 +273,23 @@ image::cbs-view-first-doc.png[]
 .Request
 [{snippet-header}]
 ----
-curl --location --request GET 'http://localhost:4984/get-started-bucket/first-doc'
+curl --location --request GET 'http://localhost:4985/travel25/hotel_88801' \
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk'
 ----
 
 .Response
 [{snippet-header}]
 ----
-{"_id":"first-doc","_rev":"1-a46e9c2f8ff4581e5662c47ae8519b0e","data":"any random string","name":"Verify-Install Topic","type":"get-started"}%
+{
+    "_id": "hotel_88801",
+    "_rev": "1-f28b5cc13a38892f4f85913d4e654270",
+    "address": "The Shambles",
+    "city": "Manchester",
+    "country": "United Kingdom",
+    "id": "88801",
+    "name": "Verify-Install Topic",
+    "type": "hotel"
+}
 ----
 
 [#lbl-crud-upd]
@@ -203,25 +298,33 @@ curl --location --request GET 'http://localhost:4984/get-started-bucket/first-do
 .Request
 [{snippet-header}]
 ----
-curl --location -g --request PUT 'http://localhost:4984/get-started-bucket/first-doc' \
+curl --location -g --request PUT 'http://localhost:4985/travel25/hotel_88801?new_edits=true&rev=1-f28b5cc13a38892f4f85913d4e654270' \  // <.>
 --header 'Accept: application/json' \
 --header 'Content-Type: application/json' \
 --data-raw '{
-  "_id": "first-doc",
-  "_rev": "1-a46e9c2f8ff4581e5662c47ae8519b0e", // <.>
-  "name": "Verify-Install Topic",
-  "type": "get-started",
-  "data": "an edited string" // <.>
+  "_id": "hotel_88801",
+  "id": "88801",
+  "type": "hotel"
+  "name": "Verify-Install Topic Updated", // <.>
+  "address": "The Shambles",
+  "city": "Manchester",
+  "country": "United Kingdom",
+  "email": "enquiries@hotel_88801.internet" // <.>
 }'
 ----
 <.> This revision is the one returned by the response to the initial POST request -- see: <<lbl-crud-add-resp>>
-<.> Here we change the text of the _data_ field.
+<.> Here we change the text of the _name_ field.
+<.> Here we add an _email_ field.
 
 [#lbl-crud-upd-resp, reftext=Response to Update Document Request]
 .Response
 [{snippet-header}]
 ----
-{"id":"first-doc","ok":true,"rev":"2-ecbdda61df3290beff4d0e433af8d745"}%  // <.>
+{
+    "id": "hotel_88801",
+    "ok": true,
+    "rev": "2-249366b198e81f203d7ae9eb54376210"  // <.>
+}
 ----
 
 <.> Here the `"ok":true` indicates success, whilst the revision shows it is the second change to this document.
@@ -237,8 +340,10 @@ This will show that changes made using Couchbase Server are replicated to Sync G
 
 . Within the Couchbase Server Document Editor
 
-.. Retrieve `first_doc` if it is not currently displayed
-.. Edit the _data_ value to contain `"an edited string also changed in server"`
+.. Retrieve `88801` if it is not currently displayed +
+Use `meta().id="hotel_88801"` as query
+.. Edit the _email_ value to contain `reception@hotel_88801.internet`
+.. Edit the _name_ value to contain `Verify-Install Topic-Updated-In-Server`
 .. btn:[Save] the change. +
 
 . In your terminal, use the API to get the document again -- see <<lbl-crud-get>> +
@@ -246,12 +351,12 @@ You should see the change you made in Couchbase Server reflected in the response
 +
 [{snippet-header}]
 ----
-{"_id":"first-doc","_rev":"3-cc2e758ef63b0daf5b01b2baf98c72b6", // <.>
-"data":"an edited string also changed in server", // <.>
-"name":"Verify-Install Topic","type":"get-started"}
+{"_id":"hotel_88801","_rev":"3-cc2e758ef63b0daf5b01b2baf98c72b6", // <.>
+"address":"The Shambles","city":"Manchester","country":"United Kingdom","email":"reception@hotel_88801.internet","id":"88801","name":"Verify-Install Topic-Updated-In-Server","type":"hotel"}
+
 ----
 <.> Note that the revision sequence is now 3, up from the 2 returned in our <<lbl-crud-upd-resp>>
-<.> Note that the data field now contains both the change made in Sync Gateway ("an edited string") and that made in Couchbase Server ("also changed in server")
+<.> Note that the _email_ and _name_ fielda now contains both the change made in Sync Gateway and the amendment made in Couchbase Server ("reception")
 
 
 [#lbl-crud-del]
@@ -260,7 +365,7 @@ You should see the change you made in Couchbase Server reflected in the response
 .Request
 [{snippet-header}]
 ----
-curl --location -g --request DELETE 'http://localhost:4984/get-started-bucket/first-doc?rev=3-cc2e758ef63b0daf5b01b2baf98c72b6' // <.>
+curl --location -g --request DELETE 'http://localhost:4985/travel25/88801?rev=3-cc2e758ef63b0daf5b01b2baf98c72b6' // <.>
 ----
 <.> Note that we provide here the revision ID of the latest revision (3), as returned in the response to the last GET request.
 
@@ -268,7 +373,11 @@ curl --location -g --request DELETE 'http://localhost:4984/get-started-bucket/fi
 You should see the following response:
 [{snippet-header}]
 ----
-{"id":"first-doc","ok":true,"rev":"4-03f1ba127340e8c50c31a36279298e60"}%  // <.>
+{
+    "id": "hotel_88801",
+    "ok": true,
+    "rev": "4-03f1ba127340e8c50c31a36279298e60" // <.>
+}
 ----
 <.> You can see here that the delete counts as the fourth change/revision. Again "ok":true indicates the delete was successful.
 
