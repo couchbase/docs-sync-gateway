@@ -1,7 +1,8 @@
 = Secure Sync Gateway Access
+:page-role:
 :page-edition: 3.0
 :page-aliases: anchor-secure-sync-gateway-access.adoc
-:description: Couchbase Sync Gateway TLS Authentication
+:description: Couchbase Sync Gateway TLS encryption and verification
 
 include::partial$_std-hdr-sgw.adoc[]
 :topic-group: Security
@@ -14,71 +15,44 @@ include::partial$block-abstract.adoc[]
 
 == Overview
 
-From {sgw-te} 3.0, TLS is enabled by default on {sgw}.
+From {sgw-te} 3.0, TLS is required by default for all communications with Couchbase Server.
 TLS v1.3 is supported as the default protocol.
 
-This approach means  (unless you disable the feature) that all endpoints communicating with {sgw} must be encrypted, including:
+This approach means that that all endpoints communicating with {sgw} must also be encrypted, including:
 
 * REST API endpoints
 * Replication and client side network traffic, for example through Couchbase Lite replications
-* Couchbase Server
-
-The Admin and Metrics API require authorization using Couchbase Server RBAC user account credentials -- see <<lbl-rest-api-access>>.
-The Public API is unchanged, with authentication using {sgw} user credentials.
 
 We strongly recommend always having TLS enabled, although this can be over-ridden for *development and testing only*.
 
+Additionally, the _Admin_ and _Metrics REST API_ security is also enhanced by the use of _Couchbase Server RBAC user_ credentials to authenticate and authorize access -- see: {rest-api-access--xref}
 
-[#lbl-rest-api-access]
-== REST API Access
+// ===  Behavior
 
-=== Admin and Metrics API
+// .{sgw} <--> REST API
+// [#tbl-restapi-behavior, cols="1a,1,1a, options="header"]
+// |===
 
-Administrators typically use the Admin REST API to manage {sgw}.
-From 3.0 they will need to use Couchbase Server _RBAC user_  credentials; not {sgw} user credentials to do so.
-This applies also to users of the Metrics REST API
+// .>h| Configuration Properties
+// .>h| Default Behavior
+// .>h| Opt-Out Trigger
 
-include::{concepts}users.adoc[tags=rbac,levelofset=+1]
+// |{bootstrap-schema--xref--api-https-tls-cert-path} +
+// {bootstrap-schema--xref--api-https-tls-key-path}
+// |TLS encryption is enabled by default, unless the opt-out is triggered
+// |Omit the key and certificate path properties from the configuration
 
-
-=== Public REST API
-
-Users of the public REST API can continue to authenticate using Sync Gateway user credentials for basic authentication.
-The role and the user assigned to it can be created using the ADMIN API endpoints.
-Then, the Sync Function's {sync-function-api-require-role-cmd--xref} helper function can be used to allow certain operations only if the user has that role.
-
-The GUEST mode can be enabled if required (for development and testing purposes only) to override the requirement for specific user credentials.
+// |===
 
 
-More::
- {rest-api-access--xref}
-
-===  Behavior
-
-.{sgw} <--> REST API
-[#tbl-restapi-behavior, cols="1a,1,1a, options="header"]
-|===
-
-.>h| Configuration Properties
-.>h| Default Behavior
-.>h| Opt-Out Trigger
-
-|{bootstrap-schema--xref--api-https-tls-cert-path} +
-{bootstrap-schema--xref--api-https-tls-key-path}
-|TLS encryption is enabled by default, unless the opt-out is triggered
-|Omit the key and certificate path properties from the configuration
-
-|===
-
-
-== Replication
+== {sgw-t}-Couchbase Lite Sync
 
 Couchbase Lite client applications must be updated to use TLS when connecting to {sgw} nodes running in default mode.
 
-=== Configuration
-The content in <<tbl-tls-config-options>> shows the configuration options used to control this for replication.
+<<tbl-tls-config-options>> shows the TLS configuration options, whilst <<tbl-replication-behavior>> shows the default and opt-out behavior.
 
-.Configuration options controlling TLS-encryption
+
+.TLS configuration options
 [#tbl-tls-config-options,cols="4m,7m,^1a,10a", options="header"]
 |===
 
@@ -101,10 +75,7 @@ The content in <<tbl-tls-config-options>> shows the configuration options used t
 
 Omit both options to use _plaintext_ -- for development and-or testing *only* -- see the {configuration-schema-bootstrap--xref}.
 
-
-===  Behavior
-
-.{sgw} <--> Replicator behavior
+.TLS behavior
 [#tbl-replication-behavior, cols="1a,1,1a, options="header"]
 |===
 
@@ -114,7 +85,7 @@ Omit both options to use _plaintext_ -- for development and-or testing *only* --
 
 |{bootstrap-schema--xref--api-https-tls-cert-path} +
 {bootstrap-schema--xref--api-https-tls-key-path}
-|TLS encryption is enabled by default, unless the opt-out is triggered
+|TLS verification and encryption is enabled by default, unless the opt-out is triggered
 |Provide nil values for the key and certificate paths
 
 |===
@@ -128,50 +99,44 @@ You can set the {bootstrap-schema--xref--bootstrap-server-tls-skip-verify} flag
 But, this must only be done for testing or development purposes. 
 
 // == Configuration
-The content in <<tbl-tls-config-options>> shows the configuration options used to control authentication requirements between {sgw) and Couchbase Server.
-The options include flags that will allow you to override the requirement to use TLS in testing and-or development environments *only*.
+The content in <<tbl-tls-config-options>> shows the TLS configuration options for {sgw)-Couchbase Server communication.
+The options include flags that will allow you to override the requirement to use TLS -- for use in testing and-or development environments *only*.
 
 .Configuration options {sgw} <-->Couchbase Server
-[#tbl-tls-config-options,cols="9a,^1a,10a", options="header"]
+[#tbl-tls-config-options,cols="4a,3a,3a", options="header"]
 |===
 
 |Bootstrap Configuration / +
 Command-line flag
-|Default
-|Purpose
+|Default Behavior
+|Opt-out
 
 |`bootstrap.use_tls_server` +
 CLI: `-bootstrap.use_tls_server`
-|`true`
-|Default: TLS enabled +
-Set this `false` to allow use of non-secure protocols (`couchbase://` instead of `couchbases://`) -- *development and testing only*
+|TLS enabled +
+|Omit from bootstrap file or set this `false` in CLI to turn-off off TLS completely -- *development and testing only*
 
 |`bootstrap.server_tls_skip_verify` +
 CLI: `-bootstrap.server_tls_skip_verify`
-|`false`
-|Default: TLS enabled +
-Set this `true` to skip validation of any certificates received from the server with the CA certificate -- *development and testing only*
+|TLS enabled unless `use_tls_server` opt-out used
+|* Omit from bootstrap file or set this `true` in CLI to skip server verification of certificates (self- or CA-signed) but leave encryption enabled. +
+* Do not provide `ca_cert_path`, `x509_cert_path`, or `x509_cert_path`
+* Use for *development and testing only*
 
 | `bootstrap.ca_cert_path` +
 CLI: `-bootstrap.ca_cert_path`
-|CA Root Pool
-|Provide the path to the root CA certificate to verify the certificate chain and hostname of the Couchbase Server cluster
-
-Omit if not required
+|Provides the path to the root CA certificate to verify the certificate chain and hostname of the Couchbase Server cluster
+|Omit if not required
 
 | `bootstrap.x509_cert_path` +
 CLI: `-bootstrap.x509_cert_path`
-|-
-|Provide the path to the client's certificate to authenticate against Couchbase Server footnote:[5.5 or above]
-
-Omit if not required
+|Provides the path to the client's certificate to authenticate against Couchbase Server footnote:[5.5 or above]
+|Omit if not required
 
 | `bootstrap.x509_key_path` +
 CLI: `-bootstrap.x509_key_path`
-|-
-|Provide the path to the the client's private key to authenticate against Couchbase Server footnote:[5.5 or above]
-
-Omit if not required
+|Provides the path to the the client's private key to authenticate against Couchbase Server footnote:[5.5 or above]
+|Omit if not required
 
 |===
 
@@ -183,7 +148,7 @@ Omit if not required
 [#tbl-server-behavior, cols="3a,4a,2m", options="header"]
 |===
 
-.>h|Required Configyuration
+.>h|Required Configuration
 .>h| Default Behavior
 .>h| Opt-Out Trigger
 
@@ -198,12 +163,13 @@ Set the certificate and key path:
 * If a `ca_cert_path` is specified then only certificates from that CA will be accepted.
 * If `ca_cert_path` is omitted
 ** If `server_skip_tls_verify=true` +
-Then {sgw} will skip validation of any server cert.
+Then {sgw} will skip validation of any server cert, but still require encryption.
 This includes skipping validation of certs that are from a trusted/well known CA
 ** If `server_skip_tls_verify=false` +
-then only certificates from a trusted/well known CA will be accepted
+Then only certificates from a trusted/well known CA will be accepted
 
-|use_tls_server=false
+|use_tls_server=false (or omitted) +
+server_skip_tls_verify=true (or included)
 
 |===
 
