@@ -44,54 +44,8 @@ Additionally, the _Admin_ and _Metrics REST API_ security is also enhanced by th
 
 // |===
 
-
-== {sgw-t}-Couchbase Lite Sync
-
-Couchbase Lite client applications must be updated to use TLS when connecting to {sgw} nodes running in default mode.
-
-<<tbl-tls-config-options>> shows the TLS configuration options, whilst <<tbl-replication-behavior>> shows the default and opt-out behavior.
-
-
-.TLS configuration options
-[#tbl-tls-config-options,cols="4m,7m,^1a,10a", options="header"]
-|===
-
-|Bootstrap Configuration
-|Command-line flag
-|Default
-|Purpose
-
-|api.https.tls_key_path
-|-api.https.tls_key_path
-|nil
-|Provide the path footnote:[pass:q,a[This can be absolute, or relative to the {sgw} executable's directory]] to the TLS private key file.
-
-|api.https.tls_cert_path
-|-api.https.tls_cert_path
-|-
-|Provide the path to the TLS certificate file.
-
-|===
-
-Omit both options to use _plaintext_ -- for development and-or testing *only* -- see the {configuration-schema-bootstrap--xref}.
-
-.TLS behavior
-[#tbl-replication-behavior, cols="1a,1,1a, options="header"]
-|===
-
-.>h| Configuration Properties
-.>h| Default Behavior
-.>h| Opt-Out Trigger
-
-|{bootstrap-schema--xref--api-https-tls-cert-path} +
-{bootstrap-schema--xref--api-https-tls-key-path}
-|TLS verification and encryption is enabled by default, unless the opt-out is triggered
-|Provide nil values for the key and certificate paths
-
-|===
-
-
-== Couchbase Server
+[#lbl-cbs-comms]
+== Couchbase Server Connection
 
 By default {sgw-te} requires TLS encryption and the server scheme is specified as `couchbases://`.
 
@@ -99,7 +53,7 @@ You can set the {bootstrap-schema--xref--bootstrap-server-tls-skip-verify} flag
 But, this must only be done for testing or development purposes. 
 
 // == Configuration
-The content in <<tbl-tls-config-options>> shows the TLS configuration options for {sgw)-Couchbase Server communication.
+The content in <<tbl-tls-config-options>> shows the TLS configuration options for {sgw}-Couchbase Server communication.
 The options include flags that will allow you to override the requirement to use TLS -- for use in testing and-or development environments *only*.
 
 .Configuration options {sgw} <-->Couchbase Server
@@ -173,21 +127,73 @@ server_skip_tls_verify=true (or included)
 
 |===
 
+For more on creating and installing certificates, see: {authentication-certs--xref}.
 
-== Launching Sync Gateway as Service
+
+== Client Connection
+
+Couchbase Lite client applications must be updated to use TLS when connecting to {sgw} nodes running in default mode.
+
+<<tbl-tls-config-options>> shows the TLS configuration options, whilst <<tbl-replication-behavior>> shows the default and opt-out behavior.
+
+
+.TLS configuration options
+[#tbl-tls-config-options,cols="4m,7m,^1a,10a", options="header"]
+|===
+
+|Bootstrap Configuration
+|Command-line flag
+|Default
+|Purpose
+
+|api.https.tls_key_path
+|-api.https.tls_key_path
+|nil
+|Provide the path footnote:[pass:q,a[This can be absolute, or relative to the {sgw} executable's directory]] to the TLS private key file.
+
+|api.https.tls_cert_path
+|-api.https.tls_cert_path
+|-
+|Provide the path to the TLS certificate file.
+
+|===
+
+Omit both options to use _plaintext_ -- for development and-or testing *only* -- see the {configuration-schema-bootstrap--xref}.
+
+.TLS behavior
+[#tbl-replication-behavior, cols="1a,1,1a, options="header"]
+|===
+
+.>h| Configuration Properties
+.>h| Default Behavior
+.>h| Opt-Out Trigger
+
+|{bootstrap-schema--xref--api-https-tls-cert-path} +
+{bootstrap-schema--xref--api-https-tls-key-path}
+|TLS verification and encryption is enabled by default, unless the opt-out is triggered
+|Provide nil values for the key and certificate paths
+
+|===
+
+
+== Running Sync Gateway
+
+=== As a Service
+
 The `serviceconfig.json` file uses the `couchbases:` scheme, with `server_skip_tls_verify=true` by default, to facilitate testing and development; no TLS validation is done.
 
-You can set TLS validation using the  following settings:
+Use the following settings to configure TLS:
 
 * {bootstrap-schema--xref--bootstrap-ca-cert-path}
 * {bootstrap-schema--xref--bootstrap-x509-cert-path}
 * {bootstrap-schema--xref--bootstrap-x509-key-path}
 * {bootstrap-schema--xref--bootstrap-server-tls-skip-verify}
 
+For more on configuration options, see: {configuration-schema-bootstrap--xref}.
 
-== Launching Sync Gateway at Command Line
+=== Command Line
 
-You can set TLS validation using the  following command line flags:
+Use the following command line flags to configure TLS:
 
 * -bootstrap.ca_cert_path
 * -bootstrap.x509_cert_path
@@ -196,9 +202,9 @@ You can set TLS validation using the  following command line flags:
 
 Sync Gateway will error non-secure server schemes (`couchbase:` or `ws:`) unless the opt-out option is true.
  
-You can no longer start {sgw} without providing at least one parameter; with no configuration file specified, you would need to provide a TLS Cert/Key, or set {bootstrap-schema--xref--bootstrap-server-tls-skip-verify}.
+Note that you can no longer start {sgw} without providing at least one parameter, as with no configuration file specified, you need to either provide a TLS Cert/Key, or disable TLS.
 
+For more on command line options, see: {command-line-options--xref}.
 
-For information on creating and installing certificates, see {authentication-certs--xref}.
 
 include::partial$block-related-content-api.adoc[]
