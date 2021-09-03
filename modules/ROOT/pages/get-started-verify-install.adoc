@@ -57,10 +57,11 @@ The configuration points to your Couchbase Server cluster, which we will use to 
 
 {
   "bootstrap": {
-    "server": "couchbase://localhost", // <.>
+    "server": "couchbases://localhost", // <.>
     "username": "sync_gateway", // <.>
     "password": "password", //
     "server_tls_skip_verify": true, // <.>
+    "use_tls_server": false // <.>
   },
   "logging": { // <.>
     "console": {
@@ -74,9 +75,10 @@ The configuration points to your Couchbase Server cluster, which we will use to 
 ----
 
 About the Configuration Properties::
-<.> Here we point to the Couchbase Server cluster
+<.> Here we point to the Couchbase Server cluster using secure connection. Server ships with self signed certs that work out of the box, as long as `server_tls_skip_verify` is set, as it is below.
 <.> Here we provide the credentials for the RBAC user that you created on the Couchbase Server Admin Console -- see {get-started-prepare--config-server--xref}
-<.> Here we allow non-TLS plaintext access to the Couchbase Server for test purposes
+<.> Here we opt to ignore CA Cert verification of the certificate presented by the server; allowing for example use of self-signed certificate. The connection is unverified but encrypted.
+<.> Optionally, you can choose to run without TLS, in which case you should also use `couchbase//localhost` for connection
 <.> Define your logging requirements: +
 Here we set general diagnostic console logs on.
 If you're having issues then refer to {logging--xref} for how to tune diagnostics to provide additional troubleshooting help
@@ -86,9 +88,9 @@ If you're having issues then refer to {logging--xref} for how to tune diagnostic
 
 Run the following in a terminal:
 ----
-bin/sync_gateway -bootstrap.use_tls_server=false sgwconfig.json // <.>
+bin/sync_gateway -<options> sgwconfig.json // <.>
 ----
-<.> use CLI flag to signal non-TLS communications
+<.> Optionally provide any CLI flags you require to use
 
 
 == Add a Database Configuration
@@ -131,7 +133,7 @@ It adds a role called `stdrole`.
 .Add a Sync Gateway Role
 ====
 ----
-curl --location --request PUT 'http://127.0.0.1:4985/travel25/_role/stdrole' \ // <.>
+curl --location --request PUT 'http://127.0.0.1:4985/traveldb/_role/stdrole' \ // <.>
 --header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -155,7 +157,7 @@ It adds a user called `sgwuser1`.
 .Add a Sync Gateway Role
 ====
 ----
-curl --location --request PUT 'http://127.0.0.1:4985/travel25/_user/sgwuser1' \ // <.>
+curl --location --request PUT 'http://127.0.0.1:4985/traveldb/_user/sgwuser1' \ // <.>
 --header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -223,7 +225,7 @@ Within a terminal use CURL to issue the following POST request, which adds a new
 .Request
 [{snippet-header}]
 ----
-curl --location --request PUT 'http://localhost:4985/travel25/hotel_88801' \
+curl --location --request PUT 'http://localhost:4985/traveldb/hotel_88801' \
 --header 'Authorization: Basic c2d3dXNlcjE6cGFzc3dvcmQ=' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -273,7 +275,7 @@ image::cbs-view-first-doc.png[]
 .Request
 [{snippet-header}]
 ----
-curl --location --request GET 'http://localhost:4985/travel25/hotel_88801' \
+curl --location --request GET 'http://localhost:4985/traveldb/hotel_88801' \
 --header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk'
 ----
 
@@ -298,7 +300,7 @@ curl --location --request GET 'http://localhost:4985/travel25/hotel_88801' \
 .Request
 [{snippet-header}]
 ----
-curl --location -g --request PUT 'http://localhost:4985/travel25/hotel_88801?new_edits=true&rev=1-f28b5cc13a38892f4f85913d4e654270' \  // <.>
+curl --location -g --request PUT 'http://localhost:4985/traveldb/hotel_88801?new_edits=true&rev=1-f28b5cc13a38892f4f85913d4e654270' \  // <.>
 --header 'Accept: application/json' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -365,7 +367,7 @@ You should see the change you made in Couchbase Server reflected in the response
 .Request
 [{snippet-header}]
 ----
-curl --location -g --request DELETE 'http://localhost:4985/travel25/88801?rev=3-cc2e758ef63b0daf5b01b2baf98c72b6' // <.>
+curl --location -g --request DELETE 'http://localhost:4985/traveldb/88801?rev=3-cc2e758ef63b0daf5b01b2baf98c72b6' // <.>
 ----
 <.> Note that we provide here the revision ID of the latest revision (3), as returned in the response to the last GET request.
 

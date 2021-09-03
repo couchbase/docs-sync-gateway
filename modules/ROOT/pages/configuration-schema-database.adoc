@@ -1,56 +1,181 @@
 = Database Configuration
-:page-layout: article
-:page-status:
-:page-content: reference
-:description: This content describes Sync Gateway's configuration schema. It provides parameter explanations and examples of use
-:keywords:
+:page-edition: {release}
+:page-status: {prerelease}
+:page-role"
+:description: Using Sync Gateway's Admin REST API to configure and manage databases
 
-
+// BEGIN -- DO NOT EDIT
 include::partial$_std-hdr-sgw.adoc[]
 
 
 :param-abstract!:
-:param-topic-group: configuration
 :param-related!:
+:param-topic-group: persistent-configuration
 include::partial$block-abstract.adoc[]
 
+:ouroffsetlevel: 2
+// END -- DO NOT EDIT
 
 == Introduction
 
-This section shows Sync Gateway's database configuration settings in schema format for convenience <<lbl-schema>>.
+In 3.0 it is possible to use the Admin REST API to provision persistent configuration changes.
+This content introduces the <<lbl-create-db>> and <<lbl-configure-db>> endpoints for convenience -- see {rest-api-admin--xref--database-configuration} for a full description of the endpoints available.
 
-The configuration settings described here are provisioned through the Admin REST API -- see as shown in {rest-api-admin-database--xref}.
+
+[#lbl-create-db]
+== Create Database
+
+----
+PUT {url}/{dbname}/
+----
+
+include::partial$configuration/operations/create_db.adoc[tags=description,leveloffset=-3]
+
+=== Parameters
+include::partial$configuration/operations/create_db.adoc[tags=parameters,leveloffset=-3]
+
+=== Responses
+include::partial$configuration/operations/create_db.adoc[tags=responses,leveloffset=-3]
 
 
-[#lbl-schema]
+=== Example
 
-.Configuration Schema
+.Create database
+====
+Here we create a new {sgw} database.
 
-// json_config_ui::{attachmentsdir}/configuration-properties-database.yaml[]
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://127.0.0.1:4985/traveldb/' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ // <.>
+--header 'Content-Type: application/json' \
+--data-raw '{
+"bucket": "todo", // <.>
+"num_index_replicas": 0}'
+
+----
+
+--
+
+HTTP::
++
+--
+[source,http]
+----
+PUT /traveldb/ HTTP/1.1 // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk // <.>
+Content-Type: application/json
+Content-Length: 44
+
+{
+"bucket": "todo", // <.>
+"num_index_replicas": 0}
+----
+--
+
+=====
+
+<.> Here we create a {sgw} database called `traveldb`
+<.> Note we are using Basic Authentication here to authenticate against an existing Couchbase Server RBAC user
+<.> Here we point to the Couchbase Server bucket called `todo`
+
+====
+
+
+[#lbl-configure-db]
+== Configure Database
+
+----
+PUT {url}/{db}/_config
+----
+
+include::partial$configuration/operations/upsert_db_config.adoc[tags=description,leveloffset=-3]
+
+=== Parameters
+include::partial$configuration/operations/upsert_db_config.adoc[tags=parameters,leveloffset=-3]
+
+=== Responses
+include::partial$configuration/operations/upsert_db_config.adoc[tags=responses,leveloffset=-3]
+
+
+=== Example
+
+.Configure database
+====
+Here we configure an existing {sgw} database.
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://127.0.0.1:4985/traveldb/_config/' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ // <.>
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "enable_shared_bucket_access": true,
+  "import_docs": true
+}' // <.>
+
+----
+
+--
+
+HTTP::
++
+--
+[source,http]
+----
+PUT /traveldb/_config/ HTTP/1.1  // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk  // <.>
+Content-Type: application/json
+Content-Length: 120
+
+{
+"enable_shared_bucket_access": true,
+"import_docs": true
+} // <.>
+----
+--
+
+=====
+
+<.> Here we choose to configure (`_config`) a {sgw} database called `traveldb`
+<.> Note we are using Basic Authentication here to authenticate against an existing Couchbase Server RBAC user
+<.> Here we toggle a couple of database properties
+
+====
+
+
+
+[#_database_configuration_model]
+== Schema
+
+This section shows Sync Gateway's database configuration settings in schema format for convenience in constructing JSON models for use in the Admin REST API.
+
+The configuration settings described here are provisioned through the {rest-api-admin--xref--database-configuration} endpoints.
 
 json_config_ui::{attachmentsdir}/sg-database.yaml[]
 
+:leveloffset: 0
 
 
+// BEGIN -- DO NOT EDIT
 include::partial$block-related-content-api.adoc[]
 
-
-
-// == Database Configuration Reference
-
-// The majority of configuration properties described here are dynamic. Currently the only static properties are:
-
-// * Databases.{db}.allow_conflicts
-// * Databases.{db}.bucket
-// * Databases.{db}.bucket_op_timeout_ms
-// * Databases.{db}.cacertpath
-// * Databases.{db}.certpath
-// * Databases.{db}.delta_sync.enabled
-// * Databases.{db}.delta_sync.rev_max_age_seconds
-// * Databases.{db}.import_docs
-// * Databases.{db}.keypath
-// * Databases.{db}.password
-// * Databases.{db}.query_pagination_limit
-// * Databases.{db}.user_xattr_key
-// * Databases.{db}.username
-
+// END -- DO NOT EDIT

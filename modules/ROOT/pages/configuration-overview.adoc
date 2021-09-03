@@ -39,10 +39,10 @@ The ability to make remote in-flight configuration changes to database settings,
 Configuration changes made to a node through the API endpoints are propagated to other {sgw} nodes belonging to the same cluster (or to a user-defined subset of nodes) -- <<lbl-config-grp>>
 
 * *Persistent Updates* +
-Any database changes made using the API endpoints are persisted and survive {sgw} node restarts (this does note apply when running in file-base configuration mode).
+Any database changes made using the API endpoints are persisted and survive {sgw} node restarts (this does not apply when running in file-based configuration mode).
 
 * *Secure REST API* +
-by default the REST API requires TLS authentication -- see {secure-sgw-access--xref}.
+by default the REST API requires authentication and authorization using Couchbase Server RBAC-user credentials -- see {secure-sgw-access--xref}.
 This can be disabled for test purposes only.
 
 * *Automatic upgrade path* +
@@ -51,7 +51,7 @@ Your existing pre-3.x configuration files will (optionally) be automatically con
 
 == Workflow
 
-In the {sgw-te} {ec-l} ecosphere you provide a minimal bootstrap configuration to get Sync Gateway started, then add users, roles, database and replications using the REST API.
+In the {ec-te} ecosphere you provide a minimal bootstrap configuration to get Sync Gateway started, then add users, roles, database and replications using the REST API.
 
 .Configuration Workflow
 image::persistent-config.png[,750]
@@ -69,16 +69,21 @@ Auto restarts will be initiated for ny change that requires one.
 You will need to configure and maintain:
 
 .. Databases +
-Use the Admin REST API endpoint {sgw--xref}{rest-api-admin-database--page}[Database Configuration] endpoints to add required databases.
+Use the Admin REST API endpoint {sgw--xref}{configuration-schema-database--page}[Database Configuration] endpoints to add required databases.
 
 .. Database Security +
-Use the {sgw--xref}{rest-api-admin-db-security--page}[Database Security] endpoints to configure users and roles.
+Use the {sgw--xref}{configuration-schema-db-security--page}[Database Security] endpoints to configure users and roles.
 
 .. Access Control +
-Use the {sgw--xref}{rest-api-admin-access-control--page}[Access Control] endpoints to configure your Sync Function.
+Use the {sgw--xref}{configuration-schema-access-control--page}[Access Control] endpoints to configure your Sync Function.
 
 .. Inter-Sync Gateway replications +
-Use the {sgw--xref}{rest-api-admin-isgr--page}[inter-{sgw} replication] endpoints to configure required replications.
+Use the {sgw--xref}{configuration-schema--isgr--page}[inter-{sgw} replication] endpoints to configure required replications.
+
+
+=== Opt-out
+To continue using the pre-3.x configuration mode ensure that you use the command-line interface option `disable_persistent_config=true`.
+This ensures you can use the {configuration-properties--xref} and that *no* Admin REST API  changes are persisted across {sgw} restarts.
 
 
 == Key Terms
@@ -99,21 +104,21 @@ Use the {sgw--xref}{rest-api-admin-isgr--page}[inter-{sgw} replication] endpoint
 |A group of {sgw} nodes within a {sgw} cluster sharing common configuration.
 Each node in the group will continue to have node-specific config.
 
-|Static
-|In a configuration context, this term is used to identify changes requiring a {sgw} node restart to take effect.
+// |Static
+// |In a configuration context, this term is used to identify changes requiring a {sgw} node restart to take effect.
 
-|Dynamic
-|In a configuration context, this term is used to identify changes requiring NO {sgw} restart.
-So, for example, anything modifiable using REST API endpoint is a dynamic configuration property.
+// |Dynamic
+// |In a configuration context, this term is used to identify changes requiring NO {sgw} restart.
+// So, for example, anything modifiable using REST API endpoint is a dynamic configuration property.
 
-Note that, in some cases, such changes may require the database be taken offline/online before it takes effect.
+// Note that, in some cases, such changes may require the database be taken offline/online before it takes effect.
 
 |===
 
 
 == Configuration Levels
 
-All the configuration properties, whether defined in the bootstrap configuration file or by the REST API endpoint belong to one of three core 'levels': _node_, _database_  or _replication_ -- see <<tbl-cfg-levels>>
+All the configuration properties, whether defined in the bootstrap configuration file or by the Admin REST API endpoint belong to one of two core 'levels': _node_ or _database_ -- see <<tbl-cfg-levels>>
 
 .Configuration levels in {ec}
 [#tbl-cfg-levels,cols="1,1,2,2,2", options="header"]
@@ -121,54 +126,54 @@ All the configuration properties, whether defined in the bootstrap configuration
 2+|Level
 |Use
 |Scope
-|Requires
+|Changeable?
 
 .3+|Node
-|Bootstrap properties
+| Couchbase Server connection
 |Minimal set of configuration properties required for connection to {svr} bucket, for example server credentials, and group id
 |Node-specific; unshared
-|Restart required
+|Yes, file-edit +
+Restart required
 
-|Static system properties
-|Static node level properties including, for example, `api.tls.cert_path` and `max_file_descriptors`
+|System properties
+| Node level system properties including, for example, `api.tls.cert_path` and `max_file_descriptors`
 |Node-specific; unshared
-|Restart required
+|Yes, file-edit +
+Restart required
 
-|Dynamic system properties
-|All logging-related properties are dynamic
-|Node-specific; unshared; not persisted
-|No restart
+|Logging properties
+|Logging-related properties
+|Node-specific; unshared
+| Yes by the Admin REST API +
+No restart, but *not persisted*
 
 
-2+|Database
+.2+|Database
+| DB properties
 | Database configuration properties including, for example, `bucket`, or access control policies such as `users` and `sync`
 |May be node-specific, but typically shared across nodes in same group
-|Restart initiated as needed
+|Yes, by Admin REST API +
+Restart initiated as needed
 
 
-2+|Replication
+|Replication properties
 |inter-{sgw} replication properties
 |Shared across all participating replication nodes
-|Restart initiated as needed
+|Yes, by Admin REST API +
+Restart initiated as needed
 
 |===
 
-To continue operating in this mode ensure that you use the command-line interface option `disable_persistent_config=true`.
-This ensures the pre-3.0 configuration approach is continued.
 
 
 [#lbl-auth]
-== Authenticated API Access
+== Secure Remote Administration
 
-Secure TLS access (_https_ and-or _wss_) to the {sgw} ADMIN API is enabled by default.
-You can disable it, for testing purposes *ONLY*, by omitting the {bootstrap-schema--xref--api-https-tls-key-path} and {bootstrap-schema--xref--api-https-tls-cert-path} options from the bootstrap config.
+// Secure TLS access (_https_ and-or _wss_) to the {sgw} ADMIN API is enabled by default.
+// You can disable it, for testing purposes *ONLY*, by omitting the {bootstrap-schema--xref--api-https-tls-key-path} and {bootstrap-schema--xref--api-https-tls-cert-path} options from the bootstrap config.
+include::{rest-api-access--page}[tags=secremacc]
 
-To use the {ec-te} you need to create an RBAC-user on {svr}
-with an appropriate {sgw} role.
-The user/TLS credentials are then declared in the bootstrap configuration.
-This node-level user is used when connecting to database by default; unless over-ridden in the database configuration.
-
-Cluster connection failures are subject to retries.
+For more see: {rest-api-access--xref}
 
 
 [#lbl-config-grp]
