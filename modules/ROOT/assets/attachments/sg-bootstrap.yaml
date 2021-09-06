@@ -6,25 +6,29 @@ properties:
     properties:
       group_id:
         type: string
-        default:
+        default: "default"
         description: |+
           The ID of the configuration group to which this node belongs.
 
-      buckets:
-        type: array
-        description: |+
-          A list of buckets holding config data
-        items:
-          bucket_name:
-            type: string
-            description: |+
-              Name of a bucket storing configuration data
+      # buckets:
+      #   type: array
+      #   description: |+
+      #     A list of buckets holding config data
+      #   items:
+      #     bucket_name:
+      #       type: string
+      #       description: |+
+      #         Name of a bucket storing configuration data
 
-      config_update_frequency_secs:
-        type: int
-        default: 10
+      config_update_frequency:
+        type: string
+        default: "10s"
         description: |+
-          Sets the interval, in seconds, between configuration update checks
+          Sets the interval between checks for new or updated configurations made by other nodes in Couchbase Server
+
+          It is provided as string, which uses Go's duration format (e.g: 1s = 1 second, 5m = 5 minutes , 1h32m15s = 1 hour, 32 mins, 15 seconds)
+          see: https://pkg.go.dev/time#ParseDuration
+
       server:
         type: string
         default: none
@@ -57,7 +61,9 @@ properties:
           Defaults to `false`, which requires a valid CA Cert Path.
 
           Works in conjunction with `ca_cert_path` to control whether system root pool is used or not.
-          Set this true and `ca_cert_path` empty to avoid using system root pool for authentication.
+
+          Set this true and `ca_cert_path` empty to allow, for example, self-signed or un-trusted certificates.
+          This will be the default of-of-the-box setting.
 
       x509_cert_path:
         type: string
@@ -75,16 +81,19 @@ properties:
 
           Relative paths are relative to the directory containing the Sync Gateway executable.
 
-      # use_tls_server:
-      #   type: boolean
-      #   description: |+
-      #     Default to `true`, which forces the connection to Couchbase Server to use TLS.
+      use_tls_server:
+        type: boolean
+        default: true
+        description: |+
+          Default to `true`, which forces the connection to Couchbase Server to use TLS.
 
-      #     Use `use_tls_server` to enforce use of a secure scheme (for example, `couchbases://`) to connect to Couchbase Server.
+          Use `use_tls_server` to enforce use of a secure scheme (for example, `couchbases://`) to connect to Couchbase Server.
 
-      #     Set this `false` to use a non-secure scheme (for example, `couchbase://`).
+          Set this `false` to use a non-secure scheme (for example with `couchbase://`).
 
-      #     If the scheme used does not match that indicated by the `use_tls_server` value (for example, `couchbases://` with `use_tls_server` = `false`) then Sync Gateway will error and refuse to start.
+          If the scheme used does not match that indicated by the `use_tls_server` value (for example, `couchbases://` with `use_tls_server` = `false`) then Sync Gateway will error and refuse to start.
+
+          Use in conjunction with
 
   api:
     type: object
@@ -105,7 +114,7 @@ properties:
         type: boolean
         default: true
         description: |+
-          Use the `admin_interface_authentication` property to disable SSL/TLS authentication for the metrics API.
+          Use the `admin_interface_authentication` property to disable authentication for the metrics API.
           This option should be used with discretion and only in test environments.
 
           By default the Admin API requires Couchbase Server RBAC authentication.
@@ -125,7 +134,7 @@ properties:
         type: boolean
         default: true
         description: |+
-          Use the `metrics_interface_authentication` property to disable SSL/TLS authentication for the metrics API.
+          Use the `metrics_interface_authentication` property to disable authentication for the metrics API.
           This option should be used with discretion and only in test environments.
 
           By default the Metrics API requires Couchbase Server RBAC authentication.
@@ -139,7 +148,7 @@ properties:
       profile_interface:
         type: string
         description: |+
-          (**Deprecated**) TCP network address (IP address and the port) that the Go profile API listens on.
+          TCP network address (IP address and the port) that the Go profile API listens on.
           You can obtain Go profiling information from the interface.
           You can omit the IP address.
 
@@ -226,7 +235,7 @@ properties:
           #     *Note* tha insecure connections should NOT be used in production deployments.
           tls_minimum_version:
             type: string
-            default: 'tlsv1.3'
+            default: 'tlsv1.2'
             summary: The minimum allowable TLS version for the REST APIs
             description: |+
               Enforce a minimum TLS version to be used in replications with Couchbase Lite.
@@ -368,6 +377,9 @@ properties:
         type: object
         description: Settings for the console output logging.
         properties:
+          enabled:
+            type: boolean
+            description: Indicates whether console logging is enabled
           rotation:
             type: object
             description: |+
@@ -785,20 +797,27 @@ properties:
           - The default value of ```maxHeartbeat``` is 0 (zero)
           - The minimum value of ```maxHeartbeat``` is 25 (25,000 ms)
 
-  bcrypt_cost:
-    type: integer
-    description:
+    auth:
+      type: object
+      properties:
+        bcrypt_cost:
+          type: integer
+          default: 10
+          description: Cost to use for bcrypt password hashes
 
   unsupported:
     type: object
     description:
 
     properties:
-      stats_log_freq_seqs:
-        type: integer
+      stats_log_freq:
+        type: string
+        default: "1m"
         description:  |+
+          It is provided as string, which uses Go's duration format (e.g: 1s = 1 second, 5m = 5 minutes , 1h32m15s = 1 hour, 32 mins, 15 seconds)
+          see: https://pkg.go.dev/time#ParseDuration
 
-      http2_enable:
+      http2.enabled:
         type: boolean
         default: false
         description:

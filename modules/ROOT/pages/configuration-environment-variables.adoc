@@ -52,15 +52,35 @@ So `$\{username\}` and `$\{USERNAME\}` are not the same variable
 ----
 
 {
+  "bootstrap": {
+    "server": "couchbases://localhost", // <.>
+    "username": "${USERNAME}", // <.>
+    "password": "${PASSWORD}"
+    "server_tls_skip_verify": true, // <.>
+    "use_tls_server": false // <.>
+  },
+  "logging": { // <.>
+    "console": {
+      "enabled": true,
+      "log_level": "${var_loglevel:-info}", // <.>
+      "log_keys": ["*"]
+    }
+  }
+}
+
+----
+
+
+
+
+
+{
   "databases": {
     "db1": {
       "bucket": "bucket1",
       "server": "couchbase://localhost",
-      "username": "${USERNAME}", // <.>
-      "password": "${PASSWORD}"
     }
     "db2": {
-      "bucket": "${var_bucket:-this_bucket}", // <.>
       "server": "couchbase://localhost",
       "username": "${USERNAME}",
       "password": "pa{double-dollar}{double-dollar}word" // <.>
@@ -73,11 +93,11 @@ So `$\{username\}` and `$\{USERNAME\}` are not the same variable
 <.> Here we provide a reference to the environment variables `USERNAME` footnote:[On Windows systems USERNAME is already in use as a System Variable used by the operating system] and `PASSWORD`.
 The values of those variable are substituted here immediately prior to the parsing of the configuration file.
 
-<.> The variable `var_bucket` is given a default value of 'this_bucket', which is used only if the `var_bucket` environment variable itself is empty or undefined.
+<.> The variable `var_loglevel` is given a default value of 'info', if the `var_loglevel` environment variable itself is empty or undefined.
 
-<.> The password value itself contains dollar symbols.
-We can use the `{double-dollar}` notation.
-So, the value is interpreted as `pa{double-dollar}word`.
+<.> If, for example. the password value contains dollar symbols.
+We can use the double-dollar notation ({double-dollar}.
+So, the value `pa{double-dollar}{double-dollar}word` is interpreted as `pa{double-dollar}word`.
 
 ====
 

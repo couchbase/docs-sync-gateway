@@ -1,33 +1,125 @@
-= Inter-Sync Gateway Replication Configuration
-:page-layout: article
-:page-status:
-:page-content: reference
-:description: This content describes Sync Gateway's configuration schema. It provides parameter explanations and examples of use
-:keywords:
+= Inter-Sync{nbsp}Gateway Replication Configuration
+:page-edition: {release}
+:page-status: {prerelease}
+:page-role:
+:page-content: Reference
+:description: Using Sync Gateway's Admin REST API to configure and manage inter-Sync{nbsp}Gateway replications
 
 
 include::partial$_std-hdr-sgw.adoc[]
 
 
 :param-abstract!:
-:param-topic-group: configuration
 :param-related!:
+:param-topic-group: persistent-configuration
 include::partial$block-abstract.adoc[]
+
+
+// :param-yaml: rest-api-admin-isgr.yaml
+// include::partial$rest-api-explorer.adoc[]
+
+
+:ouroffsetlevel: 2
+// END -- DO NOT EDIT
 
 
 == Introduction
 
-Sync Gateway's inter-Sync Gateway Replication configuration settings are shown in the <<lbl-schema>>. The settings are provisioned through the REST API/ -- see: {rest-api-admin-inter-Sync Gateway Replication--xref-configure}
+In 3.0 it is possible to use the Admin REST API to provision persistent configuration changes.
+This content introduces the <<lbl-upsert-replication>> endpoint for convenience -- see {rest-api-admin--xref--replication} for a full description of the endpoints available.
 
 
-[#lbl-schema]
-== inter-Sync Gateway Replication Configuration Reference
+[#lbl-upsert-replication]
+== Add or Update a Replication
 
-.Configuration Schema
+----
+PUT {db}/_config/
+----
+
+include::partial$configuration/operations/upsert_replication.adoc[tags=description,leveloffset=-3]
+
+== Parameters
+include::partial$configuration/operations/upsert_replication.adoc[tags=parameters,leveloffset=-3]
+
+== Responses
+include::partial$configuration/operations/upsert_replication.adoc[tags=responses,leveloffset=-3]
+
+
+== Example
+
+====
+
+[{tabs}]
+=====
+
+Curl::
++
 --
-json_config_ui::{attachmentsdir}/sg-inter-sync-gateway replication.yaml[]
-// json_config_ui::{attachmentsdir}/rest-api-admin-inter-Sync Gateway Replication.yaml[]
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://localhost:4985/db1-local/_replication/db1-rep-id1 '\
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "direction": "push",
+  "purge_on_removal": false,
+  "remote": "http://user1:password1@example.com:4984/db1-remote",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+    "channels":["channel.user1"]
+  },
+  "continuous": false
+  }'
+
+----
+
 --
 
+HTTP::
++
+--
 
+[source, http]
+----
+
+PUT /db1-local/_replication/db1-rep-id1 HTTP/1.1
+Host: localhost:4985
+Content-Type: application/json
+Content-Length: 235
+
+{"direction": "push",
+  "purge_on_removal":false,
+  "remote": "http://user1:password1@example.com:4984/db1-remote",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+    "channels":["channel.user1"]
+  },
+  "continuous": false
+}
+
+----
+--
+
+=====
+
+====
+
+
+[#_replication_configuration_model]
+== Schema
+
+This section shows Sync Gateway's replication configuration settings in schema format for convenience in constructing JSON models for use in the Admin REST API.
+
+The configuration settings described here are provisioned through the {rest-api-admin--xref--replication} endpoints.
+
+json_config_ui::{attachmentsdir}/sg-replication.yaml[]
+
+
+
+:leveloffset: 0
+
+// BEGIN -- DO NOT EDIT
 include::partial$block-related-content-api.adoc[]
+
+// END -- DO NOT EDIT
