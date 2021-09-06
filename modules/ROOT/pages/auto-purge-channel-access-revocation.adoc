@@ -135,6 +135,10 @@ You can opt-in to auto-purge behavior using the replicator level option `purge_o
 
 Documents will then *be* auto-purged -- on active Sync Gateway nodes that have opted-in -- if they do not belong to *any* of the replicating user’s footnote:[pass:q,a[The _replicating user_ is the user on the _passive_ sync gateway cluster; the user specified in the replication definition.]] channels -- see: <<lbl-isgr-revoke-behaviors>>.
 
+At the point his option is turned on it only applies to revocations that occur after the point the replication is up to.
+
+If you turn it on during an existing replication, *no* revocations occurring prior to that point are retro-actively purged.
+To have this done, execute a reset for ISGR (on Couchbase Lite a reset checkpoint must be carried out).
 
 // [#tbl-isgr-revoke-behaviors,cols="^1,^2,3,4"]
 // |===
@@ -168,7 +172,8 @@ Here the Active Sync Gateway (Local) is running as an admin user with  `purge_on
 
 |Push
 |User revoked access to channel
-|Previously synced documents are auto purged on local
+|Revocation has no impact during a 'push'.
+No purging will occur.
 
 
 |PushAndPull
