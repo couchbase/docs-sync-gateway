@@ -3,6 +3,13 @@ properties:
     description: Port or TCP network address (IP address and the port) that the Admin REST API listens on. The loopback address prefix before the port (`127.0.0.1`) means the interface will not be reachable from other hosts. To make it reachable, change it to ":4985".
     type: string
     default: '127.0.0.1:4985'
+  admin_interface_authentication:
+    type: boolean
+    default: true
+    description: |+
+      Use `admin_interface_authentication=false` to turn of the secure remote administration feature introduced in 3.0 BETA.
+
+      This is on by default and requires Couchbase Server RBAC-users to authenticate Admin API access.
   adminUI:
     description: (**Deprecated**) URL of the Sync Gateway Admin Console HTML page.
     type: string
@@ -18,6 +25,14 @@ properties:
 
     type: string
     default: ':4986'
+
+  metrics_interface_authentication:
+    type: boolean
+    default: true
+    description: |+
+      Use `metrics_interface_authentication=false` to turn of the secure remote administration feature introduced in 3.0 BETA.
+
+      This is on by default and requires Couchbase Server RBAC-users to authenticate Metrics API access.
 
   compressResponses:
     description: Whether to compress HTTP responses. Set to false to disable compression of HTTP responses.
@@ -1335,6 +1350,11 @@ properties:
                         If the all channels wildcard was used to grant access then the sync will pull *ALL* documents.
                         Use a filter to avoid syncing excessive amounts of data to mobile devices.
 
+  disable_persistent_config:
+    type: boolean
+    default: false
+    description: |+
+      Set to true to disable the persistent configuration handling introduced in 3.0 BETA
   facebook:
     description: Configuration for Facebook Login authentication.
     type: object
