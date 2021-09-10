@@ -1,4 +1,4 @@
-= Database Security Configuration
+= Database Security
 :page-edition: {release}
 :page-status: {prerelease}
 :page-content: Reference
@@ -6,14 +6,25 @@
 
 :ouroffsetlevel: +1
 
+// BEGIN -- DO NOT EDIT
 include::partial$_std-hdr-sgw.adoc[]
+
+
+:param-abstract!: Introducing the use of user and role endpoints for the administration of Sync Gateway users.
+:param-related!:
+:param-topic-group: configuration
+include::partial$block-abstract.adoc[]
+
+// END -- DO NOT EDIT
 
 
 == Introduction
 
-In 3.0 it is possible to use the Admin REST API to provision persistent configuration changes.
+In 3.0 BETA we use the Admin REST API `_user` and `_role` endpoints to provision and manage {sgw} users through persistent configuration changes.
+
 This content introduces the <<lbl-upsert-role>> and <<lbl-upsert-user>> endpoints for convenience -- see {rest-api-admin--xref--database-security} for a full description of the endpoints available.
 
+It also includes a JSON-data model, you can use to build your request bodies. -- see: <<lbl-schema>>
 
 [#lbl-upsert-role]
 == Create or Update a Role
@@ -125,7 +136,7 @@ Curl::
 [source, bash]
 ----
 curl --location --request PUT 'http://127.0.0.1:4985/travel25/_user/newuser' \ // <.>
---header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "password": "pass",
@@ -160,13 +171,12 @@ Content-Length: 63
 =====
 
 <.> Add user `newuser` to the `travel25` database
-<.> Note we are using Basic Auth to authenticate to an existing RBAC user
 
 ====
 
-
 [#_user_configuration_model]
 [#_role_configuration_model]
+[#lbl-schema]
 == Schema
 
 This section shows Sync Gateway's database security configuration settings in schema format for convenience in constructing JSON models for use in the Admin REST API.

@@ -1,7 +1,9 @@
 = Secure API Access
 :page-aliases: start/rest-api-access.adoc, start/get-started-access-rest-api.adoc, get-started-access-rest-api.adoc
 :page-partials:
-:page-layout: article
+:page-edition: {release}
+:page-status: {prerelease}
+:page-role:
 :page-content: Reference
 :description: Sync Gateway REST API Access
 
@@ -26,26 +28,26 @@ Sync Gateway provides secure access to its REST APIs, namely the:
 Each REST API is accessed through a different, <<lbl-port-cfg, user-specifiable>>, TCP port.
 This makes it easy to control their physical exposure, perhaps to keep the Admin REST API secure behind your firewall.
 
-{sgw-s} 3.0 brings additional optional but default layers of security through {tls-encryption--xref} for all API traffic and Couchbase Server Role-Based Access Control (RBAC) authorization and authentication for all <<lbl-secure-users,Admin and Metrics API users>>.
+{sgw-s} 3.0 BETA brings additional optional but default layers of security through {tls-encryption--xref} for all API traffic and Couchbase Server Role-Based Access Control (RBAC) authorization and authentication for all <<lbl-secure-users,Admin and Metrics API users>>.
 
-RBAC user authentication enables <<lbl-secure-users,Secure Remote Administration>> of {sgw} clusters.
+RBAC user authentication enables <<lbl-secure-users,Secure Administration>> of {sgw} clusters.
 This is critical in cloud native deployments.
 It provides secure and fine-grained access control.
 
 
 == TLS
 
-In 3.0, TLS is enabled by default.
+TLS is enforced by default for all Couchbase Server connections in 3.0 BETA.
 For more on TLS, see: {tls-encryption--xref}.
 // It uses credentials provided with the request for authentication.
 // The only exception to this is the use of the Public REST API's _GUEST_ mode; which is for use in testing and-or development environments only.
 
 
 [#lbl-secure-users]
-== Secure Remote Administration
+== Secure Administration
 // tag::secremacc[]
 
-Secure Remote Administration is *on* by default.
+Secure Administration is *on* by default.
 
 In order to submit Admin or Metrics REST API requests you should create specific Couchbase Server users for that purpose.
 You will then provide a valid set of Couchbase Server credentials for these RBAC-users in each API request.
@@ -100,13 +102,13 @@ For more on creating Couchbase Server users see the Couchbase Server content her
 
 
 [#lbl-optout]
-== Secure Remote Authentication Opt-out
-You can choose to disable secure remote authentication by using these bootstrap configuration settings or CLI flags:
+== Secure Administration Opt-out
+You can choose to disable Secure Administration by using these bootstrap configuration settings or CLI flags:
 
-* Bootstrap file:
-** `api.admin_interface_authentication`
-** `api.metrics_interface_authentication`
-* CLI flags
+* {configuration-schema-bootstrap--xref}
+** {bootstrap-schema--xref--api-admin-interface-authentication}
+** {bootstrap-schema--xref--api-metrics-interface-authentication}
+* {command-line-options--xref}
 ** `-admin_interface_authentication=false`.
 ** `-metrics_interface_authentication=false`.
 
@@ -121,9 +123,8 @@ However, this can increase the risk of performance and or connection issues -- f
 [#lbl-port-cfg]
 == Port Configuration
 
-You can change the ports used for any of the interface types by editing the bootstrap configuration -- as shown in <<ex-port-cfg>> -- and restarting the {sgw} node.
+You can change the ports used for any of the interface types by editing its bootstrap configuration property, for example, {bootstrap-schema--xref--api-admin-interface} -- as shown in <<ex-port-cfg>> -- and restarting the {sgw} node.
 The default ports are shown in <<network-ports>>.
-
 
 [#ex-port-cfg]
 .Configuring ports
@@ -194,6 +195,6 @@ This is the default setting for the admin interface.
 .Network Port Requirements
 include::partial$sgw-network-port-reqs.adoc[]
 
-For more on configuration see {}
+For more on configuration see {bootstrap-schema--xref--api-admin-interface}
 
 include::partial$block-related-content-api.adoc[]

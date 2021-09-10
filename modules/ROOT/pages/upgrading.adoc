@@ -19,9 +19,9 @@
 // END PAGE DEFINITION
 = Upgrading Sync Gateway
 :page-aliases: advance/deploy/upgrade.adoc, upgrade.adoc
-:page-layout: article
+:page-edition: {release}
+:page-status: {prerelease}
 :page-role:
-:page-status:
 :page-content: procedural
 :description: This page documents various implementation details and functionalities to consider when performing an upgrade to Sync Gateway {page-component-version}.
 
@@ -50,41 +50,70 @@ At a high level, a rolling upgrade consists of the following steps:
 
 Those steps are then repeated for each node in the {sgw} cluster.
 
-== Use Persistent Configuration
+== Upgade to 3.0 BETA
 
-{sgw-te} 3.x provides an automatic migration path for existing users.
+=== Using Persistent Configuration
 
-NOTE: To continue using {sgw} in pre-3.0 mode, that-is using file-based configuration, you need to use the `-disable_persistent_config` option at the command line when starting {sgw} -- see: {command-line-options--xref}
+The use of 3.0 BETA's Persistent Configuration feature is strongly recommended and it is the default operational mode when starting {sgw}.
 
-Startup a {sgw} node using a pre-3.0 configuration properties file and {sgw} will take the appropriate upgrade path as shown in <<tbl-enhancedcfg>>.
+The feature provides a smooth upgrade path for existing users by automatically converting their existing configuration files to the new persistent configuration format.
 
-If you want the {sgw} to associate with a specific configuration group Id, you must add the `config_group_id` value to the configuration file prior to startup.
-Failing to do so may result in the configuration being overridden by one configured on  a different {sgw} node that has already started and registered its configuration.
+.One Way Upgrade
+[NOTE]
+--
+The migration to 3.0 BETA configuration is a ONE WAY process; to continue using legacy-mode configuration see: <<lbl-3-0-upgrade-opt-out>>
+--
+
+Just startup a {sgw} node using your existing configuration properties file and {sgw} will take the appropriate upgrade path as shown in <<tbl-enhancedcfg>>.
+
+Before commencing your upgrade consider your requirements for
+<<lbl-3-0-config-grps>>,
+<<lbl-3-0-config-tls>> and
+<<lbl-3-0-config-adm>>.
 
 .Upgrade Paths
-[#tbl-enhancedcfg,cols="1,^1,3a,3a", options="header"]
+[#tbl-enhancedcfg,cols="1a,1a", options="header"]
 |===
+^| Configuration exists in Server bucket -- a node with this _group ID_ has already started ^| No configuration exists -- this is first node with this _group ID_ to start
 
-|Node Type
-|Group ID Set?
-|Configuration exists in bucket
-|No configuration exists
+|{sgw-s} ignores the configuration file and uses the configuration associated with the _group ID_ provided (or the default group if no _group ID_ is provided).
 
-|Homogenous-cluster or single node
-|No
-
-|{sgw-s} ignores supplied file and uses the default group configuration
-|{sgw-s} uses file-based configuration to derive and persist a configuration for this node and any subsequent members of the default group that startup.
-
-|Non-Homogenous
-|Yes
-
-|{sgw-s} ignores supplied file and uses the identified group's configuration
-|{sgw-s} uses file-based configuration to derive and persist a configuration for this node and any subsequent members of the identified group that startup.
+|{sgw-s} uses the configuration file to derive and persist a configuration for this node.
 
 |===
 
+[#lbl-3-0-config-grps]
+=== Configuration Groups
 
+Before commencing your upgrade consider your requirements for grouping {sgw} nodes within your {sgw} cluster -- see: {configuration-overview--xref-groups}
+
+If you want the {sgw} to associate with a specific configuration group Id, you must add the `bootstrap_group_id` value to the configuration file prior to startup -- see: {bootstrap-schema--xref--bootstrap-group-id}
+
+Failing to do so may result in the configuration being overridden by one configured on  a different {sgw} node that has already started and registered its configuration.
+
+[#lbl-3-0-config-tls]
+=== Secure Server Connection
+
+Secure TLS Connection to Couchbase Server is enabled out-of-the-box in 3.0 BETA.
+
+If you wish to use non-secure connection, perhaps in a test environment, you need to run {sgw} with
+{bootstrap-schema--xref--bootstrap-use-tls-server} set to `false` -- see: {secure-sgw-access--xref}
+
+
+[#lbl-3-0-config-adm]
+=== Secure Administration
+
+Secure Administration is under-pinned by the use of Couchbase Server RBAC-users to authenticate and authorize access to Admin (and Metrics) API functionality.
+This requires you set-up and configure appropriate users -- see: {rest-api-access--xref}.
+
+To opt out of this, you can configure  {bootstrap-schema--xref--api-admin-interface-authentication} and-or {bootstrap-schema--xref--api-metrics-interface-authentication} as `false`
+
+
+[#lbl-3-0-upgrade-opt-out]
+=== Continue to use Legacy-mode Configuration File
+
+:no-admonition:
+include::partial$block-caveats.adoc[tags=disable-persistent-config]
 
 
 == 1.x to 2.x No Views
