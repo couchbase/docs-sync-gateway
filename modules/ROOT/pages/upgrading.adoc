@@ -50,7 +50,7 @@ At a high level, a rolling upgrade consists of the following steps:
 
 Those steps are then repeated for each node in the {sgw} cluster.
 
-== Upgade to 3.0 BETA
+== Upgrade to 3.0 BETA
 
 === Using Persistent Configuration
 
@@ -59,7 +59,7 @@ The use of 3.0 BETA's Persistent Configuration feature is strongly recommended a
 The feature provides a smooth upgrade path for existing users by automatically converting their existing configuration files to the new persistent configuration format.
 
 .One Way Upgrade
-[NOTE]
+[CAUTION]
 --
 The migration to 3.0 BETA configuration is a ONE WAY process; to continue using legacy-mode configuration see: <<lbl-3-0-upgrade-opt-out>>
 --
@@ -70,6 +70,15 @@ Before commencing your upgrade consider your requirements for
 <<lbl-3-0-config-grps>>,
 <<lbl-3-0-config-tls>> and
 <<lbl-3-0-config-adm>>.
+
+Also:
+
+* {Sgw-t} must have write access to the directory containing the existing configuration (the one to be converted).
+It will be used to backup the existing configuration, and to write the upgraded config.
+* If your existing configuration has multiple databases, all of the *server* fields used to connect to _Couchbase Server_ must match. Whilst the connection credentials used may differ between databases,
+{sgw-t} will only use the first set of credentials for the bootstrap configuration file.
+
+NOTE: Automatic upgrade cannot be done if you have multiple distinct server fields within the configuration file and you will need to manually create their own bootstrap configuration.
 
 .Upgrade Paths
 [#tbl-enhancedcfg,cols="1a,1a", options="header"]
@@ -656,3 +665,4 @@ image:bucket-shadowing-migration.png[]
 include::partial$block-related-content-deploy.adoc[]
 
 // END -- PAGE -- upgrading.adoc
+

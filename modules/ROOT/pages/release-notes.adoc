@@ -36,6 +36,12 @@ include::partial$block-abstract.adoc[]
 
 // END DO NOT REMOVE
 
+.One Way Upgrade
+[CAUTION]
+--
+The migration to 3.0 BETA configuration is a ONE WAY process -- see: {upgrading--xref} for more.
+--
+
 
 [#lbl-rel300]
 == Release {this-release} -- September 2021
@@ -155,14 +161,64 @@ xref:whatsnew.adoc#use-environment-variables-in-configuration-file[Read More ...
 // tbd
 // end::cfg-changed-300[]
 
-=== API Changes
+== Breaking Changes
 // – identify any REST API changes
 // tag::api-changes-300[]
 // tag::all-changed-300-api[]
-This release introduces new persistent API changes.
+This release introduces significant configuration and persistent API changes; some of which may be breaking changes if then impact a feature you rely on -- see the items identified in <<tbl-breaking>>.
 
+.Potential Breaking Changes
+[#tbl-breaking, cols="2a,2a,1a", options="header"]
+|===
 
-See: {rest-api-admin--xref}
+| Feature | Link ^| Status
+
+| SG-Replicate | xref:2.8@sync-gateway:ROOT:legacy-sg-replicate.adoc[Legacy -- SG-Replicate] | Dropped
+
+| enable_shared_bucket_access -- enabled by default | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-enable_shared_bucket_access[enable_shared_bucket_access] | breaks compatibility
+
+| enable_shared_bucket_access -- disabled option |  | Deprecated
+
+| admin UI |  | Dropped
+
+| logging.default config section | xref:legacy-logging-pre2-1.adoc[Legacy - Pre-2.1 Logging] | Dropped
+
+| configServer property | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#configServer[configserver] | Dropped
+
+| old cache config values :databases.this_db.cache.max_wait_pending | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_wait_pending[db-cache-max_wait_pending] | Dropped
+
+| old cache config values :databases.this_db.cache.max_num_pending | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_num_pending[max_num_pending] | Dropped
+
+| old cache config values :databases.this_db.cache.max_wait_skipped | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_wait_skipped[max_num_skipped] | Dropped
+
+| old cache config values :databases.this_db.cache.enable_star_channel | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-enable_star_channel[enable_star_channel] | Dropped
+
+| old cache config values :databases.this_db.cache.channel_cache_max_length | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_max_length[channel_cache_max_length] | Dropped
+
+| old cache config values :databases.this_db.cache.channel_cache_min_length | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_min_length[channel_cache_min_length] | Dropped
+
+| databases.this_db.cache.channel_cache_expiry | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_expiry[channel_cache_expiry] | Dropped
+
+| databases.this_db.feed_type | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-feed_type[feed_type] | Dropped
+
+| old cache config values: databases.this_db.rev_cache_size | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-rev_cache_size[rev_cache_size] | Dropped
+
+| Facebook User Auth Config | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#facebook[facebook] | Deprecated
+
+| Google User Auth Config | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#facebook[Google] | Deprecated
+
+| allow_conflicts confg | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-allow_conflicts[allow_conflicts] | Deprecated
+
+| walrus (should not be default database mode) | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-server[server] | Dropped
+
+| Enforce TLS by default |  | breaks compatibility
+
+| Cannot start sync gateway in CLI without any config options |  | breaks compatibility
+
+| Logging API |  | Deprecated
+
+|===
+
 
 // end::all-changed-300-api[]
 
