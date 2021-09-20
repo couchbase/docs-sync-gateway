@@ -1,21 +1,3 @@
-// BEGIN -- PAGE -- modules/ROOT/pages/release-notes.adoc
-// BEGIN -- PAGE -- modules/ROOT/pages/release-notes.adoc
-// BEGIN -- PAGE DEFINITION
-//  Purpose:
-//    Presentation page for release-notes content
-//  Parameters:
-//    None
-//  INCLUSION USAGE --
-//    This module uses attributes from:
-//    - None
-//    This module uses these inclusions:
-//    - /modules/ROOT/pages/_partials/_std-hdr-sgw.adoc (std attr. and links)
-//    - /modules/ROOT/pages/_partials/block-abstract.adoc -- outputs a standard text block at head of page
-//    - /modules/ROOT/pages/_partials/common-releasenotes.adoc
-//    - /modules/ROOT/pages/_partials/block-related-content-product.adoc -- outputs a standard footer block
-
-//  INCLUSION USAGE
-// END -- PAGE DEFINITION -- modules/ROOT/pages/_partials/common-releasenotes.adoc
 = Release Notes
 :page-aliases: prodnotes/pn-releasenotes.adoc, prodnotes/pn-release-notes.adoc, releasenotes.adoc, pn-release-notes.adoc
 :page-edition: {release}
@@ -29,10 +11,10 @@ include::partial$_std-hdr-sgw.adoc[]
 
 :ns-this: {ns} for this release
 :fn-icr: footnote:icr[As of Sync Gateway version 2.8]
+:this-release: 3.0.0-beta01
 
 :docpath: sync-gateway::release-notes.adoc
-
-Release Note from Previous Releases::
+Quicklinks to previous release notes:
 xref:2.8@{docpath}[Release 2.8] |
 xref:2.7@{docpath}[Release 2.7] |
 xref:2.6@{docpath}[Release 2.6] |
@@ -43,12 +25,219 @@ xref:2.0@{docpath}[Release 2.0]
 :docpath!:
 
 // DO NOT EDIT -- Header Content Block
-:param-abstract: This content describes the key features and changes implemented by release {version} of Couchbase Sync{nbsp}Gateway
-:param-related: {xref-sgw-pg-whatsnew}  |  {compatibility--xref} | {xref-sgw-pg-supported-os}
-include::{root-partials}block-abstract.adoc[]
+:param-abstract: This content describes the key features and changes implemented by release {this-release} of Couchbase Sync{nbsp}Gateway
+:param-related: {whatsnew--xref}  |  {compatibility--xref} | {supported-environments--xref}
+include::partial$block-abstract.adoc[]
 // DO NOT EDIT -- Header Content Block
 
-include::partial$common-releasenotes.adoc[]
+
+:xref-sgw-bmk-cfg-dbsvr: xref:{configuration-properties--page}#databases-this_db-server[Couchbase Server Connection String]
+:xref-sgw-bmk-cfg-hideprodvn: xref:{configuration-properties--page}#hide_product_version[Hide Product Version in Headers]
+
+// END DO NOT REMOVE
+
+
+[#lbl-rel300]
+== Release {this-release} -- September 2021
+Quicklinks: <<new-features-300>> *|*
+<<improvements-300>> *|*
+<<issues-and-resolutions-300>> *|*
+<<support-notices-300>>
+
+
+[#new-features-300]
+== New Feature Highlights
+
+=== Centralized Persistent Modular Configuration
+include::partial$common-releasenotes.adoc[tag="new-300-centralized-cfg-summ", leveloffset=+1]
+
+xref:whatsnew.adoc#centralized-persistent-modular-configuration[Read More ...]
+
+
+=== Secure Administration
+
+include::partial$common-releasenotes.adoc[tag="new-300-secure-admin-summ", leveloffset=+1]
+
+xref:whatsnew.adoc#secure-administration[Read More ...]
+
+
+=== TLS Encryption Enabled by Default
+
+include::partial$common-releasenotes.adoc[tag="new-300-tls-summ", leveloffset=+1]
+
+xref:whatsnew.adoc#tls-encryption-enabled-by-default[Read More ...]
+
+
+=== User Defined Extended Attributes(XAttrs) for Access Control
+
+include::partial$common-releasenotes.adoc[tag="new-300-xattrs-summ", leveloffset=+1]
+
+xref:whatsnew.adoc#user-defined-extended-attributesxattrs-for-access-control[Read More ...]
+
+
+=== Auto-Purge on Channel Access Revocation in Inter-Sync Gateway Replication
+
+include::partial$common-releasenotes.adoc[tag="new-300-auto-purge-summ", leveloffset=+1]
+
+xref:whatsnew.adoc#auto-purge-on-channel-access-revocation-in-inter-sync-gateway-replication[Read More ...]
+
+
+=== Use Environment Variables in Configuration File
+
+include::partial$common-releasenotes.adoc[tag="new-300-environment-vars-summ", leveloffset=+1]
+
+xref:whatsnew.adoc#use-environment-variables-in-configuration-file[Read More ...]
+
+
+[#improvements-300]
+== Other Enhancements
+// tag::enhancements-300[]
+* https://issues.couchbase.com/browse/CBG-1679[CBG-1679] -- https://issues.couchbase.com/browse/CBG-1679[Apply standardised timeout and retry for all bootstrap connection ops]
+* https://issues.couchbase.com/browse/CBG-1664[CBG-1664] -- https://issues.couchbase.com/browse/CBG-1664[Validate javascript syntax in DbConfig.validate()]
+* https://issues.couchbase.com/browse/CBG-1659[CBG-1659] -- https://issues.couchbase.com/browse/CBG-1659[SGCollect - Ensure it works / change for admin auth]
+* https://issues.couchbase.com/browse/CBG-1650[CBG-1650] -- https://issues.couchbase.com/browse/CBG-1650[sgcollect should get information from new endpoints (with include_runtime parameter, etc.)]
+* https://issues.couchbase.com/browse/CBG-1643[CBG-1643] -- https://issues.couchbase.com/browse/CBG-1643[Add additional context for gocb errors when using self-signed cert]
+* https://issues.couchbase.com/browse/CBG-1642[CBG-1642] -- https://issues.couchbase.com/browse/CBG-1642[Detect legacy sg-replicate config and log accordingly]
+* https://issues.couchbase.com/browse/CBG-1635[CBG-1635] -- https://issues.couchbase.com/browse/CBG-1635[TestBucketPool V2 should close cluster when releasing/obtaining buckets]
+* https://issues.couchbase.com/browse/CBG-1473[CBG-1473] -- https://issues.couchbase.com/browse/CBG-1473[Enable log redaction by default]
+* https://issues.couchbase.com/browse/CBG-1424[CBG-1424] -- https://issues.couchbase.com/browse/CBG-1424[discoverInterfaceName should resolve hostnames before trying to find network interface stats using IP addresses]
+* https://issues.couchbase.com/browse/CBG-1391[CBG-1391] -- https://issues.couchbase.com/browse/CBG-1391[Treat existing cbgt index as recoverable error]
+* https://issues.couchbase.com/browse/CBG-1390[CBG-1390] -- https://issues.couchbase.com/browse/CBG-1390[Add warning threshold for excessively large number of channels per user]
+* https://issues.couchbase.com/browse/CBG-1359[CBG-1359] -- https://issues.couchbase.com/browse/CBG-1359[Increase default minimum TLS version TLS1.2]
+* https://issues.couchbase.com/browse/CBG-1343[CBG-1343] -- https://issues.couchbase.com/browse/CBG-1343[Increase initial wait time for index creation retry]
+* https://issues.couchbase.com/browse/CBG-1342[CBG-1342] -- https://issues.couchbase.com/browse/CBG-1342[Avoid retry on 'duplicate index name' index creation error]
+* https://issues.couchbase.com/browse/CBG-1337[CBG-1337] -- https://issues.couchbase.com/browse/CBG-1337[Add an option to skip SSL certificates verification while loading JavaScript from HTTPS endpoints]
+* https://issues.couchbase.com/browse/CBG-1326[CBG-1326] -- https://issues.couchbase.com/browse/CBG-1326[Log if channels expand to a smaller set than requested]
+* https://issues.couchbase.com/browse/CBG-1299[CBG-1299] -- https://issues.couchbase.com/browse/CBG-1299[[Lithium Port] - Implement network connstr flag for cbdatasource alt address shims]
+* https://issues.couchbase.com/browse/CBG-1282[CBG-1282] -- https://issues.couchbase.com/browse/CBG-1282[XATTRS Access Grants]
+* https://issues.couchbase.com/browse/CBG-1273[CBG-1273] -- https://issues.couchbase.com/browse/CBG-1273[Add Prometheus alert examples]
+* https://issues.couchbase.com/browse/CBG-1253[CBG-1253] -- https://issues.couchbase.com/browse/CBG-1253[Add USE INDEX to index readiness queries]
+// end::enhancements-300[]
+
+[#issues-and-resolutions-300]
+== Issues and Resolutions
+
+=== Known Issues
+
+// tag::known-300[]
+// .List of issues outstanding at this release
+* https://issues.couchbase.com/browse/CBG-798[CBG-798] -- https://issues.couchbase.com/browse/CBG-798[Sync Gateway requires Couchbase Server nodes to use the same SSL memcached port]
+
+
+// end::known-300[]
+
+== Fixed Issues
+// tag::fixed-300[]
+// .List of issues resolved by this release
+* https://issues.couchbase.com/browse/CBG-1438[CBG-1438] -- https://issues.couchbase.com/browse/CBG-1438[SgwIntStat.SetIfMax incorrectly sums old and new values]
+* https://issues.couchbase.com/browse/CBG-1412[CBG-1412] -- https://issues.couchbase.com/browse/CBG-1412[JSON strings in some responses not being correctly escaped]
+* https://issues.couchbase.com/browse/CBG-1388[CBG-1388] -- https://issues.couchbase.com/browse/CBG-1388[sg_collect does not package archived log files (*.log.gz)]
+* https://issues.couchbase.com/browse/CBG-1376[CBG-1376] -- https://issues.couchbase.com/browse/CBG-1376[Some Delta Sync errors logged at WARN level should be DEBUG]
+* https://issues.couchbase.com/browse/CBG-1339[CBG-1339] -- https://issues.couchbase.com/browse/CBG-1339[Creating mobile tombstone for existing CBS tombstone causes loop]
+* https://issues.couchbase.com/browse/CBG-1335[CBG-1335] -- https://issues.couchbase.com/browse/CBG-1335[Mutating _rev on localDocument in conflict resolver results in merge error]
+* https://issues.couchbase.com/browse/CBG-1325[CBG-1325] -- https://issues.couchbase.com/browse/CBG-1325[Incorrect email validation (too strict)]
+* https://issues.couchbase.com/browse/CBG-1304[CBG-1304] -- https://issues.couchbase.com/browse/CBG-1304[ISGR: Pull replications incompatible with active-side allow_conflicts=false]
+* https://issues.couchbase.com/browse/CBG-1246[CBG-1246] -- https://issues.couchbase.com/browse/CBG-1246[Changes limit incorrectly applied in case of CBG-946]
+* https://issues.couchbase.com/browse/CBG-1231[CBG-1231] -- https://issues.couchbase.com/browse/CBG-1231[Prevent import cfg startup races]
+* https://issues.couchbase.com/browse/CBG-1200[CBG-1200] -- https://issues.couchbase.com/browse/CBG-1200[Calling DELETE on a non-existent document creates a tombstone with empty body]
+* https://issues.couchbase.com/browse/CBG-1172[CBG-1172] -- https://issues.couchbase.com/browse/CBG-1172[ISGR credentials with characters requiring URL encoding cause blipsync to fail]
+* https://issues.couchbase.com/browse/CBG-1161[CBG-1161] -- https://issues.couchbase.com/browse/CBG-1161[DefaultPurgeInterval specified in days and used as though in hours]
+* https://issues.couchbase.com/browse/CBG-1113[CBG-1113] -- https://issues.couchbase.com/browse/CBG-1113[CBL1.x/Websocket based changes feeds leak goroutine on disconnect]
+* https://issues.couchbase.com/browse/CBG-789[CBG-789] -- https://issues.couchbase.com/browse/CBG-789[Updating a blob with new data does not update SG's metadata on sync]
+
+// end::fixed-300[]
+
+// tag::api-changed-300[]
+// tbd
+// end::api-changed-300[]
+
+// tag::cfg-changed-300[]
+// tbd
+// end::cfg-changed-300[]
+
+=== API Changes
+// – identify any REST API changes
+// tag::api-changes-300[]
+// tag::all-changed-300-api[]
+This release introduces new persistent API changes.
+
+
+See: {rest-api-admin--xref}
+
+// end::all-changed-300-api[]
+
+// end::api-changes-300[]
+
+[#support-notices-300]
+== Support Notices
+This section documents any support-related notes, constraints and changes
+
+=== Deprecation Notices
+Items (features and-or functionality) are marked as deprecated when a more current, and usually enhanced, alternative is available.
+
+Whilst the deprecated item will remain usable, it is no longer supported, and will be removed in a future release.
+You should plan to move to an alternative, supported, solution as soon as practical.
+
+// tag::deprecated-300[]
+// tag::dnsgw-30[] all deprecations for the release
+// // tag::dnsgw-30-001-note[]
+// // tag::dnsgw-30-001-notetitle[]
+// =====  note title
+// // tag::dnsgw-30-001-noteannounce[]
+
+// // end::dnsgw-30-001-noteannounce[]
+
+// tag::dnsgw-30-001-noteimpact[]
+// The functionality of SG{nbsp}Replicate remains unchanged, unless explicitly stated in these release notes and-or in the appropriate documentation section.
+// Refer to {xref-sgw-pg-upgrade} for more information on upgrading from SG Replicate to Inter-Sync Gateway replication.
+// end::dnsgw-30-001-noteimpact[]
+// end::dnsgw-30-001-note[]
+
+// ==== Configuration deprecations
+// // tag::dnsgw-30-001-cfg[]
+
+// // tag::dnsgw-30-001-cfg1[]
+// // end::dnsgw-30-001-cfg1[]
+
+// // end::dnsgw-30-001-cfg[]
+
+// ===== REST API Deprecations
+// // tag::dnsgw-30-001-api[]
+
+// // tag::dnsgw-30-001-api1[]
+// // end::dnsgw-30-001-api1[]
+
+// // end::dnsgw-30-001-api[]
+
+// ===== Operating Systems
+// Support for Microsoft Windows 2012 (64-bit) is deprecated
+
+// end::dnsgw-30[]
+// end::deprecated-300[]
+// ===== Ongoing
+// include::partial$block-deprecations.adoc[tag=any-platform-ongoing]
+// include::partial$block-deprecations.adoc[tag={param-platform}-ongoing]
+
+// === End of Life
+// include::partial$block-deprecations.adoc[tag=any-platform-eol]
+// include::partial$block-deprecations.adoc[tag={param-platform}-eol]
+
+// === End of Support
+// {ns-this}
+
+// ==== Other Notices
+
+// ===== Support is added for:
+
+
+=== Upgrading
+
+// tag::upgrading[]
+
+// end::upgrading[]
+
+For more on upgrading -- see: {upgrading--xref}
+
 
 // DO NOT EDIT -- Footer Related Content Block
 include::partial$block-related-content-product.adoc[]
