@@ -39,113 +39,21 @@ properties:
         default: |+
           `function(doc, oldDoc) {channel(doc.channels);}`
 
-      # users:
-      #   type: object
-      #   title: "User Configuration Model"
-      #   description: |+
-      #     Definition of a Sync Gateway user
 
-      #     Change initiates database restart
+      guest:
+        type: object
+        description: |+
+          Defines whether a GUEST user is available and able to interacted, unauthenticated, with the Public REST API
+        properties:
+          disabled:
+            type: boolean
+            default: true
+            description: |+
+              Set `disabled` = `false` to allow GUEST
 
-      #   required:
-      #     - name
-      #   properties:
-      #     name:
-      #       type: string
-      #       description: |+
-      #         The user name (the same name used in the URL path).
+              For example:
+              ```curl -X PUT username:password@localhost:4985/db/_config -H "Content-Type: application/json" --data-binary '{"guest": {"disabled":false}}```
 
-      #         The valid characters for a user name are alphanumeric ASCII characters and the underscore character.
-
-      #         The name property is required in a POST request.
-
-      #         You don’t need to include it in a PUT request because the user name is specified in the URL.
-      #     password:
-      #       type: string
-      #       description: |+
-      #         Password of the user.
-
-      #         Mandatory, unless `allow_empty_password=true`.
-
-      #     admin_channels:
-      #       type: array
-      #       description: |+
-      #         The channels that the user is able to access.
-      #       items:
-      #         type: string
-      #         description: |+
-      #           Channel name
-
-      #     admin_roles:
-      #       type: array
-      #       description: |+
-      #         An array of the roles this user is associated with.
-      #       items:
-      #         type: string
-      #         description: Role name
-
-      #     all_channels:
-      #       type: array
-      #       description: |+
-      #         Shows the channels the user can access, as granted by the sync function.
-
-      #         This is a read-only property.
-      #         Changes to it are ignored.
-      #       readOnly: true
-      #       items:
-      #         type: string
-      #         description: Channel name
-      #     email:
-      #       type: string
-      #       description: |+
-      #         Email address of the user.
-      #     disabled:
-      #       type: boolean
-      #       description: |+
-      #         This property is usually not included.
-
-      #         If the value is `true`, access for the account is disabled and the user will not be able to login.
-      #     roles:
-      #       type: array
-      #       readOnly: true
-      #       description: |+
-      #         Shows the roles this user is associated with by the Sync function.
-
-      #         This is a read-only property.
-      #         Changes to it are ignored.
-
-      #       items:
-      #         type: string
-      #         description: Role name
-
-
-      # roles:
-      #     title: "Role Configuration Model"
-      #     type: object
-      #     description: |+
-      #       Use the `role` property to define a Sync Gateway role
-      #     required:
-      #       - name
-      #     properties:
-      #       name:
-      #         type: string
-      #         description: |+
-      #           Name of the role
-      #       admin_channels:
-      #         type: array
-      #         description: |+
-      #           Array of channel names the role allows access to
-      #         items:
-      #           type: string
-      #       all_channels:
-      #         type: array
-      #         readOnly: true
-      #         description: |+
-      #           Lists all the channels the role has access to including any assigned by the `sync` function.
-
-      #           This is a derived property and changes to it are ignored.
-      #         items:
-      #           type: string
 
       revs_limit:
         type: integer
@@ -231,11 +139,8 @@ properties:
           {
             "databases": {
               "db": {
-                "server": "http://localhost:8091",
                 "bucket": "default",
-                "password": "password",
                 "import_docs": true,
-                "enable_xattrs": true,
                 "import_filter": `
               function(doc) {
                 if (doc.type != "mobile") {
@@ -813,27 +718,18 @@ properties:
 
           ```json
           {
-              "interface":":4984",
-              "log":["*"],
               "databases": {
                 "db1": {
                   "session_cookie_name": "CustomName1",
-                  "server": "http://localhost:8091",
-                  "bucket": "bucket-1",
-                  "users": {
-                      "user_1": {"password":"1234"}
+                  "bucket": "bucket-1"
                   },
                   "db2": {
                     "session_cookie_name": "CustomName2",
-                    "server": "http://localhost:8091",
-                    "bucket": "bucket-2",
-                    "users": {
-                        "adam_2": {"password":"5678"}
-                    }
+                    "bucket": "bucket-2"
                   }
-                }
               }
           }
+
           ```
 
           With this configuration, the `Set-Cookie` response header of the POST `:4984/{db}/_session` endpoint (Public REST API) would then have the form "CustomName1=3cad4b95524179bf144fe0d92b8f09877bb86bf5;path=/db1/".
@@ -940,11 +836,6 @@ properties:
                 },
                 "databases": {
                   "db": {
-                    "server": "http://localhost:8091",
-                    "bucket": "default",
-                    "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
-                    "allow_conflicts": false,
-                    "revs_limit": 20,
                     "delta_sync": {
                       "enabled": true,
                       "rev_max_age_seconds": 86400
