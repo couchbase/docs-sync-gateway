@@ -15,7 +15,6 @@ consumes:
 - application/json
 produces:
 - application/json
-
 paths:
   /:
     get:
@@ -297,9 +296,8 @@ paths:
 
         ```
         {
-            "server":"http://localhost:8091",<br>
-            "bucket": "todo_app",<br>
-            "users": {"john": {"password": "pass", "admin_channels": ["*"]}}
+            "name": "todo_db"
+            "bucket": "todo_app"
         }
         ```
 
@@ -315,7 +313,6 @@ paths:
 
     delete:
       tags:
-      - 'Database Configuration'
       - 'Database Management'
       summary: Delete database
       description: Delete database
@@ -2673,6 +2670,20 @@ definitions:
       #     Defines the role(s) for this Sync Gateway database
       #   $ref: "#/definitions/role_configuration_model"
 
+      guest:
+        type: object
+        description: |+
+          Defines whether a GUEST user is available and able to interacted, unauthenticated, with the Public REST API
+        properties:
+          disabled:
+            type: boolean
+            default: true
+            description: |+
+              Set `disabled` = `false` to allow GUEST
+
+              For example:
+              ```curl -X PUT username:password@localhost:4985/db/_config -H "Content-Type: application/json" --data-binary '{"guest": {"disabled":false}}```
+
       revs_limit:
         type: integer
         description: |+
@@ -2746,7 +2757,7 @@ definitions:
       import_filter:
         type: string
         description: |+
-          The `import_filter` property holds a Javascript function that cpntrols whether a document written to the Couchbase Server bucket should be made available to Couchbase Mobile clients (that is, it should be imported).
+          The `import_filter` property holds a Javascript function that controls whether a document written to the Couchbase Server bucket should be made available to Couchbase Mobile clients (that is, it should be imported).
 
           This JavaScript filter function is provisioned using the Admin Rest API Endpoint ```put {db}/_config/import_filter```.
           Add function as plain javascript in the request body, with the ```content-Type: application/javascript``` header.
@@ -2757,20 +2768,15 @@ definitions:
           {
             "databases": {
               "db": {
-                "server": "http://localhost:8091",
-                "bucket": "default",
-                "password": "password",
-                "import_docs": true,
-                "enable_shared_bucket_access": true,
-                "import_filter": `
-              function(doc) {
-                if (doc.type != "mobile") {
-                  return false
-                }
-                return true
-              }
-              `,
-              }
+                      "import_filter": `
+                        function(doc) {
+                          if (doc.type != "mobile") {
+                            return false
+                          }
+                          return true
+                        }
+                        `,
+                  }
             }
           }
           ```
@@ -3340,23 +3346,14 @@ definitions:
 
           ```json
           {
-              "interface":":4984",
-              "log":["*"],
               "databases": {
                 "db1": {
                   "session_cookie_name": "CustomName1",
-                  "server": "http://localhost:8091",
-                  "bucket": "bucket-1",
-                  "users": {
-                      "user_1": {"password":"1234"}
+                  "bucket": "bucket-1"
                   },
                   "db2": {
                     "session_cookie_name": "CustomName2",
-                    "server": "http://localhost:8091",
-                    "bucket": "bucket-2",
-                    "users": {
-                        "adam_2": {"password":"5678"}
-                    }
+                    "bucket": "bucket-2"
                   }
                 }
               }
@@ -3460,18 +3457,8 @@ definitions:
 
               ```json
               {
-                "logging": {
-                  "console": {
-                    "log_keys": ["*"]
-                  }
-                },
                 "databases": {
                   "db": {
-                    "server": "http://localhost:8091",
-                    "bucket": "default",
-                    "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
-                    "allow_conflicts": false,
-                    "revs_limit": 20,
                     "delta_sync": {
                       "enabled": true,
                       "rev_max_age_seconds": 86400
@@ -4090,13 +4077,6 @@ definitions:
         items:
           type: string
           description: Role name
-
-
-
-
-
-
-
 
 
   ActiveTaskResponseBody:

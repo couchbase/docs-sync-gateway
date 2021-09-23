@@ -1144,20 +1144,34 @@ definitions:
 
       sync:
         $ref: '#/definitions/sync_function_model'
+#
+      # users:
+      #   type: object
+      #   title: user_configuration_model
+      #   description: |+
+      #     Defines the user(s) for this Sync Gateway database
+      #   $ref: "#/definitions/user_configuration_model"
 
-      users:
-        type: object
-        title: user_configuration_model
-        description: |+
-          Defines the user(s) for this Sync Gateway database
-        $ref: "#/definitions/user_configuration_model"
+      # roles:
+      #   type: object
+      #   title: role_configuration_model
+      #   description: |+
+      #     Defines the role(s) for this Sync Gateway database
+      #   $ref: "#/definitions/role_configuration_model"
 
-      roles:
+      guest:
         type: object
-        title: role_configuration_model
         description: |+
-          Defines the role(s) for this Sync Gateway database
-        $ref: "#/definitions/role_configuration_model"
+          Defines whether a GUEST user is available and able to interacted, unauthenticated, with the Public REST API
+        properties:
+          disabled:
+            type: boolean
+            default: true
+            description: |+
+              Set `disabled` = `false` to allow GUEST
+
+              For example:
+              ```curl -X PUT username:password@localhost:4985/db/_config -H "Content-Type: application/json" --data-binary '{"guest": {"disabled":false}}```
 
       revs_limit:
         type: integer
@@ -1240,11 +1254,8 @@ definitions:
           {
             "databases": {
               "db": {
-                "server": "http://localhost:8091",
                 "bucket": "default",
-                "password": "password",
                 "import_docs": true,
-                "enable_shared_bucket_access": true,
                 "import_filter": `
               function(doc) {
                 if (doc.type != "mobile") {
@@ -1782,23 +1793,23 @@ definitions:
           The default is `7776000` seconds (90 days).
         default: 7776000
 
-      enable_shared_bucket_access:
-        type: boolean
-        description: |+
-          **Deprecated at 3.0**
+      # enable_shared_bucket_access:
+      #   type: boolean
+      #   description: |+
+      #     **Deprecated at 3.0**
 
-          use the `enable_shared_bucket_access` property to define whether to use extended attributes to store sync metadata; this is required to enable mobile-to-server data sync (_mobile convergence_).
+      #     use the `enable_shared_bucket_access` property to define whether to use extended attributes to store sync metadata; this is required to enable mobile-to-server data sync (_mobile convergence_).
 
-          You can learn more about this functionality in [Syncing with Couchbase Server](sync-with-couchbase-server.html)
+      #     You can learn more about this functionality in [Syncing with Couchbase Server](sync-with-couchbase-server.html)
 
-          This property works in conjunction with the  ```import_docs``` property, which determines whether a node participates in import processing.
+      #     This property works in conjunction with the  ```import_docs``` property, which determines whether a node participates in import processing.
 
-          Set `enable_shared_bucket_access` to `true` on all nodes participating in such a configuration.
+      #     Set `enable_shared_bucket_access` to `true` on all nodes participating in such a configuration.
 
-          On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
+      #     On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
 
-          Change initiates a database restart
-        default: 'false'
+      #     Change initiates a database restart
+      #   default: 'false'
 
       session_cookie_secure:
         type: boolean
@@ -1823,23 +1834,13 @@ definitions:
 
           ```json
           {
-              "interface":":4984",
-              "log":["*"],
               "databases": {
                 "db1": {
                   "session_cookie_name": "CustomName1",
-                  "server": "http://localhost:8091",
                   "bucket": "bucket-1",
-                  "users": {
-                      "user_1": {"password":"1234"}
-                  },
-                  "db2": {
+                "db2": {
                     "session_cookie_name": "CustomName2",
-                    "server": "http://localhost:8091",
                     "bucket": "bucket-2",
-                    "users": {
-                        "adam_2": {"password":"5678"}
-                    }
                   }
                 }
               }
@@ -1943,18 +1944,10 @@ definitions:
 
               ```json
               {
-                "logging": {
-                  "console": {
-                    "log_keys": ["*"]
-                  }
-                },
                 "databases": {
                   "db": {
-                    "server": "http://localhost:8091",
                     "bucket": "default",
-                    "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
-                    "allow_conflicts": false,
-                    "revs_limit": 20,
+                    # ... any other config required ...
                     "delta_sync": {
                       "enabled": true,
                       "rev_max_age_seconds": 86400
@@ -1968,9 +1961,9 @@ definitions:
 
               -- Use of Delta Sync incurs additional bucket storage requirements which can be tuned with the [`rev_max_age_seconds`](#databases-this_db-delta_sync-rev_max_age_seconds) property.
 
-              -- Delta Sync is automatically enabled for peer-to-peer sync between Couchbase Lite clients.
+              -- Delta Sync is automatically enabled for peer-to-peer sync (where available) between Couchbase Lite clients.
 
-              -- Delta sync is disabled for Couchbase Lite database replicas.
+              -- Delta sync is disabled for Couchbase Lite database replicas (where available).
 
               -- Push replications do not use Delta Sync when pushing to a pre-2.8 target.
 
