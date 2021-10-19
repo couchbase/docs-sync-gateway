@@ -77,65 +77,6 @@ image::channel-access-grant-all.png[,400]
 
 include::{howto}create-users.adoc[leveloffset={our-offset}]
 
-// == Create User
-// Each user must be created on Sync Gateway before it can be used for access control.
-// You can create and-or manage users statically using the {configuration-properties--xref} or dynamically through the {rest-api-admin--xref}.
-
-// [{tabs}]
-// ====
-
-// Admin REST API::
-// +
-// --
-// Create a new user by sending a POST request to the Admin Rest Api `_user` endpoint ({rest-api-admin-user-post--xref}).
-// Update existing users by sending a PUT instead; in this case include the user name at the end of the url.
-
-// The user credentials (**username**/**password**) are passed in the request body.
-
-// [source,bash]
-// ----
-// $ curl -vX POST "http://localhost:4985/mydatabase/_user/" -H
-// "accept: application/json" -H "Content-Type: application/json" -d
-// '{"name": "Edge1User", "password": "pass"}' // <.>
-
-// $ curl -vX PUT "http://localhost:4985/mydatabase/_user/Edge1User" -H
-// "accept: application/json" -H "Content-Type: application/json" -d
-// '{"name": "Edge1User", "admin_channels": ["RandomChannel"]}' // <.>
-// ----
-
-// <.> Add new user "Edge1User", no `access_channel` or `role` is specified here.
-// <.> Update existing user "Edge1User" and add `access_channels` data
-
-// --
-
-// Configuration File::
-// +
-// --
-// Create users by hardcoding their credentials in the {configuration-properties--xref}.
-// This method is convenient for testing and to get started.
-// Use the *Admin REST API* for production system changes.
-// +
-// [source,json]
-// ----
-// {
-//   "databases": {
-//     "mydatabase": {
-//       "users": { // <1>
-//         "GUEST": {"disabled": true},
-//         "Edge1User": {"password": "pass",
-//                       "admin_channels": ["RandomChannel"]},
-//       }
-//     }
-//   }
-// }
-// ----
-
-// <.> {configuration-properties--pfx}#databases-this_db-users[databases.$db.users]
-
-// --
-// <.> Here we add the Edge1 role used in the example in this topic.
-
-// ====
 
 [#lbl-acc-ctl-roles-create]
 == Create Roles
@@ -144,127 +85,11 @@ include::{howto}create-users.adoc[leveloffset={our-offset}]
 include::{howto}create-roles.adoc[leveloffset={our-offset}]
 :include-related!:
 
-// As with users, you create and-or manage roles using either the {rest-api-admin--xref} or {configuration-properties--xref}.
-
-
-// [{tabs}]
-// ====
-
-// Admin REST API::
-// +
-// --
-// Create a new role using the {rest-api-admin-role-post--xref} endpoint.
-
-// [source,bash]
-// ----
-// $ curl -vX POST "http://localhost:4985/mydatabase/_roler/" -H
-// "accept: application/json" -H "Content-Type: application/json" -d
-// '{"name": "Edge1", "admin_channels": ["channel1", "channel3"]]}' // <.>
-// ----
-
-// --
-
-// Configuration File::
-// +
-// --
-// Create users by hardcoding their credentials in the {configuration-properties--xref}.
-// This method is convenient for testing and to get started.
-// It is recommended to use the *Admin REST API* for production systems.
-
-// [source,json]
-// ----
-// {
-//   "databases": {
-//     "mydatabase": {
-//       "roles": { // <.>
-//         "Edge1": {"admin_channels": ["channel1", "channel3"]}, // <.>
-//         "Edge2": {"admin_channels": ["channel2", "channel3"]},
-//         "GUEST": {"disabled": true}
-//       }
-//     }
-//   }
-// }
-// ----
-
-// <.> {configuration-properties--pfx}#databases-this_db-users[databases.$db.users]
-
-// --
-// <.> Here we add the Edge1 role used in the example in this topic.
-
-// ====
-
 
 [#lbl-acc-ctl-roles-add]
 == Assign Users to Roles
 
 include::{howto}assign-users-to-roles.adoc[leveloffset={our-offset}]
-
-// You can add and remove roles from users using either the {rest-api-admin--xref} or {configuration-properties--xref}.
-
-// Note that removing a role effectively revokes access to the channel that role is associated with and may mean users will lose access to required documents.
-
-// [{tabs}]
-// ====
-
-// Admin REST API::
-// +
-// --
-// Add a role to an existing user by sending a PUT request to the Admin REST API `_role` endpoint ({rest-api-admin-user-put--xref} ).
-
-// Specify the roles to be assigned in the `admin_roles` array.
-
-// [source,bash]
-// ----
-// $ curl -vX PUT "http://localhost:4985/mydatabase/_user/{user}" -H
-// "accept: application/json" -H "Content-Type: application/json" -d
-// '{ "admin_roles": ["Edge1"]}' // <.>
-// ----
-// <.> {user} is the user name to be updated, e.g. "Edge1User"
-
-// See also: {rest-api-admin-role-post--xref}
-// --
-
-// Configuration::
-// +
-// --
-// Add a role to a user in the configuration file.
-// This method is convenient for testing and to get started.
-// Use the *Admin REST API* for production systems.
-
-// [source,json]
-// ----
-// {
-//   "databases": {
-//     "mydatabase": {
-//       "users": { // <.>
-//         "GUEST": {"disabled": true},
-//         "Edge1User": {"password": "pass", "admin_roles": ["Edge1"],
-//                       "admin_channels": ["RandomChannel"]},
-//         "Edge2User": {"password": "pass", "admin_roles": ["Edge2"]}
-//       }
-//     }
-//   }
-// }
-// ----
-// <.> {configuration-properties--pfx}#databases-this_db-users-this_user-admin_roles[databases.$db.users.$user.admin_roles]
-// --
-
-// Sync Function::
-// +
-// --
-// You can also use the Sync Function's `role(username, rolename)` function to assign roles to users programmatically.
-
-// Note that both role and user must already exist.
-// Nonexistent roles don’t cause an error, but have no effect on the user’s access privileges.
-
-// [source, javascript]
-// ----
-// role ("Edge1User", "role:Edge1");
-// role ("Edge2User", "role:Edge2":);
-// ----
-// --
-
-// ====
 
 
 [#lbl-control-document-access]
@@ -272,113 +97,12 @@ include::{howto}assign-users-to-roles.adoc[leveloffset={our-offset}]
 
 include::{howto}control-document-access.adoc[leveloffset={our-offset}]
 
-// You can allow roles and-or users access to channels using:
-
-// * Configuration -- using the appropriate `admin_channels` property in the {configuration-properties--xref}.
-
-// * Admin REST API -- alternatively provide that same `admin_channels` property using the admin REST API endpoint ({rest-api-admin-user-put--xref}).
-
-// * Sync Function -- using the exposed helper function `access()` -- see reference information in {sync-function--xref}.
-
-// You will often use the document content to govern access and routing.
-// The data to drive this can now be secured in metadata, providing an additional level of security -- see <<lbl-xattrs>>.
-
-// [{tabs}]
-// ====
-
-// Admin REST API::
-// +
-// --
-// Add a channel to an existing user by sending a PUT request to the Admin REST API `_role` endpoint ({rest-api-admin-role-put--xref} ).
-
-// Specify the roles to be assigned in the `admin_channels` array.
-
-// [source,bash]
-// ----
-// $ curl -vX PUT "http://localhost:4985/mydatabase/_user/{user}" -H //<.>
-// "accept: application/json" -H "Content-Type: application/json" -d
-// '{ "admin_channels": ["Channel1","Channel3]}' // <.>
-// ----
-
-// <.> {user} is the user name to be updated, e.g. "Edge1User"
-
-// <.> Here we add _Channel1_ and _Channel3_ to the user
-
-// --
-
-// Configuration::
-// +
-// --
-// Add a channel to a user in the configuration file.
-// This method is convenient for testing and to get started.
-// Use the *Admin REST API* for production systems.
-
-// [source,json]
-// ----
-// {
-//   "databases": {
-//     "mydatabase": {
-//       "users": {
-//         "GUEST": {"disabled": true},
-//         "Edge1User": {"password": "pass", "admin_roles": ["Edge1"],
-//               "admin_channels": ["Channel1","Channel3","RandomChannel"]} // <.>
-//       },
-//       "roles": {
-//         "Edge1": {"admin_channels": ["channel1", "channel3"]},
-//         "Edge2": {"admin_channels": ["Channel2","Channel3","SkyChannel"]} // <.>
-//       }
-//     }
-//   }
-// }
-// ----
-
-// <.> Here we have added the channel _RandomChannel_ to the user _Edge1User_ {configuration-properties--pfx}#databases-this_db-users-this_user-admin_channels[databases.$db.users.$user.admin_channel]
-
-// <.> Here we have added the channel _SkyChannel_ to the role _Edge2_ {configuration-properties--pfx}#databases-this_db-roles-this_role-admin_channels[databases.$db.users.$user.admin_channel]
-
-// --
-
-// Sync Function::
-// +
-// --
-// You can also use the Sync Function's `access(username, channelname)` function to allow channel access to roles and-or users programmatically.
-
-// [source, javascript]
-// ----
-
-// function (doc, olddoc, meta) {
-
-//   // user logic
-//     access ("Edge1User", "RandomChannel"); // <.>
-//     access ("role:Edge2", "SkyChannel"); // <.>
-
-//   // user logic
-// }
-// ----
-
-// <.> Here we add access to channel _RandomChannel_ to the user _Edge1User_
-
-// <.> The `access()` function can also operate on roles.
-// If a user name string begins with `role:` then the remainder of the string is interpreted as a role name.
-// There's no ambiguity here, because ":" is an illegal character in a user or role name.
-// Here we allow access to the channel _Sky1Channel_  for the role _Edge2_
-
-// --
-
-// ====
 
 
 [#lbl-verify-access]
 == Verify Access
 
 include::{howto}verify-access.adoc[leveloffset={our-offset}]
-
-
-// // tag::write-access[]
-// [#lbl-control-write-access]
-// == Write Access
-
-// include::{howto}write-access.adoc[leveloffset={our-offset}]
 
 
 [#lbl-xattrs]
