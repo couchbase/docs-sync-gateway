@@ -153,14 +153,29 @@
 // ifndef::patch[:patch: 2]
 // ifndef::version[:version: {major}.{minor}]
 // Sever shared connection for these attributes
-:major: 3
-:minor: 0
-:patch: 0
+
+// BEGIN -- VERSION ATTRIBUTES
+// Version component attributes now seeded from antora.yml
+// optional releasetag used yo indicate prerelease versions mainly
+:tag: {empty}
+ifdef::releasetag[:tag: -{releasetag}]
 :version: {major}.{minor}
-:version-full: {major}.{minor}.0
-:version-maint: {major}.{minor}.{patch}
-:version-date: November 2021
+:version-full: {major}.{minor}.{base}{tag}
+:version-full-untagged: {major}.{minor}.{base}
+// Full version including maintenance release -- this is set in attributes-module as it will vary by module -- here at component level it is always same as version-full
+
+// begin maintenance versions
+// patch is base/zero until first maintenance release and so version-maint/maintenance is same as version-full until first maintenance release
+:patch: {base}
+:version-maintenance: {version-full}
+:version-maint: {version-full}
+:version-date: October 2021
 :version-maint-date: {version-date}
+// end maintenance versions
+
+// END -- VERSION ATTRIBUTES
+
+
 // SYNC GATEWAY VERSIONING
 
 // Couchbase Components
