@@ -189,58 +189,109 @@ xref:whatsnew.adoc#use-environment-variables-in-configuration-file[Read More ...
 // – identify any REST API changes
 // tag::api-changes-300[]
 // tag::all-changed-300-api[]
-This release introduces significant configuration and persistent API changes; some of which may be breaking changes if then impact a feature you rely on -- see the items identified in <<tbl-breaking>>.
+This release introduces significant configuration and persistent API changes; some of which may be breaking changes if they impact a feature you rely on -- see the items identified in <<tbl-breaking>> | <<tbl-deprecated>> | <<tbl-dropped>>.
 
-.Potential Breaking Changes
-[#tbl-breaking, cols="2a,2a,1a", options="header"]
+=== Breaks compatibility
+
+.Breaks compatibility
+[#tbl-breaking, cols="1a,1a", options="header"]
+|===
+.>|  Feature
+.>|   Link
+
+// |  Cannot start sync gateway in CLI without providing either a configuration file or a CLI flag
+// |
+
+|  enable_shared_bucket_access -- enabled by default
+
+The change _ought to be_ transparent to the user, *if*:
+
+* Doc metadata is smaller than 1MB
+* There is no reliance on inspecting doc metadata using the `_sync` property in a document on the server side
+
+Old documents are automatically migrated to the `xattr` metadata format.
+
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-enable_shared_bucket_access[enable_shared_bucket_access]
+
+|  Enforce TLS by default
+|  xref:secure-sgw-access.html#lbl-cbs-comms[Couchbase Server Connection]
+
 |===
 
-| Feature | Link ^| Status
+=== Deprecated
 
-| SG-Replicate | xref:2.8@sync-gateway:ROOT:legacy-sg-replicate.adoc[Legacy -- SG-Replicate] | Dropped
+.Deprecated
+[#tbl-deprecated, cols="1a,1a", options="header"]
+|===
+.>|  Feature
+.>|   Link
 
-| enable_shared_bucket_access -- enabled by default | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-enable_shared_bucket_access[enable_shared_bucket_access] | breaks compatibility
+|  allow_conflicts confg
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-allow_conflicts[allow_conflicts]
 
-| enable_shared_bucket_access -- disabled option |  | Deprecated
+|  enable_shared_bucket_access -- disabled option
+|
 
-| admin UI |  | Dropped
+|  Facebook User Auth Config
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#facebook[facebook]
 
-| logging.default config section | xref:legacy-logging-pre2-1.adoc[Legacy - Pre-2.1 Logging] | Dropped
+|  Google User Auth Config
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#facebook[Google]
 
-| configServer property | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#configServer[configserver] | Dropped
+|  Logging API
+|
+|   Deprecated
+|===
 
-| old cache config values :databases.this_db.cache.max_wait_pending | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_wait_pending[db-cache-max_wait_pending] | Dropped
+=== Dropped or removed
+.Dropped or removed
+[#tbl-dropped, cols="1a,1a", options="header"]
+|===
+.>|  Feature
+.>|   Link
 
-| old cache config values :databases.this_db.cache.max_num_pending | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_num_pending[max_num_pending] | Dropped
+|  admin UI
+|
 
-| old cache config values :databases.this_db.cache.max_wait_skipped | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_wait_skipped[max_num_skipped] | Dropped
+|  configServer property
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#configServer[configserver]
 
-| old cache config values :databases.this_db.cache.enable_star_channel | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-enable_star_channel[enable_star_channel] | Dropped
+|  databases.this_db.cache.channel_cache_expiry
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_expiry[channel_cache_expiry]
 
-| old cache config values :databases.this_db.cache.channel_cache_max_length | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_max_length[channel_cache_max_length] | Dropped
+|  databases.this_db.feed_type
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-feed_type[feed_type]
 
-| old cache config values :databases.this_db.cache.channel_cache_min_length | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_min_length[channel_cache_min_length] | Dropped
+|  logging.default config section
+|   xref:legacy-logging-pre2-1.adoc[Legacy - Pre-2.1 Logging]
 
-| databases.this_db.cache.channel_cache_expiry | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_expiry[channel_cache_expiry] | Dropped
+|  old cache config values :databases.this_db.cache.channel_cache_max_length
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_max_length[channel_cache_max_length]
 
-| databases.this_db.feed_type | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-feed_type[feed_type] | Dropped
+|  old cache config values :databases.this_db.cache.channel_cache_min_length
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_min_length[channel_cache_min_length]
 
-| old cache config values: databases.this_db.rev_cache_size | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-rev_cache_size[rev_cache_size] | Dropped
+|  old cache config values :databases.this_db.cache.enable_star_channel
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-enable_star_channel[enable_star_channel]
 
-| Facebook User Auth Config | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#facebook[facebook] | Deprecated
+|  old cache config values :databases.this_db.cache.max_num_pending
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_num_pending[max_num_pending]
 
-| Google User Auth Config | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#facebook[Google] | Deprecated
+|  old cache config values :databases.this_db.cache.max_wait_pending
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_wait_pending[db-cache-max_wait_pending]
 
-| allow_conflicts confg | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-allow_conflicts[allow_conflicts] | Deprecated
+|  old cache config values :databases.this_db.cache.max_wait_skipped
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_wait_skipped[max_num_skipped]
 
-| walrus (should not be default database mode) | xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-server[server] | Dropped
+|  old cache config values: databases.this_db.rev_cache_size
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-rev_cache_size[rev_cache_size]
 
-| Enforce TLS by default |  | breaks compatibility
+|  SG-Replicate
+|   xref:2.8@sync-gateway:ROOT:legacy-sg-replicate.adoc[Legacy -- SG-Replicate]
 
-| Cannot start sync gateway in CLI without any config options |  | breaks compatibility
-
-| Logging API |  | Deprecated
-
+|  walrus (should not be default database mode)
+|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-server[server]
+|   Dropped
 |===
 
 
