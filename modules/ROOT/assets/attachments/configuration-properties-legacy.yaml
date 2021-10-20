@@ -5,7 +5,7 @@ properties:
     default: '127.0.0.1:4985'
   admin_interface_authentication:
     type: boolean
-    default: true
+    default: 'true'
     description: |+
       Use `admin_interface_authentication=false` to turn of the secure remote administration feature introduced in 3.0 BETA.
 
@@ -28,7 +28,7 @@ properties:
 
   metrics_interface_authentication:
     type: boolean
-    default: true
+    default: 'true'
     description: |+
       Use `metrics_interface_authentication=false` to turn of the secure remote administration feature introduced in 3.0 BETA.
 
@@ -865,7 +865,12 @@ properties:
             description: |+
               The view query timeout in seconds. This property allows you to specify the time Sync Gateway should wait for a view query response from Couchbase Server before it times out. The timeout is used for both view and N1QL queries issued by Sync Gateway.
             default: 75
-          #
+          max_concurrent_query_ops:
+            description: |+
+              Sets the maximum number of concurrent query operations allowed
+            type: integer
+            default: 1000
+              #
           # END : Define Server
 
           # container:
@@ -1346,7 +1351,7 @@ properties:
 
   disable_persistent_config:
     type: boolean
-    default: false
+    default: 'false'
     description: |+
       Set to true to disable the persistent configuration handling introduced in 3.0 BETA
   facebook:
@@ -1701,6 +1706,17 @@ properties:
     description: Log warnings if N1QL or View queries made by Sync Gateway take this many milliseconds or longer.
     type: integer
     default: 500
+  server_tls_skip_verify:
+    description: |+
+      Allow empty server CA Cert Path without attempting to use system root pool.
+    type: boolean
+    default: 'false'
+  use_tls_server:
+    description: |+
+      Use TLS for CBS to-from SGW communications
+    type: boolean
+    default: 'true'
+
   SSLCert:
     description: Absolute or relative path on the filesystem to the TLS certificate file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
     type: string
