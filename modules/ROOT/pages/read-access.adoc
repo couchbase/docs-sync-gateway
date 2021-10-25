@@ -1,0 +1,157 @@
+// BEGIN -- PAGE -- read-access.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/pages/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+//  INCLUSION USAGE --
+//    This module uses attributes from:
+//    - /modules/ROOT/pages/_partials/_page-index.adoc -- xref page links
+//
+//    This module uses these inclusions:
+//    - /modules/ROOT/pages/_partials/_std-hdr-sgw.adoc -- std attribute environment
+//    - /modules/ROOT/pages/_partials/block-abstract.adoc --  std text block for page header content
+//    - /modules/ROOT/pages/_partials/block-related-content-deploy.adoc --  std text block for page footer content
+//    - modules/ROOT/assets/images -- .png/.jpeg images
+//  INCLUSION USAGE
+// END PAGE DEFINITION
+= Read Access
+:page-aliases: learn/read-access.adoc
+:description: How to handle read-access
+
+include::partial$_std-hdr-sgw.adoc[]
+
+:param-topic-group: access-control
+:param-abstract: pass:q[The sync function API provides several methods that you can use to validate user access.]
+include::partial$block-abstract.adoc[]
+
+
+== Introduction
+Every _user_ and _role_ has a set of channels that they are allowed to read.
+
+A user can only read documents that are in at least one of the user's channels (or the channels of roles that user has.)
+
+After a user is granted access to a new channel, the changes feed incorporates all existing documents in that channel, even those from earlier sequences than the current request's `since` parameter.
+That way the next pull request retrieves all documents to which the user now has access.
+
+
+== Add Access
+
+User and-or role channel access can be assigned:
+
+* Directly through the admin API
+* In the configuration file
+* Dynamically, in the Sync Function when a document is accessed
+
+The Sync Function is the preferred method for granting access to channels programmatically.
+
+
+=== Sync Function
+
+Calling xref:{sgw-pg-def-sync-function}#accessusername-channelname[access(user, channel)] grants a user access to a channel.
+This allows documents to act as membership lists or access-control lists.
+
+A typical example is a document that represents a shared resource (like a chat room or photo gallery) -- see: <<ex-helper>>.
+
+
+[#ex-helper]
+.Using the Access helper function
+====
+[source,javascript]
+----
+function (doc) {
+  if (doc.type == "chatroom") {  // <.>
+    access(doc.members, // <.>
+      doc.channel_id);  // <.>
+  }
+}
+----
+In this example:
+
+<.> A chat room is represented by a document with a `type` property set to `chatroom`.
+<.> The `channel_id` property names the associated channel, with which the actual chat messages are tagged
+<.> The `members` property lists the users who have access to that channel.
+====
+
+The `access()` function can also operate on roles.
+If a user name string begins with `role:` then the remainder of the string is interpreted as a role name.
+There's no ambiguity here, because ":" is an illegal character in a user or role name.
+
+Because anonymous requests are authenticated as the user "GUEST", you can make a channel and its documents public by calling `access` with a username of `GUEST`.
+
+
+=== Configuration File
+
+A user can be granted access to a channel through the {configuration-properties--pfx}#databases-this_db-users-this_user-admin_channels[admin_channels] property in the configuration file.
+
+
+=== Admin REST API
+
+A user can be granted access to a channel through the `admin_channels` property on the {rest-api-admin-pfx}#/user/put\__db___user__name_[/+\{db}+/user/+{name}+] admin REST API endpoint.
+
+
+== Revoke Access
+
+Revoking access to a channel can cause a user to lose access to documents, if s/he no longer has access to any channels those documents are in.
+
+However, the replicator does _not_ currently delete such documents that have already been synced to a user's device (although future changes to those documents will not be replicated.)
+This is a design limitation of Sync Gateway that may be resolved in the future.
+
+* A GET request to a document not assigned to one or more of the user's available channels fails with a 403 error.
+* The `_all_docs` property is filtered to return only documents that are visible to the user.
+* The `_changes` property ignores requests (via the `channels` parameter) for channels not visible to the user.
+
+
+== Inspect Read Access
+
+You can use the admin REST API to see what channels a user has access to.
+Issue an {rest-api-admin-pfx}#/database/get
+\__db___all_docs[+/\{tkn-db}/_user/\{name}+] request.
+Here's an example of the response.
+The output shows that the user `pupshaw` has access to channels `all` and `hoopy`.
+
+[source,json]
+----
+{
+    "admin_channels": [
+        "all"
+    ],
+    "admin_roles": [
+        "froods"
+    ],
+    "all_channels": [
+        "all",
+        "hoopy"
+    ],
+    "name": "pupshaw",
+    "roles": [
+        "froods"
+    ]
+}
+----
+
+The `all_channels` property of a user account determines which channels the user can access.
+Its value is derived from the union of:
+
+* The user's `admin_channels` property, which is settable via the admin REST API.
+* The channels that user has been given access to by `access()` calls from sync functions invoked for current revisions of documents.
+* The `all_channels` properties of all roles the user belongs to, which are themselves computed according to the above two rules.
+
+
+== Replication
+
+By default, Couchbase Lite gets all the channels to which the configured user account has access.
+This behavior is suitable for most apps that rely on {authentication-users--xref} and the {xref-sgw-pg-sync-function} to specify which data to pull for each user.
+
+Optionally, a Couchbase Lite "pull" replication can also specify a comma-separated list of channel names to receive documents from.
+In this case, the replication from Sync Gateway will only pull documents tagged with those channels.
+Client apps can use this ability to intelligently sync with a subset of the available documents from the database.
+
+:param-bookmark: channels
+include::partial$blocklinks-cbl.adoc[]
+
+include::partial$block-related-content-sync.adoc[]
+
+// END -- PAGE -- read-access.adoc

@@ -1,0 +1,102 @@
+// inclusion for use in icr-admin and icr-monitoring
+// tag::overview[]
+Sync Gateway provides easy access to replication status data through the Admin REST API.
+
+You can obtain the replication status details for a specific replication, or for all replications across all nodes.
+This option can be useful, for example, to find any auto-generated replication_id details needed to enable further replication management activities.
+
+include::partial$block-caveats.adoc[tags=community-only-rep-same-node]
+// end::overview[]
+
+=== All Replications
+// tag::rep-status-all[]
+
+Use the Admin REST API's `_replicationStatus` endpoint to access replication status data for all replications run, or running, on any node within the cluster. The JSON response comprises an array of results, one per replication.
+
+You can easily filter the results using the query string: `?activeOnly=false&includeConfig=true&localOnly=false&includeError=true``
+
+Available query string filters comprise:
+
+* activeOnly - return only active replications (default=false)
+* localOnly - return replications from the local node only (default=false)
+* includeError - return replications even if their status is "error" (default=true)
+* includeConfig - return the replication definition details (configuration) as well as the status data.
+This will include remote configuration definitions if `localOnly=false` (default=false)
+
+_Action_: Send a `GET` request to the `_replicationStatus` endpoint with an optional query string
+
+
+.Get status data for all replications meeting criteria
+=====
+This example retrieves status data, from across all nodes, for all replications that meet the specified criteria.
+The results are returned in an array; one entry per replication.
+[{tabs}]
+====
+
+// tag::example-all[]
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replication-status-req-all]
+----
+<.> This example's criteria selects replications with any status (including errors), on local and remote nodes. The returned status details also include replication definition details.
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replication-status-resp-all]
+----
+
+<.> The configuration details included because `includeConfig=true`
+<.> "Stopped" replications included because `activeOnly=false`
+<.> "error" replications included because `includeError=true`
+--
+
+// end::example-all[]
+====
+=====
+// end::rep-status-all[]
+
+=== Specific Replication
+// tag::rep-status-specific[]
+Use the Admin REST API endpoint `replicationStatus` to easily access replication status data for a specific replication id.
+Status data is returned regardless of the node the replication is running (or ran) on.
+
+_Action_: Send a `GET` request to the `_replicationStatus` endpoint with the required `replication_id`
+
+.Get status data for a specified replication
+=====
+This example returns status information for replication id  'db1-rep-id2'.
+
+[{tabs}]
+====
+// tag::example-specific[]
+
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replication-status-req]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replication-status-resp]
+----
+--
+
+// end::example-specific[]
+
+====
+=====
+// end::rep-status-specific[]

@@ -1,0 +1,95 @@
+// BEGIN -- inclusion block -- block-abstract.adoc
+//  Purpose -- to output a standard format page header block comprising
+//              a description,
+//              an optional expanded abstract
+//              an optional series of links to related topics
+//              an optional topic-group list
+//  Container -- partial$
+//  Params --
+//    topic-group (deprecated) -- name of the topic group to which the calling page belongs
+//    param-topic-group -- name of the topic group to which the calling page belongs
+//    param-related -- optional (additional) Only required now to list links or xrefs to
+//                      related topics outside of the topic group. Its prior (deprecated) use was to also
+//                      include topic group links (will still do this if topic-group param used)
+//    param-abstract -- optional expanded abstract content. This is appended to the :description: set in the calling page
+//
+//  Dependencies:
+//    topic-group inclusion blocks (optional). name format is partial$topic-group-<topic-group-name>
+//
+// END -- inclusion block -- block-abstract.adoc
+
+
+// Begin -- local attributes
+:std-related-content-title: Related topics
+// Endh -- local attributes
+
+
+// BEGIN -- Check parameters and set appropriate outputs
+// deprecated -- if a topic group is defined set the appropriate group title
+ifdef::topic-group[]
+ifeval::["{topic-group}"!="{empty}"]
+:std-related-content-title: pass:q,a[Related _{topic-group}_ topics]
+endif::[]
+endif::topic-group[]
+
+// Set the topic group title
+ifdef::param-topic-group[]
+ifeval::["{param-topic-group}"!="{empty}"]
+:std-related-content-title: pass:q,a[Related _{param-topic-group}_ topics]
+endif::[]
+endif::param-topic-group[]
+
+
+// Delete empty parameters if provided to avoid blank items
+ifeval::["{param-abstract}"=="{empty}"]
+:param-abstract!:
+endif::[]
+
+// Set the abstract value if provided
+:this-abstract!:
+ifdef::param-abstract[]
+:this-abstract: {param-abstract}
+endif::param-abstract[]
+// END -- Check parameters and set appropriate outputs
+
+
+// BEGIN -- Output the Abstract Block Text
+ifdef::description[]
+[abstract]
+--
+{description} +
+ifdef::this-abstract[]
+{this-abstract}
+endif::this-abstract[]
+--
+// deprecated BEGIN -- Include old related items topic groups in header block
+ifdef::topic-group[]
+ifdef::param-related[]
+{std-related-content-title}: {param-related}
+endif::param-related[]
+endif::topic-group[]
+// deprecated END -- Include related items in header block
+endif::description[]
+// END -- Output the Abstract Block Text
+
+// BEGIN -- Include topic group links in page header block
+ifdef::param-topic-group[]
+include::partial$topic-group-{param-topic-group}.adoc[]
+// Include any optional additional non-topic-group links
+ifdef::param-related[]
+_Other related topics_: {param-related}
+endif::param-related[]
+endif::param-topic-group[]
+// END -- Include topic group links in page header block
+
+
+// BEGIN -- Clean up used params and attributes
+:topic-group!:
+:param-topic-group!:
+:param-related!:
+:param-abstract!:
+:std-related-content-title!:
+// END -- Clean up used params and attributes
+
+
+// END -- inclusion block -- block-abstract.adoc

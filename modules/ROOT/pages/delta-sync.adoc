@@ -1,0 +1,94 @@
+= Delta Sync
+:page-edition: Enterprise
+:page-content: conceptual
+:description: Use Sync Gateway's delta sync feature for secure, resilient and efficient sync from cloud to edge
+:keywords: sync gateway, replication, sync, synchronization, edge, cloud
+:pageOriginRel: "sg=1.5, Cbs=5.0)_"
+
+include::partial$_std-hdr-sgw.adoc[]
+
+:topic-group: Sync
+:param-related: {xref-sgw-pg-sync-from-client} |  {xref-sgw-pg-icr-sgreplicate}  | {xref-sgw-pg-delta-sync}  |  {xref-sgw-pg-resync}
+:param-abstract: This content introduces Sync Gateway's delta sync feature; sync only the data that has changed.
+include::partial$block-abstract.adoc[]
+
+== Overview
+
+Delta Sync provides the ability to replicate only those parts of a Couchbase Mobile document that have changed. This can result in significant savings in bandwidth consumption as well as throughput improvements, especially useful where network bandwidth is constrained.
+
+== Operation
+
+Delta sync is disabled by default on Sync Gateway databases.
+
+If delta sync is enabled on a Sync Gateway database (see: <<sample-cfg>>), then Couchbase Lite clients syncing with that database will switch to using delta sync automatically. It is also automatically enabled for peer-to-peer sync between Couchbase Lite clients.
+However, if delta sync is disabled on Sync Gateway then Couchbase Lie clients will operate in normal mode.
+
+You should note that delta sync does not apply to attachment contents and that it is disabled for Couchbase Lite database replicas.
+
+NOTE: Push replications do not use Delta Sync when pushing to a pre-2.8 target.
+
+== Configuration
+
+You can enable delta-sync on a per-database basic in your Sync Gateway configuration file using the {configuration-properties--xref--databases-delta-sync} properties -- as shown in <<sample-cfg>>:
+
+[#sample-cfg]
+.Sample of Database with Delta Sync
+====
+[source, json]
+----
+// ... other configuration properties as appropriate
+{
+  "logging": {
+    "console": {
+      "log_keys": ["*"]
+    }
+  },
+  "databases": {
+    "db": {
+      "server": "http://localhost:8091",
+      "bucket": "default",
+      "users": { "GUEST": { "disabled": false, "admin_channels": ["*"] } },
+      "allow_conflicts": false,
+      "revs_limit": 20,
+      "delta_sync": {
+        "enabled": true, // <.>
+        "rev_max_age_seconds": 86400 // <.>
+      }
+      // ... any other configuration properties as appropriate
+    }
+  }
+}
+----
+
+<.> {configuration-properties--xref--databases-delta-sync-enabled} -- enabled or disables delta sync for this database
+<.> {configuration-properties--xref--databases-delta-sync-max-age} -- allows you to tune the amount of additional Couchbase Server bucket storage used by delta sync -- see: <<tuning>>.
+
+====
+
+[#tuning]
+== Couchbase Server Bucket Storage Needs
+
+Delta sync's storage of backed up revision bodies in the Couchbase Server bucket means additional Couchbase Server storage is required -- see <<addl-storage>>.
+
+TIP: Calculate required storage using: `doc_size * updates_per_day * 86400) / rev_max_age_seconds`
+
+With each delta sync write operation the revision body is backed up in the bucket and retained for _rev_max_age_seconds_ to calculate future revision deltas.
+So new deltas can only be generated for read requests arriving within the _rev_max_age_seconds_ time window.
+
+Setting `rev_max_age_seconds = 0` will generate deltas opportunistically on pull replications, with no additional storage requirements.
+
+[#addl-storage]
+.Additional storage calulation
+====
+Using:
+
+* _rev_max_age_seconds_ = default value
+* average document size = 4 KB
+* writes/day = 100
+
+Then enabling delta sync would take up an additional 400 KB of storage on Couchbase Server: +
+`((4 * 100 * 86400)/86400)`
+====
+
+
+include::partial$block-related-content-api.adoc[]

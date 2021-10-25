@@ -1,0 +1,184 @@
+= SG Collect Info
+:description: pass:q[Using _sgcollect_ to gather system information, diagnostics and metrics]
+
+
+include::partial$_std-hdr-sgw.adoc[]
+
+
+:topic-group: monitor
+:param-abstract: pass:q[This topic describes the command line utility, _sgcollect_, its use and the output it collates.]
+include::partial$block-abstract.adoc[]
+
+
+include::partial$block-caveats.adoc[tags=logfilefolderuse]
+
+
+== Introduction
+
+The command line utility `sgcollect_info` provides detailed statistics for a specific Sync Gateway node.
+This tool must be run on each node individually, not on all simultaneously.
+
+`sgcollect_info` outputs the following statistics in a zip file:
+
+. Logs
+. Configuration
+. Expvars (exported variables) that contain important stats
+. System Level OS stats
+. Golang profile output (runtime memory and cpu profiling info)
+
+
+== CLI Command and Parameters
+
+To see the CLI command line parameters, run:
+
+[source,bash]
+----
+./sgcollect_info --help
+----
+
+You can can use `sgcollect` to collect and save information locally and-or to collect and upload the information to Couchbase -- see: <<ex-collect>>.
+
+[#ex-collect]
+.Using sgcollect
+=====
+
+[{tabs}]
+====
+
+Collect and Save Locally::
++
+--
+[source,bash]
+----
+./sgcollect_info /tmp/sgcollect_info.zip
+----
+--
+
+Collect and Upload to Couchbase::
++
+--
+
+Collect Sync Gateway diagnostics and upload them to Couchbase Support:
+
+[source,bash]
+----
+./sgcollect_info \
+  --sync-gateway-config=/path/to/config.json \
+  --sync-gateway-executable=/usr/bin/sync_gateway \
+  --upload-host=uploads.couchbase.com \
+  --customer=Acme \
+  --ticket=123 \
+  /tmp/sgcollect_info.zip
+----
+--
+====
+=====
+
+
+== REST Endpoint
+
+You can also run `sgcollect_info` from the Admin REST API using the {rest-api-admin--pfx}#/server/post__sgcollect_info[_sgcollect_info] endpoint.
+
+
+== Zipfile Contents
+
+The tool creates the following log files in the ouput file.
+
+[cols="1,2"]
+|===
+|Log file |Description
+
+|`sync_gateway_access.log`
+|The http access log for sync gateway (i.e which GETs and PUTs it has received and from which IPs)
+
+|`sg_accel_access.log`
+|The http access log for sg_accel (i.e which GETs and PUTs it has received and from which IPs)
+
+|`sg_accel_error.log`
+|The error log (all logging sent to stderr by sg_accel) for the sg_accel process
+
+|`sync_gateway_error.log`
+|The error log (all logging sent to stderr by sync_gateway) for the sync_gateway process
+
+|`server_status.log`
+|The output of \http://localhost:4895 for the running sync gateway
+
+|`db_db_name_status.log`
+|The output of \http://localhost:4895/db_name for the running sync gateway
+
+|`sync_gateway.json`
+|The on-disk configuration file used by sync_gateway when it was launched
+
+|`sg_accel.json`
+|The on-disk configuration file used by sg_accel when it was launched
+
+|`running_server_config.log`
+|The configuration used by sync gateway as it is running (may not match the on-disk config as it can be changed on-the-fly)
+
+|`running_db_db_name_config.log`
+|The config used by sync gateway for the database specified by db_name
+
+|`expvars_json.log`
+|The expvars (global exposed variables - see https://www.mikeperham.com/2014/12/17/expvar-metrics-for-golang/ for the running sync gateway instance)
+
+|`sgcollect_info_options.log`
+|The command line arguments passed to sgcollect_info for this particular output
+
+|`sync_gateway.log`
+|OS-level System Stats
+
+|`expvars_json.log`
+|Exported Variables (expvars) from Sync Gateway which show runtime stats
+
+|`goroutine.pdf/raw/txt`
+|Goroutine pprof profile output
+
+|`heap.pdf/raw/txt`
+|Heap pprof profile output
+
+|`profile.pdf/raw/txt`
+|CPU profile pprof profile output
+
+|`syslog.tar.gz`
+|System level logs like /var/log/dmesg on Linux
+
+|`sync_gateway`
+|The Sync Gateway binary executable
+
+|`pprof_http_*.log`
+|The pprof output that collects directly via an http client rather than using go tool, in case Go is not installed
+|===
+
+
+=== File Concatenation
+
+SGCollect Info has been updated to use the xref:{sgw-pg-logging}#continuous-logging[continuous logging] feature introduced in 2.1, and collects the four leveled files (*sg_error.log*, *sg_warn.log*, *sg_info.log* and *sg_debug.log*).
+
+These new log files are rotated and compressed by Sync Gateway, so `sgcollect_info` decompresses these rotated logs, and concatenates them back into a single file upon collection.
+
+For example, if you have *sg_debug.log*, and *sg_debug-2018-04-23T16-57-13.218.log.gz* and then run `sgcollect_info` as normal, both of these files get put into a *sg_debug.log* file inside the zip output folder.
+
+
+== Log Redaction
+
+SGCollect Info now supports log redaction post-processing.
+In order to utilize this, Sync Gateway needs to be run with the `logging.redaction_level` property set to "partial".
+
+Two new command line options have been added to `sgcollect_info`:
+
+* `--log-redaction-level=REDACT_LEVEL`: redaction level for the logs collected, `none` and `partial` supported. Defaults to `none`.
++
+When `--log-redaction-level` is set to partial, two zip files are produced, and tagged contents in the redacted one should be hashed in the same way as `cbcollect_info`:
++
+[source,bash]
+----
+$ ./sgcollect_info --log-redaction-level=partial sgout.zip
+...
+Zipfile built: sgout-redacted.zip
+Zipfile built: sgout.zip
+----
+
+* `--log-redaction-salt=SALT_VALUE`: salt used in the hashing of tagged data when enabling redaction. Defaults to a random uuid.
+
+
+include::partial$block-related-content-api.adoc[]

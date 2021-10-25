@@ -1,0 +1,501 @@
+// Inclusions for REST-API Examples
+
+// tag::icr-sample-sync-gateway-restapi-replication[]
+curl --location --request POST 'http://localhost:4985/db1-local/_replication/db1-repid1-pull-example' \
+--header 'Content-Type: application/json' \
+--dataraw '{
+include::{example-cfg}[tags=icr-sample-sync-gateway-config-replication-body]
+  "adhoc": false,
+  "cancel": false
+}'
+// end::icr-sample-sync-gateway-restapi-replication[]
+
+
+// tag::icr-repl-create-pull-oneshot[]
+curl --location --request POST 'http://localhost:4985/db1-local/_replication/' \
+--header 'Content-Type: application/json' \
+--dataraw '{
+include::{example-cfg}[tags=icr-repl-create-pull-oneshot-body]
+}'
+// end::icr-repl-create-pull-oneshot[]
+
+// tag::icr-repl-create-pull-cont[]
+curl --location --request POST 'http://localhost:4985/db1-local/_replication/' \
+--header 'Content-Type: application/json' \
+--dataraw '{
+include::{example-cfg}[tags=icr-repl-create-pull-cont-body]
+}'
+// end::icr-repl-create-pull-cont[]
+
+// tag::icr-repl-adhoc-pull[]
+curl --location --request POST 'http://localhost:4985/db1-local/_replication/' \
+--header 'Content-Type: application/json' \
+--dataraw '{
+include::{example-cfg}[tags=icr-repl-adhoc-pull-body]
+}'
+// end::icr-repl-adhoc-pull[]
+
+
+// tag::icr-rep-retrieve-replication-status-req[]
+curl --location --request GET 'http://localhost:4985/db1/_replicationStatus/db1-rep-id2' \
+--header 'Content-Type: application/json' \
+
+// end::icr-rep-retrieve-replication-status-req[]
+// tag::icr-rep-retrieve-replication-status-resp[]
+[
+  {
+    "replication_id": "db1-rep-id2",
+    "docs_read": 0,
+    "docs_written": 10,
+    "doc_write_failures": 0,
+    "doc_write_conflict": 0,
+    "status": "running",
+    "rejected_by_remote": 0,
+    "rejected_by_local": 0,
+    "last_seq_pull": "8851",
+    "last_seq_push": "10402"
+}
+]
+// end::icr-rep-retrieve-replication-status-resp[]
+
+// tag::icr-rep-retrieve-replication-status-req-all[]
+curl --location --request GET "http://localhost:4985/db1-local/_replicationStatus?activeOnly=false&includeConfig=true&localOnly=false&includeError=true" \ // <.>
+--header 'Content-Type: application/json' \
+
+// end::icr-rep-retrieve-replication-status-req-all[]
+
+// tag::icr-rep-retrieve-replication-status-resp-all[]
+[
+  {
+    "replication_id": "db1-rep-id1-pull",
+    "docs_read": 0,
+    "docs_written": 0,
+    "doc_write_failures": 0,
+    "doc_write_conflict": 0,
+    "status": "running",
+    "rejected_by_remote": 0,
+    "rejected_by_local": 0,
+    "config": { // <.>
+        "replication_id": "db1-rep-id1-pull",
+        "cancel": true,
+        "direction": "pull",
+        "purge-on-removal": true,
+        "remote": "http://user:****@example.com:4985/db1-remote",
+        "filter":"sync_gateway/bychannel",
+        "query_params": {
+          "channels": ["channel1.user1"]
+        },
+        "continuous": true
+    }
+  },
+  {
+    "replication_id": "db1-rep-id2",
+    "docs_read": 0,
+    "docs_written": 0,
+    "doc_write_failures": 0,
+    "doc_write_conflict": 0,
+    "status": "stopped",  // <.>
+    "rejected_by_remote": 0,
+    "rejected_by_local": 0,
+    "config": {
+        "replication_id": "db1-rep-id2",
+        "direction": "pull",
+        "remote": "http://user:****@example.com:4985/db1-remote",
+        "continuous": true
+      }
+  },
+  {
+    "replication_id": "db2-rep-id1",
+    "docs_read": 0,
+    "docs_written": 0,
+    "doc_write_failures": 0,
+    "doc_write_conflict": 0,
+    "status": "error", // <.>
+    "rejected_by_remote": 0,
+    "rejected_by_local": 0,
+    "config": {
+      "replication_id": "db2-rep-id1",
+      "direction": "pull",
+      "remote": "http://user:****@example2.com:4985/db2-remote",
+      "continuous": true
+    }
+  }
+]
+// end::icr-rep-retrieve-replication-status-resp-all[]
+
+// curl -X PUT "http://localhost:4985/db1-local_replicationStatus/\{replicationID}?action=start" -H "accept: application/json"
+
+// tag::icr-rep-start-replications-req[]
+curl --location --request PUT 'http://localhost:4985/db1-local/_replicationStatus/\{{db1-rep-id}}?action=start' \
+--header 'Content-Type: application/json' \
+
+// end::icr-rep-start-replications-req[]
+
+// tag::icr-rep-start-replications-body[]
+
+// end::icr-rep-start-replications-body[]
+
+// tag::icr-rep-start-replications-resp[]
+Success Response::
+  Response Status 200 OK
+  Payload in body
+{
+  "replication_id": "db1-rep-id1",
+  "docs_read": 0,
+  "docs_written": 10,
+  "doc_write_failures": 0,
+  "doc_write_conflict": 0,
+  "status": "running",
+  "rejected_by_remote": 0,
+  "rejected_by_local": 0,
+  "last_seq_pull": "8851",
+  "last_seq_push": "10402"
+}
+// end::icr-rep-start-replications-resp[]
+
+// curl -X PUT "http://localhost:4985/db1-local_replicationStatus/\{replicationID}?action=reset" -H "accept: application/json"
+
+// tag::icr-rep-reset-replications-req[]
+curl --location --request PUT 'http://localhost:4985/db1-local/_replicationStatus/\{{db1-rep-id2}}?action=reset' \
+--header 'Content-Type: application/json' \
+
+// end::icr-rep-reset-replications-req[]
+
+// tag::icr-rep-reset-replications-body[]
+
+// end::icr-rep-reset-replications-body[]
+
+// tag::icr-rep-reset-replications-resp[]
+Success Response::
+  Response Status 200 OK
+  Payload in body
+{
+  "replication_id": "db1-rep-id2",
+  "docs_read": 0,
+  "docs_written": 0,
+  "doc_write_failures": 0,
+  "doc_write_conflict": 0,
+  "status": "stopped",
+  "rejected_by_remote": 0,
+  "rejected_by_local": 0
+}
+// end::icr-rep-reset-replications-resp[]
+
+// curl -X PUT "http://localhost:4985/db1-local_replicationStatus/\{replicationID}?action=stop" -H "accept: application/json"
+
+// tag::icr-rep-stop-replications-req[]
+curl --location --request PUT 'http://localhost:4985/db1-local/_replicationStatus/\{{db1-rep-id1}}?action=stop' \
+--header 'Content-Type: application/json' \
+
+// end::icr-rep-stop-replications-req[]
+
+
+// tag::icr-rep-stop-replications-resp[]
+Success Response::
+  Response Status 200 OK
+  Payload in body
+{
+  "replication_id": "db1-rep-id1",
+  "docs_read": 0,
+  "docs_written": 0,
+  "doc_write_failures": 0,
+  "doc_write_conflict": 0,
+  "status": "stopped",
+  "rejected_by_remote": 0,
+  "rejected_by_local": 0
+}
+// end::icr-rep-stop-replications-resp[]
+
+// tag::icr-rep-update-replications-req[]
+// tag::icr-rep-update-replications-req-push[]
+curl --location --request PUT 'http://localhost:4985/db1-local/_replication/db1-rep-id1 \
+--header 'Content-Type: application/json' \
+--data-raw '{
+// tag::icr-rep-update-replications-body[]
+  "direction": "push",
+  "purge_on_removal":false, // set back to default
+  "remote": "http://user1:password1@example.com:4984/db1-remote",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+    "channels":["channel.user1"]
+  },
+  "continuous": false
+  // end::icr-rep-update-replications-body[]
+  }'
+// end::icr-rep-update-replications-req[]
+// end::icr-rep-update-replications-req-push[]
+
+// tag::icr-rep-update-replications-req-pull[]
+curl --location --request PUT 'http://localhost:4985/db2-local/_replication/db2-rep-id1-pull' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "direction": "pull",
+  "purge_on_removal":true,
+  "remote": "http://user1:****@example.com:4984/db2-remote",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+    "channels":["channel.user1"]
+  },
+  "enable_delta_sync":true,
+  "continuous": true
+  }'
+// end::icr-rep-update-replications-req-pull[]
+
+// tag::icr-rep-update-replications-resp[]
+// tag::icr-rep-update-replications-resp-200[]
+Success Response::
+  Response Status 200 OK
+  No payload
+// end::icr-rep-update-replications-resp-200[]
+
+// tag::icr-rep-update-replications-resp-400[]
+Bad Request Response::
+  Response Status 400 Bad request
+
+{
+    "error": "Bad Request",
+    "reason": "Replication ID in body \"db1-rep-id1\" does not match request URI"
+}
+// end::icr-rep-update-replications-resp-400[]
+
+// tag::icr-rep-update-replications-resp-401[]
+// Not Found Response::
+// Response Status 401 Not Found
+
+// {
+//   "error": "Not Found",
+//   "reason": "Replication ID in body \"pushandpull-with-target-continuous-1\" does not match request URI"
+// }
+// end::icr-rep-update-replications-resp-401[]
+// end::icr-rep-update-replications-resp[]
+
+// tag::icr-rep-remove-replications-req[]
+curl --location --request DELETE 'http://localhost:4985/db2-local/_replication/db2-rep-id3' \
+--header 'Content-Type: application/json' \
+
+// end::icr-rep-remove-replications-req[]
+
+// tag::icr-rep-remove-replications-body[]
+
+// end::icr-rep-remove-replications-body[]
+
+// tag::icr-rep-remove-replications-resp[]
+Success Response::
+  Response Status 200 OK
+  No payload
+// end::icr-rep-remove-replications-resp[]
+
+// tag::icr-rep-cancel-replications-req[]
+{
+  "replication_id": "db1-rep-id1-pull",
+  "cancel": true,
+  "direction": "pull",
+  "purge-on-removal": true,
+  "remote": "http://user:****@example.com:4985/db1-remote",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+    "channels": ["channel1.user1"]
+  },
+  "continuous": true
+}
+// end::icr-rep-cancel-replications-req[]
+
+// tag::icr-rep-cancel-replications-body[]
+// end::icr-rep-cancel-replications-body[]
+
+// tag::icr-rep-cancel-replications-body-no-id[]
+{
+  "cancel":true,
+  "source": "db",
+  "target": "db-copy"
+}
+// end::icr-rep-cancel-replications-body-no-id[]
+
+// tag::icr-rep-cancel-replications-resp[]
+Success Response::
+  Response Status 200 OK
+  Payload in body
+{
+  "type":"replication",
+  "replication_id":"db1-rep-id1",
+  "docs_read":12,
+  "docs_written":12,
+  "doc_write_failures":0,
+  "doc_write_conflict": 0,
+  "status": "stopped",
+  "rejected_by_remote": 0,
+  "rejected_by_local": 0,
+  "last_seq_pull": "8851",
+  "last_seq_push": "10402"
+}
+// end::icr-rep-cancel-replications-resp[]
+
+// tag::icr-rep-retrieve-replications-req[]
+curl --location --request GET 'http://localhost:4985/db1-local/_replication/db1-rep-id1' \
+--header 'Content-Type: application/json' \
+
+// end::icr-rep-retrieve-replications-req[]
+
+// tag::icr-rep-retrieve-replications-req-all-for-db[]
+curl --location --request GET 'http://localhost:4985/db1-local/_replication' \
+--header 'Content-Type: application/json' \
+
+// end::icr-rep-retrieve-replications-req-all-for-db[]
+
+// // tag::icr-rep-retrieve-replications-body[]
+// Not required
+// // end::icr-rep-retrieve-replications-body[]
+
+// tag::icr-rep-retrieve-replications-resp[]
+Success Response::
+  Response Status 200 OK
+  Payload in body
+{
+  "db1-rep-id1": {
+    "replication_id": "db1-rep-id1",
+    "remote": "http://user1:****@example.com:4984/db1-remote",
+    "direction": "pull",
+    "purge_on_removal": true,
+    "continuous": true,
+    "filter": "sync_gateway/bychannel",
+    "query_params": {
+      "channels": [
+        "channel.user1"
+      ]
+    },
+    "assigned_node": "1de4994d136b982e"
+  }
+}
+// end::icr-rep-retrieve-replications-resp[]
+
+
+// tag::icr-rep-retrieve-replications-resp2[]
+{
+  "adhoc": false,
+  "batch_size": 0,
+  "conflict_resolution_type": "string",
+  "continuous": false,
+  "custom_conflict_resolver": "string",
+  "direction": "string",
+  "enable_delta_sync": false,
+  "filter": "string",
+  "max_backoff_time": 0,
+  "perf_tuning_params": [
+    "string"
+  ],
+  "purge_on_removal": false,
+  "query_params": [
+    "string"
+  ],
+  "remote": "string",
+  "replication_id": "string",
+  "initial_state": "string"
+}
+// end::icr-rep-retrieve-replications-resp2[]
+
+// tag::icr-rep-retrieve-replications-resp-all-for-db[]
+Success Response::
+  Response Status 200 OK
+  Payload in body
+{
+  "db1-rep-id1": {
+      "replication_id": "db1-rep-id1",
+      "remote": "http://user1:****@example1.com:4984/db1-remote",
+      "direction": "pushAndPull",
+      "conflict_resolution_type": "remoteWins",
+      "purge_on_removal": true,
+      "enable_delta_sync": true,
+      "initial_state": "stopped",
+      "continuous": true,
+      "filter": "sync_gateway/bychannel",
+      "query_params": {
+          "channels": [
+              "channel.user1"
+          ]
+      },
+      "batch_size": 1000,
+      "assigned_node": "2c9b0d00a4e7c65a"
+  },
+  "db1-rep-id2": {
+      "replication_id": "db1-rep-id2",
+      "remote": "http://user1:****@example2.com:4984/db1-remote",
+      "direction": "pushAndPull",
+      "conflict_resolution_type": "remoteWins",
+      "purge_on_removal": true,
+      "enable_delta_sync": true,
+      "max_backoff_time": 5,
+      "initial_state": "running",
+      "continuous": true,
+      "filter": "sync_gateway/bychannel",
+      "query_params": {
+          "channels": [
+              "channel.user1"
+          ]
+      },
+      "adhoc": true,
+      "batch_size": 1000,
+      "assigned_node": "2c9b0d00a4e7c65a"
+  }
+}
+// end::icr-rep-retrieve-replications-resp-all-for-db[]
+
+// tag::icr-rep-get-stats[]
+// tag::icr-rep-stats-req[]
+curl --location --request GET 'http://localhost:4985/_expvar' \
+--header 'Content-Type: application/json' \
+
+// end::icr-rep-stats-req[]
+// end::icr-rep-get-stats[]
+
+// tag::icr-rep-stats-resp[]
+"this-rep-id": {
+  "sgr_active": true,
+  "sgr_docs_checked_sent": 0,
+  "sgr_num_attachment_bytes_transferred": 0,
+  "sgr_num_attachments_transferred": 0,
+  "sgr_num_docs_failed_to_push": 0,
+  "sgr_num_docs_pushed": 0,
+  "sgr_delta_pull_replication_count": 0,
+  "sgr_delta_push_doc_count": 0,
+  "sgr_deltas_requested":  0,
+  "sgr_deltas_sent": 0,
+  "sgr_conflict_detected": 0,
+  "sgr_conflict_resolved": 0,
+  "sgr_conflict_skipped_error": 0
+}
+// end::icr-rep-stats-resp[]
+
+
+// tag::icr-rep-sample-create-pull-curl[]
+curl --location --request POST 'http://localhost:4985/local_db1/_replication/' \
+--header 'Content-Type: application/json' \
+--data-raw '
+{
+  "replication_id": "repl_id_1",
+// end::icr-rep-sample-create-pull-curl[]
+
+
+
+// tag::icr-rep-sample-create-pull[]
+// tag::icr-rep-sample-create-pull-curl[]
+curl --location --request POST 'http://localhost:4985/db1-local/_replication/db1-rep-id1-pull-oneshot' \ // <.>
+--header 'Content-Type: application/json' \
+--dataraw '{
+// end::icr-rep-sample-create-pull-curl[]
+// tag::icr-rep-sample-create-pull-body[]
+"replication_id": "db1-rep-id1-pull-oneshot" // <.>
+include::{example-cfg}[tags=icr-rep-sample-create-pull-body]
+  "adhoc": false, // <.>
+  "cancel": false // <.>
+}'
+// end::icr-rep-sample-create-pull-body[]
+// end::icr-rep-sample-create-pull[]
+
+
+// tag::icr-rep-sample-create-pull-callouts[]
+<.> All replications take place at database level and in the context of a local database. Here we are setting the replication in the context of `db1-local`
+<.> Define the `replication_id`
+include::{example-cfg}[tags=icr-rep-sample-create-pull-callouts]
+<.> Setting `adhoc=false` marks this as a persistent replication. The definition will survive Sync Gateway node restarts. This the default behaviour if this parameter is omitted.+
+<.> Set `cancel=true` to cancel an initialized replication; otherwise you can omit this parameter.
+// end::icr-rep-sample-create-pull-callouts[]

@@ -1,0 +1,204 @@
+// changelog
+
+
+// tag::2-8-all[]
+// tag::2-8-0-inter-sync-gateway[]
+// tag::latest-all-new[]
+== Inter-Sync{nbsp}Gateway Replication
+Couchbase Sync Gateway's _{glos-term-inter-sync-gateway-replication}_ feature supports _{glos-term-cloud-to-edge} synchronization_ use cases, where data changes must be synchronized between a centralized cloud cluster and a large number of edge clusters whilst still enforcing fine grained access control.
+This is an increasingly important enterprise-level requirement.
+
+Read More . . . {xref-sgw-pg-icr-sgreplicate}
+
+// end::2-8-0-inter-sync-gateway[]
+// tag::2-8-0-metrics[]
+== Prometheus Monitoring Support (Developer Preview)
+
+This release gives developers the chance to try-out Couchbase Sync Gateway's new metrics API, which exposes stats in a Prometheus compatible format.
+This enables the integration of Sync Gateway's metrics with one of the most popular monitoring and alerting solutions, without resorting to external data transformation.
+
+Read More . . . {rest-api-metrics--xref}
+
+// end::latest-all-new[]
+// end::2-8-0-metrics[]
+
+// tag::2-8-0-config-full[]
+// tag::latest-all-changed-config-rn[]
+// tag::2-8-0-config-rn[]
+// tag::2-8-0-structuralonly[]
+Sync Gateway 2.8 introduces a number of configuration file changes made to accommodate the Inter-sync-gateway replication feature.
+
+.Replication
+The database property has a new sub-property `replications`, which is used to associate an inter-Sync Gateway replication with a 'local' database.
+
+The top level `replications` configuration property and its sub-properties is deprecated. Instead, use the `database.replication` property (as above) to define replications, unless you specifically need to use the pre-2.8 version with SG{nbsp}Replicate.
+
+Note that any given database can still have multiple replications configured.
+Also, that inter-Sync Gateway replication does not support replication between two remote hosts via a third Sync Gateway; at least one database must be local.
+
+// end::2-8-0-structuralonly[]
+// end::2-8-0-config-rn[]
+// end::latest-all-changed-config-rn[]
+
+// tag::latest-all-changed-api[]
+This release introduces two new endpoints to the Admin Rest API.
+
+* `_replication` - used to initialize Inter-Sync Gateway Replication
+* `_replicationStatus` - used to set or query the status of a replication
+
+The `_replicate` and `_active_tasks` endpoints are both deprecated, as they are replaced by the above.
+
+See: {rest-api-admin--xref}
+
+// end::latest-all-changed-api[]
+
+
+
+== Removed or Deprecated Properties
+// tag::2-8-0-removedonly[]
+// tag::2-8-0-removedonly-list[]
+* create_target
+* proxy
+* doc_ids
+* source
+// end::2-8-0-removedonly-list[]
+
+The following SG Replicate _ReplicationConfig_ configuration properties are deprecated.
+Deprecated functionality remains solely for backward compatibility with SG Replicate but is no longer supported:
+
+// tag::create-target[]
+create_target::
+_SG Replicate Deprecated_.
+The _create_target_ property remains in `ReplicationConfig` but is deprecated for Couchbase Server-backed use cases.
+// end::create-target[]
+
+// tag::proxy[]
+proxy::
+_SG Replicate Deprecated_.
+The _proxy_ property remains in `ReplicationConfig` but is deprecated_.
+// end::proxy[]
+
+// tag::doc-ids[]
+doc_ids::
+_SG Replicate Deprecated_.
+The _doc_ids_ property remains in `ReplicationConfig` but is deprecated_.
+// end::doc-ids[]
+
+// tag::source[]
+source::
+__SG Replicate Deprecated__.
++
+*For Inter-Sync Gateway Replication:* the _source_ property is, implicitly, the database associated with the replication (that is, the 'database' property under which it is defined).
+// end::source[]
+
+// tag::target[]
+[[target-property,target]]
+target::
+__SG Replicate Deprecated__.
++
+*For replication introduced in Sync Gateway 2.8:* The _target_ property is replaced by the `<<remote-property>>` property.
+// end::target[]
+
+// tag::async[]
+async::
+_Removed - redundant_.
++
+The _async_ property is a _REST-API-only_ property.
+It was formerly the method used to force a request to start without awaiting completion of one-shot replications (that is, to run asynchronuously).
+Now, it *always* run in async mode.
+// end::async[]
+
+// tag::change-feed-limit[]
+changes_feed_limit::
+_Removed - redundant_.
+// end::change-feed-limit[]
+// end::2-8-0-removedonly
+
+// tag::2-8-0-newonly[]
+== New Configuration Properties
+
+The following new properties are added:
+
+// tag::remote[]
+[[remote-property, remote]]
+remote::
+The _remote_ property replaces the former <<target-property>>.
++
+The _remote_ property represents a database URL for the remote Sync Gateway.
+To use another database hosted on this Sync Gateway, specify its full Sync Gateway database URL here.
+// end::remote[]
+
+// tag::direction[]
+direction::
+The _direction_ property indicates whether the replication is pushed or pulled by this node.
+Valid values are: push, pull, and pushAndPull.
+// end::direction[]
+
+// tag::conflict-resolution-type[]
+conflict_resolution_type::
+The _conflict_resolution_type_ property defines how conflicts are resolved.
++
+Valid values are: default, localWins, remoteWins, custom
+// end::conflict-resolution-type[]
+
+// tag::conflict-resolver[]
+custom_conflict_resolver::
+The _custom_conflict_resolver_ property specifies the custom Javascript function to be used for conflict resolution. It is valid *only* when `conflict_resolution_type = custom`.
+// end::conflict-resolver[]
+
+// tag::purge-on-removal[]
+purge_on_removal::
+Boolean value for whether channel removals should trigger purge
+Defaults to false
+// end::purge-on-removal[]
+
+// tag::enable-delta-sync[]
+enable_delta_sync::
+Boolean value for whether to enable delta sync for this replication.
+// end::enable-delta-sync[]
+
+// tag::maximum-backoff-time[]
+maximum_backoff_time::
+The _maximum_backoff_time_ property deines the period of time during which Sync Gateway will attempt to reconnect unreachable targets.
+// end::maximum-backoff-time[]
+
+// tag::replication-state[]
+Replication state::
+The _replication_state_ property reports the current state of a replication.
++
+Possible values in replicationStatus response bodies are: stopping, stopped, starting, active.
++
+Valid values in configuration or in a payload to a replication endpoint are: stopping, starting.
+// end::replication-state[]
+// end::2-8-0-newonly[]
+
+
+// tag::2-8-0-modifiedonly[]
+== Modified Configuration Properties
+
+The following replication configuration properties have changed:
+
+// tag::cancel[]
+cancel::
+This property requests a running replication stop. It is valid *only* when using ReplicationConfig for _replicate REST API calls.
++
+If defined in the configuration schema, it will log an error and prevent start up.
++
+When used in the REST API, you must specify the `replication_id` of a running replication or the request will return an error.
+// end::cancel[]
+// end::2-8-0-modifiedonly[]
+
+// tag::2-8-0-retainedonly[]
+== Unchanged Configuration Properties
+The following replication configuration properties are retained unchanged:
+
+* continuous
+* filter
+* query_params
+
+// end::2-8-0-retainedonly[]
+// end::2-8-0-config-full[]
+
+
+
+// end::2-8-all[]

@@ -1,0 +1,125 @@
+= Changes Feed
+:description: Integrating Sync Gateway with other servers
+:idprefix:
+:idseparator: -
+
+include::partial$_std-hdr-sgw.adoc[]
+
+:topic-group: integration
+:param-related: {xref-sgw-pg-events}  |  {xref-pfx-sgw}{sgw-pg-integrating-external-stores}[External Stores]  |  {xref-sgw-pg-stats-prometheus}
+:param-abstract: This content describes how to use the changes feed to integrate Sync Gateway with other servers to build services that react to document changes.
+include::partial$block-abstract.adoc[]
+
+:url-couchdb: http://guide.couchdb.org/draft/notifications.html
+
+== Introduction
+
+Sync Gateway provides the ability to extend the replication process and build responsive services that react to changes in documents, adding value to the end to end process.
+
+For example, you can initiate the sending of notifications, or specialist audit processes, when certain document changes are detected.
+This can be done using either the changes feed or xref:{sgw-pg-events}[document_changed events] -- see  <<tbl-scenarios>> for a comparison of these scenarios.
+
+include::partial$server-integration-scenario-table.adoc[]
+
+== Changes Feed
+The changes-feed for the reliever returns a sorted list of changes made to documents in the database.
+
+This article describes how to use the changes feed API to integrate Sync Gateway with other backend processes.
+For instance if you have a channel called "needs-email" you could have a bot that sends an email and then saves the document back with a flag to keep it out of the "needs-email" channel.
+
+[#lbl-endpoint]
+== Endpoint
+
+The changes feed API is a REST API endpoint (xref:rest-api.adoc#/database/get\__db___changes[`+/\{tkn-db}/_changes+`]) that returns a sorted list of changes made to documents in the database.
+It permits applications to implement business logic that reacts to changes in documents.
+
+[#lbl-methods]
+== Methods
+There are several methods of connecting to the changes feed (also know as the feed type).
+The first three methods (`polling`, `longpoll` and `continuous`) are based on the CouchDB API.
+The last method (`websocket`) is specific to Sync Gateway.
+
+{url-couchdb}#polling[polling^] (default)::
+Returns the list of changes immediately.
+A new request must be sent to get the next set of changes.
+{url-couchdb}#long[longpolling^]::
+In addition to regular polling, if the request is sent with a special `last_seq` parameter, it will stay open until a new change occurs and is posted.
+{url-couchdb}#continuous[continuous^]::
+The continuous changes API allows you to receive change notifications as they come, in a single HTTP connection.
+You make a request to the continuous changes API and both you and Sync Gateway will hold the connection open “forever.”
+<<lbl-websockets>>::
+The WebSocket mode is conceptually the same as continuous mode but it should avoid issues with proxy servers and gateways that cause continuous mode to fail in many real-world mobile use cases.
+
+[#lbl-websockets]
+== WebSockets
+
+In this section::
+<<lbl-options>>  |  <<lbl-messages>>  |  <<lbl-compressed>>
+
+Continuous streaming HTTP responses may not be suitable for all deployments.
+Some proxy servers perform chunked-mode response parsing, which waits for the entire response to be buffered before sending it on.
+So, since the continuous feed response never ends, nothing is ever sent through to the client.
+This problem can be avoided using the WebSocket method.
+
+The client requests WebSockets by setting the `_changes` URL's feed query parameter to `websocket`, and opening a WebSocket connection to that URL -- see: <<ex-getfeed>>.
+
+[#ex-getfeed]
+.Changes Feed Request
+====
+[source, html]
+----
+GET /db/_changes?feed=websocket HTTP/1.1
+Connection: Upgrade
+Upgrade: websocket
+...
+----
+====
+
+[#lbl-options]
+=== Specifying Options
+After the connection opens, the client MUST send a single textual message to the server, specifying the feed options.
+This message is identical to the body of a regular HTTP POST to `_changes`, i.e. it's a JSON object whose keys are the parameters (for example, `{"since": 112233, "include_docs": true}`).
+Depending on which client you use, make sure that options are sent as binary.
+
+[#lbl-messages]
+=== Messages
+Once the server receives the options, it will begin to send text-format messages.
+The messages are JSON; each contains one or more change notifications (in the same format as the regular feed) wrapped in an array -- see: <<ex-msg>>.
+
+[#ex-msg]
+.Sample Message
+====
+[source, bash]
+----
+[ {"seq":1022,"id":"beer_Indiana_Amber","changes":[{"rev":"1-e8f6b2e1f220fa4c8a64d65e68469842"}]},
+  {"seq":1023,"id":"beer_Iowa_Pale_Ale","changes":[{"rev":"1-db962c6d93c3f1720cc7d3b6e50ac9df"}]}
+]
+----
+====
+
+(The current server implementation sends at most one notification per message, but this could change.
+Clients should accept any number.)
+
+An empty array is a special case: it denotes that at this point the feed has finished sending the backlog of existing revisions, and will now wait until new revisions are created.
+It thus indicates that the client has "caught up" with the current state of the database.
+
+The `websocket` mode behaves like the `continuous` mode: after the backlog of notifications (if any) is sent, the connection remains open and new notifications are sent as they occur.
+
+[#lbl-compressed]
+=== Compressed Feed
+
+For efficiency, the feed can be sent in compressed form; this greatly reduces the bandwidth and is highly recommended.
+
+To signal that it accepts a compressed feed, the client adds `"accept_encoding":"gzip"` to the feed options in the initial message it sends.
+
+Compressed messages are sent from the server as binary.
+This is of course necessary as they contain gzip data, and it also lets the client distinguish them from uncompressed messages.
+(The server will only ever send one kind.)
+
+The compressed messages sent from the server constitute a single stream of gzip-compressed data.
+They cannot be decompressed individually!
+Instead, the client should open a gzip decompression session when the feed opens, and write each binary message to it as input as it arrives.
+The output from the decompressor consists of a sequence of JSON arrays, each of which has the same interpretation as a text message (above).
+
+include::partial$block-related-content-sync.adoc[]
+

@@ -1,0 +1,1027 @@
+// tag::getting-started-config[]
+//
+{
+  //  ... additional configuration data as required ...
+  "databases": {
+    "getting-started-db": {
+      "server": "http://localhost:8091",
+      "bucket": "getting-started-bucket",
+      "username": "sync_gateway", // <.>
+      "password": "password", // <.>
+      "enable_shared_bucket_access": true, // <.>
+      "import_docs": true,
+      "num_index_replicas": 0, // <.>
+      "users": {
+        "GUEST": { "disabled": false, "admin_channels": ["*"] }
+      }
+    }
+    "logging": {
+      "console":  {
+        "log-keys": ["*"] // <.>
+      }
+    }
+    //  ... additional configuration data as required ...
+  }
+}
+//
+// end::getting-started-config[]
+
+// tag::icr-replication-config[]
+//
+{
+//  ... may be preceded by additional configuration data as required by the user ...
+
+"databases": {
+  "db": {
+    "replications": {
+      "repl_id_1": {
+        "remote": "https://remoteSG:4984/remoteDB",
+      	"direction": "pull",
+      	"purge_on_removal":true,
+      	"continuous":true,
+      	"filter":"sync_gateway/bychannel",
+      	"conflict_resolution_type":"custom",
+      	"custom_conflict_resolver": `func(local, remote) {...}`,
+      }
+
+    }
+  }
+  //  ... may be followed by additional configuration data as required by the user ...
+}
+//
+// end::icr-replication-config[]
+
+// tag::import-filter-config[]
+//
+{
+  //  ... may be preceded by additional configuration data as required by the user ...
+  "databases": {
+    "getting-started-db": {
+      "server": "http://localhost:8091",
+      "bucket": "getting-started-bucket",
+      "username": "sync_gateway", // <1>
+      "password": "password", // <2>
+      "enable_shared_bucket_access": true, // <3>
+      "import_docs": true,
+      "num_index_replicas": 0, // <4>
+      "import_filter": `
+        function(doc) { // <5>
+          if (doc.type != "mobile") {
+            return false
+          }
+          return true
+        }`,
+      "users": {
+        "GUEST": { "disabled": false, "admin_channels": ["*"] }
+      },
+      "sync": `function (doc, oldDoc) {
+        if (doc.sdk) {
+          channel(doc.sdk);
+        }
+      }`
+    }
+  }
+  //  ... may be followed by additional configuration data as required by the user ...
+}
+//
+// end::import-filter-config[]
+
+// tag::sync-function-config[]
+//
+{
+  //  ... may be preceded by additional configuration data as required by the user ...
+  "databases": {
+    "getting-started-db": {
+      "server": "http://localhost:8091",
+      "bucket": "getting-started-bucket",
+      "username": "sync_gateway", // <1>
+      "password": "password", // <2>
+      "enable_shared_bucket_access": true, // <3>
+      "import_docs": true,
+      "num_index_replicas": 0, // <4>
+      "users": {
+        "GUEST": { "disabled": false, "admin_channels": ["*"] },
+      },
+      "sync": `function (doc, oldDoc) { //<5>
+        if (doc.sdk) {
+          channel(doc.sdk);
+        }
+        }`,
+        //  ... may be followed by additional configuration data as required by the user ...
+    }
+  }
+}
+//
+// end::sync-function-config[]
+
+
+// tag::icr-simple-conflict-resolver[]
+"replications": [
+  {
+  "replication_id": "replication1",
+  // other config as required
+  "conflict_resolution_type": "custom",
+  "custom_conflict_resolver": `
+    function(conflict) {
+      if  (conflict.LocalDocument.type == "a-doctype-1") &&
+          (conflict.RemoteDocument.type == "a-doctype-1")
+       {
+         // Invoke the built in default resolver logic
+         return defaultPolicy(conflict);
+       }
+      else {
+        // Otherwise resolve in favor of remote document
+          return conflict.RemoteDocument;
+        }
+    }
+    `
+  // other config as required
+  }
+]
+// end::icr-simple-conflict-resolver[]
+
+// tag::icr-simple-own-winner-conflict-resolver[]
+"replications": [
+  {
+    // . . . preceding replication details as required
+  },
+  {
+    "replication_id": "replication2",
+    // . . .   other config as required
+    "conflict_resolution_type": "custom",
+    "custom_conflict_resolver": `
+      function(conflict) {
+        // Custom conflict resolution policy based on priority
+        if (conflict.LocalDocument.body.priority > conflict.RemoteDocument.body.priority) {
+          // Choose a local winner
+          // Optionally apply application logic to manipulate
+          // the local object before returning it as the winner
+          return conflict.LocalDocument;
+        } else if (local.body.priority < remote.body.priority) {
+            // Choose a remote winner
+            // Optionally apply application logic to manipulate
+            // the remote object before returning it as the winner
+          return conflict.RemoteDocument;
+          }; //end if
+        } //end func()
+        // Apply the default policy as a catch all
+        return defaultPolicy(conflict);
+    }` // end resolver property
+  }, // end replication2
+  {
+    // . . . further replication details as required
+  }
+]
+// . . .   other config as required
+// end::icr-simple-own-winner-conflict-resolver[]
+
+// tag::my-icr-simple-merge-conflict-resolver[]
+"replications": [
+  {
+    // Replication details for previous replications
+  },
+  {
+  {
+    "replication_id": "replication3",
+    // other config as required
+    "conflict_resolution_type": "custom",
+    "custom_conflict_resolver": `
+      function(local, remote) {
+        if (local.body.priority == remote.body.priority) {
+          // create and seed a mergedDoc object
+          var mergedDoc = new Object()
+          mergedDoc.body = local.body
+          mergedDoc.meta = local.meta
+          // Add application logic to merge the remote
+          // revisions into the mergedDoc
+
+          // Return the merged object
+            return {
+              mergedDoc
+            }
+          }
+          else {
+            // Invoke the built in default resolver logic
+            Return UseDefault(doc,oldDoc);
+          }
+      }
+    }`
+  },
+  {
+    // Replication details for subsequent replications
+  "replication_id": "replication4",
+  // other config as required
+  "conflict_resolution_type": "custom",
+  "custom_conflict_resolver": `
+    function(local, remote) {
+      if (doc.type == "a-doctype-1") {
+          // Invoke the built in resolver logic for remoteWins
+          Return RemoteWins(doc,oldDoc);
+        }
+        else {
+          // Invoke the built in default resolver logic
+          Return UseDefault(doc,oldDoc);
+        }
+    }
+    `
+// other config as required
+  }
+]
+// end::my-icr-simple-merge-conflict-resolver[]
+
+// tag::xNEW-icr-sample-sync-gateway-config[]
+{
+  "interface":":5984",
+  "adminInterface":":5985",
+  "logging": {
+    "log_file_path": "/var/tmp/sglogs",
+    "console": {
+      "log_level": "debug",
+      "log_keys": ["*"]
+    },
+    "error": {
+      "enabled": true,
+      "rotation": {
+        "max_size": 20,
+        "max_age": 180
+      }
+    },
+    "warn": {
+      "enabled": true,
+      "rotation": {
+        "max_size": 20,
+        "max_age": 90
+      }
+    },
+    "info": {
+      "enabled": false
+    },
+    "debug": {
+      "enabled": false
+    }
+  },
+  "databases": {
+       "db1-local": {
+            "import_docs": true,
+            "bucket":"db1-local",
+            "server": "couchbase://cb-server",
+            "enable_shared_bucket_access":true,
+            "delta_sync": {
+              "enabled": true
+            },
+            "import_filter": `
+              function(doc) {
+                return true;
+              }
+              `,
+            "username": "admin",
+            "password": "password",
+            "users":{
+                "admin": {"password": "password", "admin_channels": ["*"]},
+                "user1": {"password": "password", "admin_channels":["channel.user1"]}
+            },
+           "num_index_replicas":0,
+           "sgreplicate_enabled":false,
+           "replications":{
+               "db1-rep-id1" : {
+                   "direction": "pushAndPull",
+                   "conflict_resolution_type":"custom",
+                    "custom_conflict_resolver":`
+                                function(conflict) {
+                                    var remoteDoc = conflict.RemoteDocument;
+                                     console.log("full remoteDoc doc: "+JSON.stringify(remoteDoc));
+                                    var localDoc = conflict.LocalDocument;
+                                    console.log("full localDoc doc: "+JSON.stringify(localDoc));
+                                    var mergedDoc = {...localDoc,...remoteDoc};
+                                    console.log("full mergedDoc doc: "+JSON.stringify(mergedDoc));
+                                    return mergedDoc;
+
+                    }`,
+                   "purge_on_removal":true,
+                   "remote": "http://user1:password@example.com:4984/db1-remote",
+                   "filter":"sync_gateway/bychannel",
+                   "query_params": {
+                       "channels":["channel.user1"]
+                   },
+                   "enable_delta_sync":  true,
+                    "batch_size" :1000,
+                    "continuous": true,
+                    "state": "running"
+               }
+           },
+          "sync": `
+      function sync(doc, oldDoc) {
+        /* sanity check */
+        // check if document was removed from server or via SDK
+        // In this case, just return
+        if (isRemoved()) {
+          return;
+        }
+
+        /* Routing */
+        // Add doc to the user's channel.
+        channel("channel.user1");
+
+        // This is when document is removed via SDK or directly on server
+        function isRemoved() {
+          return( isDelete() && oldDoc == null);
+        }
+
+        function isDelete() {
+          return (doc._deleted == true);
+        }
+
+      }
+            `
+          },
+    "db2-local": {
+      "import_docs": true,
+      "bucket":"db2-local",
+      "server": "couchbase://cb-server",
+      "enable_shared_bucket_access":true,
+      "delta_sync": {
+        "enabled": true
+      },
+      "import_filter": `
+        function(doc) {
+          return true;
+        }
+        `,
+      "username": "admin",
+      "password": "password",
+      "users":{
+          "admin": {"password": "password", "admin_channels": ["*"]},
+          "user1": {"password": "password", "admin_channels":["channel.user1"]}
+      },
+     "num_index_replicas":0,
+     "sgreplicate_enabled":true,
+     "replications":{
+         "db2-rep-id1-pull" : {
+             "direction": "pull",
+             "purge_on_removal":true,
+             "remote": "http://user1:password@example2.com:4984/db2_remote",
+             "conflict_resolution_type":"custom",
+             "custom_conflict_resolver":`
+                    function(conflict) {
+                        console.log("full remoteDoc doc: "+JSON.stringify(conflict.RemoteDocument));
+                        return conflict.RemoteDocument;
+
+                    }`,
+             "filter":"sync_gateway/bychannel",
+             "query_params": {
+                 "channels":["channel.user1"]
+             },
+             "enable_delta_sync":  true,
+             "batch_size" :1000,
+             "continuous": true,
+            "state": "stopped"
+         }
+     },
+    "sync": `
+function sync(doc, oldDoc) {
+  /* sanity check */
+  // check if document was removed from server or via SDK
+  // In this case, just return
+  if (isRemoved()) {
+    return;
+  }
+
+  /* Routing */
+  // Add doc to the user's channel.
+  channel("channel.user1");
+
+  // This is when document is removed via SDK or directly on server
+  function isRemoved() {
+    return( isDelete() && oldDoc == null);
+  }
+
+  function isDelete() {
+    return (doc._deleted == true);
+  }
+
+
+}
+      `
+    }
+  }
+  ]
+  // other config as required
+// end::xNEW-icr-sample-sync-gateway-config[]
+
+
+// tag::NEW-icr-sample-sync-gateway-config[]
+{
+  "interface":":5984",
+  "adminInterface":":5985",
+  "logging": {
+    "log_file_path": "/var/tmp/sglogs",
+    "console": {
+      "log_level": "debug",
+      "log_keys": ["*"]
+    },
+    "error": {
+      "enabled": true,
+      "rotation": {
+        "max_size": 20,
+        "max_age": 180
+      }
+    },
+    "warn": {
+      "enabled": true,
+      "rotation": {
+        "max_size": 20,
+        "max_age": 90
+      }
+    },
+    "info": {
+      "enabled": false
+    },
+    "debug": {
+      "enabled": false
+    }
+  },
+  "databases": {
+       "db1-local": {
+            "import_docs": true,
+            "bucket":"db1-local",
+            "server": "couchbase://cb-server",
+            "enable_shared_bucket_access":true,
+            "delta_sync": {
+              "enabled": true
+            },
+            "import_filter": `
+              function(doc) {
+                return true;
+              }
+              `,
+            "username": "admin",
+            "password": "password",
+            "users":{
+                "admin": {"password": "password", "admin_channels": ["*"]},
+                "user1": {"password": "password", "admin_channels":["channel.user1"]}
+            },
+           "num_index_replicas":0,
+           "sgreplicate_enabled":false,
+           "replications":{
+               "db1-rep-id1" : {
+                   "direction": "pushAndPull",
+                   "conflict_resolution_type":"custom",
+                    "custom_conflict_resolver":`
+                                function(conflict) {
+                                    var remoteDoc = conflict.RemoteDocument;
+                                     console.log("full remoteDoc doc: "+JSON.stringify(remoteDoc));
+                                    var localDoc = conflict.LocalDocument;
+                                    console.log("full localDoc doc: "+JSON.stringify(localDoc));
+                                    var mergedDoc = {...localDoc,...remoteDoc};
+                                    console.log("full mergedDoc doc: "+JSON.stringify(mergedDoc));
+                                    return mergedDoc;
+
+                    }`,
+                   "purge_on_removal":true,
+                   "remote": "http://user1:password@example.com:4984/db1-remote",
+                   "filter":"sync_gateway/bychannel",
+                   "query_params": {
+                       "channels":["channel.user1"]
+                   },
+                   "enable_delta_sync":  true,
+                    "batch_size" :1000,
+                    "continuous": true,
+                    "state": "running"
+               }
+           },
+          "sync": `
+      function sync(doc, oldDoc) {
+        /* sanity check */
+        // check if document was removed from server or via SDK
+        // In this case, just return
+        if (isRemoved()) {
+          return;
+        }
+
+        /* Routing */
+        // Add doc to the user's channel.
+        channel("channel.user1");
+
+        // This is when document is removed via SDK or directly on server
+        function isRemoved() {
+          return( isDelete() && oldDoc == null);
+        }
+
+        function isDelete() {
+          return (doc._deleted == true);
+        }
+
+      }
+            `
+          },
+    "db2-local": {
+      "import_docs": true,
+      "bucket":"db2-local",
+      "server": "couchbase://cb-server",
+      "enable_shared_bucket_access":true,
+      "delta_sync": {
+        "enabled": true
+      },
+      "import_filter": `
+        function(doc) {
+          return true;
+        }
+        `,
+      "username": "admin",
+      "password": "password",
+      "users":{
+          "admin": {"password": "password", "admin_channels": ["*"]},
+          "user1": {"password": "password", "admin_channels":["channel.user1"]}
+      },
+     "num_index_replicas":0,
+     "sgreplicate_enabled":true,
+     "replications":{
+         "db2-rep-id1-pull" : {
+             "direction": "pull",
+             "purge_on_removal":true,
+             "remote": "http://user1:password@example2.com:4984/db2-remote",
+             "conflict_resolution_type":"custom",
+             "custom_conflict_resolver":`
+                    function(conflict) {
+                        console.log("full remoteDoc doc: "+JSON.stringify(conflict.RemoteDocument));
+                        return conflict.RemoteDocument;
+
+                    }`,
+             "filter":"sync_gateway/bychannel",
+             "query_params": {
+                 "channels":["channel.user1"]
+             },
+             "enable_delta_sync":  true,
+             "batch_size" :1000,
+             "continuous": true,
+            "state": "stopped"
+         }
+     },
+    "sync": `
+function sync(doc, oldDoc) {
+  /* sanity check */
+  // check if document was removed from server or via SDK
+  // In this case, just return
+  if (isRemoved()) {
+    return;
+  }
+
+  /* Routing */
+  // Add doc to the user's channel.
+  channel("channel.user1");
+
+  // This is when document is removed via SDK or directly on server
+  function isRemoved() {
+    return( isDelete() && oldDoc == null);
+  }
+
+  function isDelete() {
+    return (doc._deleted == true);
+  }
+
+
+}
+      `
+    }
+  }
+}
+// end::NEW-icr-sample-sync-gateway-config[]
+
+
+// tag::old-icr-sample-sync-gateway-config[]
+{
+  "logging": {
+    "console": {
+      "log_keys": ["*"]
+    }
+  },
+  "databases": {
+    "db1": {
+      "server": "couchbase://localhost",
+      "username": "username",
+      "password": "password",
+      "bucket": "default",
+      "allow_conflicts": false,
+      "revs_limit": 20,
+      "sgreplicate_enabled": true,
+      "replications": [
+        { // first replication - uses custom resolver
+          "replication_id": "db-rep-id1-pushpull",
+          "direction": "push-and-pull",
+          "remote": "http://user1:password@example1.com:4984/db1-remote",
+          "continuous": true,
+          "conflict_resolution_type": "custom",
+          "custom_conflict_resolver": `
+              function (local, remote) {
+                // Custom conflict resolution policy
+                if (local.body.priority > remote.body.priority) {
+                  return {
+                    body: local.body,
+                    meta: local.meta
+                  };
+                } else if (local.body.priority < remote.body.priority) {
+                  return {
+                    body: remote.body,
+                    meta: remote.meta
+                  };
+                }
+              // Apply default policy if it doesn't satisfy custom policy
+              return defaultPolicy(local, remote);
+              }
+              `
+        }
+    },
+    "db2": {
+      "server": "couchbase://localhost",
+      "username": "username",
+      "password": "password",
+      "bucket": "default1",
+      "allow_conflicts": false,
+      "revs_limit": 20
+      "users": {
+        "GUEST": {
+          "disabled": false,
+          "admin_channels": ["*"]
+        }
+      },
+      "sgreplicate_enabled": true,
+      "replications": [
+        { // Second replication uses default auto resolution policy
+          "replication_id": "db2-rep-id1-pull",
+          "direction": "pull",
+          "remote": "http://user1:password@example1.com:4984/db1-remote",
+          "continuous": true,
+          "conflict_resolution_type": "default",
+        }
+        { // Third replication -- uses localWins policy
+          "replication_id": "db2-rep-id2-push",
+          "direction": "push",
+          "remote": "http://user1:password@example1.com:4984/db2-remote",
+          "continuous": true,
+          "conflict_resolution_type": "localWins",
+        }
+      ]
+
+    },
+  },
+  // SG-Replicate 1.0 Replications
+  "replications": [
+    {
+      "replication_id": "db1-rep-id1-push-cont",
+      "source": "http://example1.com:4985/db1-local",
+      "target": "http://example2.com:4985/db1-remote",
+      "continuous": true
+    },
+    {
+      "replication_id": "db1-rep-id1-pull-cont",
+      "source": "http://example2.com:4985/db1-remote",
+      "target": "http://example1.com:4985/db1-local",
+      "continuous": true
+    }
+  ]
+}
+// end::old-icr-sample-sync-gateway-config[]
+
+
+
+
+// tag::icr-sample-sync-gateway-config[]
+{
+  "interface":":5984",
+  "adminInterface":":5985",
+  "logging": {
+    "log_file_path": "/var/tmp/sglogs",
+    "console": {
+      "log_level": "debug",
+      "log_keys": ["*"]
+    },
+    "error": {
+      "enabled": true,
+      "rotation": {
+        "max_size": 20,
+        "max_age": 180
+      }
+    },
+    "warn": {
+      "enabled": true,
+      "rotation": {
+        "max_size": 20,
+        "max_age": 90
+      }
+    },
+    "info": {
+      "enabled": false
+    },
+    "debug": {
+      "enabled": false
+    }
+  },
+  "databases": {
+       "db1-local": {
+            "import_docs": true,
+            "bucket":"db1-local",
+            "server": "couchbase://cb-server",
+            "enable_shared_bucket_access":true,
+            "delta_sync": {
+              "enabled": true
+            },
+            "import_filter": `
+              function(doc) {
+                return true;
+              }
+              `,
+            "username": "admin",
+            "password": "password",
+            "users":{
+                "admin": {"password": "password", "admin_channels": ["*"]},
+                "user1": {"password": "password", "admin_channels":["channel.user1"]}
+            },
+           "num_index_replicas":0,
+           "sgreplicate_enabled":false,
+           "replications":{
+               "db1-rep-id1" : {
+                   "direction": "pushAndPull",
+                   "conflict_resolution_type":"custom",
+// tag::icr-simple-merge-conflict-resolver[]
+                    "custom_conflict_resolver":`
+                      function(conflict) {
+                          if (  (conflict.LocalDocument.type != null) &&
+                                (conflict.RemoteDocument.type != null) &&
+                                (conflict.LocalDocument.type == "usedefault"))
+                          {
+                              console.log("Will use default policy");
+                              // Resolve using built-in policy
+                              return defaultPolicy(conflict);
+                          }
+                          else
+                          {
+                            // Merge local and remote docs
+                            var remoteDoc = conflict.RemoteDocument;
+                            console.log("full remoteDoc doc: "+JSON.stringify(remoteDoc));
+                            var localDoc = conflict.LocalDocument;
+                            console.log("full localDoc doc: "+JSON.stringify(localDoc));
+                            var mergedDoc = extend({}, localDoc, remoteDoc);
+                            delete mergedDoc._rev // <.>
+
+                            console.log("full mergedDoc doc: "+JSON.stringify(mergedDoc));
+                            // Resolve using this merged doc as the winner
+                            return mergedDoc;
+
+                            function extend(target) {
+                                var sources = [].slice.call(arguments, 1);
+                                sources.forEach(function (source) {
+                                    for (var prop in source) {
+                                      if (prop.indexOf('_') != 0) { // <.>
+                                        target[prop] = source[prop];
+                                      }
+                                    }
+                                });
+                                return target;
+                            } // end function extend()
+                          } // end if
+                      }` // end function()
+// end::icr-simple-merge-conflict-resolver[]
+                    , // end custom_conflict_resolver
+                   "purge_on_removal":true,
+                   "remote": "http://user1:password@example.com:4984/db1-remote",
+                   "filter":"sync_gateway/bychannel",
+                   "query_params": {
+                       "channels":["channel.user1"]
+                   },
+                   "enable_delta_sync":  true,
+                    "batch_size" :1000,
+                    "continuous": true,
+                    "state": "running"
+               }
+           },
+          "sync": `
+      function sync(doc, oldDoc) {
+        /* sanity check */
+        // check if document was removed from server or via SDK
+        // In this case, just return
+        if (isRemoved()) {
+          return;
+        }
+
+        /* Routing */
+        // Add doc to the user's channel.
+        channel("channel.user1");
+
+        // This is when document is removed via SDK or directly on server
+        function isRemoved() {
+          return( isDelete() && oldDoc == null);
+        }
+
+        function isDelete() {
+          return (doc._deleted == true);
+        }
+
+      }
+            `
+          },
+    "db2-local": {
+      "import_docs": true,
+      "bucket":"db2-local",
+      "server": "couchbase://cb-server",
+      "enable_shared_bucket_access":true,
+      "delta_sync": {
+        "enabled": true
+      },
+      "import_filter": `
+        function(doc) {
+          return true;
+        }
+        `,
+      "username": "admin",
+      "password": "password",
+      "users":{
+        "admin": {"password": "password", "admin_channels": ["*"]},
+        "user1": {"password": "password", "admin_channels":["channel.user1"]}
+      },
+      "num_index_replicas":0,
+      "sgreplicate_enabled":true,
+      // tag::icr-sample-sync-gateway-config-replication[]
+      "replications":{
+        "db2-rep-id1-pull" : {
+          // tag::icr-sample-sync-gateway-config-replication-body[]
+          "direction": "pull",
+          "purge_on_removal":true,
+          "remote": "http://user1:password@example2.com:4984/db2-remote",
+          "conflict_resolution_type":"remoteWins",
+          "filter":"sync_gateway/bychannel",
+          "query_params": {
+            "channels":["channel.user1"]
+          },
+          "enable_delta_sync":  true,
+          "batch_size" :1000,
+          "continuous": true,
+          "state": "stopped"
+          // end::icr-sample-sync-gateway-config-replication-body[]
+            }
+          },
+          "sync": `
+          function sync(doc, oldDoc) {
+            // . . . code as required
+          `
+        }
+      }
+      // end::icr-sample-sync-gateway-config-replication[]
+    }
+// end::icr-sample-sync-gateway-config[]
+
+
+// EXAMPLE SNIPPETS
+
+
+// tag::icr-repl-create-pull-oneshot[]
+//. . . other configuration entries
+"db1-rep-id3-pull-oneshot":
+// tag::icr-repl-create-pull-oneshot-body[]
+"replication_id": "db1-rep-id3-pull-oneshot", // <.>
+"direction": "pull",
+"remote": "http://user:password@example.com:4985/db1-remote",
+"filter": "sync_gateway/bychannel",
+"query_params": { "channels": ["channel1.user1"] }
+// end::icr-repl-create-pull-oneshot-body[]
+//  . . . other configuration entries
+// end::icr-repl-create-pull-oneshot[]
+
+// tag::icr-repl-create-pull-oneshot-callouts[]
+<.> This a a one-shot replication because the `continuous` parameter defaults to `false`.
+// end::icr-repl-create-pull-oneshot-callouts[]
+
+
+// tag::icr-repl-create-pull-cont[]
+//  . . . other configuration entries
+"db1-rep-id1-pull-cont":
+// tag::icr-repl-create-pull-cont-body[]
+  "replication_id": "db1-rep-id1-pull-cont",
+  "direction": "pull",
+  "continuous": true // <.>
+  "purge-on-removal": true,
+  "remote": "http://user:password@example.com:4985/db1-remote",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+    "channels": ["channel1.user1"]
+  }
+// end::icr-repl-create-pull-cont-body[]
+//  . . . other configuration entries
+// end::icr-repl-create-pull-cont[]
+
+// tag::icr-repl-create-pull-cont-callouts[]
+<.> Make this a continuous replication that remains running, listening for changes to process.
+Because it is also persistent, it will start automatically following Sync Gateway node restarts (`state` defaults to `running`).
+// end::icr-repl-create-pull-cont-callouts[]
+
+
+// tag::icr-repl-adhoc-pull-body[]
+  "replication_id": "db1-rep-id1-pull-adhoc",
+  "adhoc": true, // <.>
+  "direction": "pull",
+  "purge-on-removal": true,
+  "remote": "http://user:password@example.com:4985/db1-remote",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+    "channels": ["channel1.user1"]
+  }
+// end::icr-repl-adhoc-pull-body[]
+
+// tag::icr-repl-adhoc-pull-callouts[]
+<.> Run this replication as an ad hoc one. It will run once only, process all changes but not survive Sync Gateway restarts
+// end::icr-repl-adhoc-pull-callouts[]
+
+
+// tag::icr-rep-sample-create-pull[]
+"databases": {
+ " db1": {                                                // <.>
+    "bucket":"db1",
+    "server": "couchbase://cb-server",
+    // ... other DB config ..
+    "sgreplicate_enabled": true,                          // <.>
+    "replications":
+      "db1-rep-id1-pull-oneshot":                         // <.>
+  // tag::icr-rep-sample-create-pull-body[]
+        "direction": "pull",                              // <.>
+        "remote": "https://example.com:4984/remote_db1",
+        "user": "user1",                                  // <.>
+        "password": "password",
+        "batch_size": 1000,                               // <.>
+        "conflict_resolution_type": "custom",             // <.>
+        "custom_conflict_resolver": "",                   // <.>
+        "continuous": false,                              // <.>
+        "enable_delta_sync": false,                       // <.>
+        "filter": "sync_gateway/bychannel",               // <.>
+        "query_params": ["channel.user1"]                 // <.>
+        "max_backoff_time": 5,                            // <.>
+        "purge_on_removal": false                         // <.>
+        "state": "running"                                // <.>
+  // end::icr-rep-sample-create-pull-body[]
+    }
+  }
+   // end::icr-rep-sample-create-pull[]
+
+// tag::icr-rep-sample-create-pull-callouts-full[]
+<.> All replications are defined at database level within the context of a local database (e.g. `DB1`)
+<.> Opt in to replication
+<.> Define the `replication_id`
+// tag::icr-rep-sample-create-pull-callouts[]
+<.> Pull changes from the `remote` database at the specified url. +
+<.> Authenticate with the provided credentials. This user must have read and write access to both the local and remote databases. +
+<.> Batch together up to 1000 revisions at a time. This improve replication performance but consumes more memory resources. +
+<.> Apply a custom conflict resolution policy. +
+<.> Provide a working Javascript function to apply the required resolution policy.
+<.> By setting continuous=false, we are creating a one-shot replication. We could also have omitted this parameter as it defaults to `false`.
+<.> Don't use delta-sync; the default behavior.
+<.> Filter documents by channel. +
+<.> Replicate only those documents tagged with the channel names "user1". +
+<.> Wait no more than 5 minutes between retries after network failure; default behavior. +
+<.> Don't purge following removal of a channel; the default behavior. +
+<.> Start the replicator immediately and on Sync Gateway node re(start);. We could also have omitted this parameter as this is the default behavior.
+// end::icr-rep-sample-create-pull-callouts[]
+// end::icr-rep-sample-create-pull-callouts-full[]
+
+
+// tag::icr-conflict-resolver-structure[]
+
+"custom_conflict_resolver": "`function(conflict) { // <.>
+  //  . . .
+  //  . . . application logic to determine winner
+  //  . . .
+  return conflict.LocalDocument;  // <.>
+}`" // <.>
+
+// end::icr-conflict-resolver-structure[]
+
+// tag::icr-conflict-resolver-structure-callouts[]
+<.> The `conflict` structure comprises both conflicting documents.
++
+--
+[source, json]
+----
+type Conflict struct {
+	LocalDocument  Body `json:"LocalDocument"`
+	RemoteDocument Body `json:"RemoteDocument"`
+}
+----
+
+LocalDocument::
+This LocalDocument object encapsulates the body and metadata of the local conflicting document revision being replicated. Its content matches the JSON stored at the local Sync Gateway.
+
+RemoteDocument::
+The RemoteDocument object, encapsulates the body and metadata of the remote conflicting document revision being replicated. Its content matches the JSON stored at the remote Sync Gateway.
+
+--
+
+<.> You should return one of:
++
+--
+* conflict.LocalDocument
+* conflict.RemoteDocument
+* a new document body comprising the merged local and remote documents
+* a *nil* body, which will be resolved as a *delete*
+
+--
+
+<.> The conflict resolver function is enclosed by backticks (````)
+
+// end::icr-conflict-resolver-structure-callouts[]
