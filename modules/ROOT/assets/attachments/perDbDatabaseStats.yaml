@@ -1,0 +1,65 @@
+type: object
+properties:
+  database:
+    type: object
+    description: Stats relative to the database
+    properties:
+      crc32c_match_count:
+        type: integer
+        description: Count of instances during import when the document cas had changed, but the document body was not changed.
+      dcp_caching_count:
+        type: integer
+        description: Count of DCP mutations added to Sync Gateway's channel cache.  Can be used with dcp_caching_time to monitor cache processing latency.
+      dcp_caching_time:
+        type: integer
+        description: Time between DCP mutation arriving at Sync Gateway and being added to channel cache (aggregate).
+      dcp_received_count:
+        type: integer
+        description: Number of document mutations received by Sync Gateway over DCP.
+      dcp_received_time:
+        type: integer
+        description: Time between document write and document being received by Sync Gateway over DCP.  If the document was written prior to Sync Gateway starting the feed, is measured as the time since the feed was started.  Can be used to monitor DCP feed processing latency.
+      doc_reads_bytes_blip:
+        type: integer
+        description: Total number of bytes read via Couchbase Lite 2.x replication since Sync Gateway startup.
+      doc_writes_bytes:
+        type: integer
+        description: Total number of bytes written as part of document writes since Sync Gateway startup.
+      doc_writes_bytes_blip:
+        type: integer
+        description: Total number of bytes written as part of Couchbase Lite 2.x document writes since Sync Gateway startup.
+      num_doc_reads_blip:
+        type: integer
+        description: Count of the number of documents read via Couchbase Lite 2.x replication since Sync Gateway startup.
+      num_doc_reads_rest:
+        type: integer
+        description: Count of the number of documents read via the REST API since Sync Gateway startup. Includes Couchbase Lite 1.x replication.
+      num_doc_writes:
+        type: integer
+        description: Count of the number of documents written via any means since Sync Gateway startup.
+      num_replications_active:
+        type: integer
+        description: Approximate number of active replications. Only counts continuous pull replications.
+      num_replications_total:
+        type: integer
+        description: Count of the number of replications created since Sync Gateway startup.
+      sequence_get_count:
+        type: integer
+        description: Number of high sequence lookups.
+      sequence_released_count:
+        type: integer
+        description: Number of unused, reserved sequences released by Sync Gateway.
+      sequence_reserved_count:
+        type: integer
+        description: Number of sequences reserved by Sync Gateway.
+      sgreplicate_enabled:
+        type: boolean
+        default: true -- replication is enabled on this database
+        description:
+          If set to false, this Sync Gateway node will not participate in sg-replicate distribution.
+      warn_channels_per_doc_count:
+        type: integer
+      warn_grants_per_doc_count:
+        type: integer
+      warn_xattr_size_count:
+        type: integer

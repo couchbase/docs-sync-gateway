@@ -1,0 +1,261 @@
+type: object
+properties:
+  per_db:
+    type: array
+    description: This array contains stats for each database declared in the config file
+    items:
+      type: object
+      # description: This object contains stats for a given database
+      properties:
+        $db_name:
+          type: object
+          description: |+
+            This object comprises the stats collected and recorded for the inter-sync-gateway database named $db_name.
+          properties:
+            cache:
+              type: object
+              description: This object comprises cache-related stats collected and recorded for the inter-sync-gateway database named $db_name.
+              properties:
+                abandoned_seqs:
+                  type: integer
+                  description: The number of skipped sequences that were not found after 60 minutes and were abandoned.
+                chan_cache_active_revs:
+                  type: integer
+                  description: The number of active revisions in the channel cache.
+                chan_cache_hits:
+                  type: integer
+                  description: Channel cache requests fully served by the cache.
+                chan_cache_max_entries:
+                  type: integer
+                  description: |
+                    Size of the largest channel cache.
+
+                    Helps with channel cache tuning, and as a hint on cache size variation (when compared to average cache size).
+                chan_cache_misses:
+                  type: integer
+                  description: Channel cache requests not fully served by the cache.
+                chan_cache_num_channels:
+                  type: integer
+                  description: |
+                    Number of channels being cached.
+
+                    Insight into total number of channels being cached - provides insight into potential max cache size (num channels * max_cache_size), as well as node usage.
+                chan_cache_removal_revs:
+                  type: integer
+                  description: |
+                    The number of removal revisions in the channel cache.
+
+                    Acts as a reminder that removals must be considered when tuning the channel cache size.
+                    Also helps users understand whether they should be tuning tombstone retention policy (metadata purge interval), and running compact.
+                chan_cache_tombstone_revs:
+                  type: integer
+                  description: |
+                    The number of tombstone revisions in the channel cache.
+
+                    Acts as a reminder that tombstones and removals must be considered when tuning the channel cache size.
+                    Also helps users understand whether they should be tuning tombstone retention policy (metadata purge interval), and running compact.
+                num_skipped_seqs:
+                  type: integer
+                  description: |
+                    Number of skipped sequences.
+
+                    Helps with channel cache tuning, and as a hint on cache size variation (when compared to average cache size).
+                rev_cache_hits:
+                  type: integer
+                  description: Revision cache hits.
+                rev_cache_misses:
+                  type: integer
+                  description: Revision cache misses.
+            database:
+              type: object
+              description: This object comprises database-related stats collected and recorded for the inter-sync-gateway database named $db_name.
+              properties:
+                crc32c_match_count:
+                  type: integer
+                  description: Count of instances during import when the document cas had changed, but the document body was not changed.
+                dcp_caching_count:
+                  type: integer
+                  description: Count of DCP mutations added to Sync Gateway's channel cache.  Can be used with dcp_caching_time to monitor cache processing latency.
+                dcp_caching_time:
+                  type: integer
+                  description: Time between DCP mutation arriving at Sync Gateway and being added to channel cache (aggregate).
+                dcp_received_count:
+                  type: integer
+                  description: Number of document mutations received by Sync Gateway over DCP.
+                dcp_received_time:
+                  type: integer
+                  description: Time between document write and document being received by Sync Gateway over DCP.  If the document was written prior to Sync Gateway starting the feed, is measured as the time since the feed was started.  Can be used to monitor DCP feed processing latency.
+                doc_reads_bytes_blip:
+                  type: integer
+                  description: Total number of bytes read via Couchbase Lite 2.x replication since Sync Gateway startup.
+                doc_writes_bytes:
+                  type: integer
+                  description: Total number of bytes written as part of document writes since Sync Gateway startup.
+                doc_writes_bytes_blip:
+                  type: integer
+                  description: Total number of bytes written as part of Couchbase Lite 2.x document writes since Sync Gateway startup.
+                num_doc_reads_blip:
+                  type: integer
+                  description: Count of the number of documents read via Couchbase Lite 2.x replication since Sync Gateway startup.
+                num_doc_reads_rest:
+                  type: integer
+                  description: Count of the number of documents read via the REST API since Sync Gateway startup. Includes Couchbase Lite 1.x replication.
+                num_doc_writes:
+                  type: integer
+                  description: Count of the number of documents written via any means since Sync Gateway startup.
+                num_replications_active:
+                  type: integer
+                  description: Approximate number of active replications. Only counts continuous pull replications.
+                num_replications_total:
+                  type: integer
+                  description: Count of the number of replications created since Sync Gateway startup.
+                sequence_get_count:
+                  type: integer
+                  description: Number of high sequence lookups.
+                sequence_released_count:
+                  type: integer
+                  description: Number of unused, reserved sequences released by Sync Gateway.
+                sequence_reserved_count:
+                  type: integer
+                  description: Number of sequences reserved by Sync Gateway.
+                sgreplicate_enabled:
+                  type: boolean
+                  default: true -- replication is enabled on this database
+                  description:
+                    If set to false, this Sync Gateway node will not participate in sg-replicate distribution.
+                warn_channels_per_doc_count:
+                  type: integer
+                warn_grants_per_doc_count:
+                  type: integer
+                warn_xattr_size_count:
+                  type: integer
+            per_replication_stats:
+              type: array
+              description: This array comprises replication-related stats collected and recorded for all replications involving the inter-sync-gateway database named $db_name.
+              items:
+                type: object
+                properties:
+                  $replication_id:
+                    type: object
+                    description: |+
+                      This object comprises the replication stats collected and recorded for the inter-sync-gateway replication named $replication_id involving the database $db_name.
+                    properties:
+                      # sgr_active:
+                      #   type: boolean
+                      #   description: |+
+                      #     Whether the replication is active at this time.
+                      #     **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+
+                      sgr_docs_checked_sent:
+                          type: integer
+                          description: |+
+                            **Metric Name:** **`sgr_docs_checked_sent`**
+
+                            The total number of documents checked for changes since replication started.
+                            This represents the number of potential change notifications pushed by Sync Gateway.
+
+                            **Constraints**
+                            - This is not necessarily the number of documents pushed, as a given target might already have the change.
+                            - Used by versions 1 and 2.
+
+                      # sgr_num_attachments_transferred:
+                      #     type: integer
+                      #     description: |+
+                      #       The total number of attachments transferred since replication started.
+                      #       **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+
+                      # sgr_num_attachment_bytes_transferred:
+                      #     type: integer
+                      #     description: |+
+                      #       The total number of attachment bytes transferred since replication started.
+                      #       **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+
+                      sgr_num_docs_failed_to_push:
+                          type: integer
+                          description: |+
+                            **Metric Name:** **`sgr_num_docs_failed_to_push`**
+
+                            The total number of documents that failed to be pushed since replication started.
+
+                            Used by versions 1 and 2.
+
+                      sgr_num_docs_pushed:
+                          type: integer
+                          description: |+
+                            **Metric Name:** **`sgr_num_docs_pushed`**
+
+
+                            The total number of documents that were pushed since replication started.
+
+                            Used by versions 1 and 2.
+
+                      sgr_delta_pull_replication_count:
+                          type: integer
+                          description: |+
+                            **Metric Name:** **`sgr_delta_pull_replication_count`**
+
+                            The total number documents with deltas pulled
+
+                      sgr_delta_push_doc_count:
+                          type: integer
+                          description: |+
+                            **Metric Name:** **`sgw_delta_push_doc_count`**
+
+
+                            The total number of documents with deltas pushed
+
+                      sgr_deltas_sent:
+                          type: integer
+                          description: |+
+                            **Metric Name:** **`sgw_deltas_sent`**
+
+                            The total number of deltas sent
+
+                      sgr_deltas_requested:
+                          type: integer
+                          description: |+
+                            **Metric Name:** **`sgw_deltas_requested`**
+
+                            The total number of deltas requested
+
+                      sgr_conflict_detected:
+                          type: integer
+                          description: |+
+                            **Metric Name:** **`sgw_conflict_detected`**
+
+                            The total number of documents where conflicts were detected
+
+                      sgr_conflict_resolved:
+                          type: integer
+                          description: |+
+                            **Metric Name:** **`sgw_conflict_resolved`**
+
+                            The total number of conflicting documents that were resolved successfully (by the active node)
+
+                      sgw_conflict_skipped_error:
+                          type: integer
+                          description: |+
+                              **Metric Name:** **`sgw_conflict_skipped_error`**
+
+                              The total number of documents that were skipped during sync because of an error in conflict resolution
+
+            security:
+              type: object
+              description: This object comprises security-related stats collected and recorded for the inter-sync-gateway database named $db_name.
+              properties:
+                auth_failed_count:
+                  type: integer
+                  description: Number of unsuccessful authentications. Useful to monitor the number of authentication errors.
+                auth_success_count:
+                  type: integer
+                  description: Number of successful authentications. Useful to monitor the number of authenticated requests.
+                num_access_errors:
+                  type: integer
+                  description: Count of documents rejected by write access functions (requireAccess/requireRole/requireUser).
+                num_docs_rejected:
+                  type: integer
+                  description: Count of documents rejected by the sync function. Useful to debug sync function issues and identify unexpected incoming documents.
+                total_auth_time:
+                  type: integer
+                  description: Total time it took to authenticate the last incoming request.
+      # $ref: "#/definitions/perReplicationStats-SGR1"

@@ -1,0 +1,71 @@
+= Resync
+:description: Recalculating routing and data access following Sync Function changes
+:idprefix:
+:idseparator: -
+
+include::partial$_std-hdr-sgw.adoc[]
+
+:topic-group: Syc
+:param-related: {configuration-properties--xref}  |  {rest-api-admin--xref} |    {configuration-properties--xref--databases}  |  {configuration-properties--xref--databases-sync}
+:param-abstract: This content explains the resync feature
+include::partial$block-abstract.adoc[]
+
+== Introduction
+
+The _Sync Function_ computes both the document routing to channels and the user access to channels at document write time.
+
+If the Sync Function is changed, Sync Gateway needs to reprocess all existing documents in the bucket to recalculate the routing and access assignments.
+
+To this end, the Admin REST API provides a resync endpoint that enables you initiate the reprocessing of every document in the database again.
+
+== Updating the Sync Function
+To update the Sync Function and fully resync, you are recommended to follow the steps in <<steps-to-resync>>.
+
+NOTE: This is an expensive operation because it requires every document in the database to be processed by the new function.
+
+The database can accept no requests until this process is complete because no user's full access privileges are known until all documents have been scanned.
+Therefore, the Sync Function update will result in application downtime whilst teh database is offline (that is, between the call to the `+/\{tkn-db}/_offline+` and `+/\{tkn-db}/_online+` endpoints in <<steps-to-resync>>.
+
+[#steps-to-resync]
+.Steps to Update and Resync
+--
+. Update the configuration file of the Sync Gateway instance
+. Restart Sync Gateway
+. Take the database offline +
+Use this Admin REST API endpoint: +
+{rest-api-admin--pfx}#/database/post\__db___offline[+/\{tkn-db}/_offline+]
+. Resync the database +
+Use this Admin REST API endpoint: +
+{rest-api-admin--pfx}#/database/post\/post__db___resync[+/\{tkn-db}/resync+]
++
+The message body of the response contains the number of changes that were made as a result of calling resync
+. Bring the database back online +
+Use this Admin REST API endpoint: +
+{rest-api-admin--pfx}#/database/post\__db___online[+/\{tkn-db}/_online+]
+--
+
+
+== When To Run Resync?
+
+When running a resync operation, the context in the Sync Function is the admin user.
+For that reason, calling the `requireUser`, `requireAccess` and `requireRole` methods will always succeed.
+It is very likely that you are using those functions in production to govern write operations.
+But in a resync operation, all the documents are already written to the database.
+For that reason, it is recommended to use resync for changing the assignment to channels only (i.e. reads).
+
+If the modifications to the Sync Function only impact write security (and not routing/access), you won't need to run the resync operation.
+
+If you wish to change the channel/access rules, but only want those rules to apply to documents written after the change was made, then you don't need to run the resync operation.
+
+If you change the sync function to revoke a user's access to a document, the access will only take affect once a new revision to that document is saved on Sync Gateway.
+Running a resync operation does not revoke access to that document.
+
+If you need to ensure access to the database during the update, you can create a read-only backup of the Sync Gateway's bucket beforehand, then run a secondary Sync Gateway on the backup bucket, in read-only mode.
+After the update is complete, switch to the main Gateway and bucket.
+
+In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the {rest-api-admin--pfx}#/database/post\__db___offline[+/\{tkn-db}/_offline+] endpoint.
+After the configuration is updated, *one* instance should be brought up so it can update the database--if more than one is running at this time, they'll conflict with each other.
+After the first instance finishes opening the database, the others can be started.
+
+include::partial$block-related-content-sync.adoc[]
+

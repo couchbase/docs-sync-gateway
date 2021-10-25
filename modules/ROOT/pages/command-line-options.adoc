@@ -1,0 +1,167 @@
+= Using the Command Line
+:Description: Start a Sync Gateway instance using command line options and securely sync enterprise data from cloud to edge
+
+include::partial$_std-hdr-sgw.adoc[]
+
+:topic-group: Deploy
+:param-related: {xref-sgw-pg-deployment}  |  {rest-api-access--xref}  |  {configuration-properties--xref}
+:param-abstract: Introduces the options available when running Sync Gateway from the command line
+include::partial$block-abstract.adoc[]
+
+== Overview
+
+You can configure some Sync Gateway features by specifying command-line options when you start it.
+
+
+For more comprehensive configuration, use a JSON configuration file - see: {configuration-properties--xref}.
+
+== Configuration
+
+Configuration determines the runtime behavior of Sync Gateway, including server configuration and the database or set of databases with which a Sync Gateway instance can interact.
+
+NOTE: Command-line options can only specify a sub-set of the available configuration properties, and cannot be used to configure multiple databases.
+
+Two command-line options do not have corresponding configuration properties: `-help` and `-verbose`.
+
+== Option Format
+
+When specifying command-line options use the format shown in <<option-fmt>>
+
+* Command-line options are case-insensitive.
+* You can prefix command-line options with one hyphen (-) or with two hyphens (--).
+* For command-line options that take an argument, you specify the argument after an equal sign (=). +
+For example, `-bucket=db`, or as a following item on the command line, for example, `-bucket db`.
+
+
+[#option-fmt]
+.Command line options
+====
+
+[{tabs}]
+=====
+
+Format::
++
+--
+When specifying command-line options use this format:
+
+[source,bash]
+----
+sync_gateway [ -{option} ]
+----
+
+<.> Seperate multiple options by a comma or a space
+
+--
+
+List CLI Arguments::
++
+--
+You can check the latest position by navigating to the folder containing the Sync Gateway executable and using:
+
+[source,bash]
+----
+$ ./sync_gateway -help <.>
+----
+
+<.> This command lists all Sync Gateway's current command line arguments
+--
+
+=====
+====
+// Here we use lower camel case.
+
+
+== Available Options
+The following command-line options can be used when starting Sync Gateway  see <<cmd-opts>>
+
+.*Deprecation Notice*
+WARNING: The `-bucket` command line option, deprecated at Release 2.7, will be removed following release 2.8. +
+Use the JSON configuration file option `bucket` -- see {configuration-properties--xref--databases-bucket}.
+
+[#cmd-opts]
+.Available command-line options
+[#cmd-opts,cols="^3m,3,4a"]
+|===
+|Option |Default |Description
+
+|‑adminInterface
+|127.0.0.1:4985
+|Port or TCP network address (IP address and the port) that the Admin REST API listens on.
+
+|-bucket
+|sync_gateway
+|*_Deprecated_* Name of the Couchbase Server bucket. +
+Instead use {configuration-properties--xref--databases-bucket}
+
+|-cacertpath
+|none
+|Root CA certificate path
+
+|-certpath
+|none
+|Client certificate path
+
+|-configServer
+|none
+|URL of server that can return database configs
+
+|-dbname
+|sync_gateway
+|Name of the Couchbase Server database to serve through the Public REST API.
+
+|-defaultLogFilePath
+|none
+|Path to log files, as a fallback default value when `logFilePath` is not specified.
+This option is generally used in service scripts.
+
+|-deploymentID
+|none
+|Customer/project identifier for stats reporting
+
+|--help
+|none
+|Lists the available options and exits.
+
+|-interface
+|:4984
+|Port or TCP network address (IP address and the port) that the Public REST API listens on.
+
+|-keypath
+|none
+|Client certificate key path
+
+|-log
+|HTTP
+|A comma-separated list of log keywords to be enabled. +
+The log keyword `HTTP` is enabled by default, which means that HTTP requests and error responses are always logged. +
+Omitting `HTTP` from your list does not disable HTTP logging. You can disable HTTP logging using the Admin API.
+
+|-logFilePath
+|none
+|Path to log files.
+
+|-pool
+|default
+|Name of the Couchbase Server pool in which to find buckets.
+
+|-pretty
+|false
+|Pretty-print JSON responses to improve readability.
+This is useful for debugging, but reduces performance.
+
+|-profileInterface
+|
+|Address to bind the profile interface to
+
+|-url
+m|DefaultServer
+|The URL of the database server
+
+|-verbose
+|Non-verbose logging
+|Logs more information about requests.
+|===
+
+
+include::partial$block-related-content-api.adoc[]

@@ -1,0 +1,66 @@
+= Configuration File
+:page-aliases: refer/config-properties.adoc, config-properties.adoc
+:page-layout: article
+:page-status:
+:page-content: reference
+:description: pass:q[How to configure _Sync Gateway_ to provide secure cloud-to-edge synchronization of enterprise data.]
+:keywords:
+
+
+include::partial$_std-hdr-sgw.adoc[]
+
+// BEGIN -- Page Heading
+// :topic-group: configuration
+:topic-group!:
+:param-abstract: This content describes Sync Gateway's configuration schema providing parameter explanations and examples of use
+:param-related: {get-started-verify-install--xref} | {rest-api-admin--xref} | {rest-api--xref} | {rest-api-client-app--xref}
+include::partial$block-abstract.adoc[]
+// END -- Page Heading
+
+
+== About the Schema
+
+Sync Gateway uses a JSON-like configuration file to define its runtime behavior.
+The file's contents include, for example:
+
+* Details of the connected Couchbase databases
+* How replications are conducted
+* What security is to be used
+* What logging options are to be applied, and
+* Any customization of import filtering and synchronization.
+
+The majority of the configuration is achieved using standard JSON syntax -- see <<Configuration Reference>> for more.
+
+[NOTE]
+====
+The `sync-gateway-config.json` file relies on the use of one _relaxed_ JSON feature; the use of back ticks  (`++`++`).
+Text between back ticks is treated as a string.
+It can span multiple lines and contain double-quotes.
+Those features make it ideal for the JavaScript used in `sync` and `import_filter` functions.
+====
+
+Use the following command to run Sync Gateway with a configuration file:
+
+[source, bashrc]
+----
+sync_gateway sync-gateway-config.json
+----
+
+== Configuration Reference
+
+
+.Configuration Schema
+// ====
+
+json_config_ui::{attachmentsdir}/sg.yaml[]
+
+// ====
+
+== Example Sync Gateway Configuration
+
+[source, json]
+----
+include::{example-cfg}[tags=icr-sample-sync-gateway-config, indent=0]
+----
+
+include::partial$block-related-content-api.adoc[]

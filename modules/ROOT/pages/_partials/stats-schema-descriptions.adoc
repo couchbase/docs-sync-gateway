@@ -1,0 +1,948 @@
+// inclusion for stats schema descriptions
+=== syncgateway
+
+Monitoring stats for Sync Gateway.
+
+=== global
+
+Global Sync Gateway stats.
+
+=== resource_utilization
+
+Resource utilization stats,
+
+See: {url-golang-memstats} for more on memory allocator statistics.
+
+==== admin_net_bytes_recv
+Description::
+The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway {configuration-properties--pfx}#adminInterface[admin interface] is bound.
++
+By default, that is the number of bytes received on `127.0.0.1:4985` since node start-up.
+Use Case::
+This metric can be used to determine throughput on the admin interface:
++
+`throughput` = `admin_net_bytes_recv` / `admin_net_bytes_sent`
+
+==== admin_net_bytes_sent
+Description::
+The total number of bytes sent (since node start-up) on the network interface to which the Sync Gateway {configuration-properties--pfx}#adminInterface[admin interface] is bound.
++
+By default, that is the number of bytes sent on `127.0.0.1:4985` since node start-up.
+
+Use Case::
+This metric can be useful in calculating the throughput on Sync Gateway's admin interface:
++
+`throughput` = `{admin_net_bytes_recv}` / `{admin_net_bytes_sent}`
+
+==== error_count
+
+The total number of errors logged.
+
+==== memory allocator statistics
+
+See: {url-golang-memstats} for more on memory allocator statistics.
+
+===== go_memstats_heapalloc
+
+Go memstats.HeapAlloc -- {goto-url-golang-memstats}
+
+===== go_memstats_heapidle
+
+Go memstats.HeapIdle -- {goto-url-golang-memstats}
+
+===== go_memstats_heapinuse
+
+Go memstats.HeapInuse -- {goto-url-golang-memstats}
+
+===== go_memstats_heapreleased
+
+Go memstats.HeapReleased -- {goto-url-golang-memstats}
+
+===== go_memstats_pausetotalns
+
+Go memstats.PauseTotalNs -- {goto-url-golang-memstats}
+
+===== go_memstats_stackinuse
+
+Go memstats.StackInuse -- {goto-url-golang-memstats}
+
+===== go_memstats_stacksys
+
+Go memstats.StackSys -- {goto-url-golang-memstats}
+
+===== go_memstats_sys
+
+Go memstats.Sys -- {goto-url-golang-memstats}
+
+==== goroutines_high_watermark
+
+Peak number of go routines since process start.
+
+==== num_goroutines
+
+The total number of _goroutines_.
+
+==== process_cpu_percent_utilization
+
+Description::
+The CPU's utilization as percentage value.
+Derivation::
+The CPU usage calculation is performed based on _user_ and _system_ CPU time, but it doesn't include components such as `iowait`.
+Constraints::
+The derivation means that the values of `{process_cpu_percent_utilization}` and `%Cpu`, returned when running the `top` command, will *differ*.
+
+==== process_memory_resident
+
+The memory utilization (_Resident Set Size_) for the process, in bytes.
+
+==== pub_net_bytes_recv
+Description::
+The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway {configuration-properties--pfx}#interface[public interface] is bound.
++
+By default, that is the number of bytes received on `127.0.0.1:4984` since node start-up.
+
+Use Case::
+The metric can be used to calculate throughput on the public interface:
++
+`throughput` = `{pub_net_bytes_recv}` / `{pub_net_bytes_sent}`
+
+==== pub_net_bytes_sent
+Description::
+The total number of bytes sent (since node start-up) on the network interface to which Sync Gateway {configuration-properties--pfx}#interface[public interface] is bound.
++
+By default, that is the number of bytes sent on `127.0.0.1:4984` since node start-up.
+Use Case::
+This metric can be used to calculate throughput on the public interface:
++
+`throughput` = `{pub_net_bytes_recv}` / `{pub_net_bytes_sent}`
+
+==== system_memory_total
+Description::
+The total memory available on the system in bytes.
+
+==== warn_count
+Description::
+The total number of warnings logged.
+
+== Metrics by Database
+
+.Quick Links
+[sidebar]
+{cache} | {cbl_replication_pull} | {cbl_replication_push} | {database} | {delta_sync} | {gsi_views} | {security} | {shared_bucket_import}
+
+=== per_db
+
+The metrics for each {database} declared in the config file.
+
+=== $dbname
+
+The metrics relating to a {database} declared in the config file.
+
+=== cache
+
+These metrics relate to caching.
+
+==== abandoned_seqs
+Description::
+The total number of skipped sequences that were not found after 60 minutes and were abandoned.
+
+==== chan_cache_active_revs
+Description::
+The total number of active revisions in the channel cache.
+
+==== chan_cache_bypass_count
+Description::
+The total number of transient bypass channel caches created to serve requests when the channel cache was at capacity.
+
+==== chan_cache_channels_added
+Description::
+The total number of channel caches added.
+Constraints::
+The metric doesn't decrease when a channel is removed.
+That is, it is similar to {chan_cache_num_channels} but doesn't track removals.
+
+==== chan_cache_channels_evicted_inactive
+Description::
+The total number of channel cache channels evicted due to inactivity.
+
+==== chan_cache_channels_evicted_nru
+Description::
+The total number of active channel cache channels evicted, based on ‘not recently used’ criteria.
+
+==== chan_cache_compact_count
+Description::
+The total number of channel cache compaction runs.
+
+==== chan_cache_compact_time
+Description::
+The total amount of time taken by channel cache compaction across all compaction runs.
+
+==== chan_cache_hits
+Description::
+The total number of channel cache requests fully served by the cache.
+Use Case::
+This metric is useful in calculating the channel cache hit ratio:
++
+`channel cache hit ratio`  = `{chan_cache_hits}` / (`{chan_cache_hits}` + `{chan_cache_misses}`)
+
+==== chan_cache_max_entries
+Description::
+The total size of the largest channel cache.
+Use Case::
+This metric helps with channel cache tuning, and provides a hint on cache size variation (when compared to average cache size).
+
+==== chan_cache_misses
+Description::
+The total number of channel cache requests not fully served by the cache.
+Use Case::
+This metric is useful when calculating the channel cache hit ratio:
++
+`channel cache hit ratio`  = `{chan_cache_hits}` / (`{chan_cache_hits}` + `{chan_cache_misses}`)
+
+anchor:chan_cache_num_channels[]
+
+==== chan_cache_num_channels
+Description::
+The total number of channels being cached.
+Use Case::
+The total number of channels being cached provides insight into potential max cache size requirements and also node usage (for example, `{chan_cache_num_channels}` * `max_cache_size`).
+
+==== chan_cache_pending_queries
+Description::
+The total number of channel cache pending queries.
+
+==== chan_cache_removal_revs
+Description::
+The total number of removal revisions in the channel cache.
+Use Case::
+This metric acts as a reminder that removals must be considered when tuning the channel cache size and also helps users understand whether they should be tuning tombstone retention policy (metadata purge interval) and running compact.
+
+==== chan_cache_tombstone_revs
+Description::
+The total number of tombstone revisions in the channel cache.
+Use Case::
+This metric acts as a reminder that tombstones and removals must be considered when tuning the channel cache size and also helps users understand whether they should be tuning tombstone retention policy (metadata purge interval), and running compact.
+
+==== high_seq_cached
+Description::
+The highest sequence number cached.
+Constraints::
+There may be skipped sequences lower than high_seq_cached.
+
+==== high_seq_stable
+Description::
+The highest contiguous sequence number that has been cached.
+
+==== num_active_channels
+Description::
+The total number of active channels.
+
+==== num_skipped_seqs
+Description::
+The total number of skipped sequences.
+Use Case::
+This metric helps with channel cache tuning, and provides a hint on cache size variation (when compared to average cache size).
+
+==== pending_seq_len
+Description::
+The total number of pending sequences.
+These are out-of-sequence entries waiting to be cached.
+
+==== rev_cache_bypass
+Description::
+The total number of revision cache bypass operations performed.
+
+==== rev_cache_hits
+Description::
+The total number of revision cache hits.
+Use Case::
+This metric can be used to calculate the ratio of revision cache hits:
++
+`Rev Cache Hit Ratio` = `{rev_cache_hits}` / (`{rev_cache_hits}` + `{rev_cache_misses}`)
+
+==== rev_cache_misses
+Description::
+The total number of revision cache misses.
+Use Case::
+This metric can be used to calculate the ratio of revision cache misses:
++
+`Rev Cache Miss Ratio` = `{rev_cache_misses}` / (`{rev_cache_hits}` + `{rev_cache_misses}`)
+
+==== skipped_seq_len
+Description::
+The current length of the pending skipped sequence queue.
+
+=== cbl_replication_pull
+
+==== attachment_pull_bytes
+Description::
+The total size of attachments pulled.
+This is the *pre-compressed* size.
+
+==== attachment_pull_count
+Description::
+The total number of attachments pulled.
+
+==== max_pending
+Description::
+The high watermark for the number of documents buffered during feed processing, waiting on a missing earlier sequence.
+
+==== num_pull_repl_active_continuous
+Description::
+The total number of continuous pull replications in the active state.
+
+==== num_pull_repl_active_one_shot
+Description::
+The total number of one-shot pull replications in the active state.
+
+==== num_pull_repl_caught_up
+Description::
+The total number of replications which have caught up to the latest changes.
+
+==== num_pull_repl_since_zero
+Description::
+The total number of new replications started (`/_changes?since`=0).
+
+==== num_pull_repl_total_continuous
+Description::
+The total number of continuous pull replications.
+
+==== num_pull_repl_total_one_shot
+Description::
+The total number of one-shot pull replications.
+
+==== request_changes_count
+Description::
+The total number of changes requested.
+Use Case::
+This metric can be used to calculate the latency of requested changes:
++
+`changes request latency` = `{request_changes_time}` / `{request_changes_count}`
+
+==== request_changes_time
+Description::
+
+Use Case::
+This metric can be used to calculate the latency of requested changes:
++
+`changes request latency` = `{request_changes_time}` / `{request_changes_count}`
+
+==== rev_processing_time
+Description::
+The total amount of time processing rev messages (revisions) during pull revision.
+Use Case::
+This metric can be used with {rev_send_count} to calculate the average processing time per revision:
++
+`average processing time per revision` = `{rev_processing_time}` / `{rev_send_count}`
+
+==== rev_send_count
+Description::
+The total number of rev messages processed during replication.
+Use Case::
+This metric can be used with {rev_processing_time} to calculate the average processing time per revision:
++
+_average processing time per revision_ = `{rev_processing_time}` / `{rev_send_count}`.
+
+==== rev_send_latency
+Description::
+The total amount of time between Sync Gateway receiving a request for a revision and that revision being sent.
++
+In a pull replication, Sync Gateway sends a `/_changes` request to the client and the client responds with the list of revisions it wants to receive.
++
+So, `{rev_send_latency}` measures the time between the client asking for those revisions and Sync Gateway sending them to the client.
+
+Use Case::
+This metric gives the time taken to respond to a `/ changes` request.
+
+Constraints::
+--
+The derived value includes latency associated with processing other revisions in the same batch.
+
+Measuring time from the `/_changes` response means that this stat will vary significantly depending on the changes batch size
+A larger batch size will result in a spike of this stat, even if the processing time per revision is unchanged.
+
+A more useful stat might be the average processing time per revision:
+
+`average processing time per revision` = `{rev_processing_time}`] / `{rev_send_count}`
+--
+
+=== cbl_replication_push
+
+==== attachment_push_bytes
+Description::
+The total number of attachment bytes pushed.
+//Use Case::
+
+==== attachment_push_count
+Description::
+The total number of attachments pushed.
+// Use case(s)::
+
+==== conflict_write_count
+Description::
+The total number of writes that left the document in a conflicted state.
+Includes new conflicts, and mutations that don’t resolve existing conflicts.
+// Use case(s)::
+
+==== doc_push_count
+Description::
+The total number of documents pushed.
+// Use case(s)::
+
+==== propose_change_count
+Description::
+The total number of changes and-or proposeChanges messages processed since node start-up.
+
+Use Case::
+The {propose_change_count} stat can be useful when:
+
+* {empty}
++
+--
+Assessing the number of redundant requested changes being pushed by the client.
+
+Do this by comparing the {propose_change_count} value with the number of actual writes {num_doc_writes}, which could indicate that clients are pushing changes already known to Sync Gateway.
+--
+* Identifying situations where push replications are unexpectedly being restarted from zero.
++
+NOTE: P2P synchronizations will typically show a higher incidences of rejected proposed changes.
+
+==== propose_change_time
+Description::
+The total time spent processing changes and/or proposeChanges messages.
+
+Use Case::
+The {propose_change_time} stat can be useful in diagnosing push replication issues arising from potential bottlenecks changes and-or proposeChanges processing.
+
+Contraints::
+The {propose_change_time} is not included in the {write_processing_time}.
+
+==== sync_function_count
+Description::
+The total number of times that the sync_function is evaluated.
+Use Case::
+The {sync_function_count_ stat is useful in assessing the usage of the sync_function, when used in conjunction with the {sync_function_time}.
+
+==== sync_function_time
+Description::
+The total time spent evaluating the sync_function.
+Use Case::
+The {sync_function_time} stat can be useful when:
+
+* Troubleshooting excessively long push times, where it can help identify potential sync_function bottlenecks (for example, those arising from complex, or inefficient, sync_function design
+* Assessing the overall contribution of the sync_function processing to overall push replication write times.
+
+==== write_processing_time
+Description::
+Total time spent processing writes.
+Measures complete request-to-response time for a write.
+Use Case::
+The {write_processing_time} stat can be useful when:
+
+* Determining the average time per write:
++
+`average time per write` = {write_processing_time} / {num_doc_writes}
+ stat value
+* Assessing the benefit of adding additional Sync Gateway nodes, as it can point to Sync Gateway being a bottleneck
+* Troubleshooting slow push replication, in which case it ought to be considered in conjunction with {sync_function_time}.
+
+=== database
+
+Stats relative to the database
+
+==== abandoned_seqs
+Description::
+The total number of skipped sequences abandoned, based on `cache.channel_cache.max_wait_skipped`.
+
+==== cache_feed
+Description::
+Contains low level dcp stats:
+* `dcp_backfill_expected` - the expected number of sequences in backfill
+* `dcp_backfill_completed` - the number of backfill items processed
+* `dcp_rollback_count` - the number of DCP rollbacks.
+
+==== crc32c_match_count
+Description::
+The total number of instances during import when the document cas had changed, but the document was not imported because the document body had not changed.
+
+==== dcp_caching_count
+Description::
+The total number of DCP mutations added to Sync Gateway's channel cache.
+Use Case::
+Can be used with `{dcp_caching_time}` to monitor cache processing latency.
+That is, the time between seeing a change on the DCP feed and when it's available in the channel cache:
++
+`DCP cache latency` = `{dcp_caching_time}` / `{dcp_caching_count}`
+
+==== dcp_caching_time
+Description::
+The total time between a DCP mutation arriving at Sync Gateway and being added to channel cache.
+
+Use Case::
+This metric can be used with `{dcp_caching_count}` to monitor cache processing latency.
+That is, the time between seeing a change on the DCP feed and when it's available in the channel cache:
++
+`dcp_cache_latency` = `{dcp_caching_time}` / `{dcp_caching_count}`
+
+==== dcp_received_count
+Description::
+The total number of document mutations received by Sync Gateway over DCP.
+
+==== dcp_received_time
+Description::
+The time between a document write and that document being received by Sync Gateway over DCP.
+If the document was written prior to Sync Gateway starting the feed, it is recorded as the time since the feed was started.
+Use Case::
+This metric can be used to monitor DCP feed processing latency.
+
+==== doc_reads_bytes_blip
+Description::
+The total number of bytes read via Couchbase Lite 2.x replication since Sync Gateway node startup.
+
+==== doc_writes_bytes
+Description::
+The total number of bytes written as part of document writes since Sync Gateway node startup.
+
+==== doc_writes_bytes_blip
+Description::
+The total number of bytes written as part of Couchbase Lite 2.x document writes since Sync Gateway node startup.
+
+==== doc_writes_xattr_bytes
+Description::
+The total size of xattrs written (in bytes).
+
+==== high_seq_feed
+Description::
+Highest sequence number seen on the caching DCP feed.
+
+==== import_feed
+Description::
+This metric contains low level dcp stats:
+* `dcp_backfill_expected` - the total expected number of sequences in backfill
+* `dcp_backfill_completed` - the total number of backfill items processed
+* `dcp_rollback_count` - the total number of rollbacks that occur.
+
+==== num_doc_reads_blip
+Description::
+The total number of documents read via Couchbase Lite 2.x replication since Sync Gateway node startup.
+
+==== num_doc_reads_rest
+Description::
+The total number of documents read via the REST API since Sync Gateway node startup.
+Includes Couchbase Lite 1.x replication.
+
+==== num_doc_writes
+Description::
+The total number of documents written by any means (replication, rest API interaction or imports) since Sync Gateway node startup.
+
+==== num_replications_active
+Description::
+The total number of active replications.
+This metric tracks all 2.0/BLIP-based connections, regardless of direction or type.
+It also tracks 1.x pull replications of any type.
+
+==== num_replications_total
+Description::
+The total number of replications created since Sync Gateway node startup.
+
+==== sequence_assigned_count
+Description::
+The total number of sequence numbers assigned.
+
+==== sequence_get_count
+Description::
+The total number of high sequence lookups.
+
+==== sequence_incr_count
+Description::
+The total number of times the sequence counter document has been incremented.
+
+==== sequence_released_count
+Description::
+The total number of unused, reserved sequences released by Sync Gateway.
+
+==== sequence_reserved_count
+Description::
+The total number of sequences reserved by Sync Gateway.
+
+==== warn_channels_per_doc_count
+Description::
+The total number of warnings relating to the channel count exceeding the channel count threshold.
+Corresponding warning message::
+[source,console]
+----
+Doc id: {document id} channel count: {channel count} exceeds {channel count} for channels per doc warning threshold
+----
+
+==== warn_grants_per_doc_count
+Description::
+The total number of warnings relating to the grant count exceeding the grant count threshold.
+
+Corresponding warning message::
+[source,console]
+----
+Doc id: {document id} access and role grants count: {grant count} exceeds {grant count} for grants per doc warning threshold
+----
+
+==== warn_xattr_size_count
+Description::
+The total number of warnings relating to the xattr sync data being larger than a configured threshold.
+
+Corresponding warning message::
+[source,console]
+----
+Doc id: {document id} sync metadata size: {xattr bytes} bytes exceeds {xattr bytes} bytes for sync metadata warning threshold
+----
+
+=== delta_sync
+
+==== delta_cache_hit
+Description::
+The total number of requested deltas that were available in the revision cache.
+
+==== delta_cache_miss
+Description::
+The total number of requested deltas that were not available in the revision cache.
+
+==== delta_pull_replication_count
+Description::
+The number of delta replications that have been run.
+
+==== delta_push_doc_count
+Description::
+The total number of documents pushed as a delta from a previous revision.
+
+==== deltas_requested
+Description::
+The total number of times a revision is sent as delta from a previous revision.
+
+==== deltas_sent
+Description::
+The total number of revisions sent to clients as deltas.
+
+=== gsi_views
+
+==== GSIs
+
+The GSI metrics are defined in this section, where {query name} is a placeholder representing a Valid Query Name from this list:
+
+Valid Query Names::
+* access
+* roleAccess
+* channels
+* channelsStar
+* sequences
+* principals
+* sessions
+* tombstones
+* resync
+* allDocs
+
+==== {query name}_count
+Description::
+The total number of queries performed.
+
+===== {query name}_error_count
+Description::
+The total number of errors that occurred when performing the query.
+
+===== {query name}_time
+Description::
+The total time taken to perform queries.
+
+==== Views
+
+The View metrics are defined in this section, where {design doc name} and {view name} are placeholders representing a Valid Design Doc Name and a Valid View Name, as defined in these lists:
+
+Valid Design Doc Names::
+* sync_gateway
+* sync_housekeeping
+
+
+Valid View Names::
+* principals
+* channels
+* access
+* access_vbseq
+* role_access
+* role_access_vbseq
+* all_docs
+* import
+* sessions
+* tombstones
+
+===== {design doc name}.{view name}_count
+Description::
+The total number of view queries performed.
+
+===== {design doc name}.{view name}_error_count
+Description::
+The total number of errors that occurred when performing the query.
+
+===== {design doc name}.{view name}_time
+Description::
+The total time taken to perform the view query.
+
+
+=== Security
+
+These metrics relate to security.
+
+==== auth_failed_count
+Description::
+The total number of unsuccessful authentications.
+Use Case::
+This metric is useful in monitoring the number of authentication errors.
+
+==== auth_success_count
+Description::
+The total number of successful authentications.
+Use Case::
+This metric is useful in monitoring the number of authenticated requests.
+
+==== num_access_errors
+Description::
+The total number of documents rejected by write access functions (requireAccess, requireRole, requireUser).
+
+==== num_docs_rejected
+Description::
+The total number of documents rejected by the sync_function.
+Use Case::
+This metric is useful in debugging sync_function issues and identify unexpected incoming documents.
+
+==== total_auth_time
+Description::
+The total time spent in authenticating all requests.
+Use Cases::
+This metric can be compared with `{auth_success_count}` and `{auth_failed_count}` to derive an average success and-or fail rate.
+
+=== shared_bucket_import
+
+==== import_cancel_cas
+Description::
+The total number of imports cancelled due to cas failure.
+
+==== import_count
+Description::
+The total number of docs imported.
+
+==== import_error_count
+Description::
+The total number of errors arising as a result of a document import.
+Corresponding Error Message::
+[source,console]
+----
+Error importing doc {document id}: {error}
+----
+
+==== import_high_seq
+Description::
+The highest sequence number value imported.
+
+==== import_partitions
+Description::
+The total number of import partitions.
+
+==== import_processing_time
+Description::
+The total time taken to process a document import.
+
+
+=== Metrics by replication
+
+The metrics collated and reported here relate **only** to replications run using the inter-Sync Gateway replication.
+
+NOTE: These metrics refer to Sync Gateway replications only; Couchbase Lite replications are not included.
+
+// tag::per-replication-sgr2[]
+==== Per_replication
+(Inter-Sync Gateway)
+
+This {per_replication} group header encompasses all the stats for each inter-Sync Gateway replication involving its owning database.
+
+It comprises an array of one or more {replname} objects, each of which represents the statistics collected and recorded against the specified $replname (`replication_id`).
+
+
+==== $replname
+
+This object comprises the stats collected and recorded for the inter-Sync Gateway replication named $replname (which equates to a `replication_id`).
+The same structure is used to return statistics from Inter-Sync Gateway and SG Replicate replications, but not all items are populated by each version.
+
+===== sgr_docs_checked_sent
+Description::
+The total number of documents checked for changes since replication started.
+This represents the number of potential change notifications pushed by Sync Gateway.
+
+Constraints::
+- This is not necessarily the number of documents pushed, as a given target might already have the change.
+- Used by Inter-Sync Gateway and SG Replicate
+
+Values::
+* Continuous replication:
++
+The value is true for the duration of the replication, and also once it has caught up (i.e is in the idle state).
+  The value is false if the replication is explicitly cancelled.
+
+* One-shot replication
++
+The value is true for the duration of the replication, and then false when it has completed or if it is cancelled.
+Use Case::
+This metric can be useful when analyzing replication history, and to filter by active replications.
+
+
+===== sgr_num_docs_failed_to_push
+Description::
+The total number of documents that failed to be pushed since replication started.
+
+Used by Inter-Sync Gateway and SG Replicate
+
+===== sgr_num_docs_pushed
+Description::
+The total number of documents that were pushed since replication started.
+
+Used by Inter-Sync Gateway and SG Replicate
+
+===== sgr_num_attachments_pushed
+Description::
+The total number of attachments that were pushed since replication started.
+
+===== sgr_num_attachment_bytes_pushed
+Description::
+The total number of bytes in all the attachments that were pushed since replication started.
+
+===== sgr_num_attachments_pulled
+Description::
+The total number of attachments that were pulled since replication started.
+
+===== sgr_num_attachment_bytes_pulled
+Description::
+The total number of bytes in all the attachments that were pulled since replication started.
+
+===== sgr_num_docs_pulled
+Description::
+The total number of documents that were pulled since replication started.
+
+===== sgr_num_docs_purged
+Description::
+The total number of documents that were purged since replication started.
+
+===== sgr_num_docs_failed_to_pull
+Description::
+The total number of document pulls that failed since replication started.
+
+===== sgr_push_conflict_count
+Description::
+The total number of pushed documents that conflicted since replication started.
+
+===== sgr_push_rejected_count
+Description::
+The total number of pushed documents that were rejected since replication started.
+
+===== sgr_docs_checked_recv
+Description::
+The total number of documents that were purged since replication started.
+
+===== sgr_deltas_recv
+Description::
+The total number of documents that were purged since replication started.
+
+
+// ===== sgr_delta_pull_replication_count
+// Description::
+// The total number documents with deltas pulled
+
+// ===== sgr_delta_push_doc_count
+// Description::
+// The total number of documents with deltas pushed
+
+===== sgr_deltas_requested
+Description::
+The total number of deltas requested
+
+===== sgr_deltas_sent
+Description::
+The total number of deltas sent
+
+
+// ===== sgr_conflict_detected
+// Description::
+// The total number of documents where conflicts were detected
+
+// ===== sgr_conflict_resolved
+// Description::
+// The total number of conflicting documents that were resolved successfully (by the active node)
+
+
+===== sgr_conflict_resolved_local_count
+Description::
+The total number of conflicting documents that were resolved successfully locally (by the active replicator)
+
+
+===== sgr_conflict_resolved_remote_count
+Description::
+The total number of conflicting documents that were resolved successfully remotely (by the active replicator)
+
+
+===== sgr_conflict_resolved_merge_count
+Description::
+The total number of conflicting documents that were resolved successfully by a merge action (by the active replicator)
+
+===== sgw_conflict_skipped_error
+Description::
+The total number of documents that were skipped during sync because of an error in conflict resolution
+
+
+// end::per-replication-sgr2[]
+
+
+
+
+
+
+// tag::per-replication-sgr1[]
+
+== Metrics by replication ( ***deprecated** )
+
+This structure and its associated metrics is deprecated at version 2.8.
+The metrics collated and reported here relate **only** to replications run using the SG{nbsp}Replicate.
+For metrics relating to replications run using inter-Sync Gateway replication see: <<per_replication>>.
+
+=== Per_replication (SG Replicate)
+
+This {per_replication} group header encompasses all the stats for each inter-Sync Gateway replication involving its owning database.
+
+It comprises an array of one or more {replname} objects, each of which represents the statistics collected and recorded against the specified $replname (`replication_id`).
+
+NOTE: These metrics refer to Sync Gateway replications only; Couchbase Lite replications are not included.
+
+
+=== $replname
+
+This object comprises the stats collected and recorded for the inter-Sync Gateway replication named $replname (which equates to a `replication_id`).
+The same structure is used to return statistics from Inter-Sync Gateway and SG Replicate replications, although not all items are populated by each version.
+
+==== sgr_active
+Description::
+Whether the replication is active at this time.
+**Deprecated @ 2.8**: used only by SG Replicate.
+
+==== sgr_docs_checked_sent (sgr1)
+See: <<sgr_docs_checked_sent>>
+
+=== sgr_num_attachments_transferred
+Description::
+The total number of attachments transferred since replication started.
+**Deprecated @ 2.8**: used only by SG Replicate.
+
+=== sgr_num_attachment_bytes_transferred
+Description::
+The total number of attachment bytes transferred since replication started.
+**Deprecated @ 2.8**: used only by SG Replicate.
+
+=== sgr_num_docs_failed_to_push (sgr1)
+See: <<sgr_num_docs_failed_to_push>>
+
+=== sgr_num_docs_pushed (sgr1)
+See: <<sgr_num_docs_pushed>>
+
+// end::per-replication-sgr1[]

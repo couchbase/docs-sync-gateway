@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sync-gateway
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: sync-gateway
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - sync-gateway
+            topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: sync-gateway
+          image: couchbase/sync-gateway:2.6.0-enterprise
+          args: ["/sync-gateway-config/sgw-config.json"]
+          volumeMounts:
+            - name: sgw-config-volume
+              mountPath: /sync-gateway-config
+              readOnly: true
+          env:
+            - name: GOMAXPROCS
+              value: "1"
+          resources:
+            requests:
+              cpu: 500m
+            limits:
+              cpu: 500m
+      volumes:
+        - name: sgw-config-volume
+          secret:
+            secretName: sgw-config
