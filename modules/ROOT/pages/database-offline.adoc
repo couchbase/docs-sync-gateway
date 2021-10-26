@@ -1,0 +1,75 @@
+= Take Database Offline/Online
+:page-layout: article
+:page-content: conceptual
+:description: pass:q[How to take a _Sync&nbspGateway_ database offline and bring back online.]
+
+
+include::partial$_std-hdr-sgw.adoc[]
+
+// BEGIN -- Page Heading
+:param-abstract!:
+:param-related!:
+include::partial$block-abstract.adoc[]
+
+// END -- Page Heading
+
+
+== Introduction
+
+Sync Gateway enables a database to be taken offline and brought back online.
+This is done without stopping the Sync Gateway instance and without affecting other databases served by it.
+
+The change of status (online or offline) of a database occurs only in the specific Sync Gateway instance addressed.
+It is not reflected by other Sync Gateway instances using that database.
+To achieve that, you need to coordinate individual change operations in each of the required Sync Gateway instances.
+
+
+== Use Cases
+
+Specific uses for the database offline/online functionality include:
+
+* Taking a database offline, without affecting other databases.
+* Changing configuration properties for a database (while it is offline), without needing to restart Sync Gateway.
+* Resynchronizing a database while it is offline.
+* Detecting a lost DCP or TAP feed, and taking the database offline automatically.
+* Creating a database in an offline state, so that the start of service delivery for the database can be postponed or coordinated across Sync Gateway instances.
+* Performing a Couchbase Server upgrade.
+
+
+== Actions
+
+* Taking a database offline: {rest-api-admin--pfx}#/database/post\__db___offline[POST /+\{db}+/_offline]
+* Taking a database online: {rest-api-admin--pfx}#/database/post\__db___online[POST /+\{db}+/_online]
+
+By default, when Sync Gateway starts, it brings all databases that are defined in the configuration file online.
+To keep a database offline when Sync Gateway starts, you can add the `offline` configuration property to the database configuration properties for the database, with the value `true` (see {configuration-properties--pfx}#databases-this_db[database properties]).
+
+Later, to bring the database online, you can use the `+POST /\{tkn-db}/_online+` Admin REST API request.
+
+
+== Automatic Offlining
+
+Sync Gateway will take a database offline automatically if it loses the database's DCP and-or TAP feed.
+This enables the cause to be investigated and rectified.
+
+Use an Admin REST API request to bring the database back online when the cause is addressed and the feed(s) restored.
+
+
+== State Diagram
+
+The state diagram represents the states for Sync Gateway and the connection between it and a Couchbase Server database -- see: <<fig-state-diag>>.
+
+[#fig-state-diag]
+.State Change Diagram
+image::state-diagram-offline-12.png[]
+
+In the state diagram (fig-state-diag):
+
+* To the left of the gray dashed line, starting or stopping a Sync Gateway instance affects the connections to all of the databases that the instance serves.
+* To the right of the gray dashed line, you perform operations on specific databases.
+For example, two databases could be online, while a third database could be taken offline, resynchronized, and then brought back online.
+
+
+// BEGIN -- Page Footer
+include::partial$block-related-content-api.adoc[]
+// END -- Page Footer

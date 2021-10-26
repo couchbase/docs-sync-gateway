@@ -1,0 +1,78 @@
+// BEGIN -- PAGE -- import-filter.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/pages/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+//  INCLUSION USAGE --
+//    This module uses attributes from:
+//    - /modules/ROOT/pages/_partials/_page-index.adoc -- xref page links
+//
+//    This module uses these inclusions:
+//    - /modules/ROOT/pages/_partials/_std-hdr-sgw.adoc -- std attribute environment
+//    - /modules/ROOT/pages/_partials/block-abstract.adoc --  std text block for page header content
+//    - /modules/ROOT/pages/_partials/block-related-content-deploy.adoc --  std text block for page footer content
+//    - modules/ROOT/assets/images -- .png/.jpeg images
+//  INCLUSION USAGE
+// END PAGE DEFINITION
+= Import Filter
+:page-aliases: advance/adv-sgw-cfg-import-filter.adoc, import-filters
+:page-type: procedural
+:description: pass:q[Introducing _import filters_ and how to use them to speed-up the initial import process.]
+:idprefix:
+:idseparator: -
+
+
+include::partial$_std-hdr-sgw.adoc[]
+
+
+// Begin -- page attributes
+:xref-pfx: {xref-pfx-sgw}:
+// End of page attributes
+
+
+// BEGIN -- Page Heading
+:topic-group: sync
+:param-related!:
+:param-abstract: This topic provides an example configuration of Import filters
+include::partial$block-abstract.adoc[]
+// END -- Page Heading
+
+
+== Introduction
+
+The initial import process can take considerable time to complete for clusters with a large amount of data.
+
+The process can be made more efficient by using an _Import filter_.
+
+
+== Configuration
+
+To get started with a clusters which contains a large number of pre-existing documents, we recommend you use an `import_filter` to filter out unwanted data and reduce the initial import processing time -- see: <<ex-config>>.
+
+[#ex-config]
+.Using an Import Filter
+====
+[source,json]
+----
+include::{example-cfg}[tag="import-filter-config"]
+----
+
+Configuration properties:
+
+<1> The user's username that you created on the Couchbase Server Admin Console.
+<2> The user's password that you created on the Couchbase Server Admin Console.
+<3> The {xref-sgw-pg-shared-bucket-access} feature allows Couchbase Server SDKs to also perform operations on this bucket.
+<4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with GSI/N1QL indexing -- see {xref-sgw-pg-indexing}.
+If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
+<5> Only import documents which have a `type` property equal to `mobile`.
+====
+
+
+// BEGIN -- Page Footer
+include::partial$block-related-content-sync.adoc[]
+// END -- Page Footer
+
+// END -- PAGE -- import-filter.adoc

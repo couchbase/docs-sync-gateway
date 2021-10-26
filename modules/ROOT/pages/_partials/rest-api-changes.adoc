@@ -1,0 +1,138 @@
+:page-partial:
+// This content may be used in multiple places
+// Tag Schema
+// - all
+//  - allmajor-minor
+//    - version-major-minor *
+//      - version-full *
+//        - version-full-structuralonly
+//        - version-full-removedonly
+//          -config-prop-name
+//          -config-prop-name
+//        - version-full-newonly
+//        - version-full-modifiedonly
+//        - version-full-retainedonly
+//      - version-full *
+//    - version-major-minor *
+// End tag schema
+
+// BEGIN CONTENT
+// tag::all[]
+// tag::all2-8[]
+// tag::2-8-1[]
+// replace me with content
+// end::2-8-1[]
+// tag::2-8-0[]
+== REST API Changes
+// tag::2-8-0-structuralonly[]
+
+== Removed or Deprecated
+// tag::2-8-0-removedonly[]
+
+The SG Replicate REST API is deprecated.
+Deprecated functionality remains solely for backward compatibility with SG Replicate but is no longer supported:
+
+// tag::async[]
+async::
+_Removed - redundant_.
++
+The _async_ property is a _REST-API-only_ property.
+It was formerly the method used to force a request to start without awaiting completion of one-shot replications (that is, to run asynchronuously).
+Now, it *always* run in async mode.
+// end::async[]
+
+// tag::change-feed-limit[]
+changes_feed_limit::
+_Removed - redundant_.
+// end::change-feed-limit[]
+// end::2-8-0-removedonly
+
+// tag::2-8-0-newonly[]
+
+== New Endpoints
+
+The following endpopints are added:
+
+// tag::remote[]
+[[remote-property, remote]]
+remote::
+The _remote_ property replaces the former <<target-property>>.
++
+The _remote_ property represents a database URL for the remote Sync Gateway.
+To use another database hosted on this Sync Gateway, specify its full Sync Gateway database URL here.
+// end::remote[]
+
+// tag::direction[]
+direction::
+The _direction_ property indicates whether the replication is pushed or pulled by this node.
+Valid values are: push, pull, and pushAndPull.
+// end::direction[]
+
+// tag::conflict-resolution-type[]
+conflict_resolution_type::
+The _conflict_resolution_type_ property defines how conflicts are resolved.
++
+Valid values are: default, localWins, remoteWins, custom
+// end::conflict-resolution-type[]
+
+// tag::conflict-resolver[]
+custom_conflict_resolver::
+The _custom_conflict_resolver_ property specifies the custom Javascript function to be used for conflict resolution. It is valid *only* when `conflict_resolution_type = custom`.
+// end::conflict-resolver[]
+
+// tag::purge-on-removal[]
+purge_on_removal::
+Boolean value for whether channel removals should trigger purge
+Defaults to false
+// end::purge-on-removal[]
+
+// tag::enable-delta-sync[]
+enable_delta_sync::
+Boolean value for whether to enable delta sync for this replication.
+// end::enable-delta-sync[]
+
+// tag::maximum-backoff-time[]
+maximum_backoff_time::
+The _maximum_backoff_time_ property deines the period of time during which Sync Gateway will attempt to reconnect unreachable targets.
+// end::maximum-backoff-time[]
+
+// tag::replication-state[]
+Replication state::
+The _replication_state_ property reports the current state of a replication.
++
+Possible values in replicationStatus response bodies are: stopping, stopped, starting, active.
++
+Valid values in configuration or in a payload to a replication endpoint are: stopping, starting.
+// end::replication-state[]
+// end::2-8-0-newonly[]
+
+
+// tag::2-8-0-modifiedonly[]
+== Modified Endpoints
+
+
+The following replication configuration properties have changed:
+
+// tag::cancel[]
+cancel::
+This property requests a running replication stop. It is valid *only* when using ReplicationConfig for _replicate REST API calls.
++
+If defined in the configuration schema, it will log an error and prevent start up.
++
+When used in the REST API, you must specify the `replication_id` of a running replication or the request will return an error.
+// end::cancel[]
+// end::2-8-0-modifiedonly[]
+
+// tag::2-8-0-retainedonly[]
+== Retained Endpoints
+
+The following replication configuration properties are retained unchanged:
+
+* continuous
+* filter
+* query_params
+// end::2-8-0-retainedonly[]
+// end::2-8-0[]
+// end::all2-8[]
+// end::all[]
+// END CONTENT

@@ -1,0 +1,303 @@
+swagger: '3.0'
+info:
+  title: Sync Gateway
+  description: |
+    This is a developer preview of the documentation for the Sync Gateway Metrics Rest API.
+  version: '1.0'
+# the domain of the service
+host: localhost:4986
+# array of all schemes that your API supports
+schemes:
+- http
+- https
+# will be prefixed to all paths
+consumes:
+- application/json
+produces:
+- application/json
+################################################################################
+#                                   Parameters                                 #
+################################################################################
+parameters:
+
+################################################################################
+#                                   Paths                                      #
+################################################################################
+paths:
+
+  # Original _expvar
+  /_expvar:
+    get:
+      tags:
+      - Standard Output
+      summary: Debugging/monitoring at runtime
+      description: |+
+        The ```Expvars``` method returns Sync Gateways' numerous statistics, and other runtime variables, in JSON format.
+        Making them readily available for debugging or performance monitoring purposes.
+
+        **See** : [Sync Gateway Statistics Schema](./../stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
+
+      responses:
+        200:
+          description: OK - indicates success
+          schema:
+            $ref: '#/definitions/ExpVars'
+
+  # Prometheus format _expvar
+  /_metrics:
+    get:
+      tags:
+      - Prometheus
+      summary: Debugging/monitoring runtime stats in Prometheus format
+      description: |+
+        The ```_metrics``` method returns Sync Gateway's statistics and other runtime variables in **Prometheus** format.
+        This makes for a convenient feed for your debugging or performance monitoring purposes.
+
+        - For more details on the metrics collected and reported by Sync Gateway -- see: [Sync Gateway Statistics Schema](./../stats-monitoring.html).
+        - For more details on Monitoring Sync Gateway using the ```_metrics``` feed -- see: our blog on [Monitoring and Visualization of Couchbase Sync Gateway with Prometheus and Grafana](https://blog.couchbase.com/monitoring-and-visualization-of-couchbase-sync-gateway-with-prometheus-and-grafana/)
+
+      responses:
+        200:
+          description: OK - indicates success
+          schema:
+            $ref: '#/definitions/ExpVars'
+################################################################################
+#                                 Definitions                                  #
+################################################################################
+definitions:
+  ExpVars:
+    type: object
+    properties:
+      cmdline:
+        type: object
+        description: Built-in variables from the Go runtime, lists the command-line arguments
+      memstats:
+        type: object
+        description: Dumps a large amount of information about the memory heap and garbage collector
+      cb:
+        type: object
+        description: Variables reported by the Couchbase SDK (go_couchbase package)
+      mc:
+        type: object
+        description: Variables reported by the low-level memcached API (gomemcached package)
+      syncGateway_changeCache:
+        type: object
+        properties:
+          maxPending:
+            type: object
+            description: Max number of sequences waiting on a missing earlier sequence number
+          lag-tap-0000ms:
+            type: object
+            description: Histogram of delay from doc save till it shows up in Tap feed
+          lag-queue-0000ms:
+            type: object
+            description: Histogram of delay from Tap feed till doc is posted to changes feed
+          lag-total-0000ms:
+            type: object
+            description: Histogram of total delay from doc save till posted to changes feed
+          outOfOrder:
+            type: object
+            description: Number of out-of-order sequences posted
+          view_queries:
+            type: object
+            description: Number of queries to channels view
+      syncGateway_db:
+        type: object
+        properties:
+          channelChangesFeeds:
+            type: object
+            description: Number of calls to db.changesFeed, i.e. generating a changes feed for a single channel.
+          channelLogAdds:
+            type: object
+            description: Number of entries added to channel logs
+          channelLogAppends:
+            type: object
+            description: Number of times entries were written to channel logs using an APPEND operation
+          channelLogCacheHits:
+            type: object
+            description: Number of requests for channel-logs that were fulfilled from the in-memory cache
+          channelLogRewrites:
+            type: object
+            description: Number of times entries were written to channel logs using a SET operation (rewriting the entire log)
+          channelLogRewriteCollisions:
+            type: object
+            description: Number of collisions while attempting to rewrite channel logs using SET
+          document_gets:
+            type: object
+            description: Number of times a document was read from the database
+          revisionCache_adds:
+            type: object
+            description: Number of revisions added to the revision cache
+          revisionCache_hits:
+            type: object
+            description: Number of times a revision-cache lookup succeeded
+          revisionCache_misses:
+            type: object
+            description: Number of times a revision-cache lookup failed
+          revs_added:
+            type: object
+            description: Number of revisions added to the database (including deletions)
+          sequence_gets:
+            type: object
+            description: Number of times the database's lastSequence was read
+          sequence_reserves:
+            type: object
+            description: Number of times the database's lastSequence was incremented
+      syncgateway:
+        type: object
+        description: Monitoring stats
+        properties:
+          global:
+            type: object
+            description: Global Sync Gateway stats
+            properties:
+              resource_utilization:
+                type: object
+                description: Resource utilization stats
+                properties:
+                  admin_net_bytes_recv:
+                    type: integer
+                  admin_net_bytes_sent:
+                    type: integer
+                  error_count:
+                    type: integer
+                  go_memstats_heapalloc:
+                    type: integer
+                  go_memstats_heapidle:
+                    type: integer
+                  go_memstats_heapinuse:
+                    type: integer
+                  go_memstats_heapreleased:
+                    type: integer
+                  go_memstats_pausetotalns:
+                    type: integer
+                  go_memstats_stackinuse:
+                    type: integer
+                  go_memstats_stacksys:
+                    type: integer
+                  go_memstats_sys:
+                    type: integer
+                  goroutines_high_watermark:
+                    type: integer
+                  num_goroutines:
+                    type: integer
+                  process_cpu_percent_utilization:
+                    type: integer
+                  process_memory_resident:
+                    type: integer
+                  pub_net_bytes_recv:
+                    type: integer
+                  pub_net_bytes_sent:
+                    type: integer
+                  system_memory_total:
+                    type: integer
+                  warn_count:
+                    type: integer
+          per_db:
+            # type: object
+            type: array
+            # title: per database statistics [Per DB Per Replication Statistics Schema](./../refer/rest-api-admin-perDbStats.html "target=_blank")
+            description: |+
+              This array contains stats for all databases declared in the config file -- see the [Sync Gateway Statistics Schema](./../stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
+
+              The statistics for each {$db_name} database are grouped into:
+
+              - cache related statistics
+              - cbl_replication_push
+              - cbl_replication_pull
+              - database_related_statistics
+              - delta_sync
+              - gsi_views
+              - security_related_statistics
+              - shared_bucket_import
+              - per_replication statistics for each `replication_id`
+            items:
+              type: object
+              properties:
+
+                cache:
+                  type: object
+
+                database:
+                  type: object
+
+                per_replication:
+                  type: array
+
+                security:
+                  type: object
+                # $db_name:
+              # description: This object contains stats for a given database
+              # properties:
+                # description: |+
+                  # This array element contains stats for the {$db_name} database -- see the data model in [Per DB Per Replication Statistics Schema](./../refer/rest-api-admin-perDbStats.html "target=_blank").
+
+                  # type: object
+
+                # security:
+                #   type: object
+                #   description: Stats relative to security
+                #   properties:
+                #     auth_failed_count:
+                #       type: integer
+                #       description: Number of unsuccessful authentications. Useful to monitor the number of authentication errors.
+                #     auth_success_count:
+                #       type: integer
+                #       description: Number of successful authentications. Useful to monitor the number of authenticated requests.
+                #     num_access_errors:
+                #       type: integer
+                #       description: Count of documents rejected by write access functions (requireAccess/requireRole/requireUser).
+                #     num_docs_rejected:
+                #       type: integer
+                #       description: Count of documents rejected by the sync function. Useful to debug sync function issues and identify unexpected incoming documents.
+                #     total_auth_time:
+                #       type: integer
+                #       description: Total time it took to authenticate the last incoming request.
+              # $ref: "#/definitions/perReplicationStats-SGR1"
+          per_replication:
+            type: array
+            summary: Per Replication Statistics (Deprecated)
+            description: |+
+              An array of stats for each replication declared in the config file
+
+              **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+            items:
+              type: object
+              description: Stats for a given replication_id
+              properties:
+                $replication_id:
+                  type: object
+                  properties:
+                    sgr_active:
+                      type: boolean
+                      description: |+
+                        Whether the replication is active at this time.
+                        **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+                    sgr_docs_checked_sent:
+                      type: integer
+                      description: |+
+                        The total number of documents checked for changes since replication started.
+                        This represents the number of potential change notifications pushed by Sync Gateway.
+                        **Constraints**
+                          This is not necessarily the number of documents pushed, as a given target might already have the change.
+                          Used by versions 1 and 2.
+                    sgr_num_attachments_transferred:
+                      type: integer
+                      description: |+
+                        The total number of attachments transferred since replication started.
+                        **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+                    sgr_num_attachment_bytes_transferred:
+                      type: integer
+                      description: |+
+                        The total number of attachment bytes transferred since replication started.
+                        **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+                    sgr_num_docs_failed_to_push:
+                      type: integer
+                      description: |+
+                        The total number of documents that failed to be pushed since replication started.
+                        Used by versions 1 and 2.
+                    sgr_num_docs_pushed:
+                      type: integer
+                      description: |+
+                        The total number of documents that were pushed since replication started.
+                        Used by versions 1 and 2.

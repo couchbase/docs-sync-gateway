@@ -1,0 +1,229 @@
+= Sync with Couchbase Server
+:page-aliases: shared-bucket-access.adoc, sync-with-server.adoc
+:page-content: conceptual
+:description: Use Sync Gateway to sync Couchbase Server changes securely from cloud to edge
+:keywords: sync gateway, replication, sync, synchronization, edge, cloud
+:pageOriginRel: "sg=1.5, Cbs=5.0)_"
+
+include::partial$_std-hdr-sgw.adoc[]
+
+:topic-group: Sync
+:param-related: {xref-sgw-pg-sync-from-client} |  {xref-sgw-pg-icr-sgreplicate}  | {xref-sgw-pg-delta-sync}  |  {xref-sgw-pg-resync}
+:param-abstract: This content explains how Sync Gateway synchronizes document changes made through Couchbase SDKs and N1QL queries.
+include::partial$block-abstract.adoc[]
+
+include::partial$block-standard-footnotes.adoc[tags=sgw1x5;cbs5x0]
+:fn-sgw: footnote:fn-sgw[Prior to Release 2.5, Server 5.0 all writes had to go through Sync Gateway, or had to use bucket shadowing to ensure that the security and replication metadata needed by mobile applications was preserved.]
+// :fn-sgw-ref: footnote:fn-sgw[]
+
+:enable-sba-config-item: {configuration-properties--pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access]
+:xattr-page: xref:server:learn:data/extended-attributes-fundamentals.adoc[Extended Attributes (XATTR)]
+
+include::partial$block-caveats.adoc[tag="cbs6.0ke-xattrs"]
+
+== Introduction
+Sync Gateway uses the <<sba-feature>> and <<import-process>> features to synchronize document changes made through Couchbase Server with those made by Sync Gateway and Couchbase Lite clients, and vice versa {fn-sgw}.
+
+* Shared Bucket Access -- this is mechanism that enables Couchbase Server's SDK applications, N1QL Queries, Sync Gateway and  Couchbase Lite applications to read and write to the same bucket simultaneously -- see: <<sgw-paths>> and the configuration property {enable-sba-config-item}
+* Import Processing -- is the mechanism by which Sync Gateway becomes aware of non-Sync Gateway data changes and then obtains the mobile metadata it requires to replicate those changes -- see: <<import-process>>.
+
+[#sba-feature]
+== Shared Bucket Access
+
+[#sgw-paths]
+.Sync Gateway Data Access Paths
+image::shared-bucket-access.png[]
+
+=== Documents
+With bucket-sharing enabled, Couchbase Server documents can be inserted directly (using _N1QL_ or _SDKs_) or by using Sync Gateway's {rest-api--xref}.
+
+Sync Gateway {fn-sgw1x5} creates the metadata it needs by abstracting it from the SDK or N1QL applications reading and writing data directly to Couchbase Server buckets. It uses Couchbase Server XATTRs {fn-cbs5x0} to store that metadata into an external document fragment -- see {xref-svr-pg-xattrs}.
+
+The REST API will also include the following behavioral changes:
+
+* Purging -- {xref-sgw-ep-admin-api-document-post-purge} removes the document and its associated extended attributes
+* Updating -- {xref-sgw-ep-admin-api-document-put-docid} will tombstone the active revision
+
+=== Blobs and Attachments
+
+.Couchbase Server SDK/N1QL
+Use Sync Gateway's REST API's {xref-sgw-ep-public-api-attachment} endpoints to
+manage attachments and blob data; you cannot use Couchbase Server SDKs to do this
+directly.
+
+Standard practice would be to create the document using the SDK and then associate its blobs/attachments using the {xref-sgw-ep-public-api-attachment-put} endpoint.
+You can see a practical example in this blog post --
+https://blog.couchbase.com/store-sync-binary-data-attachments-blobs-couchbase-mobile
+
+.Couchbase Lite Apps
+Couchbase Lite apps seamlessly handle blobs and attachments, see the appropriate platform examples here:
+
+:param-path: learn
+:param-page: blob
+include::partial$blocklinks-cbl.adoc[]
+// * xref:couchbase-lite:swift:blob.adoc[Swift]
+// * xref:couchbase-lite:objc:blob.adoc[Objective-C]
+// * xref:couchbase-lite:java:blob.adoc[Java]
+// * xref:couchbase-lite:android:blob.adoc[Android (Java)]
+// * xref:couchbase-lite:csharp:blob.adoc[C#]
+
+.Using a WebApp
+Attachments can be accessed through Sync Gateway's REST API using the xref:rest-api.adoc#/attachment/get\__db___doc___attachment_[+/\{tkn-db}/\{doc}/\{attachment}+] endpoint.
+
+=== Tombstone Revisions
+
+Note that, with bucket-sharing enabled, {glos-term-tombstone-revision}s are *not* retained indefinitely; they are purged based on the server's _metadata purge interval_.
+
+To ensure tombstones are synced with clients, you should set the server's metadata purge interval based on your expected replication frequency -- see the {enable-sba-config-item} reference.
+
+=== Accessing Sync Metadata
+Mobile metadata is not kept in the document, but in a system extended attribute (XATTR) in Couchbase Server.
+
+The N1QL query language {fnref-cbs5x0} supports the ability to query these extended attributes (XATTRS) and hence the document's sync metadata -- see: <<simple-query>>.
+
+[#simple-query]
+.Querying XATTRS-bsed sync metadata
+====
+[source,sql]
+----
+SELECT meta().xattrs._sync FROM `travel-sample` WHERE meta().id = "mydocId"
+----
+====
+
+WARNING: The sync metadata is maintained internally by Sync Gateway and its structure can change at any time.
+It should not be used to drive business logic of applications. The direct use of the N1QL query is *unsupported* and must not be used in production environments.
+
+=== Enable Shared Bucket Access
+
+Shared bucket access is an opt-in feature.
+You can enable it without bringing down the entire Sync Gateway cluster  -- see <<enable-sba>>.
+
+[#enable-sba]
+.Enable Bucket-Sharing
+====
+[source,json]
+----
+{
+    "databases": {
+        "db": {
+            "bucket": "my-bucket",
+            "username": "my-user",
+            "password": "my-password",
+            "server": "http://localhost:8091",
+            "enable_shared_bucket_access": true, // <.>
+            "import_docs": true <.>
+        }
+    }
+}
+----
+<.> The `enable_shared_bucket_access` property is used to enable bucket-sharing.
+It must be `_true_` on all nodes participating in such a configuration.
+<.> The `import_docs` property is used to specify that a Sync Gateway node participates (exclusively) in {xref-sgw-pg-import-process}. The mechanism by which Sync Gateway incorporates changes to data buckets it shares with Couchbase Server -- see: <<import-process>>.
+
+====
+
+=== Reference
+
+Configuration file references:
+
+* {enable-sba-config-item} to enable convergence for a given database.
+* {configuration-properties--pfx}#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+* {configuration-properties--pfx}#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+
+[#import-process]
+== Import Processing
+
+The *import process* is a key part of mobile convergence.
+It is the means by which Sync Gateway becomes aware of non-Sync Gateway data changes and obtains the mobile metadata it requires to replicate changes.
+
+image::shared-bucket-access.png[]
+
+Any non-Sync Gateway change is eligible for import.
+The document is first run through the Sync Function to compute read security and routing, with the following differences:
+
+* The import is processed with an admin user context in the Sync Function, similar to writes made through the Sync Gateway Admin API.
+This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
+* During import, `oldDoc` is `nil` when the Sync Function is executed.
+
+You can specify a filter function using the {configuration-properties--pfx}#databases-this_db_import_filter[import_filter] property, which will only import specific documents.
+
+TIP: Use the {configuration-properties--pfx}#log[Import+] log key to troubleshoot import processing issues in the logs.
+
+=== Configuration
+
+Note that `import_docs` only takes effect if the `enabled_shared_bucket_access` is set to `true`.
+
+{enterprise}::
+The `import_docs` parameter defaults to `true`, implying that, by default, all nodes in a cluster participate in import processing.
+To exclude a node, set `"import_docs": false`.
+{community}::
+The `import_docs` parameter defaults to false and must be explicitly set to `true`.
+
+The following table describes the key behavior differences between Community Edition and Enterprise Edition when `import_docs` is enabled, disabled or not set at all.
+
+[import-docs-behavior, cols="^1,^1,4,4"]
+|===
+| `enabled_shared_bucket_access` | `import_docs` | Behavior (EE) | Behavior (CE)
+
+| true
+| not set
+| Assumes `import: true` by default
+| Assumes `import: false` by default
+
+| true
+| false
+| Node omitted from import processing (supported for workload isolation)
+| Node omitted from import processing
+
+| true
+| true
+| Node participates in import processing, and is assigned import partitions.
+| Node performs import processing for all server mutations.
+
+| false
+| not set
+| import docs is false by default
+| import docs is false by default
+
+| false
+| true
+| import docs property ignored, warning logged
+| import docs property ignored, warning logged
+
+| false
+| false
+| Import docs is false
+| Import docs is false
+|===
+
+=== High Availability
+In _Enterprise Edition_, import processing work is sharded across all Sync Gateway nodes with import enabled.
+This implies that if one of the nodes fail, the failed shard is automatically picked up by the remaining nodes in the cluster.
+This way, you get High Availability of import processing.
+
+In _Community Edition_, there is no sharding of import across the nodes participating in the import processing.
+Each import node processes all server mutations.
+
+=== Workload Isolation
+
+As described in the table above, if `import_docs` is set to `false`, the node will not be participating in the import process.
+This configuration is specifically recommended for workload isolation: to isolate import nodes from the client-facing nodes.
+Workload isolation may be preferable in deployments with high write throughput.
+
+The following diagram shows an example architecture of two Sync Gateway nodes handling the incoming client connections (`import_docs: false`) and two nodes sharing the import processing (`import_docs: true`).
+
+image:workload-isolation.png[]
+
+=== Reference
+
+The reference to the configuration properties can be found below.
+// * link:config-properties.html#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
+// * link:config-properties.html#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+// * link:config-properties.html#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+
+* {configuration-properties--pfx}#databases-this_db-enable_shared_bucket_access[$dbname.enable_shared_bucket_access] to enable convergence for a given database.
+* {configuration-properties--pfx}#databases-this_db-import_docs[$dbname.import_docs] to give a particular Sync Gateway node the role of importing the documents.
+* {configuration-properties--pfx}#databases-this_db-import_filter[$dbname.import_filter] to select which document(s) to make aware to mobile clients.
+
+
+include::partial$block-related-content-api.adoc[]

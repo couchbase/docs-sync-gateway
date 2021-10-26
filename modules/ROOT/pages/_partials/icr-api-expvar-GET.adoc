@@ -1,0 +1,84 @@
+include::partial$_stats-item-names.adoc[]
+// tag::stats[]
+
+Use the `_expvars` Admin REST API to access Sync Gateway stats shown in <<rep-related-stats>>.
+
+[source, console]
+----
+curl -X GET "http://localhost:4985/_expvar" -H "accept: application/json"
+----
+
+You can find further details on the statistics here -- {xref-sgw-pg-stats-monitoring}.
+
+[#rep-related-stats]
+.Replication related statistics
+
+[source,json,subs="normal, attributes"]
+----
+include::partial$stats-schema-per-replication.adoc-[]
+----
+
+====
+|===
+| Item | Notes
+
+|"sgr_num_attachment_bytes_transferred": 0,
+|Y (unchanged)
+
+| "sgr_num_attachments_transferred": 0,
+|Y (unchanged)
+
+| "sgr_num_docs_failed_to_push": 0,
+|Y (unchanged)
+
+|"sgr_num_docs_failed_to_push_access": 0,
+a|
+--
+NEW
+
+Cases when documents are rejected because user does not have read write permissions?
+--
+
+| "sgr_num_docs_pushed":
+|Y (unchanged)
+
+| "sgr_delta_pull_replication_count"
+|NEW
+
+
+| "sgr_delta_push_doc_count"
+|NEW
+
+| "sgr_deltas_requested":
+|NEW
+
+| "sgr_deltas_sent":
+|NEW
+
+
+|sgr_conflict_delected
+a|
+--
+NEW
+
+Count of documents where conflicts were detected
+--
+
+a|sgr_conflict_resolved
+a|
+--
+NEW
+
+Count of conflicting documents that were resolved successfully (by the active node)
+--
+
+|sgw_conflict_skipped_error
+a|
+--
+NEW
+
+Count of documents that were skipped during sync because of an error in conflict resolution
+--
+|===
+====
+// end::stats[]

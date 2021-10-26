@@ -1,0 +1,74 @@
+= Users
+:page-aliases: learn/users-and-roles.adoc, users-and-roles.adoc
+:description: pass:q[About Sync Gateway _users_ and their role in secure cloud-to-edge enterprise data synchronization.]
+
+
+include::partial$_std-hdr-sgw.adoc[]
+
+
+// BEGIN -- Page Attributes
+:SGW: pass:q[_Sync Gateway_]
+// END -- Page Attributes
+
+
+//  BEGIN -- Page Heading
+:param-topic-group: concepts
+:param-abstract: pass:q[Here we introduce the concept of _users_ and their role in assuring secure access control within _Sync Gateway_.]
+:param-related!:
+include::partial$block-abstract.adoc[]
+//  END -- Page Heading
+
+
+== Introduction
+
+Users are one of the cornerstone concepts behind {sgw}'s access control feature.
+
+You can authorize users and control their access to your database by creating user accounts and assigning roles to users.
+This topic focuses on how to authorize users to be able to access the Sync Gateway and their remote databases.
+
+
+== Creating
+The user must be created on Sync Gateway before it can be used for authentication -- see also: {authentication-users--xref}.
+
+NOTE: Sync Gateway users and roles have no relationship to Couchbase Server's xref:server:learn:security/authorization-overview.adoc[RBAC (Role-base Access Control) users].
+
+You create Users through either the {rest-api-admin--xref} or {configuration-properties--xref}.
+
+Admin REST API::
+Create a new user by sending a PUT request to {rest-api-admin-pfx}#/user/put\__db___user__name_[/\{tkn-db}/\_user/\{name}] or by sending a POST request to {rest-api-admin-pfx}#/user/post\__db___user_[/\{tkn-db}/_user], where `db` is the configured name of the database and `name` is the user name.
++
+The user credentials (**username**/**password**) are passed in the request body.
++
+[source,bash]
+----
+$ curl -vX POST "http://localhost:4985/mydatabase/_user/" -H "accept: application/json" -H "Content-Type: application/json" -d '{"name": "john", "password": "pass"}'
+----
++
+The Admin REST API is for administrator use only, and hence is *not* accessible from the clients directly.
+To allow users to sign up, it is recommended to have an app server sitting alongside Sync Gateway that performs the user validation, creates a new user on this API and then returns the response to the application.
++
+Additionally, this API can be used in conjunction with a 3rd party server for the authentication process (see xref:{authentication-users--page}#custom-authentication[Custom authentication]).
++
+Lastly, Sync Gateway supports xref:{authentication-users--page}#openid-connect[OpenID Connect authentication].
+In this case, Sync Gateway can automatically create users for successfully authenticated users that don't have an already existing user in Sync Gateway.
+
+Configuration file::
+Create users by hardcoding their credentials in the {configuration-properties--xref}.
+This method is convenient for testing and to get started, otherwise it is generally recommended to use the *Admin REST API* for a programmatic behavior.
++
+[source,json]
+----
+{
+  "databases": {
+    "mydatabase": {
+      "users": { // <1>
+        "GUEST": {"disabled": true},
+        "john": {"password": "pass"}
+      }
+    }
+  }
+}
+----
+<1> {configuration-properties--pfx}#databases-this_db-users[databases.$db.users]
+
+include::partial$block-related-content-data.adoc[]

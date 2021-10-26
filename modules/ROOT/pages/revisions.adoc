@@ -1,0 +1,189 @@
+= Revisions
+:page-layout: article
+:page-content: conceptual
+:description: About Sync Gateway's use of Revisions, Revision Trees and Revision Caches.
+
+
+include::partial$_std-hdr-sgw.adoc[]
+
+
+// BEGIN -- Page Heading
+:param-topic-group: concepts
+:param-abstract: pass:q[Revisions are at the heart of Couchbase Mobile's ability to respond flexibly and securely to changing data from server to edge.]
+:param-related: {url-blog-dbsizemng-pruning}  |  {url-blog-doc-conflicts-repl-protocol-revisions}  |  {url-blog-doc-conflicts-demystifying-mvcc}]
+include::partial$block-abstract.adoc[]
+// END -- Page Heading
+
+
+== Introduction
+
+_Documents_ and _buckets_ (collections of, usually related, documents) are the basic units of data within Couchbase.
+
+Remember that within Couchbase Mobile a document comprises:
+
+* A Document ID
+* A current revision ID
+* A JSON body
+* Metadata
+
+Each change to a document (even its creation and deletion) is recorded as a _revision_.
+The document's <<lbl-revs, revisions>> are contained within its _metadata_, which stores the
+revision history as a  <<lbl-revtree, revision tree>>.
+
+Note that binary data such images, audio or other multimedia objects are stored separately from the document,in an entity known as a _blob_ (or _attachment_).
+Changes to _blobs_ do not generate revisions.
+
+
+[#lbl-revs]
+== Revisions
+
+Couchbase creates a revision whenever a document is created, updated or deleted.
+So, each document comprises a series of one or more revisions, a _revision tree_.
+
+Each revision is given a unique _Revision ID_ in addition to the _Document ID_.
+
+The revision id is used when resolving any conflicts arising when concurrent changes are made to replicated copies of distributed data.
+It comprises two parts:
+
+* a generation ID +
+This is a sequential auto-incrementing number, specific to the database on which the document resides.
+Couchbase Lite generates simple integers.
+Sync Gateway generates more complex long base64 values. +
+The contents of remote revision IDs are implementation dependent.
+Do not base any processing logic on their contents.
+* a hash derived from the document contents
+
+
+[#lbl-revtree]
+== Revision Trees
+
+A document's _revision tree_ comprises each revision -- in sequence -- that has been made to the document throughout its lifetime to date.
+The tip of that tree, the _leaf_ node, is the _current revision_ -- the most recent version of the document.
+
+A revision tree's growth is unlimited and obsolete revisions need to be removed in order to maintain performance levels.
+This process is know as <<lbl-prune>>.
+
+
+[#lbl-prune]
+==  Revision Tree Pruning
+In the section::
+<<lbl-alg>> | <<lbl-rtctrl>> | <<lbl-rtcons>> | <<lbl-rt-more>>
+
+The process of removing obsolete revisions (_pruning_) runs automatically every time a revision is added.
+
+
+[#lbl-alg]
+=== Algorithm
+Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite.
+
+On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
+
+The algorithm allows the branch to retain a configurable number of revisions (revs_limit) and removes all older revisions.
+
+
+[#lbl-rtctrl]
+=== Controls
+You can vary the number of retained revisions using the Configuration File's  {configuration-properties--xref--databases-revs-limit} setting.
+
+So, for example, with a `revs_limit` of 1000 the algorithm will keep the last 1000 revisions in the shortest non-tombstoned branch and remove any others from that branch.
+
+[NOTE]
+--
+Do not set `revs_limit` below 100 when `allow_conflicts = true` +
+*Otherwise* ... you may adversely affect the conflict resolution process, as there may be insufficient revision history to resolve a given conflict.
+--
+
+
+[#lbl-rtcons]
+=== Constraints
+The default and minimum values of `revs_limit` are dependent on whether {configuration-properties--xref--databases-allow-conflicts} is  True or False.
+
+The presence of multiple unresolved conflicts in a revision tree can impair the pruning process.
+This may result in obsolete revisions not being pruned, or in revisions being pruned prematurely.
+
+
+[#lbl-rt-more]
+=== Learn More
+To learn more about revision pruning and database size management in general see our blog: {url-blog-dbsizemng-pruning}.
+
+
+[#lbl-caching]
+== Revision Caching
+In this section::
+<<lbl-ctrl>> | <<lbl-size>> | <<lbl-sharding>> | <<lbl-deltasync>> | <<lbl-disable>>
+
+Whenever a document is accessed its revision tree (or at least some portion of its revision tree) is also cached.
+
+
+[#lbl-ctrl]
+=== Control
+You can control the size of the revision cache using the {configuration-properties--xref--databases-cache-revs} settings within the configuration file, specifically:
+
+* {configuration-properties--xref--databases-cache-revs-size}
+* {configuration-properties--xref--databases-cache-revs-shard}
+
+
+[#lbl-size]
+=== Size
+Use the {configuration-properties--xref--databases-cache-revs-size} setting to specify the total number of document revisions to be cached in memory for all (recently accessed) documents.
+
+When the revision cache is full, Sync Gateway will remove older document revisions to make room for newer ones.
+
+By adjusting this setting you can fine-tune Sync Gateway's memory consumption.
+This can be useful when working on servers with limited memory and in cases when Sync Gateway creates and-or updated many new documents relative to the number of read operations.
+
+
+[#lbl-sharding]
+=== Sharding
+include::partial$block-caveats.adoc[tag=ee-only-feature]
+
+The *Community Edition* is configured with the default value and ignores any {configuration-properties--xref--databases-cache-revs-shard} value in the configuration file.
+
+You can control the number of shards ino which Sync Gateway will split its revisions cache by using the {configuration-properties--xref--databases-cache-revs-shard-count}
+
+More shards means lower cache contention when accessing distinct revisions, at the cost of some memory overhead per-shard.
+
+NOTE: Do not change the default {configuration-properties--xref--databases-cache-revs-shard} unless advised to do so by Couchbase Support -- see: {url-cb-support-policy}.
+
+
+[#lbl-deltasync]
+=== Delta Sync and Revisions
+include::partial$block-caveats.adoc[tag=ee-only-feature]
+
+When executing a write operation with delta_sync enabled the revision body is backed up in the bucket and retained for {configuration-properties--xref--databases-delta-sync-max-age}, during which time it is available for the  calculation of future revision deltas.
+
+As a result, new deltas can only be generated for read requests that come in within the {configuration-properties--xref--databases-delta-sync-max-age} time window.
+
+Storing backed up revision bodies for delta sync incurs additional bucket storage, the size of which equates to: +
+`(doc_size * updates_per_day * 86400) / rev_max_age_seconds` -- see <<ex-deltastor>>.
+
+[#ex-deltastor]
+.Calculating Additional Delta-Sync Storage
+====
+Enabling delta sync would take up an additional 400 KB of storage on Couchbase Server, assuming:
+
+* The default {`rev_max_age_seconds`} value
+* An average document size of 4 KB
+* 100 writes/day
+
+Equating to: `(4 * 100 * 86400)/86400 = 400 KB`
+====
+
+Setting {configuration-properties--xref--databases-delta-sync-max-age} to zero will generate deltas opportunistically on pull replications, with no additional storage requirements.
+
+
+[#lbl-disable]
+=== Disabling the Revision Cache
+
+include::partial$block-caveats.adoc[tag=ee-only-feature]
+
+Disabling the revision cache can be useful when there are very large documents or if you expect a very low cache hit rate.
+Otherwise it can negatively impact the latency of replications.
+
+NOTE: Do not disable the revision cache, unless advised to do so by Couchbase Support -- see: {url-cb-support-policy}.
+
+To disable the revision cache entirely, set {configuration-properties--xref--databases-cache-revs-size} to zero.
+Community Edition ignores a zero setting.
+
+
+include::partial$block-related-content-data.adoc[]

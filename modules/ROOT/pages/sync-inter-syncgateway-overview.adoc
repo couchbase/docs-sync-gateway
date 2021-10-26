@@ -1,0 +1,227 @@
+= Inter-Sync Gateway Replication
+:page-aliases: learn/icr-sgreplicate.adoc, icr-sgreplicate.adoc
+:page-role: conceptual
+:description: Use inter-Sync Gateway replication to keep clusters in different mobile data centers in sync.
+
+
+include::partial$_std-hdr-sgw.adoc[]
+
+
+:param-topic-group: inter-syncgateway
+:param-related:  {configuration-properties--xref} | {rest-api-admin--xref}
+//  {sync-inter-syncgateway-overview--xref} |
+:param-abstract: pass:q[_Inter-Sync Gateway_ replication supports resilient, secure, scalable bidirectional synchronization of data cloud-to-edge.]
+include::partial$block-abstract.adoc[]
+
+// Footnotes
+:fn-arch: footnote:arch[This architecture is also known as ship-to-shore or hub-and-spoke.]
+:fnref-arch: footnote:arch[]
+:fnxdcr: footnote:[If one-directional XDCR is used alongside Sync Gateway, then Sync Gateway cluster must be in read-only mode.]
+
+include::partial$block-caveats.adoc[tags=sgr2-only]
+
+
+== Introduction
+// tag::intro-full[]
+// tag::intro[]
+Couchbase Sync Gateway's _{glos-term-inter-sync-gateway-replication}_ feature supports _{glos-term-cloud-to-edge} synchronization_ use cases, where data changes must be synchronized between a centralized cloud cluster and a large number of edge clusters whilst still enforcing fine grained access control.
+This is an increasingly important enterprise-level requirement.
+
+// end::intro[]
+In the architecture diagram (<<icr-architecture>>), the replicator on the active Sync Gateway node ensures that any database changes made to documents in either {glos-term-sync-gateway-database} instance are replicated to the other Sync Gateway instance, in accordance with the replication's configuration -- see {configuration-properties--xref--db-replications} for configuration details.
+
+// tag::intro-img[]
+
+[[icr-architecture]]
+.Inter-Sync Gateway Replication architecture
+image::icr-replication-overview.svg[]
+
+// end::intro-img[]
+// end::intro-full[]
+
+
+== Use Cases
+
+// tag::use-cases[]
+
+
+=== Cloud-to-edge synchronization
+
+In this multi-cloud deployment mode large numbers of multiple edge clusters sync with one or more clusters in cloud data centers. Each edge can operate autonomously without network connectivity to the cloud data centers {fn-arch}.
+
+A typical architecture for this use cases is shown in <<icr-cloud-to-edge>>
+
+[[icr-cloud-to-edge]]
+.Cloud-to-edge synchronization
+image::icr-cloud-to-edge200712.svg[,600]
+
+=== Active-to-active Mobile Synchronization
+Here edge clusters containing active Sync{nbsp}Gateway nodes are replicated between geographically separate cloud-based Sync Gateway deployments.
+An ideal use-case for inter-Sync{nbsp}Gateway replication, which was designed to keep clusters in different data centers in sync.
+
+The Couchbase Server Cross Data Center Replication API (xref:server:manage:manage-xdcr/xdcr-management-overview.adoc[XDCR]) is similarly used to replicate between Couchbase Server clusters.
+*However, the inter-Sync{nbsp}Gateway replication feature is specifically designed for Sync Gateway deployments and it must be used for replication between mobile clusters.* {fnxdcr}
+
+
+A typical architecture for this use case is shown in <<icr-active-mobile>>
+
+[[icr-active-mobile]]
+.Active-to-active mobile synchronization
+image::icr-active-mobile-sync200713.svg[,600]
+
+// end::use-cases[]
+
+
+== Replication Characteristics
+_In this section_:  <<context>>  |  <<protocol>>  |  <<types-of-replication>>  |  <<delta-sync>>  |  <<directionality>>  |  <<security>>
+
+=== Context
+Sync Gateway supports the ability to run replications between Sync Gateway clusters using a new websockets based protocol, with the {glos-term-active-replicator} {glos-term-synchronizing} changes between two {glos-term-sync-gateway-databases}.
+
+All replications are based on a {glos-term-replication-definition} provided either to the Admin REST API or in Sync Gateway's configuration file (JSON).
+
+Replications always involve at least one local database.
+Sync Gateway does not enable replication between two _remote_ nodes, because replications are defined at database level and so at least one database will be local.
+
+All replications take place at the document level (but see also, <<delta-sync>>).
+
+Sync Gateway nodes can opt-out of participating in the replication process using the database-level parameter {configuration-properties--xref--databases-sgr-enabled}.
+
+_Related configuration elements_:  {configuration-properties--xref--databases}  |  {configuration-properties--xref--db-replications}  |  {configuration-properties--xref--db-rep-remote} |  {configuration-properties--xref--databases-sgr-enabled}
+
+
+=== Protocol
+
+Inter-Sync{nbsp}Gateway replications are based on websockets. This is the exact same protocol that is used for replication with Couchbase Lite 2.x clients.
+
+NOTE: For users on releases prior to 2.8, SG Replicate provides a HTTP-based replication -- see the appropriate documentation here -- {legacy-sg-replicate--xref} (deprecated).
+
+The bi-directional, persistent, nature of websocket connections is ideal for applications such as a _continuous_ Sync Gateway replication, which is constantly waiting-for and synchronizing change events.
+
+// === General Characteristics
+
+
+=== Types of Replication
+
+Replications are either: {glos-term-adhoc-replication} (REST API only) or {glos-term-persistent-replication}.
+They can also be configured to run in one of two-modes:
+{glos-term-continuous} or {glos-term-oneshot}.
+
+* Persistent
++
+--
+Persistent replications survive Sync Gateway node restarts and continue running automatically unless configured not to.
+They can be configured to run in either {glos-term-continuous} or {glos-term-oneshot} mode.
+--
+* Ad hoc
++
+--
+Ad hoc replications are transient, existing only for the period of the replication.
+They provide a convenient way to:
+
+* Run one off replications (for example, when troubleshooting)
+* Run on-demand replications after Sync Gateway is started.
+For instance a replication that needs to be to be run only periodically can be configured as an ad hoc replication by an automated script scheduled to run when needed.
+--
+
+_Related configuration elements_:  {configuration-properties--xref--db-replications}  |  {configuration-properties--xref--db-rep-continuous} |  {configuration-properties--xref--db-rep-adhoc}
+
+
+=== Delta Sync
+include::partial$block-caveats.adoc[tag=ee-only-feature]
+
+With delta-sync enabled on the replication and both databases involved, only the changed data items are transferred.
+
+You can configure replications to use delta-sync by:
+
+* Setting `"enable_delta_sync": true` in the _replication definition_
+* Setting `"delta-sync": { "enabled": true}` on both databases in their respective _database definitions_.
+
+NOTE: Push replications to pre-2.8 targets do not use Delta Sync
+
+_Related configuration elements_:  {configuration-properties--xref--databases}  |  {configuration-properties--xref--db-replications}  |
+{configuration-properties--xref--databases-delta-sync}  |  {configuration-properties--xref--db-rep-delta}
+
+
+=== Directionality
+
+Replications are bi-directional.
+You can _push_, _pull_ or _push and pull_ between the two database endpoints.
+
+_Related configuration elements_:  {configuration-properties--xref--db-replications}  |  {configuration-properties--xref--db-rep-direction}
+
+
+=== Security
+// tag::security[]
+Transport level security is provided for. Use the appropriate prefix in URL (WSS for websockets).
+
+// end::security[]
+
+
+==== Authentication
+// tag::authentication[]
+Support for Basic Authentication using username and password credentials is provided
+
+// end::authentication[]
+
+
+==== Access Control
+// tag::access-control[]
+// tag::access-control-full[]
+Data access control is provided by Sync Gateway's {glos-term-sync-function} and the username/password credentials.
+All replicated documents pass through this function ensuring that access permissions are adhered to.
+
+// end::access-control[]
+_Related configuration elements_:  {configuration-properties--xref--databases}  |  {configuration-properties--xref--databases-sync} +
+_Related how-to_: {xref-sgw-pg-sync-function}  |  {xref-sgw-pg-sync-function}
+// end::access-control-full[]
+
+
+== Network Resilience
+// tag::network-resilience[]
+Inter-Sync Gateway replications will automatically attempt to restart whenever the node restarts.
+
+Network resiliency is built-in for _continuous_ replications.
+They respond to network issues such as lost connections, by applying a {glos-term-persistent-exponential-backoff} policy to attempt reconnection.
+
+The {configuration-properties--xref--db-rep-backoff} determines the maximum wait time between retries.
+When the limit is reached retries are made every `max_backoff_time` minutes.
+Set `"max_backoff_time": 0` to prevent indefinite retries. Exponential backoff retries will be attempted for up to 5 minutes and then stop if the connection has not been re-established
+
+// .AD HOC Replications
+// [NOTE]
+// ====
+// No automatic reconnection attempts are made following network failures for ad hoc replications.
+// The controlling user or application should apply the appropriate corrective action.
+// ====
+// end::network-resilience[]
+
+{empty} +
+_Related replication definition elements_:  {configuration-properties--xref--db-rep-backoff}
+
+
+== High Availability
+
+include::partial$incpg-icr-availability.adoc[leveloffset=+1]
+
+
+== Conflict Resolution
+
+include::partial$incpg-icr-conflict.adoc[tags=overview-full, leveloffset=+1]
+
+For more on conflict resolution -- see: {xref-sgw-pg-icr-conflict-resolution}
+
+// ==  Replication Initialization
+
+// include::partial$incpg-icr-initialization.adoc[leveloffset=+1]
+
+// == Replication Management
+
+// include::partial$incpg-icr-admin.adoc[leveloffset=+1]
+
+// == Replication Monitoring
+
+// include::partial$incpg-icr-monitoring.adoc[leveloffset=+1, tags=!overview]
+
+
+include::partial$block-related-content-icr.adoc[]

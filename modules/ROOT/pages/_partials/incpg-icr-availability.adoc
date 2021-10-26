@@ -1,0 +1,258 @@
+// = High-Availability Replication
+
+// tag::in-this-section[]
+*_In this section_*: <<node-distribution>>  | <<configuration-requirements>>  |  <<expected-failure-behavior>>  |  <<examples-of-expected-behavior>>  |  <<monitoring-node-distribution>>
+// end::in-this-section[]
+
+== Overview
+:param-edition: {enterprise}
+:param-intro: This content relates only to {enterprise}
+include::partial$block-caveats.adoc[tag=ee-only-feature, subs=attributes]
+
+[tabs]
+====
+Enterprise::
++
+--
+// tag::overview[]
+Inter-Sync Gateway Replication provides built-in High Availability (HA) support.
+It uses _node distribution_ to ensure all running replications are uniformly distributed across all available nodes, regardless of their originating node.
+
+A replication runs on only one node at any given time.
+When a node fails, the system automatically distributes that node's replications across any available alternative nodes (providing the replication has been configured on multiple nodes).
+
+TIP: To use high-availability, configure the same replication on at least two Sync Gateway nodes.
+
+// end::overview[]
+--
+
+Community::
++
+--
+// :param-edition: {community}
+// :param-intro: Even though automatic node-distribution is not available, you can make your replications more highly-available.
+// :param-body: Just define the same replication on multiple nodes. They will then run on each of those nodes. This redundancy provides some resiliency as, if a node fails, the duplicate replication(s) running on the other nodes may be able to continue. +
+// {empty} +
+// No automatic distribution of replications is done. If the replication is running on multiple nodes then it will continue running on any surviving nodes.
+Even though automatic node-distribution is not available in {community}, you can make your replications more highly-available.
+
+Simply define the same replication on multiple nodes. They will then run on each of those nodes.
+
+This redundancy provides some resiliency if a node fails.
+As, although no automatic distribution of replications is done,if the replication is running on multiple nodes then it will continue running on any surviving nodes.
+
+See also: <<examples-of-expected-behavior>> below.
+// include::partial$block-highlight.adoc[]
+--
+====
+
+
+== Node Distribution
+include::{concepts}isgw/concept-isgw-ha-node-dist.adoc[]
+
+
+== Configuration Requirements
+
+To configure a replication to be highly available, include its database and replication definition in the sync gateway configuration on each node in the cluster that you want to be able to run it.
+_At least two nodes are required._
+
+// Alternatively, you can use the Admin REST API to initialize the replications on each of the required nodes.
+
+Node distribution will automatically elect an appropriate node to run them on and take care of redistributing them if a node fails.
+
+// :param-edition: {community}
+// :param-intro: Even though automatic node-distribution is not available, you can make your replications more highly-available.
+// :param-body: Just define the same replication on multiple nodes. They will then run on each of those nodes. This redundancy provides some resiliency as, if a node fails, the duplicate replication(s) running on the other nodes may be able to continue. +
+// {empty}
+// include::partial$block-highlight.adoc[]
+
+
+_Related configuration elements_`:  {configuration-properties--xref}  |  {rest-api-admin--xref}
+
+== Expected Failure Behavior
+
+If a node fails, then Sync Gateway will take any replications configured on multiple nodes, redistribute them across all available remaining nodes and restart them.
+Node distribution will continually seek to maintain an optimal distribution of replications across available nodes.
+
+// :param-msg: No automatic distribution of replications is done. If the replication is running on multiple nodes then it will continue running on any surviving nodes.
+// include::partial$block-caveats.adoc[tag=ce-only]
+// :param-edition: {community}
+// :param-body: No automatic distribution of replications is done. If the replication is running on multiple nodes then it will continue running on any surviving nodes.
+// include::partial$block-highlight.adoc[]
+
+=== Examples of Expected behavior
+
+This section provides examples of expected behavior in differing scenarios.
+It provides a comparison of how behavior differs between {enterprise} and {community}.
+
+The following scenarios are covered, each involves a sync gateway cluster with multiple nodes:
+
+* Homogenous configuration -- see <<homogenous-config>>
+* Homogenous configuration with non-replicating node -- see <<homogenous-non-rep-node>>
+* Heterogenous configuration -- see <<hetero-config>>
+* Adding more nodes -- see <<adding-more-nodes>>
+* Failing node -- see <<failing-node>>
+
+[#homogenous-config]
+.Homogenous configuration
+=====
+.Scenario
+
+* The cluster comprises three Sync Gateway nodes
+* The same sync gateway configuration is applied across all nodes
+* All nodes are configured to run _Replication Id 1_
+
+[{tabs}]
+====
+
+{enterprise}::
++
+--
+* Sync Gateway automatically designates one of the three nodes to run _Replication Id 1_.
+* If a node goes down, Sync Gateway elects one of the remaining nodes to continue _Replication Id 1_.
+--
+
+{community}::
++
+--
+Sync Gateway runs _Replication  Id 1_ on all nodes in the cluster.
+--
+====
+=====
+
+[#homogenous-non-rep-node]
+.Homogenous configuration with non-replicating node
+=====
+
+.Scenario
+* The cluster comprises three Sync Gateway nodes.
+* Each node has the same sync gateway configuration, with one exception. The configuration on _Node 3_ has opted out of replication (`sgreplicate_enabled=false`)
+* All Three nodes are configured to run _Replication Id 1_.
+
+[{tabs}]
+====
+{enterprise}::
++
+--
+* Sync Gateway automatically designates either _Node 1_ or _Node 2_ to run the _Replication Id 1_.
+* If either _Node 1_ or _Node 2_ fails, Sync Gateway elects the non-failing node.
+--
+
+{community}::
++
+--
+* Sync Gateway runs _Replication Id 1_ on all nodes in cluster.
+
+* The system ignores the opt-out flag (`sgreplicate_enabled`).
+--
+====
+=====
+
+[#hetero-config]
+.Heterogenous configuration
+=====
+.Scenario
+* The cluster comprises three Sync Gateway nodes
+* Both _Node 1_ and _Node 2_ are configured to run _Replication Id 1_
+* _Node 3_ is configured to run _Replication Id 2_ but *not* _Replication Id 1_
+
+[{tabs}]
+====
+{enterprise}::
++
+--
+
+* Sync Gateway automatically distributes _Replication Id 1_ and _Replication Id 2_ so that each runs on *one* of _Node 1_, _Node 2_ or _Node 3_, with no node running both replications simultaneously.
+* If any node fails whilst running either replication, Sync Gateway elects a non-failing node to continue that replication on.
+Where two nodes remain the node not running a replication will be chosen.
+
+--
+
+{community}::
++
+--
+* Sync Gateway runs _Replication  Id1_ on _Node 1_ and _Node 2_  in the cluster
+* Sync Gateway runs _Replication Id 2_ on _Node 3_
+
+Note:
+
+* If _Node 3_ fails, then _Replication Id 2_ will not be continued on either of the remaining nodes as it is not configured on them
+* Similarly, if either or both of the other nodes (_Node 1_ and _Node 2_) fails, _Node 3_ will not be a candidate to run the corresponding replication.
+--
+====
+=====
+
+[#adding-more-nodes]
+.Adding more nodes
+=====
+
+.Scenario
+* The cluster comprises a single Sync Gateway node
+* _Node 1_ is configured to run _Replication Id 1_ and _Replication Id 2_
+
+* LATER . . . _Node 2_ is added to the cluster to run _Replication Id 1_ and _Replication Id 2_.
+
+[{tabs}]
+====
+{enterprise}::
++
+--
+* Sync Gateway designates _Node 1_ run both _Replication Id 1_ and _Replication Id 2_
+
+* LATER . . . when _Node 2_ is added . . .
+** Sync Gateway select one of the _Node 1_ replications to run on _Node 2_; let's say it chooses _Replication Id 2_
+** Sync Gateway stops _Replication Id 2_ on _Node 1_
+** Sync Gateway starts _Replication Id 2_ on _Node 2_.
+--
+
+{community}::
++
+--
+* Sync Gateway designates _Node 1_ to run both _Replication Id 1_ and _Replication Id 2_
+* WHEN . . . _Node 2_ is added . . . Sync Gateway  designates it to run both _Replication Id 1_ and _Replication Id 2_
+--
+====
+=====
+
+[#failing-node]
+.Failing node
+=====
+.Scenario
+
+* The cluster comprises three Sync Gateway nodes with a homogeneous configuration
+* All three nodes are configured to run _Replication Id 1_, _Replication Id 2_ and _Replication Id 3_
+* LATER . . . _Node 3_ goes down
+
+[{tabs}]
+====
+{enterprise}::
++
+--
+Sync Gateway automatically distributes the replications, one to each of the nodes
+//  to run  _Replication Id 1_, _Id 2_ and _Id 3_ respectively.
+
+* Lets assume the following distribution:
+** _Node 1_ runs _Replication Id 1_
+** _Node 2_ runs _Replication Id 2_
+** _Node 3_ runs _Replication Id 3_
+
+WHEN . . . _Node 3_  goes down . . . Sync Gateway elects either _Node 1_ or _Node 2_ to continue running _Replication Id 3_
+
+--
+
+{community}::
++
+--
+Sync Gateway runs all three replications (_Replication Id 1_ , _Replication Id 2_ and _Replication Id 3_) on all three nodes in the cluster (_Node 1_, _Node 2_ and _Node 3_)
+
+WHEN . . . _Node 3_ goes down . . . _Node 1_ and _Node 2_ continue to run _Replication Id 1_, _Replication Id 2_ and _Replication Id 3_
+--
+====
+=====
+
+== Monitoring Node Distribution
+
+Use the __replicationStatus_ endpoint to access information about which replications are running on which nodes -- see: {xref-sgw-ep-admin-api-replication-repstatus}
+  |  {xref-sgw-ep-admin-api-replication-repstatus-set}
+
+This information is also collected and available in the log files.
