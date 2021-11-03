@@ -1,11 +1,11 @@
 
-[[_database_configuration_model]]
-=== database_configuration_model
+[[_database]]
+=== database
 
 
 // tag::content[]
 
-The `database_configuration_model` object defines the configuration of a given Sync Gateway database.
+The `database` object defines the configuration of a given Sync Gateway database.
 
 
 [options="header", cols=".^3a,.^11a,.^4a"]
@@ -18,11 +18,11 @@ __optional__|Use `name` to define the Sync Gateway database name.
 
 Change initiates database restart|string
 |**sync** +
-__optional__||<<_sync_function_model,sync_function_model>>
+__optional__||<<_sync_function,sync_function>>
 |**users** +
-__optional__|Defines the user(s) for this Sync Gateway database|<<_user_configuration_model,user_configuration_model>>
+__optional__|Defines the user(s) for this Sync Gateway database|<<_user,user>>
 |**roles** +
-__optional__|Defines the role(s) for this Sync Gateway database|<<_role_configuration_model,role_configuration_model>>
+__optional__|Defines the role(s) for this Sync Gateway database|<<_role,role>>
 |**revs_limit** +
 __optional__|This property defines the maximum depth to which a document's revision tree can grow; its value governs the point at which to prune a document's revision tree.
 
@@ -119,12 +119,12 @@ When an event is not added to the event queue, but is instead discarded, a warni
 
 You can configure Sync Gateway to log information about event handling, by including either the log key `Event` or `Events+` in the `Log` property in your Sync Gateway configuration file. `Events+` is more verbose.
 
-See also: {webhooks–xref}|<<_event_handler_model,Event Handler Model>>
+See also: {webhooks–xref}|<<_event_handler_model,Event Handler>>
 |**allow_empty_password** +
 __optional__|Use `allow_empty_password` to define whether to Sync Gateway users can be created with empty passwords. +
 **Default** : `false`|boolean
 |**cache** +
-__optional__|The `cache` group of properties define the configuration for this database's channel and revision caches|<<_cache_model,Cache Model>>
+__optional__|The `cache` group of properties define the configuration for this database's channel and revision caches|<<_cache_model,Cache>>
 |**offline** +
 __optional__|Use `offline` to determine whether Sync Gateway should start the database in offline mode.
 
@@ -135,7 +135,7 @@ __optional__|This group comprises an unrelated collection of unsupported propert
 
 NOTE: Due to the unsupported nature of these options, there is no guarantee on their continued availability.|<<_unsupported_properties_model,Unsupported Properties Model>>
 |**oidc** +
-__optional__|Use the `oidc` object properties to defined any OpenID Connect providers and associated credentials.|<<_oidc_group_model,OIDC Group Model>>
+__optional__|Use the `oidc` object properties to defined any OpenID Connect providers and associated credentials.|<<_oidc_group_model,OIDC Group>>
 |**old_rev_expiry_seconds** +
 __optional__|Use the `old_rev_expiry_seconds` property to define the number of seconds before old revisions are removed from Couchbase Server buckets.|integer
 |**view_query_timeout_secs** +
@@ -267,7 +267,7 @@ Delta Sync is disabled by default on the Sync Gateway. You can enable it through
 If delta sync is enabled on Sync Gateway, then Couchbase Lite clients will switch to using delta sync automatically.
 Similarly, if delta sync is disabled on Sync Gateway, clients will switch to normal mode.
 
-Changes initiate a database reload|<<_delta_sync_model,Delta Sync Model>>
+Changes initiate a database reload|<<_delta_sync_model,Delta Sync>>
 |**compact_interval_days** +
 __optional__|Use `` property to define the interval between scheduled compaction runs (in days).
 
@@ -321,13 +321,13 @@ Default 2 592 000 seconds (30 days) +
 |===
 
 [[_event_handler_model]]
-**Event Handler Model**
+**Event Handler**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
 |===
 |Name|Description|Schema
 |**document_changed** +
-__optional__|The configuration for the action to perform when a document change is detected.|< <<_document_changed_model,Document Changed Model>> > array
+__optional__|The configuration for the action to perform when a document change is detected.|< <<_document_changed_model,Document Changed>> > array
 |**db_state_changed** +
 __optional__|Use the `db_state_changed` property group to define the actions to perform when a `db_state` change is detected.|< <<_db_state_changed_model,db_state_changed model>> > array
 |**max_processes** +
@@ -348,7 +348,7 @@ The default value should work well in the majority of cases. You should not need
 |===
 
 [[_document_changed_model]]
-**Document Changed Model**
+**Document Changed**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
 |===
@@ -405,21 +405,21 @@ __optional__|Defines the URL to post to (for a webhook event handler).|string
 |===
 
 [[_cache_model]]
-**Cache Model**
+**Cache**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
 |===
 |Name|Description|Schema
 |**rev_cache** +
-__optional__|Use the `rev_cache` properties to configure the revision cache|<<_revision_cache_model,Revision Cache Model>>
+__optional__|Use the `rev_cache` properties to configure the revision cache|<<_revision_cache_model,Revision Cache>>
 |**channel_cache** +
 __optional__|Use the `channel_cache` group's properties to configure the database's channel cache
 
-Changes initiate a database restart|<<_channel_cache_model,Channel Cache Model>>
+Changes initiate a database restart|<<_channel_cache_model,Channel Cache>>
 |===
 
 [[_revision_cache_model]]
-**Revision Cache Model**
+**Revision Cache**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
 |===
@@ -444,7 +444,7 @@ It is generally not recommended to set this property, unless advised by Couchbas
 |===
 
 [[_channel_cache_model]]
-**Channel Cache Model**
+**Channel Cache**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
 |===
@@ -505,14 +505,14 @@ __optional__|Limit used for channel queries|integer
 |===
 |Name|Description|Schema
 |**api_endpoints** +
-__optional__||<<_database_configuration_model_api_endpoints,api_endpoints>>
+__optional__||<<_database_api_endpoints,api_endpoints>>
 |**oidc_tls_skip_verify** +
 __optional__|Unsupported option for use in development and testing environment ONLY
 
 `oidc_tls_skip_verify` can be used to enable the use of self-signed certs for OpenID Connection testing. +
 **Default** : `false`|boolean
 |**oidc_test_provider** +
-__optional__|Config settings for OIDC test provider|<<_database_configuration_model_oidc_test_provider,oidc_test_provider>>
+__optional__|Config settings for OIDC test provider|<<_database_oidc_test_provider,oidc_test_provider>>
 |**remote_config_tls_skip_verify** +
 __optional__|Unsupported option for use in development and testing environment ONLY
 
@@ -524,14 +524,14 @@ __optional__|Unsupported option for use in development and testing environment O
 `sgr_tls_skip_verify` can be used to skip validation of TLS certs used for Inter-Sync Gateway Replication. +
 **Default** : `false`|boolean
 |**user_views** +
-__optional__|Configuration settings for user views|<<_database_configuration_model_user_views,user_views>>
+__optional__|Configuration settings for user views|<<_database_user_views,user_views>>
 |**warning_thresholds** +
-__optional__||<<_warning_threshold_model,Warning Threshold Model>>
+__optional__||<<_warning_threshold_model,Warning Threshold>>
 |**disable_clean_skipped_query** +
 __optional__|Clean skipped sequence processing bypasses final check|boolean
 |===
 
-[[_database_configuration_model_api_endpoints]]
+[[_database_api_endpoints]]
 **api_endpoints**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
@@ -543,7 +543,7 @@ __optional__|Determines whether Couchbase buckets can be flushed using the Admin
 Use _only_ for testing purposes if it is necessary to flush data in between tests to start with a clean DB.|boolean
 |===
 
-[[_database_configuration_model_oidc_test_provider]]
+[[_database_oidc_test_provider]]
 **oidc_test_provider**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
@@ -555,7 +555,7 @@ __optional__|Unsupported option for use in development and testing environment O
 Determines whether the oidc_test_provider endpoints should be exposed on the public API.|boolean
 |===
 
-[[_database_configuration_model_user_views]]
+[[_database_user_views]]
 **user_views**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
@@ -568,7 +568,7 @@ Use to determine whether pass-through view query is supported through public API
 |===
 
 [[_warning_threshold_model]]
-**Warning Threshold Model**
+**Warning Threshold**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
 |===
@@ -586,7 +586,7 @@ __optional__|Number of bytes to be used as a threshold for XATTR size limit warn
 |===
 
 [[_oidc_group_model]]
-**OIDC Group Model**
+**OIDC Group**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
 |===
@@ -597,21 +597,21 @@ __optional__|Use this `default_provider` property to identify the provider to us
 If only one provider is specified in the providers map, then that is used as the default provider.
 If multiple providers are defined and default_provider is not specified, requests to `/db/_oidc` must specify the provider parameter.|string
 |**providers** +
-__optional__|Include an entry for each OIDC provider|<<_oidc_providers_model,OIDC Providers Model>>
+__optional__|Include an entry for each OIDC provider|<<_oidc_providers_model,OIDC Providers>>
 |===
 
 [[_oidc_providers_model]]
-**OIDC Providers Model**
+**OIDC Providers**
 
 [options="header", cols=".^3a,.^4a"]
 |===
 |Name|Schema
 |**this_provider** +
-__optional__|<<_oidc_provider_model,OIDC Provider Model>>
+__optional__|<<_oidc_provider_model,OIDC Provider>>
 |===
 
 [[_oidc_provider_model]]
-**OIDC Provider Model**
+**OIDC Provider**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
 |===
@@ -680,7 +680,7 @@ Set `&quot;allow_unsigned_provider_tokens&quot;: true` to opt-in to accepting un
 |===
 
 [[_delta_sync_model]]
-**Delta Sync Model**
+**Delta Sync**
 
 [options="header", cols=".^3a,.^11a,.^4a"]
 |===

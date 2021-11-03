@@ -1121,11 +1121,11 @@ definitions:
         description: |+
           Unused item
 
-  database_configuration_model:
+  database:
     type: object
-    title: "Database Configuration Model"
+    title: "Database"
     description: |+
-      The `database_configuration_model` object defines the configuration of a given Sync Gateway database.
+      The `database` object defines the configuration of a given Sync Gateway database.
     properties:
 
       bucket_configuration:
@@ -1143,21 +1143,21 @@ definitions:
           Change initiates database restart
 
       sync:
-        $ref: '#/definitions/sync_function_model'
+        $ref: '#/definitions/sync_function'
 #
       # users:
       #   type: object
-      #   title: user_configuration_model
+      #   title: user
       #   description: |+
       #     Defines the user(s) for this Sync Gateway database
-      #   $ref: "#/definitions/user_configuration_model"
+      #   $ref: "#/definitions/user"
 
       # roles:
       #   type: object
-      #   title: role_configuration_model
+      #   title: role
       #   description: |+
       #     Defines the role(s) for this Sync Gateway database
-      #   $ref: "#/definitions/role_configuration_model"
+      #   $ref: "#/definitions/role"
 
       guest:
         type: object
@@ -1277,7 +1277,7 @@ definitions:
 
       event_handlers:
         type: object
-        title: "Event Handler Model"
+        title: "Event Handler"
         description: |+
           Webhooks in Sync Gateway are designed to minimize performance impacts on Sync Gateway's regular processing.
 
@@ -1299,7 +1299,7 @@ definitions:
             type: array
             items:
               # type: object
-              title: "Document Changed Model"
+              title: "Document Changed"
               properties:
                 filter:
                   type: string
@@ -1405,14 +1405,14 @@ definitions:
 
       cache:
         type: object
-        title: "Cache Model"
+        title: "Cache"
         description: |+
           The `cache` group of properties define the  configuration for this database's channel and revision caches
 
         properties:
           rev_cache:
             type: object
-            title: "Revision Cache Model"
+            title: "Revision Cache"
             description: |+
               Use the `rev_cache` properties to configure the revision cache
             properties:
@@ -1442,7 +1442,7 @@ definitions:
 
           channel_cache:
             type: object
-            title: "Channel Cache Model"
+            title: "Channel Cache"
             description: |+
               Use the `channel_cache` group's properties to configure the database's channel cache
 
@@ -1608,7 +1608,7 @@ definitions:
 
           warning_thresholds:
             type: object
-            title: "Warning Threshold Model"
+            title: "Warning Threshold"
             properties:
               access_and_role_grants_per_doc:
                 type: boolean
@@ -1638,7 +1638,7 @@ definitions:
 
       oidc:
         type: object
-        title: "OIDC Group Model"
+        title: "OIDC Group"
         description: |+
           Use the `oidc` object properties to defined any OpenID Connect providers and associated credentials.
         properties:
@@ -1651,12 +1651,12 @@ definitions:
               If multiple providers are defined and default_provider is not specified, requests to ```/db/_oidc``` must specify the provider parameter.
 
           providers:
-            title: "OIDC Providers Model"
+            title: "OIDC Providers"
             description: Include an entry for each OIDC provider
             type: object
             properties:
               this_provider:
-                title: "OIDC Provider Model"
+                title: "OIDC Provider"
                 type: object
                 properties:
 
@@ -1917,7 +1917,7 @@ definitions:
 
       delta_sync:
         type: object
-        title: "Delta Sync Model"
+        title: "Delta Sync"
         description: |+
           *NOTE:* Delta Sync is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
 
@@ -2060,7 +2060,7 @@ definitions:
 
           Default 2 592 000 seconds (30 days)
 
-  import_filter_model:
+  import_filter:
     type: string
     description: |+
       Provide the JavaScript filter function used to determine whether a document written to the Couchbase Server bucket is made available to Couchbase Mobile clients (imported).
@@ -2078,7 +2078,7 @@ definitions:
 
     default: function(doc) {return false;}
 
-  role_configuration_model:
+  role:
     title: "Role Configuration Model"
     type: object
     description: |+
@@ -2107,7 +2107,7 @@ definitions:
           type: string
 
 
-  replication_configuration_model:
+  replication:
     type: object
     description: |+
       This replication request message body is a JSON document that comprises all the properties required to upsert a replication.
@@ -2477,7 +2477,7 @@ definitions:
             type: string
 
 
-  sync_function_model:
+  sync_function:
     type: string
     description: |+
       Use the `sync` property to provision a Javascript Sync function that determines which users can access which documents.
@@ -2489,7 +2489,7 @@ definitions:
     default: |+
       `function(doc, oldDoc) {channel(doc.channels);}`
 
-  user_configuration_model:
+  user:
     type: object
     title: "User Configuration Model"
     description: |+
@@ -2622,7 +2622,7 @@ parameters:
     in: body
     required: true
     schema:
-      $ref: '#/definitions/database_configuration_model'
+      $ref: '#/definitions/database'
 
   bootstrap-logging:
     name: bootstrap logging setting
@@ -2636,7 +2636,7 @@ parameters:
     in: body
     required: true
     schema:
-      $ref: '#/definitions/import_filter_model'
+      $ref: '#/definitions/import_filter'
 
   replication_id_upsert:
     in: path
@@ -2652,14 +2652,14 @@ parameters:
     name: replication
     description: The message body is a JSON document that defines an inter-Sync Gateway replication.
     schema:
-      $ref: '#/definitions/replication_configuration_model'
+      $ref: '#/definitions/replication'
 
   role_body_upsert:
     in: body
     name: role
     description: The message body is a JSON document that contains the following objects.
     schema:
-      $ref: '#/definitions/role_configuration_model'
+      $ref: '#/definitions/role'
 
   role_name:
     in: path
@@ -2685,14 +2685,14 @@ parameters:
     in: body
     required: true
     schema:
-      $ref: '#/definitions/sync_function_model'
+      $ref: '#/definitions/sync_function'
 
   user_body_upsert:
     in: body
     name: body
     description: Request body
     schema:
-      $ref: '#/definitions/user_configuration_model'
+      $ref: '#/definitions/user'
 
 
 responses:
@@ -2716,13 +2716,13 @@ responses:
     description: OK
     # type: object
     schema:
-      $ref: '#/definitions/database_configuration_model'
+      $ref: '#/definitions/database'
 
   '200-import-filter':
     description: OK
     # type: object
     schema:
-      $ref: '#/definitions/import_filter_model'
+      $ref: '#/definitions/import_filter'
 
   '200-role':
     description: OK
