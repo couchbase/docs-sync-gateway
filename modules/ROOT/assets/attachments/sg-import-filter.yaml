@@ -2,17 +2,14 @@ properties:
   import_filter:
     type: string
     description: |+
-      Provide the JavaScript filter function used to determine whether a document written to the Couchbase Server bucket is made available to Couchbase Mobile clients (imported).
+      The `import_filter` controls whether a document written to the Couchbase Server bucket should be made available to Couchbase Mobile clients (that is, whether it ought to be imported).
 
-      The function takes the document body as parameter and must return a boolean to indicate whether the document should be imported or not.
+      You should provision the filter as a Javascript function in the request body of a call to the Admin Rest API endpoint ```put {db}/_config/import_filter```.
 
-      The function is provided in the API body as raw Javascript.
+      Set the header's content type to ```content-Type: application/javascript```.
 
-      ```function(doc) {
-            if (doc.type != "mobile") {
-              return false
-            }
-            return true
-          }```
+      The function takes the document body as parameter and is expected to return a boolean to indicate whether the document should be imported.
 
-    default: function(doc) {return false;}
+      If you do not provide a filter function then no filter will be applied and ALL documents will be imported.
+    default: "No filter"
+    example: "function(doc) {if (doc.type != 'mobile') {return false} return true}"
