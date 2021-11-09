@@ -44,22 +44,17 @@ include::partial$block-abstract.adoc[]
 
 == Introduction
 
-The initial import process can take considerable time to complete for clusters with a large amount of data.
-
+Sync Gateway's initial import process can take a considerable time to complete for clusters with a large amount of data.
 The process can be made more efficient by using an _Import filter_.
 
+Without a filter (the default), Sync Gateway imports all documents.
 
-== Introduction
-For clusters with a large amount of data, the initial import process can take considerable time to complete.
-Therefore, to get started with a cluster which contains a large number of pre-existing documents, we recommend to use an `import_filter` to reduce the initial import processing time.
 
 == Function Provision
 
-include::partial$common-cfg-ext-javascript.adoc[tag=intro]
+Use the {rest-api-admin--xref--database-configuration} Admin Rest API endpoint {rest-api-admin--xref--import-filter} to provision an import filter for a database using the `application/javascript` mime type.
 
-You can learn more about this property ($db.sync) in the Configuration Schema Reference -- see: {configuration-properties--xref--databases-import-filter}.
-
-include::partial$common-cfg-ext-javascript.adoc[tag=config-full]
+If you are using legacy configuration then, you need to include it in your configuration file, see: {configuration-properties--xref--databases-import-filter}.
 
 
 == Configuration
@@ -69,9 +64,29 @@ include::partial$common-cfg-ext-javascript.adoc[tag=config-full]
 .Using an Import Filter
 ====
 
-[source,json]
+[{tabs}]
+=====
+
+API::
++
+--
+
+[source,bash]
 ----
 include::{example-cfg}[tag="import-filter-config"]
+----
+
+<.> You will need to provide authentication in the call; unless it is disabled (not recommended in production environment).
+
+--
+
++
+Legacy::
++
+--
+[source,json]
+----
+include::{example-cfg}[tag="import-filter-config-legacy"]
 ----
 
 Configuration properties:
@@ -82,6 +97,9 @@ Configuration properties:
 <4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with GSI/N1QL indexing -- see {xref-sgw-pg-indexing}.
 If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
 <5> Only import documents which have a `type` property equal to `mobile`.
+
+--
+=====
 ====
 
 
