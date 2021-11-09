@@ -36,7 +36,7 @@ include::partial$_std-hdr-sgw.adoc[]
 
 :param-abstract:
 :topic-group: Application Deployment
-:param-related: {get-started-prepare--xref} | {get-started-install--xref} | {xref-sgw-pg-release-notes}
+:param-related: {get-started-prepare--xref} | {get-started-install--xref} | {release-notes--xref}
 include::partial$block-abstract.adoc[]
 
 == Upgrade Approaches
@@ -54,7 +54,8 @@ Those steps are then repeated for each node in the {sgw} cluster.
 
 === Using Persistent Configuration
 
-The use of 3.0 BETA's Persistent Configuration feature is strongly recommended and it is the default operational mode when starting {sgw}.
+The use of 3.0 BETA's Persistent Configuration feature is strongly recommended.
+It is the default operational mode when starting {sgw}.
 
 The feature provides a smooth upgrade path for existing users by automatically converting their existing configuration files to the new persistent configuration format.
 
@@ -64,7 +65,8 @@ The feature provides a smooth upgrade path for existing users by automatically c
 The migration to 3.0 BETA configuration is a ONE WAY process; to continue using legacy-mode configuration see: <<lbl-3-0-upgrade-opt-out>>
 --
 
-Just startup a {sgw} node using your existing configuration properties file and {sgw} will take the appropriate upgrade path as shown in <<tbl-enhancedcfg>>.
+Just startup a {sgw} node using your existing configuration properties file.
+{sgw-t} will take the appropriate upgrade path as shown in <<tbl-enhancedcfg>>.
 
 Before commencing your upgrade consider your requirements for
 <<lbl-3-0-config-grps>>,
@@ -98,7 +100,7 @@ Before commencing your upgrade consider your requirements for grouping {sgw} nod
 
 If you want the {sgw} to associate with a specific configuration group Id, you must add the `bootstrap_group_id` value to the configuration file prior to startup -- see: {bootstrap-schema--xref--bootstrap-group-id}
 
-Failing to do so may result in the configuration being overridden by one configured on  a different {sgw} node that has already started and registered its configuration.
+Failing to do so may result in the configuration being overridden by one configured on a different {sgw} node that has already started and registered its own configuration.
 
 [#lbl-3-0-config-tls]
 === Secure Server Connection
@@ -133,7 +135,7 @@ Downtime: No -- a rolling upgrade +
 
 === Steps
 
-. Upgrade one node in the cluster, and wait for it to be reachable via the REST API (for example at \http://localhost:4985/).
+. Upgrade one node in the cluster, and wait for it to be reachable via the REST API (for example, at \http://localhost:4985/).
 . Upgrade the rest of the nodes in the cluster.
 . Clean up obsolete views:
 ** *Optional* Issue a call to `/_post_upgrade?preview=true` on any node to preview which design documents will be removed.
@@ -352,13 +354,13 @@ Caveats:
 == SG Replicate to Inter-Sync Gateway
 
 === Out of the box behavior
-Any {configuration-properties--xref--db-replications} ({configuration-properties--xref--db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {configuration-properties--xref--databases} section will run using the SG{nbsp}Replicate protocol.
+Any {configuration-properties-legacy--xref--db-replications} ({configuration-properties-legacy--xref--db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {configuration-properties-legacy--xref--databases} section will run using the SG{nbsp}Replicate protocol.
 This is subject to any compatibility constraints defined in the {compatibility--xref}.
 
 Existing replications implementing custom {legacy-sgreplicate-resolving-conflicts--xref} strategies (via the REST endpoint) will continue to function in the same manner as for SG{nbsp}Replicate replications after upgrade
 
 === Upgrading existing replications
-To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replication, reconfigure them using Inter-Sync Gateway Replication's {configuration-properties--xref--db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
+To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replication, reconfigure them using Inter-Sync Gateway Replication's {configuration-properties-legacy--xref--db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
 
 === Post-upgrade behavior
 
@@ -373,7 +375,7 @@ The `replicationId` is used to ensure that any replications previously setup wit
 The restart point will be the last checkpoint used, unless over-ridden.
 
 Over-riding restart point::
-To restart a sync from zero: After the upgrade reconfigure the inter-Sync Gateway replication {configuration-properties--xref--db-replications} to use a different {configuration-properties--xref--db-rep-id}
+To restart a sync from zero: After the upgrade reconfigure the inter-Sync Gateway replication {configuration-properties-legacy--xref--db-replications} to use a different {configuration-properties-legacy--xref--db-rep-id}
 
 === Constraints
 
@@ -527,13 +529,13 @@ Strategy::
 * Upgrade sequence
 .. Stop SG{nbsp}Replicate replications
 // .. Remove the SG{nbsp}Replicate replication configuration
-.. Add the Inter-Sync Gateway replication configuration, including Javascript function as {configuration-properties--xref--db-rep-resolver}
+.. Add the Inter-Sync Gateway replication configuration, including Javascript function as {configuration-properties-legacy--xref--db-rep-resolver}
 .. Upgrade each cluster to Hydrogen
 * Restart Outcomes
 ** When the active cluster is restarted it will automatically switch to Inter-Sync Gateway Replication
 ** Replication will continue from the last checkpoint, unless over-ridden.
 ** {enterprise} The replication will distribute automatically
-* Conflict resolution -- Conflicts will be handled by the function  specified as the as {configuration-properties--xref--db-rep-resolver}
+* Conflict resolution -- Conflicts will be handled by the function  specified as the as {configuration-properties-legacy--xref--db-rep-resolver}
 * Upgrade Constraint -- The `allow_conflicts` flag is ignored for any inter-Sync Gateway replication replications configured.
 ====
 --

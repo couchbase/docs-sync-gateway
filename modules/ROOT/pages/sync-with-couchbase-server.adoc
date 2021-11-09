@@ -25,10 +25,20 @@ include::partial$block-standard-footnotes.adoc[tags=sgw1x5;cbs5x0]
 include::partial$block-caveats.adoc[tag="cbs6.0ke-xattrs"]
 
 == Introduction
-Sync Gateway uses the <<sba-feature>> and <<import-process>> features to synchronize document changes made through Couchbase Server with those made by Sync Gateway and Couchbase Lite clients, and vice versa {fn-sgw}.
 
-* Shared Bucket Access -- this is mechanism that enables Couchbase Server's SDK applications, N1QL Queries, Sync Gateway and  Couchbase Lite applications to read and write to the same bucket simultaneously -- see: <<sgw-paths>> and the configuration property {enable-sba-config-item}
-* Import Processing -- is the mechanism by which Sync Gateway becomes aware of non-Sync Gateway data changes and then obtains the mobile metadata it requires to replicate those changes -- see: <<import-process>>.
+{sgw-t} will automatically sync database changes if {configuration-schema-database--xref--import-docs} and {configuration-schema-database--xref--enable-xattrs} are set 'true'.
+
+* Enable_Xattrs (previously known as Enable Shared Bucket Access)
++
+This setting ensures that both Sync Gateway and Couchbase Server can read and write to the same bucket simultaneously And that Sync Gateway can access Couchbase Server document XATTRS +
+See: <<sgw-paths>> and {configuration-schema-database--xref--enable-xattrs}.
+
+* Import Docs
++
+Setting this property true ensures that the {sgw} node performs import processing, obtaining the mobile metadata it requires to replicate changes -- see: <<import-process>>.
+
+You can configure both these properties using the Admin Rest API {configuration-schema-database--xref} endpoint.
+
 
 [#sba-feature]
 == Shared Bucket Access
@@ -38,14 +48,15 @@ Sync Gateway uses the <<sba-feature>> and <<import-process>> features to synchro
 image::shared-bucket-access.png[]
 
 === Documents
+
 With bucket-sharing enabled, Couchbase Server documents can be inserted directly (using _N1QL_ or _SDKs_) or by using Sync Gateway's {rest-api--xref}.
 
 Sync Gateway {fn-sgw1x5} creates the metadata it needs by abstracting it from the SDK or N1QL applications reading and writing data directly to Couchbase Server buckets. It uses Couchbase Server XATTRs {fn-cbs5x0} to store that metadata into an external document fragment -- see {xref-svr-pg-xattrs}.
 
-The REST API will also include the following behavioral changes:
+// The REST API will also include the following behavioral changes:
 
-* Purging -- {xref-sgw-ep-admin-api-document-post-purge} removes the document and its associated extended attributes
-* Updating -- {xref-sgw-ep-admin-api-document-put-docid} will tombstone the active revision
+// * Purging -- {xref-sgw-ep-admin-api-document-post-purge} removes the document and its associated extended attributes
+// * Updating -- {xref-sgw-ep-admin-api-document-put-docid} will tombstone the active revision
 
 === Blobs and Attachments
 
@@ -71,7 +82,7 @@ include::partial$blocklinks-cbl.adoc[]
 // * xref:couchbase-lite:csharp:learn/csharp-blob.adoc[C#]
 
 .Using a WebApp
-Attachments can be accessed through Sync Gateway's REST API using the xref:rest-api.adoc#/attachment/get\__db___doc___attachment_[+/\{tkn-db}/\{doc}/\{attachment}+] endpoint.
+Attachments can be accessed through Sync Gateway's REST API using the xref:rest-api.adoc#/attachment/GetAttachment_[+/{tkn-db}/{doc}/{attachment}+] endpoint.
 
 === Tombstone Revisions
 
