@@ -105,7 +105,7 @@ properties:
         description: |+
           Use the `import_docs` property to define whether the Sync Gateway node should automatically import Couchbase Server documents;
 
-          This property works in conjunction with the `enable_xattrs` property, which enables Xattrs.
+          This property works in conjunction with the `enable_shared_bucket_access` property, which enables Xattrs.
 
           Since Sync Gateway 2.7, all Sync Gateway nodes can be configured as import nodes. This results in performance benefits as the import process is shared across all Sync Gateway nodes.
           Prior to version 2.7, `import_docs` can only be set to `true` on a single node.
@@ -663,18 +663,18 @@ properties:
           The default is `7776000` seconds (90 days).
         default: 7776000
 
-      enable_xattrs:
+      enable_shared_bucket_access:
         type: boolean
         default: true
         description: |+
           **Deprecated at 3.0**
 
-          use the `enable_xattrs` property to define whether to use extended attributes to store sync metadata; this is required to enable mobile-to-server data sync (_mobile convergence_).
+          use the `enable_shared_bucket_access` property to define whether to use extended attributes to store sync metadata; this is required to enable mobile-to-server data sync (_mobile convergence_).
 
           You can learn more about this functionality in [Syncing with Couchbase Server](sync-with-couchbase-server.html)
 
           This property works in conjunction with the  ```import_docs``` property, which determines whether a node participates in import processing.
-          Leave `enable_xattrs` `true` on all nodes participating in such a configuration.
+          Leave `enable_shared_bucket_access` `true` on all nodes participating in such a configuration.
 
           On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
 
@@ -920,7 +920,7 @@ properties:
 
           *Dependencies:*
             The `user_xattr_key` feature requires that --
-            - `enable_xattrs` be = `true`
+            - `enable_shared_bucket_access` be = `true`
             - xattrs be supported on the connected Couchbase Server
 
           Change initiates a database restart
