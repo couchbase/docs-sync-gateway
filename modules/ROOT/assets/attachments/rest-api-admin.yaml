@@ -289,7 +289,7 @@ paths:
       operationId: 'db_config_create'
       summary: Create a Sync Gateway Database
       tags:
-      - 'Database Configuration'
+      - 'Database Management'
       description: |+
         Use this method to create a new Sync Gateway database.
 
@@ -1452,7 +1452,7 @@ paths:
       responses:
         200:
           description: Success and returns the revtree as plain text.
-  /_role:
+  /{db}/_role:
     get:
       tags:
       - 'Database Security'
@@ -1475,6 +1475,7 @@ paths:
       summary: Role
       description: This request creates a new role
       parameters:
+      - $ref: '#/parameters/db'
       - $ref: '#/parameters/role'
       responses:
         201:
@@ -1483,13 +1484,14 @@ paths:
           $ref: '#/responses/Unauthorized'
         409:
           $ref: '#/responses/Conflict'
-  /_role/{name}:
+  /{db}/_role/{name}:
     get:
       tags:
       - 'Database Security'
       summary: Get role
       description: Request a specific role by name.
       parameters:
+      - $ref: '#/parameters/db'
       - $ref: '#/parameters/role_name'
       responses:
         200:
@@ -1522,6 +1524,7 @@ paths:
       description: |+
         Use this convenience endpoint to upsert a Sync Gateway role
       parameters:
+      - $ref: '#/parameters/db'
       - $ref: '#/parameters/role_name'
       - $ref: '#/parameters/role_body_upsert'
       responses:
@@ -1537,6 +1540,7 @@ paths:
       summary: Deletes the role
       description: This request deletes the role with the specified name
       parameters:
+      - $ref: '#/parameters/db'
       - $ref: '#/parameters/role_name'
       responses:
         200:
@@ -1643,12 +1647,14 @@ paths:
       responses:
         200:
           description: User session deleted.
-  /_user/:
+  /{db}/_user/:
     get:
       tags:
       - 'Database Security'
       summary: Retrieves all users
       description: This request returns all users
+      parameters:
+      - $ref: '#/parameters/db'
       responses:
         200:
           description: The message body contains the list of users in a JSON array. Each element of the array is a string representing the name of a user in the specified database.
@@ -1665,6 +1671,7 @@ paths:
       summary: Create a new user
       description: This request creates a new user
       parameters:
+      - $ref: '#/parameters/db'
       - $ref: '#/parameters/user'
       responses:
 
@@ -1674,13 +1681,14 @@ paths:
           $ref: '#/responses/Unauthorized'
         409:
           $ref: '#/responses/Conflict'
-  /_user/{name}:
+  /{db}/_user/{name}:
     get:
       tags:
       - 'Database Security'
       summary: Retrieve a User
       description: This request returns information about the specified user.
       parameters:
+      - $ref: '#/parameters/db'
       - $ref: '#/parameters/name'
 
       responses:
@@ -1699,6 +1707,7 @@ paths:
       description: |+
         Use this method to create or update a user
       parameters:
+      - $ref: '#/parameters/db'
       - $ref: '#/parameters/name'
       - $ref: '#/parameters/user_body_upsert'
       responses:
@@ -1715,6 +1724,7 @@ paths:
       summary: Delete a User
       description: This request deletes the user with the specified name
       parameters:
+      - $ref: '#/parameters/db'
       - $ref: '#/parameters/name'
       responses:
         200:
@@ -6427,11 +6437,11 @@ tags:
     description: Returns bootstrap settings and updates logging options
 
   - name: 'Database Configuration'
-    description: Create and configure sync gateway databases
+    description: Configure sync gateway databases
   - name: 'Database Management'
-    description: Manage sync gateway databases
+    description: Create and manage sync gateway databases
   - name: 'Database Security'
-    description: Create and manage users and roles
+    description: Create and manage database users and roles
   - name: 'Access Control'
     description: Convenience API for Sync function upsert
   - name: Replication
