@@ -251,14 +251,15 @@ properties:
             description: |+
               List of allowed origins; use a wildcard character (*) to allow access from everywhere.
 
-              Note that the wildcard (*) cannot be used if you plan to authenticate users as well (by using the `withCredentials` flag on the client side).
-              In this case, the explicit domain(s) must be specified in the `origin` and `login_origin` properties of the configuration file.
+              **Note** that the wildcard (*) cannot be used if you plan to authenticate users as well (by using the `withCredentials` flag on the client side).
+              Instead specify the explicit domain(s) in the `origin` and `login_origin` properties of the configuration file.
 
               Change requires HTTP server restart
             items:
               origin:
                 type: string
                 description: An allowed origin array element
+
       hide_product_version:
         type: boolean
         default: 'false'
@@ -267,18 +268,12 @@ properties:
           This setting does not apply to the Admin REST API.
 
           This customization of the Sync Gateway response avoids revealing the version of the Sync Gateway to HTTP requests to the root path.
+
       https:
         type: object
         description: Group in which to specify any API HTTPS configuration properties
         properties:
-          # allow_insecure_tls_connections:
-          #   type: boolean
-          #   default: 'false'
-          #   description: |+
-          #     Secure TLS connections are used by default for all REST API dialogs.
 
-          #     If necessary, for testing purposes, you can disable this by setting this property to ```true```.
-          #     *Note* tha insecure connections should NOT be used in production deployments.
           tls_minimum_version:
             type: string
             default: 'tlsv1.2'
@@ -347,44 +342,24 @@ properties:
       server_read_timeout:
         type: integer
         description: |+
-          Maximum duration in seconds before timing out the read of an HTTP(S) request. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
+          Maximum duration in seconds before timing out the read of an HTTP(S) request.
+
+          This property only effects the HTTP connections on the Sync Gateway public and admin ports.
+
+          Sync Gateway is written in the Go programming language, therefore the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
 
           Change requires HTTP server restart
       server_write_timeout:
         type: integer
         description: |+
-          Maximum duration in seconds before timing out the write of an HTTP(S) response. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
+          Maximum duration in seconds before timing out the write of an HTTP(S) response.
+
+          This property only effects the HTTP connections on the Sync Gateway public and admin ports.
+
+          Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
 
           Change requires HTTP server restart
-      # tls:
-      #   type: object
-      #   description: |+
-      #     Holding object for TLS settings
-      #   properties:
-          # tls_minimum_version:
-          #   type: string
-          #   default: 'tlsv1.3'
-          #   summary: The minimum allowable TLS version for the REST APIs
-          #   description: |+
-          #     Enforce a minimum TLS version to be used in replications with Couchbase Lite.
 
-          #     Possible values are:
-
-          #     - "tlsv1"
-          #     - "tlsv1.1"
-          #     - "tlsv1.2"
-          #     - "tlsv1.3"
-
-          # tls_cert_path:
-          #   type: string
-          #   summary: The TLS certificate file to use for the REST APIs
-          #   description: |+
-          #     Absolute or relative path on the filesystem to the TLS certificate file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
-          # tls_key_path:
-          #   type: string
-          #   summary: The TLS key file to use for the REST APIs
-          #   description: |+
-          #     Absolute or relative path on the filesystem to the TLS private key file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
   logging:
     type: object
     description: |+
@@ -834,7 +809,11 @@ properties:
         type: integer
         default: 6
         description: |+
-          This sets the 'deflate' compression level to use when compressing messages sent via the WebSocket protocol, where 0 means no compression, 1 means fastest (least) compression, and 9 means slowest (most) compression.
+          This sets the 'deflate' compression level to use when compressing messages sent via the WebSocket protocol, where:
+
+          -- 0 means no compression,
+          -- 1 means fastest (least) compression
+          -- 9 means slowest (most) compression.
       max_heartbeat:
         type: integer
         default: 0
