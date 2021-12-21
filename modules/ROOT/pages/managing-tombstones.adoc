@@ -1,7 +1,9 @@
-= Managing Tombstones
+= Tombstones
+:page-aliases: learn/concept-tombstones.adoc, learn/concept-fundamentals-data-tombstones.adoc, learn/what-are-tombstones.adoc, what-are-tombstones.adoc
 :description: pass:q[Sync Gateway's _Tombstones_ are the means by which mobile clients are notified that a document has been deleted.]
 :page-edition: {release}
 :page-status:
+:page-toclevels: 2@
 :page-role:
 :page-content: conceptual
 
@@ -9,114 +11,195 @@
 include::partial$_std-hdr-sgw.adoc[]
 
 
-// BEGIN -- Page Attributes
-// END -- Page Attributes
+:fn-211: footnote:fn-211[Commencing with release 2.1.1]
+:fnref-211: footnote:fn-211[]
 
-
-// BEGIN -- Page Heading
-:topic-group: sync
+//  BEGIN -- Page Heading
+:param-abstract: pass:q[Here we introduce the concept of _Tombstones_ and their role in the  _Sync Gateway_ revision process.]
 :param-related!:
-:param-abstract!:
 include::partial$block-abstract.adoc[]
-// END -- Page Heading
+//  END -- Page Heading
 
 
-== Purging Tombstones
+== Tombstone Objects
+
+A _tombstone_ is a persistent record that an item has been deleted.
+
+Sync Gateway creates tombstones to ensure all synchronizing devices can identify that a previously existing document has now been deleted.
+This is particularly necessary in the case of devices that may not be online continuously and therefore are not syncing regularly.
+
+The actual tombstone artefact is a document revision comprising only:
+
+* The (deleted) document ID
+* A revision ID
+* A key value pair `deleted:true`.
+
+.Example tombstone artifact
+====
+[source,json]
+----
+{
+  "_deleted": true,
+  "_id": "foobar",
+  "_rev": "3-db962c6d93c3f1720cc7d3b6e50ac9df"
+}
+----
+====
+
+== Sync
+
+When mobile tombstones sync with a Couchbase Server (that is, when  `enable_shared_bucket_access: true`) they become server tombstones.
+The document body is deleted, and only the mobile sync metadata required to replicate the tombstone is retained in the mobile extended attribute.
+
+The server's `metadata purge interval` becomes an important consideration for sync'd mobile deployments.
+Because, when the server purges a tombstone (based on the `metadata purge interval`), that tombstone is no longer replicated to mobile clients.
+
+So, users should set the server's `metadata purge interval` based on their expected client replication frequency, to ensure that clients are notified of the tombstone prior to that tombstone being purged.
+
+NOTE: The default `metadata purge interval` is set to 3 days which can potentially result in tombstones being purged before all clients have had a chance to be notified.
+
+For how to tune the `metadata purge interval` on Couchbase Server, see the server documentation on:
+
+- Bucket settings [on server UI] --
+{server-manage-settings-configure-compact--xref--ui}
+- Bucket endpoint [on the REST API] -- {server-rest-api-bucket-create--xref}
+
+No matter how you sync, you will need to manage tombstone artifacts to:
+
+* Remove tombstones (manually or automatically) -- see <<lbl-tomb-purge>>
+* Clear Sync Gateway's in-memory channel caches -- see <<lbl-tomb-cache>>
+
+=== Storage Location
+
+The storage location of tombstones differs slightly depending on whether the Shared Bucket Access feature is enabled (`enable_shared_bucket_access: true`) -- see,
+<<tbl-tomb-storage>> for those differences.
+
+.Tombstone locations
+[#tbl-tomb-storage]
+[,cols="1,1,1"]
+|===
+.2+^.>h| Type of data
+// .2+^.>h| Activity
+2+^.>h|Value of `enable_shared_bucket_access``
+
+^.>|`false`
+^.>|`true`
+|Mobile metadata
+|Persisted on the document (`doc._sync`)
+|Persisted as system extended attributes (`xattr._sync`)
+
+|Tombstone
+|Persisted on the document
+|Persisted as system extended attributes (`xattr._sync`).
+
+|Additional user properties on a tombstone*
+|Persisted on the document
+|Not persisted
+
+|Additional system properties on a tombstone
+|Persisted on the document
+|Not persisted
+|===
+
+=== Document Operations
+
+Document operations have a different impact on tombstones when Shared Bucket Access is enabled/disabled.
+
+[,cols="1,1,1,1"]
+|===
+.2+^.>h| Location
+.2+^.>h| Activity
+2+^.>h|Value of `enable_shared_bucket_access``
+
+^.>|`false`
+^.>|`true`
+
+.2+^.<|Sync Gateway
+|Deleting a document
+|Creates a tombstone
+|Creates a tombstone
+
+|Purging a document
+|Removes the document and metadata
+|Removes the document and metadata
+
+.2+^.<| Couchbase Server
+|Deleting a document body in the bucket (SDK, N1QL, expiry)
+|Removes the document and metadata
+|Creates a tombstone
+
+|Purging a document's metadata
+|N/A
+|Removes the tombstone metadata
+|===
+
+
+[#lbl-tomb-purge]
+== Purging
 
 To remove tombstones, you need to purge them.
-The following tables describe how to purge tombstones (automatically or manually) and reset the Sync Gateway channel cache when Shared Bucket Access is enabled or disabled.
+The table at <<tbl-tomb-purge>> shows when tombstones are purged automatically and how to manually purge them.
 
+[#tbl-tomb-purge]
+.Purging tombstones
+[,cols="1h,2,2"]
 |===
-2+a|*Automatic purging of tombstones*
-|`enable_shared_bucket_access: false`
-|`enable_shared_bucket_access: true`
-|Tombstones are not automatically purged from the bucket.  Tombstones can be purged by setting a server expiry on tombstone documents.
-This can be easily automated via Sync Gateway using the {sync-function-api-expiry-cmd--xref} function in the Sync Function.
-The expiry time should be sufficient (perhaps a week, or a month) to allow for all other devices to sync and receive the delete notification.
+
+.2+^.>h|
+2+^.>h|Value of `enable_shared_bucket_access``
+
+^.>h|`false`
+^.>h|`true`
+
+|Automatic
+|Tombstones are not automatically purged from the bucket.
+
+Tombstones can be purged by setting a server expiry on tombstone documents.
+This can be easily automated via Sync Gateway.
+
+Use the {sync-function-api-expiry-cmd--xref} function in the Sync Function.
+
+Set the expiry time to be sufficient to allow for all other devices to sync and receive the delete notification --  perhaps a week, or a month.
 |Tombstones are automatically purged from the bucket based on the server's metadata purge interval.
-|===
 
-|===
-2+a|*Manually purging tombstones*
-|`enable_shared_bucket_access: false`
-|`enable_shared_bucket_access: true`
+|Manual
 |Tombstones can be manually removed via Sync Gateway's {rest-api-admin--pfx}#/document/post\__db___purge[+/\{tkn-db}/_purge+] endpoint, or deleting documents directly in the bucket.
 |Tombstones can be manually removed via Sync Gateway's {rest-api-admin--pfx}#/document/post\__db___purge[+/\{tkn-db}/_purge+] endpoint.
 |===
 
 Purging of tombstones is also required on Couchbase Lite.
-For example, you might decide that if a document is deleted on a Couchbase Lite client, that you want to purge the document (on that device) as soon as the delete has been successfully replicated out to Sync Gateway.
+For example, you might decide that if a document is deleted on a Couchbase Lite client, that you want to purge the document (on that device) as soon as the delete has been successfully replicated to Sync Gateway.
 
+
+[#lbl-tomb-cache]
 == Cache Ejection
 
 Deleted/expired tombstones aren't automatically ejected from Sync Gateway's in-memory channel caches.
-The following table describes how to eject Sync Gateway's cache.
+See <<tbl-tomb-cache>>, which shows when channel caches are ejected.
 
+
+[#tbl-tomb-cache]
+.Flushing Sync Gateway channel caches
+[,cols="1h,<.<2a,<.<2a"]
 |===
-|`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
 
-2+a|*For tombstones purged on Couchbase Server*
-a|
-* Restarting Sync Gateway will flush the cache
-a|
-* Restarting Sync Gateway will flush the cache.
-* Starting in 2.1.1, running the {rest-api-admin--pfx}#/database/post\__db___compact[+/\{tkn-db}/_compact+] endpoint will remove purged tombstones from the channel cache.
+.2+^.>| Tombstone +
+Purged On
+2+^.>|Value of `enable_shared_bucket_access``
 
+^|`false`
+^|`true`
 
-2+a|*For documents purged on Sync Gateway*
-a|
-* Restarting Sync Gateway will flush the cache.
+| Couchbase Server
+| Restarting Sync Gateway will flush the cache
+| * Restarting Sync Gateway will flush the cache
+* Running the {rest-api-admin--pfx}#/database/post\__db___compact[+/\{tkn-db}/_compact+] endpoint will remove purged tombstones from the channel cache {fn-211}
+
+| Sync Gateway
+a| * Restarting Sync Gateway will flush the cache.
 * Starting in 2.1.1, this is done automatically.
-a|
-* Restarting Sync Gateway will flush the cache.
+a| * Restarting Sync Gateway will flush the cache.
 * Starting in 2.1.1, this is done automatically.
-|===
-
-== Tombstone Lifecycle
-
-The storage location of tombstones differs slightly depending on whether the Shared Bucket Access feature is enabled (`enable_shared_bucket_access: true`).
-The table below describes those differences.
-
-|===
-|`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
-
-2+a|*Mobile metadata storage location*
-|Persisted on the document (`doc._sync`)
-|Persisted as system extended attributes (`xattr._sync`)
-
-2+a|*Tombstone storage location*
-|Persisted on the document
-|Persisted as system extended attributes (`xattr._sync`).
-
-2+a|*Additional user properties on a tombstone*
-|Persisted on the document
-|*Not persisted*
-
-2+a|*Additional system properties on a tombstone*
-|Persisted on the document
-|*Not persisted*
-|===
-
-Document operations also have a different impact on tombstones when Shared Bucket Access is enabled/disabled.
-
-|===
-|`enable_shared_bucket_access: false`|`enable_shared_bucket_access: true`
-
-2+a|*Deleting a document through Sync Gateway*
-|Creates a tombstone
-|Creates a tombstone
-
-2+a|*Purging a document through Sync Gateway*
-|Removes the document and metadata
-|Removes the document and metadata
-
-2+a|*Deleting a document body in the bucket (SDK, N1QL, expiry)*
-|Removes the document and metadata
-|Creates a tombstone
-
-2+a|*Purging a document's metadata (on Couchbase Server)*
-|N/A
-|Removes the tombstone metadata
 |===
 
 

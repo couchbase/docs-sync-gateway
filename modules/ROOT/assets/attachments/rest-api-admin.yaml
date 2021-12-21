@@ -482,35 +482,61 @@ paths:
           description: Request completed successfully
           schema:
             $ref: '#/definitions/Changes'
+
   /{db}/_compact:
+    get:
+      tags:
+      - 'Database Management'
+      summary: Get the current status
+      description: |+
+        A GET request to /{db}/_compact?type=attachment returns the current status of pre-Lithium attachment compaction including the number of attachments that are removed from the bucket.
+
+        For example:
+        ```{
+            "id": "2",
+            "status": "Completed",
+            "start_time": "2015-09-23T17:27:17.55+01:00",
+            "end_time": "2015-09-23T17:30:17.55+01:00",
+            "duration": "18.01ms",
+            "atts_compacted": 20,
+            "docs_processed": 500
+        }```
+
+      parameters:
+      - $ref: '#/parameters/db'
+      - $ref: '#/parameters/compaction_type'
+
+      responses:
+        200:
+          $ref: '#/responses/200-db-compact-get'
+
     post:
       tags:
       - 'Database Management'
 
       summary: Compact the database
       description: |+
-        Use the ```/{db}/_compact``` endpoint to trigger the compaction process, which purges the JSON bodies of non-leaf revisions. This process is also run periodically by the system.
+        Use the ```/{db}/_compact``` endpoint to trigger the compaction process, which purges the JSON bodies of non-leaf revisions.
+        This process is also run periodically by the system.
 
         Note -- Leaf revisions are not purged during compaction.
 
-        Compaction does not remove JSON bodies of leaf nodes (conflicting branches). So it is also important to resolve conflicts in your application in order to re-claim disk space.
+        Compaction does not remove JSON bodies of leaf nodes (conflicting branches).
+        So it is also important to resolve conflicts in your application in order to re-claim disk space.
 
-        **Pre-1.5 behavior differed from the above, as follows:**
-
-        1.3-1.4 -- the parent revision is marked with a 5 minute expiry time, thus calling the `/{db}/_compact` endpoint is not necessary.
-
-        1.2 -- obsolete revision bodies have to be cleaned up by calling the `/{db}/_compact` endpoint.
       parameters:
       - $ref: '#/parameters/db'
+      - $ref: '#/parameters/compaction_type'
+      - $ref: '#/parameters/compaction_action'
+
       responses:
         200:
-          description: Request completed successfully.
-          schema:
-            type: object
-            properties:
-              revs:
-                type: integer
-                description: Count of the number of revisions that were compacted away.
+          $ref: '#/responses/200-db-compact-post-start'
+        400:
+          $ref: '#/responses/400-db-compact-post-bad-request'
+        503:
+          $ref: '#/responses/503-db-compact-post-unavailable'
+
   /{db}/_config:
     get:
       tags:
@@ -655,14 +681,26 @@ paths:
       - Document
       summary: Get attachment
       description: |+
-        This request retrieves a file attachment associated with the document. The raw data of the associated attachment is returned (just as if you were accessing a static file). The Content-Type response header is the same content type set when the document attachment was added to the database.
+        This request retrieves a file attachment associated with the document.
+        The raw data of the associated attachment is returned (just as if you were accessing a static file).
+        The Content-Type response header is the same content type set when the document attachment was added to the database.
 
         To remove an attachment from a document, simply update the `_attachments` dictionary of the document in the PUT "/{db}/{id}" request. From then on, the attachment will not be replicated but will still reside in the Couchbase Server bucket (see open ticket [1648](https://github.com/couchbase/sync_gateway/issues/1648).
+
+        Use the `meta` parameter to request that only the document ID of the attachment blob be returned
+
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/doc'
       - $ref: '#/parameters/attachment'
       - $ref: '#/parameters/rev'
+      - in: query
+        name: meta
+        type: boolean
+        description: |+
+          If `true` only the document ID of the attachment blob is returned in the response body
+        default: false
+
       responses:
         200:
           description: The message body contains the attachment, in the format specified in the Content-Type header.
@@ -671,6 +709,9 @@ paths:
             format: binary
         304:
           description: Not Modified, the attachment wasn't modified if ETag equals the If-None-Match header
+        400:
+          description: Bad Request -- A non boolean value was supplied for the meta parameter.
+
         404:
           description: Not Found, the specified database, document or attachment was not found.
     put:
@@ -1089,6 +1130,7 @@ paths:
       responses:
         200:
           description: Replication successfully deleted
+
   /{db}/_replicationStatus?{queryString}:
     get:
       tags:
@@ -1748,6 +1790,87 @@ responses:
         ok:
           type: boolean
           description: Indicates whether the operation was successful
+
+  '200-db-compact-get':
+    description: OK - A successful response will return a JSON object containing the _compact status
+    schema:
+      $ref: '#/definitions/Compact_Response'
+      example:
+        {
+          "id": "2",
+          "status": "Completed",
+          "start_time": "2015-09-23T17:27:17.55+01:00",
+          "end_time": "2015-09-23T17:30:17.55+01:00",
+          "duration": "18.01ms",
+          "atts_compacted": 20,
+          "docs_processed": 500
+        }
+
+  '200-db-compact-post-start':
+    description: |
+      OK - This successful response indicates _compact process was started.
+      The response body comprises a JSON object showing the _compact status.
+    schema:
+      $ref: '#/definitions/Compact_Response'
+      example:
+        {
+          "id": "2",
+          "status": "Started",
+          "start_time": "2015-09-23T17:27:17.55+01:00",
+          "duration": "0ms",
+          "atts_compacted": 0
+        }
+
+  '400-db-compact-post-bad-request':
+    description: |
+      Bad Request
+
+        This can mean that a required parameter has not been provided, the value supplied is invalid, or the combination of provided parameters is invalid.
+
+        Compaction API returns a 400 Bad Request error in the following cases:
+          -- A GET /{db}/_compact request is submitted with an invalid value for type parameter (anything other than tombstone or attachment).
+          -- A POST /{db}/_compact request is submitted with an invalid value for type parameter (type must be either tombstone or attachment) and or action parameter (action must be either start or stop).
+
+  '503-db-compact-post-unavailable':
+    description: |
+      Service Unavailable
+
+      A 503 Service Unavailable error indicates that the system is not ready to handle the submitted compaction start request due another compaction is running.
+      You may encounter this error when you submit a compaction request in the middle of another.
+
+  # '200-db-compact-post-stop':
+  #   description: |
+  #     OK - This successful response indicates the _compact process was stopped.
+  #     The response body comprises a JSON object showing the closing _compact status.
+  #   schema:
+  #     $ref: '#/definitions/Compact_Response'
+  #     example:
+  #       {
+  #         "id": "8",
+  #         "status": "Stopped",
+  #         "start_time": "2015-09-23T17:27:17.55+01:00",
+  #         "end_time": "2015-09-23T17:30:17.55+01:00",
+  #         "duration": "3s",
+  #         "atts_compacted": 108,
+  #         "docs_processed": 200
+  #       }
+
+  # '200-db-compact-post-in-progress':
+  #   description: |
+  #     OK - If you make a subsequent post request whilst _compact is in progress, your response body comprises a JSON object showing the in-progress _compact status, just as if you had issued a GET request
+  #   schema:
+  #     $ref: '#/definitions/Compact_Response'
+  #     example:
+  #       {
+  #         "id": "1",
+  #         "status": "Running",
+  #         "start_time": "2015-09-23T17:27:17.55+01:00",
+  #         "end_time": "2015-09-23T17:30:17.55+01:00",
+  #         "duration": "12.677085ms",
+  #         "mark_atts_marked": 20,
+  #         "mark_docs_processed": 300
+  #       }
+
 
   '200-db-config':
     description: OK
@@ -4615,6 +4738,35 @@ definitions:
         items:
           $ref: '#/definitions/ChangesFeedRow'
 
+
+  Compact_Response:
+    type: object
+    properties:
+      id:
+        type: string
+        description:  Unique identifier
+      status:
+        type: string
+        description: State of the _compact process (Running, Stopped, Completed)
+      start_time:
+        type: string
+        description: |+
+          Time the _compact process started e.g. "2015-09-23T17:27:17.55+01:00"
+      end_time:
+        type: string
+        description: |+
+          Time the _compact process ended e.g. "2015-09-23T17:27:17.55+01:00"
+      duration:
+        type: string
+        description: The run time of the _comnpct process e.g. "18.01ms"
+      atts_compacted:
+        type: integer
+        description: The number of attachments compacted
+      docs_processed:
+        type: integer
+        description: The number of documents processed by the _compact process
+
+
   Database-info:
     type: object
     description: Database Information
@@ -5454,6 +5606,36 @@ parameters:
     description: A comma-separated list of channel names. The response will be filtered to only documents in these channels. (This parameter must be used with the **sync_gateway/bychannel** filter parameter; see below.)
     type: string
     required: false
+
+  compaction_action:
+    type: string
+    in: query
+    name: action
+    description: |+
+      Use the ```action``` parameter to *start* or *stop* a `_compact` process.
+
+      The value must be one of :
+      -- `start` -- immediately starts a compaction and returns its status
+      -- `stop` --  immediately stops the active compaction and returns the status
+
+      This parameter works in conjunction with compaction type.
+
+    default: start
+
+  compaction_type:
+    type: string
+    in: query
+    name: type
+    description: |+
+      Use the ```type``` option to specify the type of compaction required.
+
+      The type must be one :
+      -- `attachment` for legacy pre-3.0 attachment compaction
+      -- `tombstone` for database compaction, which purges the JSON bodies of non-leaf revisions.
+
+      This parameter works in conjunction with compaction action.
+    default: tombstone
+
   content_type:
     in: header
     name: Content-Type
