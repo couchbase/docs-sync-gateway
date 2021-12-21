@@ -2,6 +2,7 @@
 :page-edition: {release}
 :page-status: {prerelease}
 :page-toclevels: 2@
+:page-pagination: next
 :page-role:
 :page-content: conceptual
 :description: Describes the various database management functions available to maintain an efficient sync gateway database
@@ -15,59 +16,6 @@ include::partial$_std-hdr-sgw.adoc[]
 :param-related: {url-blog-dbsizemng-pruning}  |  {url-blog-doc-conflicts-repl-protocol-revisions}  |  {url-blog-doc-conflicts-demystifying-mvcc}]
 include::partial$block-abstract.adoc[]
 // END -- Page Heading
-
-
-== Revisions
-
-=== Generation
-
-_Documents_ and _buckets_ (collections of, usually related, documents) are the basic units of data within Couchbase.
-
-Remember that within _Couchbase Mobile_, each document comprises:
-
-* A Document ID
-* A current revision ID
-* A JSON body
-* Metadata
-
-Binary data such as images, audio and other multimedia objects are stored separately from the document in an entity known as a _blob_ (or _attachment_).
-
-Each change to a document (even its creation and deletion) is recorded as a <<lbl-revs, revisions>>.
-Changes to _blobs_ do not generate revisions.
-
-
-[#lbl-revs]
-=== Format
-
-Couchbase creates a revision whenever a document is created, updated or deleted.
-Each revision is given a unique _Revision ID_ in addition to the _Document ID_.
-
-The _revisions_ are contained within a document's _metadata_, as a <<lbl-revtree, revision tree>>.
-
-Sync Gateway uses a _revision id_ to resolve conflicts arising when making concurrent changes to replicated copies of distributed data.
-It comprises two parts:
-
-* A generation ID +
-This is a sequential auto-incrementing number.
-It is specific to the database on which the document resides.
-Couchbase Lite generates simple integers.
-Sync Gateway generates more complex long base64 values. +
-The contents of remote revision IDs are implementation dependent.
-Do not base any processing logic on their contents.
-* A hash derived from the document contents
-
-
-[#lbl-revtree]
-=== Structure
-
-The revisions for each document form a _revision tree_ within its metadata.
-
-This revision tree comprises all revisions made to the document throughout its lifetime to date, in sequence.
-The _current revision_ (the most recent version of the document) being the tip of the tree, the _leaf_ node.
-
-A revision tree's growth is unlimited.
-So Couchbase periodically removes obsolete revisions to maintain performance levels.
-This process is known as <<lbl-prune>>.
 
 
 [#lbl-prune]
@@ -116,97 +64,155 @@ It may result in obsolete revisions not being pruned or in the premature pruning
 To learn more about revision pruning and database size management in general see our blog: {url-blog-dbsizemng-pruning}.
 
 
-[#lbl-caching]
-== Caching
-In this section::
-<<lbl-ctrl>> | <<lbl-size>> | <<lbl-sharding>> | <<lbl-deltasync>> | <<lbl-disable>>
+[#lbl-tomb-purge]
+== Purging Tombstones
 
-Whenever a document is accessed its revision tree (or at least some portion of its revision tree) is also cached.
+To remove tombstones, you need to purge them.
+The table at <<tbl-tomb-purge>> shows when tombstones are purged automatically and how to manually purge them.
 
+[#tbl-tomb-purge]
+.Purging tombstones
+[,cols="1h,2,2"]
+|===
 
-[#lbl-ctrl]
-=== Control
-You can control the size of the revision cache using the {configuration-schema-database--xref--cache--rev-cache} settings within the configuration file, specifically:
+.2+^.>h|
+2+^.>h|Value of `enable_shared_bucket_access``
 
-* {configuration-schema-database--xref--cache--rev-cache--size}
-* {configuration-schema-database--xref--cache--rev-cache--shard-count}
+^.>h|`false`
+^.>h|`true`
 
+|Automatic
+|Tombstones are not automatically purged from the bucket.
 
-[#lbl-size]
-=== Size
-Use the {configuration-schema-database--xref--cache--rev-cache--size} setting to specify the total number of document revisions to be cached in memory for all (recently accessed) documents.
+Tombstones can be purged by setting a server expiry on tombstone documents.
+This can be easily automated via Sync Gateway.
 
-When the revision cache is full, Sync Gateway will remove older document revisions to make room for newer ones.
+Use the {sync-function-api-expiry-cmd--xref} function in the Sync Function.
 
-By adjusting this setting you can fine-tune Sync Gateway's memory consumption.
-This can be useful when working on servers with limited memory and in cases when Sync Gateway creates and-or updated many new documents relative to the number of read operations.
+Set the expiry time to be sufficient to allow for all other devices to sync and receive the delete notification --  perhaps a week, or a month.
+|Tombstones are automatically purged from the bucket based on the server's metadata purge interval.
 
+|Manual
+|Tombstones can be manually removed via Sync Gateway's {rest-api-admin--pfx}#/document/post\__db___purge[+/\{tkn-db}/_purge+] endpoint, or deleting documents directly in the bucket.
+|Tombstones can be manually removed via Sync Gateway's {rest-api-admin--pfx}#/document/post\__db___purge[+/\{tkn-db}/_purge+] endpoint.
+|===
 
-[#lbl-sharding]
-=== Sharding
-include::partial$block-caveats.adoc[tags=ee-only-feature]
-
-The *Community Edition* is configured with the default value and ignores any {configuration-schema-database--xref--cache--rev-cache--shard-count} value in the configuration file.
-
-You can control the number of shards into which Sync Gateway will split its revisions cache by using the
-{configuration-schema-database--xref--cache--rev-cache--shard-count}
-
-More shards means lower cache contention when accessing distinct revisions, at the cost of some memory overhead per-shard.
-
-IMPORTANT: Do not change the default xref:configuration-schema-database.adoc#database-cache-rev_cache-shard_count[database.cache.rev_cache.shard_count] unless advised to do so by Couchbase Support -- see: {url-cb-support-policy}.
+Purging of tombstones is also required on Couchbase Lite.
+For example, you might decide that if a document is deleted on a Couchbase Lite client, that you want to purge the document (on that device) as soon as the delete has been successfully replicated to Sync Gateway.
 
 
-[#lbl-deltasync]
-=== Delta Sync
-include::partial$block-caveats.adoc[tags=ee-only-feature]
+[#lbl-tomb-cache]
+== Cache Ejection
 
-When executing a write operation with delta_sync enabled the revision body is backed up in the bucket and retained for {configuration-schema-database--xref--delta-sync-max-age}, during which time it is available for the  calculation of future revision deltas.
-
-As a result, new deltas can only be generated for read requests that come in within the {configuration-schema-database--xref--delta-sync-max-age} time window.
-
-Storing backed up revision bodies for delta sync incurs additional bucket storage, the size of which equates to: +
-`(doc_size * updates_per_day * 86400) / rev_max_age_seconds` -- see <<ex-deltastor>>.
-
-[#ex-deltastor]
-.Calculating Additional Delta-Sync Storage
-====
-Enabling delta sync would take up an additional 400 KB of storage on Couchbase Server, assuming:
-
-* The default {`rev_max_age_seconds`} value
-* An average document size of 4 KB
-* 100 writes/day
-
-Equating to: `(4 * 100 * 86400)/86400 = 400 KB`
-====
-
-Setting {configuration-schema-database--xref--delta-sync-max-age} to zero will generate deltas opportunistically on pull replications, with no additional storage requirements.
+Deleted/expired tombstones aren't automatically ejected from Sync Gateway's in-memory channel caches.
+See <<tbl-tomb-cache>>, which shows when channel caches are ejected.
 
 
-[#lbl-disable]
-=== Disabling the Cache
+[#tbl-tomb-cache]
+.Flushing Sync Gateway channel caches
+[,cols="1h,<.<2a,<.<2a"]
+|===
 
-include::partial$block-caveats.adoc[tags=ee-only-feature]
+.2+^.>| Tombstone +
+Purged On
+2+^.>|Value of `enable_shared_bucket_access``
 
-Disabling the revision cache can be useful when there are very large documents or if you expect a very low cache hit rate.
-Otherwise it can negatively impact the latency of replications.
+^|`false`
+^|`true`
 
-NOTE: Do not disable the revision cache, unless advised to do so by Couchbase Support -- see: {url-cb-support-policy}.
+| Couchbase Server
+| Restarting Sync Gateway will flush the cache
+| * Restarting Sync Gateway will flush the cache
+* Running the {rest-api-admin--pfx}#/database/post\__db___compact[+/\{tkn-db}/_compact+] endpoint will remove purged tombstones from the channel cache {fn-211}
 
-To disable the revision cache entirely, set {configuration-schema-database--xref--cache--rev-cache--size} to zero.
-Community Edition ignores a zero setting.
+| Sync Gateway
+a| * Restarting Sync Gateway will flush the cache.
+* Starting in 2.1.1, this is done automatically.
+a| * Restarting Sync Gateway will flush the cache.
+* Starting in 2.1.1, this is done automatically.
+|===
 
 
 == Compacting
 
-
 Attachments added post 3.0 are automatically removed from the bucket upon reference removal, document delete or document purge.
+This contrasts with the behavior of Legacy attachments, which can remain in the bucket even after their reference removal, document delete or document purge.
 
-However, Legacy attachments can still remain in the bucket even after their reference removal, document delete or document purge.
-The compaction garbage collection process (_compact) will remove these and reclaim the underlying storage.
+The compaction garbage collection process (`/{db}/_compact`) will remove these legacy attachments and reclaim the underlying storage.
 
+You can run the garbage collection process in one of two modes:
+
+* tombstone +
+Purges the JSON bodies of non-leaf revisions.
+* attachment +
+Removes redundant legacy attachments. +
 The legacy attachment compaction process scans all documents in the bucket, removing unreferenced attachments.
-You can trigger this process on demand using the REST API call endpoint {rest-api-admin--xref--database-management--compact}.
 
+See the REST API call endpoint {rest-api-admin--xref--database-management--compact}.
+
+
+== Resync
+
+=== Why
+The _Sync Function_ computes both the document routing to channels and the user access to channels at document write time.
+
+If the Sync Function is changed, Sync Gateway needs to reprocess all existing documents in the bucket to recalculate the routing and access assignments.
+
+To this end, the Admin REST API provides a `/{db}/_resync` endpoint that enables you to initiate the reprocessing of every document in the database again.
+
+=== How
+To update the Sync Function and fully resync, you are recommended to follow the steps in <<steps-to-resync>>.
+
+NOTE: This is an expensive operation because it requires every document in the database to be processed by the new function.
+
+The database can accept no requests until this process is complete because no user's full access privileges are known until all documents have been scanned.
+Therefore, the Sync Function update will result in application downtime whilst teh database is offline (that is, between the call to the `+/{tkn-db}/_offline+` and `+/{tkn-db}/_online+` endpoints in <<steps-to-resync>>.
+
+
+[#steps-to-resync]
+.Steps to Update and Resync
+****
+. Update the configuration file of the Sync Gateway instance
+. Restart Sync Gateway
+. Take the database offline +
+Use this Admin REST API endpoint: +
+{rest-api-admin--pfx}#/Database_Management/post\__db___offline[+/{tkn-db}/_offline+]
+. Resync the database +
+Use this Admin REST API endpoint: +
+{rest-api-admin--pfx}#/Database_Management/post\/post__db___resync[+/{tkn-db}/resync+]
++
+The message body of the response contains the number of changes that were made as a result of calling resync
+. Bring the database back online +
+Use this Admin REST API endpoint: +
+{rest-api-admin--pfx}#/Database_Management/post\__db___online[+/{tkn-db}/_online+]
+****
+
+=== Uses
+
+==== Changing Channel Assignment
+When running a resync operation, the context in the Sync Function is the admin user.
+For that reason, calling the methods `requireUser`, `requireAccess`, and `requireRole` will always succeed.
+It is very likely that you are using those functions in production to govern write operations.
+But in a resync operation, all the documents are already written to the database.
+For that reason, it is recommended to use resync for changing the assignment to channels only (i.e. reads).
+
+==== Changing Write Security Only
+If the modifications to the Sync Function only impact write security (and not routing/access), you won't need to run the resync operation.
+
+==== Changing Channel/Access Rules
+If you wish to change the channel/access rules, but only want those rules to apply to documents written after the change was made, then you don't need to run the resync operation.
+
+==== Access Revocation
+If you change the sync function to revoke a user's access to a document, the access will only take effect once a new revision to that document is saved on Sync Gateway.
+Running a resync operation does not revoke access to that document.
+
+=== Database Availability
+If you need to ensure access to the database during the update, you can create a read-only backup of the Sync Gateway's bucket beforehand, then run a secondary Sync Gateway on the backup bucket, in read-only mode.
+After the update is complete, switch to the main Gateway and bucket.
+
+In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the {rest-api-admin--pfx}#/Database_Management/post\__db___offline[+/{tkn-db}/_offline+] endpoint.
+After the configuration is updated, *one* instance should be brought up so it can update the database--if more than one is running at this time, they'll conflict with each other.
+After the first instance finishes opening the database, the others can be started.
 
 
 include::partial$block-related-content-data.adoc[]

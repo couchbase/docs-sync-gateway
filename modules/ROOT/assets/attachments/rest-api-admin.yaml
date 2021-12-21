@@ -242,7 +242,7 @@ paths:
         200:
           description: Information about active replications.
           schema:
-            type: array
+
             items:
               type: object
               $ref: '#/definitions/ActiveTaskResponseBody'
@@ -341,7 +341,7 @@ paths:
         201:
           description: Documents have been created or updated. The response object is an array with the status for each document submitted in the original request.
           schema:
-            type: array
+
             items:
               $ref: '#/definitions/BulkDocsSuccess'
         409:
@@ -681,11 +681,12 @@ paths:
       - Document
       summary: Get attachment
       description: |+
-        This request retrieves a file attachment associated with the document.
-        The raw data of the associated attachment is returned (just as if you were accessing a static file).
+        Use this request to get the file attachment associated with a document.
+        It returns the raw data of the associated attachmen, just as if you were accessing a static file.
+
         The Content-Type response header is the same content type set when the document attachment was added to the database.
 
-        To remove an attachment from a document, simply update the `_attachments` dictionary of the document in the PUT "/{db}/{id}" request. From then on, the attachment will not be replicated but will still reside in the Couchbase Server bucket (see open ticket [1648](https://github.com/couchbase/sync_gateway/issues/1648).
+        To remove an attachment from a document, simply update the `_attachments` dictionary of the document in the PUT "/{db}/{id}" request.
 
         Use the `meta` parameter to request that only the document ID of the attachment blob be returned
 
@@ -707,25 +708,40 @@ paths:
           schema:
             type: string
             format: binary
+            example: |+
+              GET /{db}/{doc}/{attachment}?meta=true
+              {
+                "content_type": "text/plain",
+                "length": 2,
+                "key": "_sync:att2:uU0nuZNNPgilLlLX2n2r+sSE7+N6U4DukIj3rOLvzek=:sha1-Kq5sNclPz7QV2+lfQIuc6R7oRu0="
+              }
+
         304:
           description: Not Modified, the attachment wasn't modified if ETag equals the If-None-Match header
         400:
           description: Bad Request -- A non boolean value was supplied for the meta parameter.
-
         404:
           description: Not Found, the specified database, document or attachment was not found.
+
+
     put:
       tags:
       - Document
-      summary: Add or update attachment
+      summary: Add or update a document attachment
       description: |+
-        This request adds or updates the supplied request content as an attachment to the specified document, the maximum content size of an attachment is 20MB. The attachment name must be a URL-encoded string (the file name). You must also supply either the rev query parameter or the If-Match HTTP header for validation, and the Content-Type headers (to set the attachment content type).
+        Use this request to add or update the supplied request content as an attachment to the specified document.
 
-          When uploading an attachment using an existing attachment name, the corresponding stored content of the database will be updated. Because you must supply the revision information to add an attachment to the document, this serves as validation to update the existing attachment.
+        - The maximum content size of an attachment is 20MB.
+        - The attachment name must be a URL-encoded string (the file name).
+        - You must also supply either the rev query parameter or the If-Match HTTP header for validation, and the Content-Type headers (to set the attachment content type).
 
-          Uploading an attachment updates the corresponding document revision. Revisions are tracked for the parent document, not individual attachments.
+        When uploading an attachment using an existing attachment name, the corresponding stored content of the database will be updated. Because you must supply the revision information to add an attachment to the document, this serves as validation to update the existing attachment.
 
-          To remove an attachment from a document, simply update the `_attachments` dictionary of the document in the PUT "{db}/{id}" request. From then on, the attachment will not be replicated but will still reside in the Couchbase Server bucket (see open ticket [1648](https://github.com/couchbase/sync_gateway/issues/1648).
+        Uploading an attachment updates the corresponding document revision.
+        Revisions are tracked for the parent document, not individual attachments.
+
+        To remove an attachment from a document, simply update the `_attachments` dictionary of the document in the PUT "{db}/{id}" request.
+
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/doc'
@@ -740,6 +756,7 @@ paths:
             $ref: '#/responses/200-doc'
         409:
           description: Conflict, the document revision wasn't specified or it's not the latest.
+
   /{db}/_design/{ddoc}/_view/{view}:
     get:
       tags:
@@ -1064,7 +1081,7 @@ paths:
         200:
           description: Successful response - returns an array of replication definitions in the body as JSON
           schema:
-            type: array
+
             items:
               # type: object
               $ref: '#/definitions/ReplicationResponseBody'
@@ -1083,7 +1100,7 @@ paths:
         200:
           description: Successful response - returns requested replication definition in the body as JSON
           schema:
-            # type: array
+            #
             # items:
             type: object
             $ref: '#/definitions/ReplicationResponseBody'
@@ -1200,7 +1217,7 @@ paths:
         200:
           description: Returns information about the active replications
           schema:
-            type: array
+
             items:
               $ref: '#/definitions/ReplicationStatusResponseBody'
 
@@ -1267,7 +1284,7 @@ paths:
           type: object
           additionalProperties:
             description: An array of revision IDs for that document.
-            type: array
+
             items:
               type: string
       responses:
@@ -1280,7 +1297,7 @@ paths:
               type: object
               properties:
                 missing:
-                  type: array
+
                   description: A list of revision IDs for that document (the ones that are not stored in the database).
   /{db}/_design/{ddoc}:
     get:
@@ -1426,7 +1443,7 @@ paths:
             description: Response object
             properties:
               a_doc_id:
-                type: array
+
                 description: Contains one property for each document ID successfully purged, the property key is the "docID" and the property value is a list containing the single entry "*".
                 items:
                   type: string
@@ -1504,7 +1521,7 @@ paths:
         200:
           description: 200 OK – Returns the list of roles as an array of strings
           schema:
-            type: array
+
             description: The message body contains the list of roles in a JSON array. Each element of the array is a string representing the name of a role in the specified database.
             items:
               type: string
@@ -1544,14 +1561,14 @@ paths:
               name:
                 type: string
               admin_channels:
-                type: array
+
                 description: |+
                   The admin channels that this role has granted access to. Admin channels are the ones which are
                   granted access to in the config file or via the Admin REST API.
                 items:
                   type: string
               all_channels:
-                type: array
+
                 description: All the channels that this role has access to.
                 items:
                   type: string
@@ -1642,7 +1659,7 @@ paths:
             type: object
             properties:
               authentication_handlers:
-                type: array
+
                 items:
                   type: object
                   description: List of supported authentication handlers
@@ -1701,7 +1718,7 @@ paths:
         200:
           description: The message body contains the list of users in a JSON array. Each element of the array is a string representing the name of a user in the specified database.
           schema:
-            type: array
+
             items:
               type: string
               description: username
@@ -2087,7 +2104,7 @@ definitions:
               Change requires HTTP server restart
             properties:
               headers:
-                type: array
+
                 description: |+
                   List of HTTP headers that can be used by domains specified in the `origin` and `login_origin` properties.<br>
                   A common value is `["Content-Type"]` as clients use the `Content-Type: application/json` header when sending data as JSON in the body of POST/PUT requests.
@@ -2096,7 +2113,7 @@ definitions:
                 items:
                   type: string
               login_origin:
-                type: array
+
                 description: |+
                   List of allowed login origins.
 
@@ -2113,7 +2130,7 @@ definitions:
                   Change requires HTTP server restart
 
               origin:
-                type: array
+
                 description: |+
                   List of allowed origins; use a wildcard character (*) to allow access from everywhere.
 
@@ -2366,7 +2383,7 @@ definitions:
               - `SyncMsg`: Can be used for additional Sync logging output
               - `WS`: Websocket replication log messages
               - `WSFrame`: Can be used for additional WS logging output
-            type: array
+
             items:
               type: string
             default: '["HTTP"]'
@@ -2917,7 +2934,7 @@ definitions:
         properties:
           document_changed:
             description: The configuration for the action to perform when a document change is detected.
-            type: array
+
             items:
               # type: object
               title: "Document Changed"
@@ -2965,7 +2982,7 @@ definitions:
                   type: string
                   # required: true
           db_state_changed:
-            type: array
+
             description: |+
                 Use the `db_state_changed` property group to define the actions to perform when a `db_state` change is detected.
             items:
@@ -3714,13 +3731,13 @@ definitions:
         description: |+
           Name of the role
       admin_channels:
-        type: array
+
         description: |+
           Array of channel names the role allows access to
         items:
           type: string
       all_channels:
-        type: array
+
         readOnly: true
         description: |+
           Lists all the channels the role has access to including any assigned by the `sync` function.
@@ -4020,7 +4037,7 @@ definitions:
             OPTIONAL for stops and removes (even if defined during creation)
 
         query_params:
-          type: array
+
           description: |+
             **About**
 
@@ -4091,7 +4108,7 @@ definitions:
             Use the optional `batch_size` property to specify the number of changes to be included in a single batch during replication.
 
         perf_tuning_params:
-          type: array
+
           description: |+
             The perf_tuning_params are not available in this release.
 
@@ -4144,7 +4161,7 @@ definitions:
           Mandatory, unless `allow_empty_password=true`.
 
       admin_channels:
-        type: array
+
         description: |+
           The channels that the user is able to access.
         items:
@@ -4153,7 +4170,7 @@ definitions:
             Channel name
 
       admin_roles:
-        type: array
+
         description: |+
           An array of the roles this user is associated with.
         items:
@@ -4820,14 +4837,33 @@ definitions:
               type: string
               description: A revision ID.
       _attachments:
-        type: object
-        properties:
-          attachment_name:
-            type: object
-            properties:
-              content_type:
-                type: string
-                description: The content type of the attachment.
+        type: array
+        description: Array of attachments
+        items:
+          type: object
+          properties:
+            attachment_name:
+                type: object
+                properties:
+                  ver:
+                    type: integer
+                    description: |
+                      Indicate that the attachment reference is made through the new reference scheme (not exposed).
+                      Value = 2.
+                  content_type:
+                    type: string
+                    description: The content type of the attachment.
+                  digest:
+                    type: string
+                    description: |+
+                      Reference to stored attachment content
+                  length:
+                    type: integer
+                  revpos:
+                    type: integer
+                  stub:
+                    type: boolean
+                    default: true
 #
   QueryResult:
     type: object
@@ -4836,7 +4872,7 @@ definitions:
         type: string
         description: Starting index of the returned rows.
       rows:
-        type: array
+
         items:
           $ref: '#/definitions/QueryRow'
       total_rows:
@@ -4962,7 +4998,7 @@ definitions:
     type: object
     properties:
       authentication_handlers:
-        type: array
+
         description: List of authentication methods.
         items:
           type: string
@@ -4987,7 +5023,7 @@ definitions:
     properties:
       200:
         description: The request was successful.
-        type: array
+
         items:
           type: object
           $ref: '#/definitions/ReplicationStatusResponseBody'
@@ -5206,7 +5242,7 @@ definitions:
                 All password data is redacted and is displayed as a string of `****`.
 
           perf_tuning_params:
-            type: array
+
             description: |+
               The perf_tuning_params are yet to be defined (subject to performance testing)
 
@@ -5237,7 +5273,7 @@ definitions:
 
 
           query_params:
-            type: array
+
             description: |+
               **About**
 
@@ -5341,7 +5377,7 @@ definitions:
 # END: Define sync-gateway replications
 
   ReplicationStatistics-SGR1:
-    type: array
+
     description: This is the replication definition set returned in response to an ExpVars `GET` request.
     properties:
       replname:
@@ -5397,7 +5433,7 @@ definitions:
     type: object
     properties:
       per_replication:
-        type: array
+
         description: |+
           An array of stats for each replication declared in the config file
 
@@ -5445,7 +5481,7 @@ definitions:
 
 
   perReplicationStats-SGR2:
-      type: array
+
       description: This is the replication definition set returned in response to an ExpVars `GET` request.
       items:
           type: object
@@ -5560,7 +5596,7 @@ parameters:
     name: atts_since
     in: query
     description: Include attachments only since specified revisions. Does not include attachments for specified revisions.
-    type: array
+
     items:
       type: string
     required: false
@@ -5587,7 +5623,7 @@ parameters:
       type: object
       properties:
         docs:
-          type: array
+
           items:
             type: object
             properties:
@@ -5686,7 +5722,7 @@ parameters:
     in: query
     name: doc_ids
     description: A list of document IDs as a valid JSON array. The response will be filtered to only documents with these IDs. This parameter must be used with the `filter=_doc_ids` and `feed=normal` parameters.
-    type: array
+
     items:
       type: string
   endkey:
@@ -5733,7 +5769,7 @@ parameters:
       Note that this is an array field, so to retrieve docs with Ids of "keyid1" and "keyid4", for example, use a request in this format --
 
       ```curl -X GET \ 'http://localhost:4985/test_db/_all_docs?keys=[%22keyid1%22,%22keyid4%22]' \ -H 'Accept: application/json'```
-    type: array
+
     items:
       type: string
     required: false
@@ -5761,7 +5797,7 @@ parameters:
       Option to fetch specified revisions of the document. The value can be `all` to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=["rev1", "rev2"]). Only [leaf revision](glossary.html) bodies that haven't been pruned are guaranteed to be returned.
 
       If this option is specified the response will be in multipart format. Use the `Accept: application/json` request header to get the result as a JSON object.
-    type: array
+
     items:
       type: string
     required: false
@@ -6007,7 +6043,7 @@ parameters:
               Once provided and recorded, the password data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
 
         perf_tuning_params:
-          type: array
+
           description: |+
             The perf_tuning_params are not available in this release.
 
@@ -6036,7 +6072,7 @@ parameters:
             Replications created prior to version 2.8 *must* be run with `purge_on_removal=false`.
 
         query_params:
-          type: array
+
           description: |+
             **About**
 
@@ -6325,7 +6361,7 @@ parameters:
       properties:
         docs:
           description: List containing new or updated documents. Each object in the array can contain the following properties _id, _rev, _deleted, and values for new and updated documents.
-          type: array
+
           items:
             type: object
             $ref: '#/definitions/Document'
@@ -6368,7 +6404,7 @@ parameters:
           type: string
         doc_ids:
           description: A list of document IDs as a valid JSON array. The response will be filtered to only documents with these IDs. (This parameter must be used with the _doc_ids filter parameter; see below.)
-          type: array
+
           items:
             type: string
         feed:

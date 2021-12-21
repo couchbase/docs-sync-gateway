@@ -1,10 +1,10 @@
-= Revisions
+= Database Management
 :page-edition: {release}
-:page-status:
+:page-status: {prerelease}
 :page-toclevels: 2@
 :page-role:
 :page-content: conceptual
-:description: About Sync Gateway's use of Revisions, Revision Trees and Revision Caches.
+:description: Describes the various database management functions available to maintain an efficient sync gateway database
 
 
 include::partial$_std-hdr-sgw.adoc[]
@@ -17,7 +17,7 @@ include::partial$block-abstract.adoc[]
 // END -- Page Heading
 
 
-== Introduction
+== Revisions
 
 === Generation
 
@@ -198,20 +198,14 @@ Community Edition ignores a zero setting.
 
 == Compacting
 
+
 Attachments added post 3.0 are automatically removed from the bucket upon reference removal, document delete or document purge.
-This contrasts with the behavior of Legacy attachments, which can remain in the bucket even after their reference removal, document delete or document purge.
 
-The compaction garbage collection process (`/{db}/_compact`) will remove these legacy attachments and reclaim the underlying storage.
+However, Legacy attachments can still remain in the bucket even after their reference removal, document delete or document purge.
+The compaction garbage collection process (_compact) will remove these and reclaim the underlying storage.
 
-You can run the garbage collection process in one of two modes:
-
-* tombstone +
-Purges the JSON bodies of non-leaf revisions.
-* attachment +
-Removes redundant legacy attachments. +
 The legacy attachment compaction process scans all documents in the bucket, removing unreferenced attachments.
-
-See the REST API call endpoint {rest-api-admin--xref--database-management--compact}.
+You can trigger this process on demand using the REST API call endpoint {rest-api-admin--xref--database-management--compact}.
 
 
 
