@@ -28,16 +28,16 @@ Sync Gateway provides secure access to its REST APIs, namely the:
 Each REST API is accessed through a different, <<lbl-port-cfg, user-specifiable>>, TCP port.
 This makes it easy to control their physical exposure, perhaps to keep the Admin REST API secure behind your firewall.
 
-{sgw-s} 3.0 BETA brings additional optional but default layers of security through {tls-encryption--xref} for all API traffic and Couchbase Server Role-Based Access Control (RBAC) authorization and authentication for all <<lbl-secure-users,Admin and Metrics API users>>.
+{sgw-s} {version-full} brings additional optional but default layers of security through {tls-encryption--xref} for all API traffic and Couchbase Server Role-Based Access Control (RBAC) authorization and authentication for all <<lbl-secure-users,Admin and Metrics API users>>.
 
 RBAC user authentication enables <<lbl-secure-users,Secure Administration>> of {sgw} clusters.
 This is critical in cloud native deployments.
-It provides secure and fine-grained access control.
+The use of different RBAC roles for uses also provides secure and fine-grained access control -- for more on the available roles see <<lbl-rbac-roles>>
 
 
 == TLS
 
-TLS is enforced by default for all Couchbase Server connections in 3.0 BETA.
+TLS is enforced by default for all Couchbase Server connections in 3.0.
 For more on TLS, see: {tls-encryption--xref}.
 // It uses credentials provided with the request for authentication.
 // The only exception to this is the use of the Public REST API's _GUEST_ mode; which is for use in testing and-or development environments only.
@@ -45,6 +45,8 @@ For more on TLS, see: {tls-encryption--xref}.
 
 [#lbl-secure-users]
 == Secure Administration
+
+
 // tag::secremacc[]
 
 Secure Administration is *on* by default.
@@ -56,41 +58,85 @@ Authenticated users will have access to Admin and-or Metrics API functionality, 
 
 // end::secremacc[]
 
-The access-level will depend on the selected role. Currently available roles may vary depending on the Couchbase Server release version -- see <<tbl-ee-svr-sgw-roles>>. +
 
-.{sgw-s} role availability by release
-[#tbl-ee-svr-sgw-roles,cols="2,^1,^1,^1,^1",options="header"]
+[#lbl-rbac-roles]
+== Sync Gateway RBAC Roles
+
+Couchbase Server makes a number of RBAC roles available for Sync Gateway use.
+Each user's access-level will depend on its allocated role.
+
+The currently available roles will vary depending on the Couchbase Server release version:
+
+* For those available with the latest Server release -- see: <<tbl-role-capabilities>>
+* For earlier releases -- see <<tbl-ee-svr-sgw-roles>>. +
+
+When referencing the {rest-api-admin--xref} you will see that each endpoint states the role (or roles) able to use it -- you can find a cross-reference of endpoints and required roles in {rest-api-access-rbac-roles--xref}.
+
+
+.Role Capabilities with 7.0.2+
+[#tbl-role-capabilities, cols="3,7, options="header"]
+|===
+|Role Name |Capabilities
+
+| Sync Gateway Architect
+| Can manage Sync Gateway databases and users, and access Sync Gateway's metrics endpoint.
+This user cannot read application data.
+
+| Sync Gateway Application
+| Can manage Sync Gateway users and roles, and read and write  application data through Sync Gateway.
+
+| Sync Gateway Application Read Only
+| Can read Sync Gateway users and roles, and read application data  through Sync Gateway.
+
+| Sync Gateway Replicator
+| Can manage Inter-Sync Gateway Replications. +
+This user cannot read
+ application data.
+
+| Sync Gateway Dev Ops,
+| Can manage Sync Gateway node-level configuration, and access Sync | Gateway's /metrics endpoint for Prometheus integration.
+
 |===
 
-1.1+|Couchbase Server
+
+.{sgw-s} role availability by release (pre 7.0.2)
+[#tbl-ee-svr-sgw-roles,cols="1,2,^1,^1,^1,^1",options="header"]
+|===
+
+2.1+|Couchbase Server
 3+|{enterprise} Versions
 |{community} Versions
 
-h|Available Roles
+h| Role
+h| Capability
 h|6.1 - 7.0
 h|5.5 - 6.0
 h|5.1
 h|All Versions
 
 |sync-gateway role
+| Can access DB / bucket scoped operations
 |y
 |-
 |-
 |-
 
 |application-access
-|y
+| Can access DB / bucket scoped operations
+| y
 |y
 |-
 |-
 
 |bucket-full-access
+| Can access DB / bucket scoped operations
 |y
 |y
 |y
 |-
 
 |Full Admin
+| Can access all operations
 |y
 |y
 |y
@@ -103,6 +149,8 @@ For more on creating Couchbase Server users see the Couchbase Server content her
 
 [#lbl-optout]
 == Secure Administration Opt-out
+
+
 You can choose to disable Secure Administration by using these bootstrap configuration settings or CLI flags:
 
 * {configuration-schema-bootstrap--xref}
@@ -196,5 +244,6 @@ This is the default setting for the admin interface.
 include::partial$sgw-network-port-reqs.adoc[]
 
 For more on configuration see {bootstrap-schema--xref--api-admin-interface}
+
 
 include::partial$block-related-content-api.adoc[]
