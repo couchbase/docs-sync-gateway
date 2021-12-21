@@ -13,13 +13,35 @@ include::partial$_std-hdr-sgw.adoc[]
 :param-abstract: This content explains the resync feature
 include::partial$block-abstract.adoc[]
 
+:tkn-db: pass:q,a[\{db\}]
+:resync_api_put: {rest-api-admin--pfx}#/Database_Management/post__db___resync[/{tkn-db}/resync+]
+:resync_api_get: {rest-api-admin--pfx}#/Database_Management/get__db___resync[/{tkn-db}/resync+]
+
+
 == Introduction
+
 
 The _Sync Function_ computes both the document routing to channels and the user access to channels at document write time.
 
 If the Sync Function is changed, Sync Gateway needs to reprocess all existing documents in the bucket to recalculate the routing and access assignments.
 
-To this end, the Admin REST API provides a resync endpoint that enables you to initiate the reprocessing of every document in the database again.
+== Resync API
+
+The Admin REST API provides a {resync_api_put} endpoint that enables you to start or stop a resync operation.
+Starting the resync will initiate the reprocessing of every document in the database again.
+
+There is also a 'support-only' option to regenerate sequences whilst resyncing.
+
+The resync action is carried out **only** on the node that the POST is made to.
+It is not cross-node aware.
+
+In a multi-node cluster, the resync must be only run on one node.
+Users should bring other nodes offline before initiating this action.
+Starting it on more than one node will result in multiple resyncs running, with undefined system behavior.
+
+A _resync operation will block until all documents in the database have been processed.
+
+You can use {resync_api_get} to establish the status of a running resync operation.
 
 == Updating the Sync Function
 To update the Sync Function and fully resync, you are recommended to follow the steps in <<steps-to-resync>>.
@@ -27,7 +49,7 @@ To update the Sync Function and fully resync, you are recommended to follow the 
 NOTE: This is an expensive operation because it requires every document in the database to be processed by the new function.
 
 The database can accept no requests until this process is complete because no user's full access privileges are known until all documents have been scanned.
-Therefore, the Sync Function update will result in application downtime whilst teh database is offline (that is, between the call to the `+/{tkn-db}/_offline+` and `+/{tkn-db}/_online+` endpoints in <<steps-to-resync>>.
+Therefore, the Sync Function update will result in application downtime whilst the database is offline (that is, between the call to the `/{tkn-db}/_offline` and `/{tkn-db}/_online` endpoints in <<steps-to-resync>>.
 
 [#steps-to-resync]
 .Steps to Update and Resync
@@ -36,19 +58,20 @@ Therefore, the Sync Function update will result in application downtime whilst t
 . Restart Sync Gateway
 . Take the database offline +
 Use this Admin REST API endpoint: +
-{rest-api-admin--pfx}#/Database_Management/post\__db___offline[+/{tkn-db}/_offline+]
+{rest-api-admin--pfx}#/Database_Management/post\__db___offline[/{tkn-db}/_offline+]
 . Resync the database +
 Use this Admin REST API endpoint: +
-{rest-api-admin--pfx}#/Database_Management/post\/post__db___resync[+/{tkn-db}/resync+]
+{resync_api}
 +
 The message body of the response contains the number of changes that were made as a result of calling resync
 . Bring the database back online +
 Use this Admin REST API endpoint: +
-{rest-api-admin--pfx}#/Database_Management/post\__db___online[+/{tkn-db}/_online+]
+{rest-api-admin--pfx}#/Database_Management/post\__db___online[/{tkn-db}/_online+]
 --
 
 
 == When To Run Resync?
+
 
 When running a resync operation, the context in the Sync Function is the admin user.
 For that reason, calling the methods `requireUser`, `requireAccess`, and `requireRole` will always succeed.
@@ -66,9 +89,11 @@ Running a resync operation does not revoke access to that document.
 If you need to ensure access to the database during the update, you can create a read-only backup of the Sync Gateway's bucket beforehand, then run a secondary Sync Gateway on the backup bucket, in read-only mode.
 After the update is complete, switch to the main Gateway and bucket.
 
-In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the {rest-api-admin--pfx}#/Database_Management/post\__db___offline[+/{tkn-db}/_offline+] endpoint.
+In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration, so they all need to be taken offline either by stopping the process or taking them offline using the {rest-api-admin--pfx}#/Database_Management/post\__db___offline[/{tkn-db}/_offline+] endpoint.
 After the configuration is updated, *one* instance should be brought up so it can update the database--if more than one is running at this time, they'll conflict with each other.
 After the first instance finishes opening the database, the others can be started.
+
+
 
 include::partial$block-related-content-sync.adoc[]
 
