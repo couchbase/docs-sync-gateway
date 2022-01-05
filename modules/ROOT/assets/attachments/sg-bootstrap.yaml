@@ -10,16 +10,6 @@ properties:
         description: |+
           The ID of the configuration group to which this node belongs.
 
-      # buckets:
-      #   type: array
-      #   description: |+
-      #     A list of buckets holding config data
-      #   items:
-      #     bucket_name:
-      #       type: string
-      #       description: |+
-      #         Name of a bucket storing configuration data
-
       config_update_frequency:
         type: string
         default: "10s"
@@ -35,11 +25,63 @@ properties:
         description: |+
           Sets the endpoint for the Couchbase Server holding (database) configuration details.
 
+          The value of the *server* property specifies the Hostname(s) to the Couchbase Server node(s) in the cluster.
+
+          Sync Gateway supports the ability to specify multiple hosts in the configuration.
+          Sync Gateway supports both the `couchbase://` and `http://` schemes for specifying connection endpoints.
+
+          Sync Gateway also supports *SSL* in the connection to Couchbase Server; use the `couchbases://` scheme for this.
+          As with the Couchbase Server SDKs, the `https://` scheme is **not** supported.
+
+          Examples of valid `server` values for *IPv4* include:
+          - `couchbase://host1`
+          - `couchbases://host1`
+          - `couchbase://host1,host2`
+          - `couchbase://host1:11210,host2,`
+          - `couchbases://host1:11207,host2`
+          - `http://host1:8091`
+          - `http://host1,host2:8091`
+          - `http://foo:bar@host1:8091`
+
+          Examples of valid `server` values for *IPv6* include:
+          - `http://[2001:db8::8811]:8091` *// single node IPv6 - http scheme with default server port*
+          - `couchbases://[2001:db8::8811]` *// single node SSL IPv6 - default port (omitted)*
+          - `couchbase://[2001:db8::8811],[2001:db8::8822]:888` *// node1 default port, node2 port 888*
+
+          As with the SDK, when using the `couchbase://` or `couchbases://` schemes, the port is not required, but if specified should be the external/internal bucket ports (defaults are 11210 or 11207 respectively). Attempting to use the admin ports (8091/18091) will result in a startup error.
+
+          **Alternate Addresses**
+
+          On startup, Sync Gateway will try each hostname that is provided until it is able to connect successfully.
+
+          By default, if a remote cluster has an external address set, then when SG connects it will apply a heuristic to determine whether to choose between external or default (internal) addresses.
+
+          The choice is based on the host names supplied in the connection string.
+          - SG uses external networking only when none of the supplied host names match any of Couchbase Server's internal node addresses, and an external address is defined.
+          - In all other cases Sync Gateway uses the default (internal) networking.
+
+          However, it is possible to override this behavior by adding a `network` parameter to the connection string.
+
+          The `network` parameter can be --
+          - auto -- this is the default value if no parameter is provided. In this case the heuristic described above is applied to determine the address used; so effectively there is no override.
+          - external -- to always force use of the external address
+          - default -- to always force use of the internal address
+
+          For example:
+          ```"server": "couchbases://my-cbs-server?network=default"```
+
+          Will force the connection to ignore any alternative external addresses configured on the Couchbase Server node.
+
+          **Lost Connections**
+
+          If the connection to Couchbase Server is lost during normal operations, Sync Gateway will automatically re-connect to another node in the cluster. During that re-connection period, the Sync Gateway will appear offline -- see [Taking Databases Offline](./../database-offline.html) -- and documents will not be replicated to mobile clients.
+
       username:
         type: string
         default: none
         description: |+
           The username to be used when authenticating to the server.
+
       password:
         type: string
         default: none
@@ -209,14 +251,15 @@ properties:
             description: |+
               List of allowed origins; use a wildcard character (*) to allow access from everywhere.
 
-              Note that the wildcard (*) cannot be used if you plan to authenticate users as well (by using the `withCredentials` flag on the client side).
-              In this case, the explicit domain(s) must be specified in the `origin` and `login_origin` properties of the configuration file.
+              **Note** that the wildcard (*) cannot be used if you plan to authenticate users as well (by using the `withCredentials` flag on the client side).
+              Instead specify the explicit domain(s) in the `origin` and `login_origin` properties of the configuration file.
 
               Change requires HTTP server restart
             items:
               origin:
                 type: string
                 description: An allowed origin array element
+
       hide_product_version:
         type: boolean
         default: 'false'
@@ -225,18 +268,12 @@ properties:
           This setting does not apply to the Admin REST API.
 
           This customization of the Sync Gateway response avoids revealing the version of the Sync Gateway to HTTP requests to the root path.
+
       https:
         type: object
         description: Group in which to specify any API HTTPS configuration properties
         properties:
-          # allow_insecure_tls_connections:
-          #   type: boolean
-          #   default: 'false'
-          #   description: |+
-          #     Secure TLS connections are used by default for all REST API dialogs.
 
-          #     If necessary, for testing purposes, you can disable this by setting this property to ```true```.
-          #     *Note* tha insecure connections should NOT be used in production deployments.
           tls_minimum_version:
             type: string
             default: 'tlsv1.2'
@@ -305,44 +342,24 @@ properties:
       server_read_timeout:
         type: integer
         description: |+
-          Maximum duration in seconds before timing out the read of an HTTP(S) request. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
+          Maximum duration in seconds before timing out the read of an HTTP(S) request.
+
+          This property only effects the HTTP connections on the Sync Gateway public and admin ports.
+
+          Sync Gateway is written in the Go programming language, therefore the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
 
           Change requires HTTP server restart
       server_write_timeout:
         type: integer
         description: |+
-          Maximum duration in seconds before timing out the write of an HTTP(S) response. This property only effects the HTTP connections on the Sync Gateway public and admin ports. Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
+          Maximum duration in seconds before timing out the write of an HTTP(S) response.
+
+          This property only effects the HTTP connections on the Sync Gateway public and admin ports.
+
+          Sync Gateway is written in the Go programming language, therefor the value set in the configuration file is passed to Go's server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
 
           Change requires HTTP server restart
-      # tls:
-      #   type: object
-      #   description: |+
-      #     Holding object for TLS settings
-      #   properties:
-          # tls_minimum_version:
-          #   type: string
-          #   default: 'tlsv1.3'
-          #   summary: The minimum allowable TLS version for the REST APIs
-          #   description: |+
-          #     Enforce a minimum TLS version to be used in replications with Couchbase Lite.
 
-          #     Possible values are:
-
-          #     - "tlsv1"
-          #     - "tlsv1.1"
-          #     - "tlsv1.2"
-          #     - "tlsv1.3"
-
-          # tls_cert_path:
-          #   type: string
-          #   summary: The TLS certificate file to use for the REST APIs
-          #   description: |+
-          #     Absolute or relative path on the filesystem to the TLS certificate file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
-          # tls_key_path:
-          #   type: string
-          #   summary: The TLS key file to use for the REST APIs
-          #   description: |+
-          #     Absolute or relative path on the filesystem to the TLS private key file, if TLS is used to secure Sync Gateway connections, or "nil" for plaintext. A relative path is from the directory that contains the Sync Gateway executable file.
   logging:
     type: object
     description: |+
@@ -792,7 +809,11 @@ properties:
         type: integer
         default: 6
         description: |+
-          This sets the 'deflate' compression level to use when compressing messages sent via the WebSocket protocol, where 0 means no compression, 1 means fastest (least) compression, and 9 means slowest (most) compression.
+          This sets the 'deflate' compression level to use when compressing messages sent via the WebSocket protocol, where:
+
+          -- 0 means no compression,
+          -- 1 means fastest (least) compression
+          -- 9 means slowest (most) compression.
       max_heartbeat:
         type: integer
         default: 0
