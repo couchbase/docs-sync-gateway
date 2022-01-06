@@ -497,14 +497,14 @@ paths:
 
         For example:
         ```{
-            "id": "2",
-            "status": "Completed",
-            "start_time": "2015-09-23T17:27:17.55+01:00",
-            "end_time": "2015-09-23T17:30:17.55+01:00",
-            "duration": "18.01ms",
-            "atts_compacted": 20,
-            "docs_processed": 500
-        }```
+            "status": "running",
+            "start_time": "2021-12-02T18:26:17.086152Z",
+            "last_error": "",
+            "marked_attachments": 0,
+            "purged_attachments": 0,
+            "compact_id": "68302d2d-2c56-434e-94e0-33c0d0437828",
+            "phase": "cleanup"
+            }```
 
       parameters:
       - $ref: '#/parameters/db'
@@ -520,7 +520,11 @@ paths:
 
       summary: Compact the database
       description: |+
-        Use the ```/{db}/_compact``` endpoint to trigger the compaction process, which purges the JSON bodies of non-leaf revisions.
+        Use the ```/{db}/_compact``` endpoint to start a compaction process.
+        The process purges the JSON bodies of non-leaf revisions.
+
+        Using this endpoint following a failed compaction will trigger a restart of the compact_id at the appropriate phase (where possible).
+
         This process is also run periodically by the system.
 
         Note -- Leaf revisions are not purged during compaction.
@@ -532,6 +536,8 @@ paths:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/compaction_type'
       - $ref: '#/parameters/compaction_action'
+      - $ref: '#/parameters/compaction_dry_run'
+      - $ref: '#/parameters/compaction_reset'
 
       responses:
         200:
@@ -1818,13 +1824,13 @@ responses:
       $ref: '#/definitions/Compact_Response'
       example:
         {
-          "id": "2",
-          "status": "Completed",
-          "start_time": "2015-09-23T17:27:17.55+01:00",
-          "end_time": "2015-09-23T17:30:17.55+01:00",
-          "duration": "18.01ms",
-          "atts_compacted": 20,
-          "docs_processed": 500
+          "status": "running",
+          "start_time": "2021-12-02T18:26:17.086152Z",
+          "last_error": "",
+          "marked_attachments": 0,
+          "purged_attachments": 0,
+          "compact_id": "68302d2d-2c56-434e-94e0-33c0d0437828",
+          "phase": "cleanup"
         }
 
   '200-db-compact-post-start':
@@ -4762,10 +4768,8 @@ definitions:
 
   Compact_Response:
     type: object
+    description: JSON Respponse to a _compact request
     properties:
-      id:
-        type: string
-        description:  Unique identifier
       status:
         type: string
         description: State of the _compact process (Running, Stopped, Completed)
@@ -4777,16 +4781,27 @@ definitions:
         type: string
         description: |+
           Time the _compact process ended e.g. "2015-09-23T17:27:17.55+01:00"
-      duration:
+      last_error:
         type: string
-        description: The run time of the _comnpct process e.g. "18.01ms"
-      atts_compacted:
+        description: Text of the last error message.
+      marked_attachments:
         type: integer
-        description: The number of attachments compacted
-      docs_processed:
+        description: The number of attachments marked during the ``mark``` phase.
+      purged_attachments:
         type: integer
-        description: The number of documents processed by the _compact process
+        description: The number of attachments purged by the ```sweep``` phase of the _compact process.
+      compact_id:
+        type: string
+        description:  Unique identifier
+      phase:
+        type: string
+        description:  |+
+          The phase at which a  compact_id restart will commence (where relevant).
 
+          Phases include:
+          - mark
+          - sweep
+          - cleanup
 
   Database-info:
     type: object
@@ -5662,6 +5677,27 @@ parameters:
 
     default: start
 
+  compaction_dry_run:
+    in: query
+    type: string
+    name: dry_run
+    default: false
+    description: |+
+     Use ```dry_run``` only for attachment compaction.
+
+     If this is set to ```true``` the process will run but will not execute the final purge of attachments.
+     It can be used to check how many attachments will be purged.
+
+  compaction_reset:
+    in: query
+    type: string
+    name: reset
+    default: false
+    description: |+
+     Use ```reset``` only for attachment compaction.
+
+     If this is set to ```true``` the ```start``` action will not attemot to resume a failed process but will force a fresh compact to start.
+
   compaction_type:
     type: string
     in: query
@@ -5729,6 +5765,8 @@ parameters:
 
     items:
       type: string
+
+
   endkey:
     name: endkey
     in: query
