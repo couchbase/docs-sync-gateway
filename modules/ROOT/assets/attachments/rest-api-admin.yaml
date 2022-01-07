@@ -1819,7 +1819,11 @@ responses:
           description: Indicates whether the operation was successful
 
   '200-db-compact-get':
-    description: OK - A successful response will return a JSON object containing the _compact status
+    description: |+
+      OK - A successful response will return a JSON object containing the _compact status.
+
+      The current phase of `running` compact processes is returned in `phase`.
+
     schema:
       $ref: '#/definitions/Compact_Response'
       example:
@@ -4796,7 +4800,10 @@ definitions:
       phase:
         type: string
         description:  |+
-          The phase at which a  compact_id restart will commence (where relevant).
+          This item indicates the current phase of `running` compact processes.
+          It can be useful in monitoring progress.
+
+          For failed processes, this indicates the phase at which a compact_id restart will commence (where relevant).
 
           Phases include:
           - mark
