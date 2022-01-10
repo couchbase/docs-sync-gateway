@@ -1472,34 +1472,87 @@ paths:
       - $ref: '#/parameters/doc'
       responses:
         200:
-          description: hello
+          description: OK
           schema:
             $ref: '#/definitions/DocMetadata'
+
   /{db}/_resync:
-    post:
+    get:
       tags:
       - 'Database Management'
-      summary: Reprocess all documents by the database in the sync function.
+      summary: Show resync status
       description: |+
-        This request causes all documents to be reprocessed by the database sync function. The _resync operation should be called if the sync function for a database has been modified in such a way that the channel or access mappings for any existing document would change as a result.
+        This request returns the status of the asynchronous `_resync` operation, including:
 
-        When the sync function is invoked by _resync, the requireUser() and requireRole() calls will always return 'true'.
+        - status
+        - docs processed
+        - docs changed
+        - last error (if any)
 
-        A _resync operation on a database that is not in the offline state will be rejected (503 Service Unavailable).
+        **Sync Gateway Roles Required:**
 
-        A _resync operation will block until all documents in the database have been processed.
+        - Sync Gateway Architect
       parameters:
       - $ref: '#/parameters/db'
       responses:
         200:
-          description: OK – The _resync operation has completed
-          schema:
-            type: object
-            description: The number of documents that were successfully updated.
-            properties:
-              changes:
-                type: integer
-                description: The number of documents that were successfully updated
+          $ref: '#/responses/200-resync'
+
+    post:
+      tags:
+      - 'Database Management'
+      summary: Start/stop the Resync process
+      description: |+
+
+        Use the _resync operation whenever you have modified the database's sync function such that the channel or access mappings for any existing document would change as a result.
+
+        The request will start or stop the _resync process depending upon the ```action``` parameter provided.
+        If no ```action``` parameter is given then `start` is assumed.
+
+        **```action=start```**
+
+        The start action causes all documents to be reprocessed by the database's sync function.
+        This is an **asynchronous** operation.
+
+        When the sync function is invoked by `_resync`, the requireUser() and requireRole() calls will always return 'true'.
+
+        A _resync operation on a database that is not in the offline state will be rejected (503 Service Unavailable).
+
+        **```action=stop```**
+
+        The currently running resync operation is stopped.
+
+
+        **```regenerate_sequences=true```**
+        **Use this only when requested to do so by the Couchbase support team**
+
+        This request will start a resync while regenerating sequences.
+
+        The resync action is carried out **only** on the node that the POST is made to.
+        It is not cross-node aware.
+
+        In a multi-node cluster, the resync must be only run on one node.
+        Users should bring other nodes offline before initiating this action.
+        Starting it on more than one node will result in multiple resyncs running, with undefined system behavior.
+
+        **Sync Gateway Roles Required:**
+
+        – Sync Gateway Architect
+
+      parameters:
+      - $ref: '#/parameters/db'
+      - $ref: '#/parameters/resync-action'
+      - $ref: '#/parameters/resync-regenerate'
+
+      responses:
+        200:
+          $ref: '#/responses/200-resync'
+        400:
+          $ref: '#/responses/400-resync-post-stopped'
+        503:
+          $ref: '#/responses/503-resync-post'
+
+
   /{db}/_revtree/{doc}:
     get:
       produces:
@@ -1933,6 +1986,38 @@ responses:
     schema:
       $ref: '#/definitions/user'
 
+  '200-resync':
+    description: OK
+    schema:
+      $ref: '#/definitions/Resync-response'
+    example:
+      {
+        "status": "completed",
+        "start_time": "2022-01-05T15:05:27.521824Z",
+        "last_error": "",
+        "docs_changed": 0,
+        "docs_processed": 0
+      }
+
+  '400-resync-post-stopped':
+    description: 400 - Database _resync not running
+    # schema:
+    #   $ref: '#/definitions/resync-post-error-response'
+
+  # '503-resync-post-running':
+  #   description: 503 - Database _resync already in progress
+    # schema:
+    #   $ref: '#/definitions/resync-post-error-response'
+
+  '503-resync-post':
+    description: |+
+      503 error code. The meaning varies depending on the action parameter:
+
+      - action=start -- Database must be offline before calling _resync.
+      - action=stop -- Database _resync already in progress
+    # schema:
+    #   $ref: '#/definitions/resync-post-error-response'
+
   OK:
     description: 200 - OK - Operation successful
 
@@ -1992,7 +2077,7 @@ definitions:
 
           ca_cert_path:
             type: string
-            summary: Root CA cert path for TLS connection
+            # summary: Root CA cert path for TLS connection
             description: |+
               Absolute or relative path on the filesystem to the root CA certificate to verify the certificate chain and hostname of the Couchbase Server cluster.
 
@@ -2011,7 +2096,7 @@ definitions:
 
           x509_cert_path:
             type: string
-            summary: Cert path (public key) for X.509 bucket auth
+            # summary: Cert path (public key) for X.509 bucket auth
             description: |+
               Use x509_cert_path to define the absolute or relative path on the filesystem to the x509 certificate.
 
@@ -2019,7 +2104,7 @@ definitions:
 
           x509_key_path:
             type: string
-            summary: Key path (private key) for X.509 bucket auth
+            # summary: Key path (private key) for X.509 bucket auth
             description: |+
               Absolute or relative path on the filesystem to the X509 key.
 
@@ -2042,7 +2127,6 @@ definitions:
         type: object
         description: |+
           Holding object for API related settings.
-
         properties:
           admin_interface:
             type: string
@@ -2153,9 +2237,8 @@ definitions:
 
                   Change requires HTTP server restart
                 items:
-                  origin:
-                    type: string
-                    description: An allowed origin array element
+                  type: string
+                  description: An allowed origin array element
           hide_product_version:
             type: boolean
             default: false
@@ -2179,7 +2262,7 @@ definitions:
               tls_minimum_version:
                 type: string
                 default: 'tlsv1.2'
-                summary: The minimum allowable TLS version for the REST APIs
+                # summary: The minimum allowable TLS version for the REST APIs
                 description: |+
                   Enforce a minimum TLS version to be used in replications with Couchbase Lite.
 
@@ -2194,7 +2277,7 @@ definitions:
 
               tls_cert_path:
                 type: string
-                summary: The TLS certificate file to use for the REST APIs
+                # summary: The TLS certificate file to use for the REST APIs
                 description: |+
                   Absolute or relative path on the filesystem to the TLS certificate file, if TLS is used to secure Sync Gateway connections
 
@@ -2205,7 +2288,7 @@ definitions:
                   Change requires HTTP server restart
               tls_key_path:
                 type: string
-                summary: The TLS key file to use for the REST APIs
+                # summary: The TLS key file to use for the REST APIs
                 description: |+
                   Absolute or relative path on the filesystem to the TLS private key files.
 
@@ -5003,6 +5086,80 @@ definitions:
 
           It comprises the replication definition as would be returned using a `GET` request to the  `_replication` endpoint.
 #
+  Resync-response:
+    type: object
+    properties:
+      status:
+        type: string
+        description: |+
+          Indicates the status of the resync operation.
+
+          Possible values:
+
+          -- running,
+          -- stopped,
+          -- stopping,
+          -- stopped on error
+
+      start_time:
+        type: string
+        description: |+
+          The `_resync` process start time in ISO 8601 format (for example: `2012-04-23T18:25:43.511Z`)
+
+
+      docs_changed:
+        type: integer
+        description: |+
+          Shows the number of documents that have been changed as a result of the sync function.
+
+          Docs are only changed if when run through the new sync function the resulting doc is different to the currently stored doc.
+      docs_procesed:
+        type: integer
+        description: |+
+          Shows the number of documents that have been run through the sync function.
+
+      last_error:
+        type: string
+        description: |+
+          Will ONLY be present when status = “stopped on error”
+
+          In the event of an error in the `_resync` process this field will contain error details.
+          Otherwise it is not visible.
+#
+
+
+#
+  resync-post-response:
+    type: object
+    properties:
+      status:
+        type: string
+        description: |+
+          Indicates the status of the resync operation.
+
+          For `start` this will return ```running``` status
+          For `stop`` this will return ```stopping``` status
+
+      start_time:
+        type: string
+        description: |+
+          The `_resync` process start time in ISO 8601 format (for example: `2012-04-23T18:25:43.511Z`)
+
+      docs_changed:
+        type: integer
+        description: |+
+          Shows the number of documents that have been changed as a result of the sync function.
+
+          For `start` this will return ```0```
+          For `stop`` this will return ```0``` status
+
+      docs_procesed:
+        type: integer
+        description: |+
+          Shows the number of documents that have been run through the sync function.
+
+          For `start` this will return ```0```
+          For `stop`` this will return ```0``` status
 #
   Server:
     type: object
@@ -6313,6 +6470,32 @@ parameters:
       - **start** : Use this action to start a stopped replication
       - **stop** : Use this action to stop a started replication
       - **reset** : Use this action to reset a stopped replication. This will set the checkpoint to zero. For bidirectional replication, both push and pull checkpoints are reset to zero.
+
+  resync-action:
+    in: query
+    name: action
+    type: string
+    default: "start"
+    required: false
+    description: |+
+      The action query can be “start” or “stop”.
+      If neither is provided,“start” is used as the default.
+
+      - Start will 'begin' the asynchrounous resync operation.
+      - Stop will stop the resync operation and will return
+
+  resync-regenerate:
+    in: query
+    name: regenerate_sequences
+    type: string
+    default: none
+    required: false
+    description: |+
+      **Use this only when requested to do so by the Couchbase support team**
+
+      Set **```regenerate_sequences=true```** along with
+      ```action=start``` in order to begin a resync while regenerating sequences.
+
   rev:
     name: rev
     in: query
