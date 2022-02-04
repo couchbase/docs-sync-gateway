@@ -358,7 +358,12 @@ properties:
   logging:
     type: object
     description: |+
-      Holding object for all logging-related settings
+      Holding object for all logging-related settings.
+
+      Note that in addition to setting these logging values here in the bootstrap configuration file, you can also use the ADMIN Rest API to set or change the values without requiring a full reload.
+      A full logging initalization will be required.
+
+      See: [Rest Admin API](rest-api-admin.html)
 
     tags:
       - dynamic
@@ -373,14 +378,17 @@ properties:
         type: string
         default: none
         description: |+
-          Optionally, log files can be redacted. This means that user-data, considered to be private, is removed. Such data includes:
+          Optionally, log files can be redacted.
+          This means that user-data, considered to be private, is removed.
+          Such data includes:
             - Key/value pairs in JSON documents
             - Usernames
             - Query-fields that reference key/value pairs and/or usernames
             - Names and email addresses retrieved during product registration
             - Extended attributes
 
-          This redaction of user-data is referred to as partial redaction. To enable it, the value must be `"partial"` in the configuration file:
+          This redaction of user-data is referred to as partial redaction.
+          To enable it, the value must be `"partial"` in the configuration file:
 
           ```json
           {
@@ -399,7 +407,8 @@ properties:
           rotation:
             type: object
             description: |+
-              The log file may be rotated by defining a "rotation" sub document. See details in the table below.
+              The log file may be rotated by defining a "rotation" sub document.
+              See details in the table below.
             properties:
               max_size:
                 type: integer
@@ -407,10 +416,14 @@ properties:
                 default: 100
               max_age:
                 type: integer
-                description: The maximum number of days to retain old log files. This can't be set below the minimum allowed value for the given level.
+                description: |+
+                  The maximum number of days to retain old log files.
+                  This can't be set below the minimum allowed value for the given level.
               localtime:
                 type: boolean
-                description: If true, it uses the computer's local time to format the backup timestamp. False uses UTC.
+                description: |+
+                  If true, it uses the computer's local time to format the backup timestamp.
+                  False uses UTC.
                 default: 'false'
               rotated_logs_size_limit:
                 type: integer
@@ -484,7 +497,8 @@ properties:
               Changes require full logging re-initialization
       error:
         description: |+
-          The level of logging as a key. Log levels accumulate as you read down the table (i.e log entries at WARN will also be included in the INFO and DEBUG logs).
+          The level of logging as a key.
+          Log levels accumulate as you read down the table (i.e log entries at WARN will also be included in the INFO and DEBUG logs).
 
           | Level| Description| Minimum max_age| Log File Name|
           | :---| :---| :---| :---|
@@ -846,8 +860,6 @@ properties:
         type: boolean
         default: 'false'
         description:
-
-
 
 tags:
   - name: static
