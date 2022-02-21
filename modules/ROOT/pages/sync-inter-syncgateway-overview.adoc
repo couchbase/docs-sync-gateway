@@ -1,7 +1,7 @@
 = Inter-Sync Gateway Replication
 :page-aliases: learn/icr-sgreplicate.adoc, icr-sgreplicate.adoc
-:page-edition: {release}
-:page-status: {prerelease}
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
 :page-role:
 :description: Use inter-Sync Gateway replication to keep clusters in different mobile data centers in sync.
 
@@ -11,7 +11,6 @@ include::partial$_std-hdr-sgw.adoc[]
 
 :param-topic-group: inter-syncgateway
 :param-related:  {configuration-properties-legacy--xref} | {rest-api-admin--xref}
-//  {sync-inter-syncgateway-overview--xref} |
 :param-abstract: pass:q[_Inter-Sync Gateway_ replication supports resilient, secure, scalable bidirectional synchronization of data cloud-to-edge.]
 include::partial$block-abstract.adoc[]
 
@@ -24,6 +23,8 @@ include::partial$block-caveats.adoc[tags=sgr2-only]
 
 
 == Introduction
+
+
 // tag::intro-full[]
 // tag::intro[]
 Couchbase Sync Gateway's _{glos-term-inter-sync-gateway-replication}_ feature supports _{glos-term-cloud-to-edge} synchronization_ use cases, where data changes must be synchronized between a centralized cloud cluster and a large number of edge clusters whilst still enforcing fine grained access control.
@@ -44,9 +45,8 @@ image::icr-replication-overview.svg[]
 
 == Use Cases
 
+
 // tag::use-cases[]
-
-
 === Cloud-to-edge synchronization
 
 In this multi-cloud deployment mode large numbers of multiple edge clusters sync with one or more clusters in cloud data centers. Each edge can operate autonomously without network connectivity to the cloud data centers {fn-arch}.
@@ -75,7 +75,10 @@ image::icr-active-mobile-sync200713.svg[,600]
 
 
 == Replication Characteristics
-_In this section_:  <<context>>  |  <<protocol>>  |  <<types-of-replication>>  |  <<delta-sync>>  |  <<directionality>>  |  <<security>>
+
+
+ifndef::is_deep_toc[_In this section_:  <<context>>  |  <<protocol>>  |  <<types-of-replication>>  |  <<delta-sync>>  |  <<directionality>>  |  <<security>>]
+
 
 === Context
 Sync Gateway supports the ability to run replications between Sync Gateway clusters using a new websockets based protocol, with the {glos-term-active-replicator} {glos-term-synchronizing} changes between two {glos-term-sync-gateway-databases}.
@@ -89,7 +92,7 @@ All replications take place at the document level (but see also, <<delta-sync>>)
 
 Sync Gateway nodes can opt-out of participating in the replication process using the database-level parameter {configuration-schema-database--xref--sgr-enabled}.
 
-_Related configuration elements_:  {configuration-schema-database--xref}  |  {configuration-schema-database--xref--db-replications}  |  {configuration-schema-database--xref--db-rep-remote} |  {configuration-schema-database--xref--sgr-enabled}
+_Related configuration elements_:  {configuration-schema-database--xref}  |  {configuration-schema-database--xref--db-replications}  |  {configuration-schema-database--xref--db-rep-remote} |  {configuration-schema-database--xref--sgr-enabled} +
 For legacy versions see: {configuration-properties-legacy--xref}
 
 
@@ -210,21 +213,9 @@ include::partial$incpg-icr-availability.adoc[leveloffset=+1]
 
 == Conflict Resolution
 
+
 include::partial$incpg-icr-conflict.adoc[tags=overview-full, leveloffset=+1]
 
-For more on conflict resolution -- see: {xref-sgw-pg-icr-conflict-resolution}
-
-// ==  Replication Initialization
-
-// include::partial$incpg-icr-initialization.adoc[leveloffset=+1]
-
-// == Replication Management
-
-// include::partial$incpg-icr-admin.adoc[leveloffset=+1]
-
-// == Replication Monitoring
-
-// include::partial$incpg-icr-monitoring.adoc[leveloffset=+1, tags=!overview]
 
 
 include::partial$block-related-content-icr.adoc[]

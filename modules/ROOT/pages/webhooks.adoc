@@ -1,6 +1,7 @@
 = Webhooks
-:page-edition: {release}
-:page-status: {prerelease}
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-toclevels: 1@
 :description: Introducing Sync Gateway events and event handling with Webhooks
 
 include::partial$_std-hdr-sgw.adoc[]
@@ -20,6 +21,7 @@ Consider the security implications.
 
 == Introduction
 
+
 Sync Gateway provides the ability to extend the replication process and build responsive services that react to changes in documents, adding value to the end to end process.
 
 For example, by initiating the sending of notifications, or specialist audit processes, when certain document changes are detected.
@@ -33,7 +35,9 @@ In addition to providing the opportunity to integrate with external systems, thi
 * The performance impact on Sync Gateway's regular processing
 * The amount of Sync Gateway node CPU resources consumed by slow response times from the HTTP POST operations.
 
+
 == Behavior
+
 
 Webhooks work on the push-cycle of a replication.
 
@@ -54,7 +58,9 @@ HTTP/HTTPS is used to POST the document changes selected by the filter to the de
 
 include::partial$server-integration-scenario-table.adoc[]
 
+
 == Definition
+
 
 You can define _Webhooks_ using the Admin Rest API {rest-api-admin--xref--database-configuration} endpoints.
 For Pre-3.0 Legacy configurations, see the {configuration-properties-legacy--xref} at the database level.
@@ -180,8 +186,6 @@ The `filter` function in the second handler recognizes documents with `doc.type`
 ====
 =====
 
-
-
 === Event Processing Properties
 
 Limited Concurrent Processes::
@@ -209,11 +213,15 @@ Any events arriving whilst the queue is full are then immediately discarded -- s
 
 --
 
+
 [#lbl-evlog]
 == Logging
+
+
 Sync Gateway creates a log whenever an event is discarded, and not added to the event queue.
 
 You can configure the console logging of events using the configuration file and-or the ADMIN Rest API -- see {xref-sgw-pg-logging}.
 The `log_key` you need to include is `Event`; or `Events+` for more verbose output.
+
 
 include::partial$block-related-content-api.adoc[]
