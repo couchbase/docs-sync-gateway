@@ -19,8 +19,8 @@
 // END PAGE DEFINITION
 = Logging
 :page-aliases: advance/logging.adoc
-:page-edition: {release}
-:page-status: {prerelease}
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
 :page-role:
 :description: Introducing Couchbase Sync Gateway's logging functionality
 
@@ -35,7 +35,7 @@ include::partial$block-abstract.adoc[]
 :fn-clog: footnote:fn-clog[Introduced in Sync Gateway version 2.1]
 :fn-dep-cfg: footnote:fn-dep-cfg[The pre-2.1 logging configuration method, using 'logging.default` is deprecated. If upgrading from a pre2.1 Sync Gateway version, then will observer warnings on startup stating what is required to update your configuration -- see also: {legacy-logging-pre2-1--xref} ]
 
-:fn-legacy-text: pass:q,a[For legacy Pre-3.0 BETA see xref:configuration-properties-legacy.adoc[legacy Pre-3.0 BETA configuration]]
+:fn-legacy-text: pass:q,a[For legacy Pre-3.0 see xref:configuration-properties-legacy.adoc[legacy Pre-3.0 configuration]]
 :fn-legacy-pre-3-0: footnote:fnleg3-0[{fn-legacy-text}]
 :fnref-legacy-pre-3-0: footnote:fnleg3-0[]
 
@@ -48,6 +48,7 @@ include::partial$block-caveats.adoc[tags=logfilefolderuse]
 // BEGIN Content
 == Overview
 
+
 Sync Gateway provides a robust <<lbl-continuous-logging>>{fn-clog} solution that delivers flexibility in terms of how logs are generated and retained, whilst also maintaining the level of logging required by Couchbase Support for investigation of issues.
 Its logs are written to <<log-file-outputs, separate log files>> filtered by log level, with each log level supporting individual retention policies.
 You control what is logged using the {configuration-schema-bootstrap--xref} {bootstrap-schema--xref--logging} properties
@@ -57,7 +58,9 @@ In addition to the log files, you can also independently configure and control <
 With _console logging_, system administrators can easily fine-tune diagnostic output to suit specific debug scenarios.
 All without interfering with the logging required by Couchbase Support for the investigation of issues.
 
+
 == Configuration
+
 
 You configure _continuous_ and _console_ logging requirements in the {configuration-schema-bootstrap--xref} file, using the {bootstrap-schema--xref--logging} properties {fn-legacy-pre-3-0}  -- see: <<sample-log-cfg>>.
 
@@ -109,14 +112,20 @@ You configure _continuous_ and _console_ logging requirements in the {configurat
 See: {configuration-schema-bootstrap--xref} for more information on these settings {fnref-legacy-pre-3-0}.
 ====
 
+
 [#lbl-log-redaction]
 == Log Redaction
+
+
 All log outputs -- _console_ or _continuous_ -- can optionally be redacted, which will remove any user-data considered private.
 
 You enable this feature by setting the {bootstrap-schema--xref--logging-redaction-level} property {fnref-legacy-pre-3-0}.
 
+
 [#lbl-console-logs]
 == Console Logging
+
+
 *In this section*: <<lbl-log-levels>>  | <<lbl-log-api>> |  <<lbl-log-keys>>  | <<lbl-log-color>>  | <<lbl-log-redirect>>
 
 TIP: By default only HTTP logging is enabled
@@ -153,7 +162,7 @@ The console log will show the following after this command:
 2021-01-08T13:26:23.884Z [INF] HTTP:  #110: POST /_logging?logLevel=trace (as ADMIN)
 2021-01-08T13:26:23.885Z [INF] Setting log level to: trace
 2021-01-08T13:26:23.885Z [INF] Setting log keys to: [DCP Replicate WS WSFrame]
----
+----
 
 ====
 
@@ -222,9 +231,11 @@ a|This wildcard log key, enables all log keys
 
 [source, console]
 ----
+
 curl --location --request PUT 'http://localhost:4985/_logging?logLevel=trace' \
 --header 'Content-Type: application/json' \
 --data-raw '{"*": true}'
+
 ----
 
 |none
@@ -334,6 +345,8 @@ logcollector my_sg_logs.txt
 
 [#lbl-continuous-logging]
 == Continuous Logging
+
+
 *In this section*: <<lbl-logoutputs>>  |  <<lbl-logrotate>>
 
 _Continuous logging_ produces a set of log files aimed primarily at providing appropriate diagnostic information for the Couchbase Support team should their intervention be required.
@@ -392,7 +405,7 @@ h|Minimum max_age
 |1 Day
 |===
 
-TIP: Each log level and its parameters are defined using the (xref-sgw-bmk-config-properties-log-level) property.
+TIP: Each log level and its parameters are defined using the {bootstrap-schema--xref--logging-console-log-level} property.
 
 [#lbl-logrotate]
 === Log File Rotation

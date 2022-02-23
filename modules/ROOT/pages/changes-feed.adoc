@@ -1,7 +1,7 @@
 = Changes Feed
 :page-aliases: server-integration.adoc
-:page-edition: {release}
-:page-status: {prerelease}
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
 :description: Integrating Sync Gateway with other servers
 :idprefix:
 :idseparator: -
@@ -15,32 +15,42 @@ include::partial$block-abstract.adoc[]
 
 :url-couchdb: http://guide.couchdb.org/draft/notifications.html
 
+
 == Introduction
 
-Sync Gateway provides the ability to extend the replication process and build responsive services that react to changes in documents, adding value to the end to end process.
+
+{sgw-te} provides the ability to extend the replication process and build responsive services that react to changes in documents, adding value to the end to end process.
 
 For example, you can initiate the sending of notifications, or specialist audit processes, when certain document changes are detected.
 This can be done using either the changes feed or {webhooks--xref}-- see  <<tbl-scenarios>> for a comparison of these scenarios.
 
 include::partial$server-integration-scenario-table.adoc[]
 
+
 == Changes Feed
+
+
 The changes-feed for the reliever returns a sorted list of changes made to documents in the database.
 
-This article describes how to use the changes feed API to integrate Sync Gateway with other backend processes.
+This article describes how to use the changes feed API to integrate {sgw} with other backend processes.
 For instance if you have a channel called "needs-email" you could have a bot that sends an email and then saves the document back with a flag to keep it out of the "needs-email" channel.
+
 
 [#lbl-endpoint]
 == Endpoint
 
+
 The changes feed API is a REST API endpoint (xref:rest-api.adoc#/database/get\__db___changes[`+/\{tkn-db}/_changes+`]) that returns a sorted list of changes made to documents in the database.
 It permits applications to implement business logic that reacts to changes in documents.
 
+
 [#lbl-methods]
 == Methods
+
+
 There are several methods of connecting to the changes feed (also know as the feed type).
 The first three methods (`polling`, `longpoll` and `continuous`) are based on the CouchDB API.
-The last method (`websocket`) is specific to Sync Gateway.
+The last method (`websocket`) is specific to {sgw}.
 
 {url-couchdb}#polling[polling^] (default)::
 Returns the list of changes immediately.
@@ -49,12 +59,14 @@ A new request must be sent to get the next set of changes.
 In addition to regular polling, if the request is sent with a special `last_seq` parameter, it will stay open until a new change occurs and is posted.
 {url-couchdb}#continuous[continuous^]::
 The continuous changes API allows you to receive change notifications as they come, in a single HTTP connection.
-You make a request to the continuous changes API and both you and Sync Gateway will hold the connection open “forever.”
+You make a request to the continuous changes API and both you and {sgw} will hold the connection open “forever.”
 <<lbl-websockets>>::
 The WebSocket mode is conceptually the same as continuous mode but it should avoid issues with proxy servers and gateways that cause continuous mode to fail in many real-world mobile use cases.
 
+
 [#lbl-websockets]
 == WebSockets
+
 
 In this section::
 <<lbl-options>>  |  <<lbl-messages>>  |  <<lbl-compressed>>
