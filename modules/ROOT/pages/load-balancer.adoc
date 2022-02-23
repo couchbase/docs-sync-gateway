@@ -1,7 +1,7 @@
 = Load Balancer
-:page-edition: {release}
-:page-status: {prerelease}
-:page-role:
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-toclevels: 1@
 :description: Load balancing replications
 :keywords: sync, load-balance, proxy, nginx
 
@@ -15,35 +15,48 @@ include::partial$block-abstract.adoc[]
 :fn-2-8: footnote:fn28[Commencing with release 2.8.4 of Couchbase Lite]
 :fnref-2-8: footnote:fn28[]
 
+
 == Introduction
+
 
 This guide covers various aspects to consider when using a Load Balancer in a Couchbase Mobile deployment.
 In particular, when using NGINX or AWS Elastic Load Balancer (ELB).
 
+
 == When to Use a Reverse Proxy
+
 
 * A reverse proxy can hide the existence of a Sync Gateway server or servers.
 This can help to secure the Sync gateway instances when your service is exposed to the internet.
+
 * A reverse proxy can provide application firewall features that protect against common web-based attacks.
+
 * A reverse proxy can offload ssl termination from the Sync Gateway instances, this can be a significant overhead when supporting large numbers of mobile devices.
+
 * A reverse proxy can distribute the load from incoming requests to several Sync Gateway instances.
+
 * A reverse proxy may rewrite the URL of each incoming request in order to match the relevant internal location of the requested resource.
 For Sync Gateway the reverse proxy may map the Internet facing port 80 to the standard Sync Gateway public REST API port 4984.
 
+
 == WebSocket Connection
+
 
 To keep a WebSocket connection open, the replicator sends a WebSocket PING message (also known as heartbeat) every 300 seconds (5 minutes).
 This heartbeat is required to keep the connection alive between Couchbase Lite and Sync Gateway.
 
 To support the heartbeat's effective operation, the keep-alive timeout interval of any intervening load balancer must be longer than the heartbeat interval.
 This can be achieved either by changing the websocket proxy settings for the load balancer to align with the heartbeat interval -- see <<NGINX>>.
-Or alternatively, by configuring the replicator heartbeat interval using Couchbase Lite {fn-2-8}
+Or alternatively, by configuring the replicator heartbeat interval using Couchbase Lite {fn-2-8}.
 
-:param--page: replication
+:param-page: replication
 :param-bookmark: lbl-cfg-keep-alive
 include::partial$blocklinks-cbl.adoc[]
 
+
 == NGINX
+
+
 This section demonstrates how to change the websocket heartbeat interval on NGINX.
 
 . Connect to the server running Sync Gateway and install the nginx server:
@@ -84,7 +97,7 @@ If you installed nginx using the instructions above, then you will create your s
 [#ex-nginx-cfg]
 .NGINX configuration sample
 ====
-[source]
+[source, text]
 ----
 upstream sync_gateway { // <.>
     server 127.0.0.1:4984;
@@ -115,16 +128,25 @@ In this example it is the sync_gateway running on the same server as nginx and l
 Change these values if your sync_gateway is configured differently
 
 <.> The `listen` directive instructs nginx to listen on port 80 for incoming traffic.
+
 <.> The `server_name` directive instructs nginx to check that the HTTP `Host:` header value matches `myservice.example.org` (change this value to your domain).
+
 <.> The `client_max_body_size` directive instructs nginx to accept request bodies up to 21MBytes, this is necessary to support attachments being sync'd to Sync Gateway.
 
 <.> The `location` block specifies directives for all URL paths below the root path `/`.
+
 <.> The `proxy_pass` directive instructs nginx to forward all incoming traffic to servers defined in the sync_gateway `upstream` block.
+
 <.> The two `proxy_pass_header` directives instruct nginx to pass `Accept:` and `Server:` headers on inbound and outbound traffic, these headers allow CouchbaseLite and sync_gateway to optimize data transfer, e.g. by using gzip compression and multipart/mixed if it is supported.
+
 <.> The `keepalive_requests` directive instructs nginx to allow up to one thousand requests on the same connection, this is useful when getting a `_changes` feed using longpoll.
+
 <.> The `keepalive_timeout` directive instructs nginx to keep connection open for 360 seconds from the last request, this value is longer than the default (300 seconds) value for the heartbeat on the `_changes` feed using longpoll.
+
 <.> The `proxy_read_timeout` directive instructs nginx to keep connection open for 360 seconds from the last server response, this value is longer than the default (300 seconds) value for the heartbeat on the `_changes` feed using longpoll.
+
 <.> The two `proxy_set_header` directives enable support for WebSocket connections, which are used by Couchbase Lite for a pull replication's `_changes` feed.
+
 ====
 
 . We now need to enable the `sync_gateway` site. +
@@ -225,7 +247,7 @@ sudo openssl req -x509 -nodes -days 1095 -newkey rsa:2048 -keyout /etc/nginx/ssl
 Whichever way you generated the certificate, you should now have two files, a certificate and a private key.
 We will assume they are at */etc/nginx/ssl/nginx.crt* and */etc/nginx/ssl/nginx.key*.
 
-. Add a new server section (see: <<ex-cfg-ssl-term>>) to the nginx configuration file to support SSL termination:=
+. Add a new server section (see: <<ex-cfg-ssl-term>>) to the nginx configuration file to support SSL termination:
 +
 [#ex-cfg-ssl-term]
 .Configure for SSL termination

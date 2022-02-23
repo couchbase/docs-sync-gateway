@@ -1,8 +1,7 @@
 = Release Notes
 :page-aliases: prodnotes/pn-releasenotes.adoc, prodnotes/pn-release-notes.adoc, releasenotes.adoc, pn-release-notes.adoc
-:page-edition: {release}
-:page-status: {prerelease}
-:page-role:
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
 :description: Couchbase Sync Gateway
 :keywords: edge nosql api synchronization replication
 // End of Page Attribute Statements
@@ -33,18 +32,19 @@ include::partial$block-abstract.adoc[]
 
 :xref-sgw-bmk-cfg-dbsvr: xref:{configuration-properties-legacy--page}#databases-this_db-server[Couchbase Server Connection String]
 :xref-sgw-bmk-cfg-hideprodvn: xref:{configuration-properties-legacy--page}#hide_product_version[Hide Product Version in Headers]
+:legacy-config--xref: {configuration-properties-legacy--pfx}#
 
 // END DO NOT REMOVE
 
 .One Way Upgrade
 [CAUTION]
 --
-The migration to 3.0 BETA configuration is a ONE WAY process -- see: {upgrading--xref} for more.
+The migration to 3.0 configuration is a ONE WAY process -- see: {upgrading--xref} for more.
 --
 
 
 [#lbl-rel300]
-== Release {version-full} -- October 2021
+== Release {version-full} -- February 2022
 Quicklinks: <<new-features-300>> *|*
 <<improvements-300>> *|*
 <<issues-and-resolutions-300>> *|*
@@ -52,43 +52,43 @@ Quicklinks: <<new-features-300>> *|*
 
 
 [#new-features-300]
-== New Feature Highlights
+=== New Features
 
-=== Centralized Persistent Modular Configuration
+==== Centralized Persistent Modular Configuration
 include::partial$common-releasenotes.adoc[tag="new-300-centralized-cfg-summ", leveloffset=+1]
 
 xref:whatsnew.adoc#centralized-persistent-modular-configuration[Read More ...]
 
 
-=== Secure Administration
+==== Secure Administration
 
 include::partial$common-releasenotes.adoc[tag="new-300-secure-admin-summ", leveloffset=+1]
 
 xref:whatsnew.adoc#secure-administration[Read More ...]
 
 
-=== TLS Encryption Enabled by Default
+==== TLS Encryption Enabled by Default
 
 include::partial$common-releasenotes.adoc[tag="new-300-tls-summ", leveloffset=+1]
 
 xref:whatsnew.adoc#tls-encryption-enabled-by-default[Read More ...]
 
 
-=== User Defined Extended Attributes(XAttrs) for Access Control
+==== User Defined Extended Attributes(XAttrs) for Access Control
 
 include::partial$common-releasenotes.adoc[tag="new-300-xattrs-summ", leveloffset=+1]
 
 xref:whatsnew.adoc#user-defined-extended-attributesxattrs-for-access-control[Read More ...]
 
 
-=== Auto-Purge on Channel Access Revocation in Inter-Sync Gateway Replication
+==== Auto-Purge on Channel Access Revocation in Inter-Sync Gateway Replication
 
 include::partial$common-releasenotes.adoc[tag="new-300-auto-purge-summ", leveloffset=+1]
 
 xref:whatsnew.adoc#auto-purge-on-channel-access-revocation-in-inter-sync-gateway-replication[Read More ...]
 
 
-=== Use Environment Variables in Configuration File
+==== Use Environment Variables in Configuration File
 
 include::partial$common-releasenotes.adoc[tag="new-300-environment-vars-summ", leveloffset=+1]
 
@@ -96,33 +96,41 @@ xref:whatsnew.adoc#use-environment-variables-in-configuration-file[Read More ...
 
 
 [#improvements-300]
-== Other Enhancements
+=== Enhancements
 // tag::enhancements-300[]
 
-// tag::Enhancements-3-0-0-beta[]
-include::partial$pn-issues-list.adoc[tags="Enhancements-3-0-0-beta"]
+==== Compacting
+Attachments added post 3.0 are automatically removed from the bucket upon reference removal, document delete or document purge. +
+The {rest-api-admin--xref--database-management--compact} API includes an option to remove any redundant pre-3.0 attachments -- see:
+{revisions--xref-compacting}.
 
-// end::Enhancements-3-0-0-beta[]
+==== Resync
+The `_resync` process has been enhanced to better handle large datasets, minimizing timeout and out-of-memory issues.
+The process now runs asynchronously, uses query pagination and supports sequence regeneration.
+
+==== Other Enhancements
+// tag::Enhancements-3-0-0[]
+include::partial$pn-issues-list.adoc[tags="Enhancements-3-0-0"]
+
+// end::Enhancements-3-0-0[]
 // end::enhancements-300[]
 
 [#issues-and-resolutions-300]
-== Issues and Resolutions
+=== Issues and Resolutions
 
-=== Known Issues
+==== Known Issues
 
 // tag::known-300[]
 // .List of issues outstanding at this release
-include::partial$pn-issues-list.adoc[tags="KI-3-0-0-beta"]
-
-
+include::partial$pn-issues-list.adoc[tags="KI-3-0-0"]
 
 // end::known-300[]
 
-=== Fixed Issues
+==== Fixed Issues
 // tag::fixed-300[]
-// tag::Fixed-3-0-0-beta[]
-include::partial$pn-issues-list.adoc[tags="Fixed-3-0-0-beta"]
-// end::Fixed-3-0-0-beta[]
+// tag::Fixed-3-0-0[]
+include::partial$pn-issues-list.adoc[tags="Fixed-3-0-0"]
+// end::Fixed-3-0-0[]
 // end::fixed-300[]
 
 // tag::api-changed-300[]
@@ -133,14 +141,14 @@ include::partial$pn-issues-list.adoc[tags="Fixed-3-0-0-beta"]
 // tbd
 // end::cfg-changed-300[]
 
-=== Deprecated
-include::partial$pn-issues-list.adoc[tags="Deprecated-3-0-0-beta"]
+==== Deprecated
+include::partial$pn-issues-list.adoc[tags="Deprecated-3-0-0"]
 
-=== Removed
-include::partial$pn-issues-list.adoc[tags="Removed-3-0-0-beta"]
+==== Removed
+include::partial$pn-issues-list.adoc[tags="Removed-3-0-0"]
 
+=== API and Configuration Changes
 
-== API and Confiuration Changes
 // – identify any REST API changes
 // tag::api-changes-300[]
 // tag::all-changed-300-api[]
@@ -148,7 +156,7 @@ This release introduces significant configuration and persistent API changes; so
 <<tbl-deprecated>> |
 <<tbl-dropped>>.
 
-=== Breaks compatibility
+==== Breaks compatibility
 
 .Breaks compatibility
 [#tbl-breaking, cols="1a,1a", options="header"]
@@ -168,14 +176,14 @@ The change _ought to be_ transparent to the user, *if*:
 
 Old documents are automatically migrated to the `xattr` metadata format.
 
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-enable_shared_bucket_access[enable_shared_bucket_access]
+|   {legacy-config--xref}databases-this_db-enable_shared_bucket_access[enable_shared_bucket_access]
 
 |  Enforce TLS by default
 |  xref:secure-sgw-access.html#lbl-cbs-comms[Couchbase Server Connection]
 
 |===
 
-=== Deprecated
+==== Deprecated
 
 .Deprecated
 [#tbl-deprecated, cols="1a,1a", options="header"]
@@ -184,23 +192,23 @@ Old documents are automatically migrated to the `xattr` metadata format.
 .>|   Link
 
 |  allow_conflicts confg
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-allow_conflicts[allow_conflicts]
+|   {legacy-config--xref}databases-this_db-allow_conflicts[allow_conflicts]
 
 |  enable_shared_bucket_access -- disabled option
 |
 
 |  Facebook User Auth Config
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#facebook[facebook]
+|   {legacy-config--xref}facebook[facebook]
 
 |  Google User Auth Config
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#facebook[Google]
+|   {legacy-config--xref}facebook[Google]
 
 |  Logging API
 |
 |   Deprecated
 |===
 
-=== Dropped or removed
+==== Dropped or removed
 .Dropped or removed
 [#tbl-dropped, cols="1a,1a", options="header"]
 |===
@@ -211,43 +219,43 @@ Old documents are automatically migrated to the `xattr` metadata format.
 |
 
 |  configServer property
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#configServer[configserver]
+|   {legacy-config--xref}configServer[configserver]
 
 |  databases.this_db.cache.channel_cache_expiry
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_expiry[channel_cache_expiry]
+|   {legacy-config--xref}databases-this_db-cache-channel_cache_expiry[channel_cache_expiry]
 
 |  databases.this_db.feed_type
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-feed_type[feed_type]
+|   {legacy-config--xref}databases-this_db-feed_type[feed_type]
 
 |  logging.default config section
 |   xref:legacy-logging-pre2-1.adoc[Legacy - Pre-2.1 Logging]
 
-|  old cache config values :databases.this_db.cache.channel_cache_max_length
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_max_length[channel_cache_max_length]
+|  databases.this_db.cache.channel_cache_max_length
+|   {legacy-config--xref}databases-this_db-cache-channel_cache_max_length[channel_cache_max_length]
 
-|  old cache config values :databases.this_db.cache.channel_cache_min_length
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-channel_cache_min_length[channel_cache_min_length]
+|  databases.this_db.cache.channel_cache_min_length
+|   {legacy-config--xref}databases-this_db-cache-channel_cache_min_length[channel_cache_min_length]
 
-|  old cache config values :databases.this_db.cache.enable_star_channel
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-enable_star_channel[enable_star_channel]
+|  databases.this_db.cache.enable_star_channel
+|   {legacy-config--xref}databases-this_db-cache-enable_star_channel[enable_star_channel]
 
-|  old cache config values :databases.this_db.cache.max_num_pending
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_num_pending[max_num_pending]
+|  databases.this_db.cache.max_num_pending
+|   {legacy-config--xref}databases-this_db-cache-max_num_pending[max_num_pending]
 
-|  old cache config values :databases.this_db.cache.max_wait_pending
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_wait_pending[db-cache-max_wait_pending]
+|  databases.this_db.cache.max_wait_pending
+|   {legacy-config--xref}databases-this_db-cache-max_wait_pending[db-cache-max_wait_pending]
 
-|  old cache config values :databases.this_db.cache.max_wait_skipped
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-cache-max_wait_skipped[max_num_skipped]
+|  databases.this_db.cache.max_wait_skipped
+|   {legacy-config--xref}databases-this_db-cache-max_wait_skipped[max_num_skipped]
 
 |  old cache config values: databases.this_db.rev_cache_size
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-rev_cache_size[rev_cache_size]
+|   {legacy-config--xref}databases-this_db-rev_cache_size[rev_cache_size]
 
 |  SG-Replicate
-|   xref:2.8@sync-gateway:ROOT:legacy-sg-replicate.adoc[Legacy -- SG-Replicate]
+|  {legacy-sg-replicate--xref}
 
-|  walrus (should not be default database mode)
-|   xref:2.8@sync-gateway:ROOT:configuration-properties.adoc#databases-this_db-server[server]
+|  walrus mode
+|   {legacy-config--xref}databases-this_db-server[server]
 |   Dropped
 |===
 
@@ -257,10 +265,10 @@ Old documents are automatically migrated to the `xattr` metadata format.
 // end::api-changes-300[]
 
 [#support-notices-300]
-== Support Notices
+=== Support Notices
 This section documents any support-related notes, constraints and changes
 
-=== Deprecation Notices
+==== Deprecation Notices
 Items (features and-or functionality) are marked as deprecated when a more current, and usually enhanced, alternative is available.
 
 Whilst the deprecated item will remain usable, it is no longer supported, and will be removed in a future release.
@@ -318,7 +326,7 @@ You should plan to move to an alternative, supported, solution as soon as practi
 // ===== Support is added for:
 
 
-=== Upgrading
+==== Upgrading
 
 // tag::upgrading[]
 

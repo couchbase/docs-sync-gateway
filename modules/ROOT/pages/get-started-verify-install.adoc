@@ -1,7 +1,7 @@
 = Verify a Sync Gateway Install
 :page-aliases: start/get-started-verify-install.adoc
-:page-edition: {release}
-:page-status: {prerelease}
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
 :page-role:
 :Description: pass:q[Configure and verify your _Sync Gateway_ installation; securely sync enterprise data from cloud to edge!]
 :page-type: procedural
@@ -21,7 +21,7 @@ include::partial$_std-hdr-sgw.adoc[]
 // BEGIN - Page Heading
 :topic-group: Start Here!
 :param-related: {introduction--xref}  |  {get-started-prepare--xref}  |  {get-started-install--xref}
-:param-abstract: pass:q[This is *Step 4* in the _Start Here!_ topic group. Here we will verify that you can connect your _Sync Gateway_ to a _Couchbase Server_ and synchronize changes whether made in Couchbase Server or through Sync Gateway's REST API.]
+:param-abstract: pass:q,a[This is *Step 4* in the _Start Here!_ topic group. Here we will verify that you can connect your _{sgw}_ to a _Couchbase Server_ and synchronize changes whether made in Couchbase Server or through {sgw}'s REST API.]
 include::partial$block-abstract.adoc[]
 // END - Page Heading
 
@@ -33,29 +33,35 @@ NOTE: Ensure you have read, and acted-upon, the information and steps in {get-st
 :param-page: {page-relative-src-path}
 include::partial$_get-started-topic-group.adoc[]
 
-In this final step of the Getting Started topic we will look to link your Sync Gateway to a Couchbase Server bucket and verify that sync is taking place by executing a CRUD cycle.
-You will need to edit the configuration file used in the {get-started-install--xref} step to point to a bucket on your Couchbase Server -- see <<lbl-config>>.
 
-On completion of this topic you will have a working Sync Gateway instance that you know syncs with a Couchbase Server.
+== Introduction
+
+
+In this final step of the Getting Started topic we will look to link your {sgw-te} to a {cbs-te} bucket and verify that sync is taking place by executing a CRUD cycle.
+You will need to edit the configuration file used in the {get-started-install--xref} step to point to a bucket on your {cbs} -- see <<lbl-config>>.
+
+On completion of this topic you will have a working {sgw} instance that you know syncs with a {cbs}.
 You will have successfully completed installation and can now build on this with confidence.
 
 
 [#lbl-config]
 == Bootstrap Sync Gateway
 
-To configure Sync Gateway to connect to a Couchbase Server:
+To configure {sgw} to connect to a {cbs}:
 
-. Ensure your Sync Gateway service is stopped/unloaded
+. Ensure your {sgw} service is stopped/unloaded
 . Edit the configuration file you used in {get-started-install--xref} and replace the contents with those shown in <<sample-cfg>>.
 +
-The configuration points to your Couchbase Server cluster, which we will use to verify that you can synchronize changes made through the Sync Gateway API with those made through Couchbase Server.
-. Ensure you start Couchbase Server
-. Restart/Load your Sync Gateway  to pick-up the changed configuration
+The configuration points to your {cbs} cluster, which we will use to verify that you can synchronize changes made through the {sgw} API with those made through {cbs}.
+. Ensure you start {cbs}
+. Restart/Load your {sgw}  to pick-up the changed configuration
+
 
 [#sample-cfg]
 .Simple Sync Gateway Bootstrap Config
 ====
-[source,json]
+
+[source, json]
 ----
 
 {
@@ -77,20 +83,28 @@ The configuration points to your Couchbase Server cluster, which we will use to 
 
 ----
 
+
 About the Configuration Properties::
-<.> Here we point to the Couchbase Server cluster using secure connection. Server ships with self signed certs that work out of the box, as long as `server_tls_skip_verify` is set, as it is below.
-<.> Here we provide the credentials for the RBAC user that you created on the Couchbase Server Admin Console -- see {get-started-prepare--config-server--xref}
+
+<.> Here we point to the {cbs} cluster using secure connection. Server ships with self signed certs that work out of the box, as long as `server_tls_skip_verify` is set, as it is below.
+
+<.> Here we provide the credentials for the RBAC user that you created on the {cbs} Admin Console -- see {get-started-prepare--config-server--xref}
+
 <.> Here we opt to ignore CA Cert verification of the certificate presented by the server; allowing for example use of self-signed certificate. The connection is unverified but encrypted.
+
 <.> Optionally, you can choose to run without TLS, by setting this value `false`.
 In that case you should also use the plaintext URI `couchbase://localhost` to connect.
+
 <.> Define your logging requirements: +
 Here we set general diagnostic console logs on.
 If you're having issues then refer to {logging--xref} for how to tune diagnostics to provide additional troubleshooting help
+
 ====
 
 .Start Sync Gateway
 
 Run the following in a terminal:
+[source, bash]
 ----
 bin/sync_gateway -<options> sgwconfig.json // <.>
 ----
@@ -99,14 +113,16 @@ bin/sync_gateway -<options> sgwconfig.json // <.>
 
 == Add a Database Configuration
 
+
 We can now use the Admin REST API to add a database to our {sgw} cluster.
 
-The `curl` command shown in <<ex-add-sgw-db>> requires basic authentication using the `api_admin` Couchbase Server RBAC user's credentials we created in <<tbd>>.
-It adds a `traveldb` database pointing to the Couchbase Server's `travel-sample` bucket.
+The `curl` command shown in <<ex-add-sgw-db>> requires basic authentication using the `api_admin` {cbs} RBAC user's credentials we created in Step 2 of {get-started-prepare--xref--create-rbac-users}.
+It adds a `traveldb` database pointing to the {cbs}'s `travel-sample` bucket.
 
 [#ex-add-sgw-db]
 .Add a Sync Gateway Database
 ====
+[source]
 ----
 curl --location --request PUT 'http://127.0.0.1:4985/traveldb/' \  // <.>
 --header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
@@ -117,25 +133,26 @@ curl --location --request PUT 'http://127.0.0.1:4985/traveldb/' \  // <.>
     }
 ----
 <.> Here we specify the name of the {sgw} database -- `traveldb`
-<.> Now we point `traveldb` at the Couchbase Server bucket `travel-sample`, which we created in {get-started-prepare--config-server--xref}
+<.> Now we point `traveldb` at the {cbs} bucket `travel-sample`, which we created in {get-started-prepare--config-server--xref}
 <.> Set to zero for this example database
 // <.> Here we specify the {sgw} `users` able to access the databaseintroduces a guest user with access to all channels and all documents
 ====
 
 
-
-
 == Add a Sync Gateway User
+
 
 We can now create a {sgw} user and role to allow secure access during replication on this {sgw} cluster.
 
 === Add a role
-The `curl` command shown in <<ex-add-role>> requires basic authentication using the `api_admin` Couchbase Server RBAC user's credentials we created in <<tbd>>.
+
+The `curl` command shown in <<ex-add-role>> requires basic authentication using the `api_admin` {cbs} RBAC user's credentials we created in Step 2 of {get-started-prepare--xref--create-rbac-users}.
 It adds a role called `stdrole`.
 
-[#ex-add-sgw-db]
+[#ex-add-role]
 .Add a Sync Gateway Role
 ====
+[source, bash]
 ----
 curl --location --request PUT 'http://127.0.0.1:4985/traveldb/_role/stdrole' \ // <.>
 --header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
@@ -146,20 +163,24 @@ curl --location --request PUT 'http://127.0.0.1:4985/traveldb/_role/stdrole' \ /
 }'
 
 ----
+
 <.> Here we identify the name of the {sgw} database -- `traveldb` +
 The action, `_role` and +
 The role's name `stdrole`
+
 <.> Now we identify the channels accessible to users assigned this role; these will be used by the Sync Function to control access.
 
 ====
 
 === Add the user
-The `curl` command shown in <<ex-add-user>> requires basic authentication using the `api_admin` Couchbase Server RBAC user's credentials we created in <<tbd>>.
+
+The `curl` command shown in <<ex-add-user>> requires basic authentication using the `api_admin` {cbs} RBAC user's credentials we created in Step 2 of {get-started-prepare--xref--create-rbac-users}.
 It adds a user called `sgwuser1`.
 
-[#ex-add-sgw-db]
-.Add a Sync Gateway Role
+[#ex-add-user]
+.Add a Sync Gateway User
 ====
+[source, bash]
 ----
 curl --location --request PUT 'http://127.0.0.1:4985/traveldb/_user/sgwuser1' \ // <.>
 --header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
@@ -182,9 +203,11 @@ The user's name `sgwuser1`
 
 
 == Connect to Sync Gateway
+
+
 TIP: You can use {xref-sgw-bmk-logging-console} to aid diagnosis of connection issues
 
-. With Sync Gateway and Couchbase Server started, point your browser to the Sync Gateway url, typically on port 4984, but this can be changed -- see: {rest-api-access--xref}.
+. With {sgw} and {cbs} started, point your browser to the {sgw} url, typically on port 4984, but this can be changed -- see: {rest-api-access--xref}.
 +
 So, for example:
 +
@@ -197,26 +220,30 @@ http://localhost:4984
 +
 [{snippet-header}]
 ----
-{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":"{version}"},"version":"Couchbase Sync Gateway/\{version-full}(376;e2e7d42) EE"}
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":"{version}"},"version":"Couchbase {sgw}/\{version-full}(376;e2e7d42) EE"}
 ----
 +
 If there are issues then check the {xref-sgw-bmk-logging-console} for more information.
 Where necessary you can redirect console output to a file -- see: {xref-sgw-bmk-logging-console-redirect}.
 
-TIP: If Sync Gateway is behind a load balancer then check the websockets configuration -- see {load-balancer--xref}.
+TIP: If {sgw} is behind a load balancer then check the websockets configuration -- see {load-balancer--xref}.
 
 
 == Verify the CRUD Cycle
 
-Here we will use CURL and Sync Gateway's REST API to
+Here we will use CURL and {sgw}'s REST API to
 
-. <<lbl-crud-crt>> Use the API to add a document and check the document on Couchbase Server
-. <<lbl-crud-get>> Read the document back from Couchbase Server using the Sync Gateway API
-. <<lbl-crud-upd>> Update the newly created document and observe the changes in Couchbase Server
-. <<lbl-crud-upd-svr>> Update the document in Couchase Server and check the change in Sync Gateway
-. <<lbl-crud-del>> Delete our document and check its state on Couchbase Server and Sync Gateway.
+. <<lbl-crud-crt>> Use the API to add a document and check the document on {cbs}
 
-Remember to use the credentials of the Couchbase Server RBAC user for authentication.
+. <<lbl-crud-get>> Read the document back from {cbs} using the {sgw} API
+
+. <<lbl-crud-upd>> Update the newly created document and observe the changes in {cbs}
+
+. <<lbl-crud-upd-svr>> Update the document in Couchase Server and check the change in {sgw}
+
+. <<lbl-crud-del>> Delete our document and check its state on {cbs} and {sgw}.
+
+Remember to use the credentials of the {cbs} RBAC user for authentication.
 
 
 [#ex-sync]
@@ -224,7 +251,7 @@ Remember to use the credentials of the Couchbase Server RBAC user for authentica
 [#lbl-crud-crt]
 === Create a New Document:
 
-Within a terminal use CURL to issue the following POST request, which adds a new document to the Couchbase Server bucket `get-started-bucket` by way of the Sync Gateway database `get-started-bucket` we configured in <<lbl-config>>
+Within a terminal use CURL to issue the following POST request, which adds a new document to the {cbs} bucket `get-started-bucket` by way of the {sgw} database `get-started-bucket` we configured in <<lbl-config>>
 
 .Request
 [{snippet-header}]
@@ -254,7 +281,7 @@ curl --location --request PUT 'http://localhost:4985/traveldb/hotel_88801' \
 
 [#lbl-check-cbs, reftext=Check Document on Couchbase Server]
 .Check
-View the document in Couchbase Server Admin Console to verify it syncs from Sync Gateway database.
+View the document in {cbs} Admin Console to verify it syncs from {sgw} database.
 
 . Within the Admin Console, select *Buckets* and hit the btn:[Documents] button to open the _Document Editor_ tab.
 
@@ -266,7 +293,7 @@ View the document in Couchbase Server Admin Console to verify it syncs from Sync
 .. kbd:[Enter]
 +
 You will see the response shown in <<img-cbs-view>>.
-The document should include any changes made through Sync Gateway, including the initial create.
+The document should include any changes made through {sgw}, including the initial create.
 +
 [#img-cbs-view]
 .Couchbase Server Document Editor
@@ -342,9 +369,9 @@ Does the document contain the changed _data_ value?
 [#lbl-crud-upd-svr]
 === Sync a Couchbase Server Change
 
-This will show that changes made using Couchbase Server are replicated to Sync Gateway.
+This will show that changes made using {cbs} are replicated to {sgw}.
 
-. Within the Couchbase Server Document Editor
+. Within the {cbs} Document Editor
 
 .. Retrieve `88801` if it is not currently displayed +
 Use `meta().id="hotel_88801"` as query
@@ -353,7 +380,7 @@ Use `meta().id="hotel_88801"` as query
 .. btn:[Save] the change. +
 
 . In your terminal, use the API to get the document again -- see <<lbl-crud-get>> +
-You should see the change you made in Couchbase Server reflected in the response. For example:
+You should see the change you made in {cbs} reflected in the response. For example:
 +
 [{snippet-header}]
 ----
@@ -362,7 +389,7 @@ You should see the change you made in Couchbase Server reflected in the response
 
 ----
 <.> Note that the revision sequence is now 3, up from the 2 returned in our <<lbl-crud-upd-resp>>
-<.> Note that the _email_ and _name_ fielda now contains both the change made in Sync Gateway and the amendment made in Couchbase Server ("reception")
+<.> Note that the _email_ and _name_ fielda now contains both the change made in {sgw} and the amendment made in {cbs} ("reception")
 
 
 [#lbl-crud-del]
@@ -401,29 +428,31 @@ Assuming the delete worked you should see the following response:
 
 
 == Ways to Verify Sync
+
+
 To verify that document changes have been replicated, you can:
 
-* Monitor the Sync Gateway revision number returned by the database endpoint (xref:{rest-api--page}#/database/get\__db__[GET /\{tkn-db}/]).
-The revision number increments for every change that happens on the Sync Gateway database.
-* Query a document by ID on the Sync Gateway REST API as shown in <<lbl-check-cbs>>. Use (xref:{rest-api--page}#/document/get\__db___doc_[GET /\{tkn-db}/\{id}]) -- see: {rest-api-access--xref} for more.
-* Query a document from the Query Workbench on the Couchbase Server Console.
+* Monitor the {sgw} revision number returned by the database endpoint (xref:{rest-api--page}#/database/get\__db__[GET /\{tkn-db}/]).
+The revision number increments for every change that happens on the {sgw} database.
+* Query a document by ID on the {sgw} REST API as shown in <<lbl-check-cbs>>. Use (xref:{rest-api--page}#/document/get\__db___doc_[GET /\{tkn-db}/\{id}]) -- see: {rest-api-access--xref} for more.
+* Query a document from the Query Workbench on the {cbs} Console.
 
 
-== Next Steps
-
-Now you know Sync Gateway is deployed and operational.
+.Next Steps
+****
+Now you know {sgw} is deployed and operational.
 So, you can explore more complex scenarios with confidence.
 
-Maybe you want to learn more about Sync Gateway's {configuration-schema-bootstrap--xref} or how to {sync-with-couchbase-server--xref}. Or perhaps you want to explore how to:
+Maybe you want to learn more about {sgw}'s {configuration-schema-bootstrap--xref} or how to {sync-with-couchbase-server--xref}. Or perhaps you want to explore how to:
 
 * Implement access controls for users and data -- see: {users--xref}, {roles--xref} and the {sync-function--xref} that ties it all together.
 
 * Implement secure connectivity using TLS/SSL, which is described in {authentication-users--xref} and {authentication-certs--xref}
 
 * Build more complex syncs, such as those that sync with:
-** Other Sync Gateway nodes, for which see {sync-inter-syncgateway-overview--xref}
+** Other {sgw} nodes, for which see {sync-inter-syncgateway-overview--xref}
 ** Apps on mobile devices using Couchbase Lite -- see {sync-using-app--xref}
-
+****
 
 // BEGIN -- Page Footer
 include::partial$block-related-content-deploy.adoc[]
