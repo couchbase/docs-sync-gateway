@@ -2261,16 +2261,14 @@ paths:
         -- Sync Gateway Application
         -- Sync Gateway Application Read Only
 
-        Without `Application` or `Application Read Only` users will be unable to see dynamc user or role data.
+        Without `Application` or `Application Read Only` users will be unable to see dynamic user or role data.
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/name'
 
       responses:
         200:
-          description: 200 OK – Returns information about the specified user
-          schema:
-            $ref: '#/definitions/user'
+          $ref: '#/responses/200-User'
         401:
           $ref: '#/responses/Unauthorized'
 
@@ -2445,23 +2443,36 @@ responses:
     schema:
       $ref: '#/definitions/bootstrap_config_model'
 
-  '200-user':
-    description: OK
+  '200-User':
+    description: 200 OK - Returns information about the specified user
     schema:
-      $ref: '#/definitions/user'
+      $ref: '#/definitions/User-response'
+      example:
+        {
+          "name": "jim",
+          "admin_channels" : [
+            "!",
+            "jim.roberts@gmail,com"
+          ],
+          "all-Channels": [
+            "!",
+            "jim. roberts@gmail,com"
+          ],
+          "email": "jim.roberts@gmail.com"
+        }
 
   '200-resync':
     description: OK
     schema:
       $ref: '#/definitions/Resync-response'
-    example:
-      {
-        "status": "completed",
-        "start_time": "2022-01-05T15:05:27.521824Z",
-        "last_error": "",
-        "docs_changed": 0,
-        "docs_processed": 0
-      }
+      example:
+        {
+          "status": "completed",
+          "start_time": "2022-01-05T15:05:27.521824Z",
+          "last_error": "",
+          "docs_changed": 0,
+          "docs_processed": 0
+        }
 
   '400-resync-post-stopped':
     description: 400 - Database _resync not running
@@ -3367,20 +3378,6 @@ definitions:
 
       sync:
         $ref: '#/definitions/sync_function'
-
-      # users:
-      #   type: object
-      #   title: user
-      #   description: |+
-      #     Defines the user(s) for this Sync Gateway database
-      #   $ref: "#/definitions/user"
-
-      # roles:
-      #   type: object
-      #   title: role
-      #   description: |+
-      #     Defines the role(s) for this Sync Gateway database
-      #   $ref: "#/definitions/role"
 
       guest:
         type: object
@@ -4694,7 +4691,7 @@ definitions:
         channel(doc.channels);
       }
 
-  user:
+  User:
     type: object
     title: "User Configuration Model"
     description: |+
@@ -4772,6 +4769,43 @@ definitions:
         items:
           type: string
           description: Role name
+
+  User-response:
+    type: object
+    properties:
+      name:
+        type: string
+        description: |+
+          The user name (the same name used in the URL path).
+
+      admin_channels:
+
+        description: |+
+          The channels that the user is able to access.
+        items:
+          type: string
+          description: |+
+            Channel name
+
+      all_channels:
+        type: array
+        description: |+
+          Shows the channels the user can access, as granted by the sync function.
+
+        readOnly: true
+        items:
+          type: string
+          description: Channel name
+
+      email:
+        type: string
+        description: |+
+          Email address of the user.
+      disabled:
+        type: boolean
+        description: |+
+          This property is usually not included.
+          If the value is `true`, access for the account is disabled and the user will not be able to login.
 
 
   AllDatabases:
@@ -5195,45 +5229,7 @@ definitions:
       ok:
         type: boolean
         description: Indicates whether the operation was successful
-  User:
-    type: object
-    properties:
-      name:
-        type: string
-        description: The user name (the same name used in the URL path). The valid characters for a user name are alphanumeric ASCII characters and the underscore character. The name property is required in a POST request. You don’t need to include it in a PUT request because the user name is specified in the URL.
-      password:
-        type: string
-        description: Password of the user that will be created. Required, unless the `allow_empty_password` Sync Gateway per-database configuration value is set to `true`, in which case the password can be omitted.
-      admin_channels:
-        type: array
-        description: The channels that the user is explicitly granted access to through the Admin REST API.
-        items:
-          type: string
-          description: Channel name
-      admin_roles:
-        type: array
-        description: The roles that the user is explicitly granted access to through the Admin REST API.
-        items:
-          type: string
-          description: Role name
-      all_channels:
-        type: array
-        description: Like the `admin_channels` property, but also includes channels the user is given access to by other documents via a sync function. This is a derived property and changes to it are ignored.
-        items:
-          type: string
-          description: Channel name
-      email:
-        type: string
-        description: Email of the user that will be created.
-      disabled:
-        type: boolean
-        description: This property is usually not included. If the value is set to `true`, access for the account is disabled and the user will not be able to login.
-      roles:
-        type: array
-        description: Like the `admin_roles` property, but also includes roles the user is given access to by other documents via a sync function. This is a derived property and changes to it are ignored. It contains an array of role name strings.
-        items:
-          type: string
-          description: Role name
+
   ChangesFeedRow:
     type: object
     properties:
@@ -6904,7 +6900,7 @@ parameters:
     name: body
     description: Request body
     schema:
-      $ref: '#/definitions/user'
+      $ref: '#/definitions/User'
 
 
 
@@ -7341,7 +7337,7 @@ parameters:
     name: user configuration data
     description: Provision the user configuration data in JSON format in the body
     schema:
-      $ref: '#/definitions/user'
+      $ref: '#/definitions/User'
 
   upgrade_preview:
     in: query
