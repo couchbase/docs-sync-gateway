@@ -1,67 +1,69 @@
 = Sync Gateway Documentation
 
-== Release Notes
+ifdef::env-github[]
+:warning-caption: :warning:
+endif::[]
+// URLs:
+:url-org: https://github.com/couchbase
+:url-contribute: https://docs.couchbase.com/home/contribute/index.html
+:url-ui: {url-org}/docs-ui
+:url-playbook: {url-org}/docs-site
+:url-cli: {url-org}/couchbase-cli
+:url-backup: {url-org}/backup
+:url-analytics: https://github.com/couchbaselabs/asterix-opt
+:url-issues: https://issues.couchbase.com
+:url-issues-doc: {url-issues}/browse/DOC
 
-Tasks to prepare release notes:
 
-. Copy the "Bugs" and "Known Issues" list from http://docs-build.sc.couchbase.com/release-notes/raw.html[raw.html] to link:modules/ROOT/pages/release-notes.adoc[release-notes.adoc] under the `== Release Notes` heading. Example: https://github.com/couchbase/docs-sync-gateway/commit/1a5b784551abf36a9e3e6ca40a11b9e0187e9268[1a5b784]
-. Review the issue summaries.
-. Commit on the release branch.
-. Push to GitHub.
+This repository hosts the documentation source for Couchbase's Sync Gateway product.
 
-// === How are the Bugs/Known Issue lists created?
-//
-// The script which outputs the contents of **raw.html** captures any issue where the **Issue Type** is **Bug**.
-// To remove an issue from the **Bugs** list you can make it **Private** or change the **Issue Type** to a **Task** or **Improvement**.
-//
-// To change the text, you can update the issue title to see it reflected on **raw.html**.
-//
 
-== Release Tasks
+== Contributing
 
-=== Minor Release
 
-Tasks for a minor release (*x.y*):
+We recognize and value the experience and skills of the wider Couchbase community.
+As such, open source contributions to our documentation are always welcome.
 
-. Clone repository
+* If you find an error, or see room for improvement on a page, please don't keep it to yourself.
+Even if you don't plan to make the change yourself, we would still like to know what it is!
 +
-[source,bash]
-----
-# replace *x.y* accordingly
-git clone git@github.com:couchbase/docs-sync-gateway.git sg-x.y
-cd sg-x.y
-----
-. Create new branch `release/x.y` and push to GitHub.
-+
-[source,bash]
-----
-git checkout -b release/x.y
-git push
-----
-. Update metadata version.
-Example: https://github.com/couchbase/docs-sync-gateway/commit/42d68f04e88f7345d7a9f3d31cb01b6265b9d22e[42d68f0]
-. Update your local playbook.
-Example:
-+
-[source,bash]
-----
-  ...
-- url: ./../cbl/cbl-x.y
-  branches: HEAD
-----
-. Verify it https://github.com/couchbase/docs-site#file-watcher-and-livereload[builds locally]
-. Update staging playbook.
-Example: https://github.com/couchbase/docs-site/commit/2d40527b17a8fe8f3648ff2b0610374a2f1bb7cb[2d40527]
-. Update production playbook.
-Example: https://github.com/couchbase/docs-site/commit/65958c96dd27f96c3b3f7b290c7f73aa55a80573[65958c9]
-. Mark `release/x.y` as default branch https://github.com/couchbase/docs-sync-gateway/settings/branches[on GitHub].
+Raise a DOC issue by clicking the _Leave Additional Feedback?_ link on the bottom-right of any page on this site.
 
-=== Patch Release
+* You can also submit simple changes, such as typo fixes and minor clarifications or more extensive content additions and updates -- see
+xref:workflow-overview.adoc[Contributing Workflow].
 
-Tasks for a patch release:
+Check out our {url-contribute}[contributing guide] to learn more on how to:
 
-. Update download link attributes link:modules/ROOT/pages/getting-started.adoc[getting-started.adoc].
-Example: https://github.com/couchbase/docs-sync-gateway/commit/f495d236e2efd20692502b007b05e7dcce9daf72[f495d23]
-. Prepare <<release-notes>>.
-. Open PR when there is code freeze for the release (tracked on JIRA).
-. Merge PR when the release is being published (tracked on JIRA).
+* Submit a bug or feedback issue
+
+* Set up your documentation workspace
+
+* build the documentation
+
+* submit a pull request
+
+Thank you for helping to make the documentation better.
+
+All bugs and enhancements for the Couchbase documentation are tracked using the {url-issues-doc}[DOC project issue board^].
+
+
+== Docs Component Configuration
+
+
+This repository contains an Antora docs component.
+Keep in mind these key repository features:
+
+* Component name, version, and start page are configured in each branch's _antora.yml_ file.
+
+* The navigation for Sync Gateway is stored in the ROOT module's `nav.adoc` file.
+
+* Production branches use the *release/X.Y* naming pattern (e.g., release/2.8, release/3.0).
+
+ ** The {url-playbook}[docs site playbook] instructs Antora to automatically aggregate any branch names that start with *release/*.
+
+== Documentation Site Toolchain
+
+The documentation source files are marked up with AsciiDoc.
+Once merged into a version branch, the source files and their assets are aggregated, converted to HTML, and published by Antora to our staging and production sites.
+
+The docs components and {url-ui}[site UI] are orchestrated by the {url-playbook}[docs site playbook] as described in the {url-contribute}[contributing guide].
