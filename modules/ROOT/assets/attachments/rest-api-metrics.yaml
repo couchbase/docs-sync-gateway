@@ -60,7 +60,7 @@ paths:
         The ```_metrics``` method returns Sync Gateway's statistics and other runtime variables in **Prometheus** format.
         This makes for a convenient feed for your debugging or performance monitoring purposes.
 
-        - For more details on the metrics collected and reported by Sync Gateway -- see: [Sync Gateway Statistics Schema](./../stats-monitoring.html).
+        - For more details on the metrics collected and reported by Sync Gateway -- see: [Sync Gateway Statistics Schema](stats-monitoring.html).
         - For more details on Monitoring Sync Gateway using the ```_metrics``` feed -- see: our blog on [Monitoring and Visualization of Couchbase Sync Gateway with Prometheus and Grafana](https://blog.couchbase.com/monitoring-and-visualization-of-couchbase-sync-gateway-with-prometheus-and-grafana/)
 
         *Sync Gateway Roles Required:*
@@ -73,7 +73,8 @@ paths:
         200:
           description: OK - indicates success
           schema:
-            $ref: '#/definitions/ExpVars'
+            $ref: '#/definitions/Metrics'
+
 ################################################################################
 #                                 Definitions                                  #
 ################################################################################
@@ -209,9 +210,9 @@ definitions:
           per_db:
             # type: object
             type: array
-            # title: per database statistics [Per DB Per Replication Statistics Schema](./../refer/rest-api-admin-perDbStats.html "target=_blank")
+            # title: per database statistics [Per DB Per Replication Statistics Schema](refer/rest-api-admin-perDbStats.html "target=_blank")
             description: |+
-              This array contains stats for all databases declared in the config file -- see the [Sync Gateway Statistics Schema](./../stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
+              This array contains stats for all databases declared in the config file -- see the [Sync Gateway Statistics Schema](stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
 
               The statistics for each {$db_name} database are grouped into:
 
@@ -243,7 +244,7 @@ definitions:
               # description: This object contains stats for a given database
               # properties:
                 # description: |+
-                  # This array element contains stats for the {$db_name} database -- see the data model in [Per DB Per Replication Statistics Schema](./../refer/rest-api-admin-perDbStats.html "target=_blank").
+                  # This array element contains stats for the {$db_name} database -- see the data model in [Per DB Per Replication Statistics Schema](refer/rest-api-admin-perDbStats.html "target=_blank").
 
                   # type: object
 
@@ -314,3 +315,28 @@ definitions:
                       description: |+
                         The total number of documents that were pushed since replication started.
                         Used by versions 1 and 2.
+  Metrics:
+    type: object
+    description: |+
+      The Prometheus output is expected to by consumed only by a Prometheus server.
+      For that reason its format is irrelevant, and a brief extract is show here for completeness and information only.
+
+        - For more details on the metrics collected and reported by Sync Gateway -- see: [Sync Gateway Statistics Schema](stats-monitoring.html).
+        - For more details on Monitoring Sync Gateway using the ```_metrics``` feed -- see: our blog on [Monitoring and Visualization of Couchbase Sync Gateway with Prometheus and Grafana](https://blog.couchbase.com/monitoring-and-visualization-of-couchbase-sync-gateway-with-prometheus-and-grafana/)
+
+      ```
+      ...
+      # HELP go_gc_duration_seconds A summary of the pause duration of garbage collection cycles.
+      # TYPE go_gc_duration_seconds summary
+      go_gc_duration_seconds{quantile="0"} 0.0001155
+      go_gc_duration_seconds{quantile="0.25"} 0.0001254
+      go_gc_duration_seconds{quantile="0.5"} 0.0001597
+      go_gc_duration_seconds{quantile="0.75"} 0.0001806
+      go_gc_duration_seconds{quantile="1"} 0.0049731
+      go_gc_duration_seconds_sum 0.006334
+      go_gc_duration_seconds_count 9
+      # HELP go_goroutines Number of goroutines that currently exist.
+      # TYPE go_goroutines gauge
+      go_goroutines 205
+      ...
+      ```
