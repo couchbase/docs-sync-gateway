@@ -871,7 +871,7 @@ function sync(doc, oldDoc) {
 // tag::icr-repl-create-pull-oneshot-body[]
 "replication_id": "db1-rep-id3-pull-oneshot", // <.>
 "direction": "pull",
-"remote": "http://user:password@example.com:4985/db1-remote",
+"remote": "http://user1:password@example.com:4985/db1-remote", // <.>
 "filter": "sync_gateway/bychannel",
 "query_params": { "channels": ["channel1.user1"] }
 // end::icr-repl-create-pull-oneshot-body[]
@@ -880,6 +880,9 @@ function sync(doc, oldDoc) {
 
 // tag::icr-repl-create-pull-oneshot-callouts[]
 <.> This a a one-shot replication because the `continuous` parameter defaults to `false`.
+
+<.> The remote URL can also include the credentials for an existing Sync Gateway user on the remote server.
+
 // end::icr-repl-create-pull-oneshot-callouts[]
 
 
@@ -887,15 +890,15 @@ function sync(doc, oldDoc) {
 //  . . . other configuration entries
 "db1-rep-id1-pull-cont":
 // tag::icr-repl-create-pull-cont-body[]
-  "replication_id": "db1-rep-id1-pull-cont",
-  "direction": "pull",
-  "continuous": true // <.>
-  "purge-on-removal": true,
-  "remote": "http://user:password@example.com:4985/db1-remote",
-  "filter":"sync_gateway/bychannel",
-  "query_params": {
-    "channels": ["channel1.user1"]
-  }
+"replication_id": "db1-rep-id1-pull-cont",
+"direction": "pull",
+"continuous": true // <.>
+"purge-on-removal": true,
+"remote": "http://user:password@example.com:4985/db1-remote",
+"filter":"sync_gateway/bychannel",
+"query_params": {
+  "channels": ["channel1.user1"]
+}
 // end::icr-repl-create-pull-cont-body[]
 //  . . . other configuration entries
 // end::icr-repl-create-pull-cont[]
@@ -903,19 +906,21 @@ function sync(doc, oldDoc) {
 // tag::icr-repl-create-pull-cont-callouts[]
 <.> Make this a continuous replication that remains running, listening for changes to process.
 Because it is also persistent, it will start automatically following Sync Gateway node restarts (`state` defaults to `running`).
+
+<.> The remote URL can also include the credentials for an existing Sync Gateway user on the remote server.
 // end::icr-repl-create-pull-cont-callouts[]
 
 
 // tag::icr-repl-adhoc-pull-body[]
-  "replication_id": "db1-rep-id1-pull-adhoc",
-  "adhoc": true, // <.>
-  "direction": "pull",
-  "purge-on-removal": true,
-  "remote": "http://user:password@example.com:4985/db1-remote",
-  "filter":"sync_gateway/bychannel",
-  "query_params": {
-    "channels": ["channel1.user1"]
-  }
+"replication_id": "db1-rep-id1-pull-adhoc",
+"adhoc": true, // <.>
+"direction": "pull",
+"purge-on-removal": true,
+"remote": "http://user:password@example.com:4985/db1-remote",
+"filter":"sync_gateway/bychannel",
+"query_params": {
+  "channels": ["channel1.user1"]
+}
 // end::icr-repl-adhoc-pull-body[]
 
 // tag::icr-repl-adhoc-pull-callouts[]
@@ -925,32 +930,32 @@ Because it is also persistent, it will start automatically following Sync Gatewa
 
 // tag::icr-rep-sample-create-pull[]
 "databases": {
- " db1": {                                                // <.>
+  " db1": {                                                // <.>
     "bucket":"db1",
     "server": "couchbase://cb-server",
     // ... other DB config ..
     "sgreplicate_enabled": true,                          // <.>
     "replications":
-      "db1-rep-id1-pull-oneshot":                         // <.>
-  // tag::icr-rep-sample-create-pull-body[]
-        "direction": "pull",                              // <.>
-        "remote": "https://example.com:4984/remote_db1",
-        "user": "user1",                                  // <.>
-        "password": "password",
-        "batch_size": 1000,                               // <.>
-        "conflict_resolution_type": "custom",             // <.>
-        "custom_conflict_resolver": "",                   // <.>
-        "continuous": false,                              // <.>
-        "enable_delta_sync": false,                       // <.>
-        "filter": "sync_gateway/bychannel",               // <.>
-        "query_params": ["channel.user1"]                 // <.>
-        "max_backoff_time": 5,                            // <.>
-        "purge_on_removal": false                         // <.>
-        "state": "running"                                // <.>
-  // end::icr-rep-sample-create-pull-body[]
-    }
+    "db1-rep-id1-pull-oneshot":                         // <.>
+    // tag::icr-rep-sample-create-pull-body[]
+    "direction": "pull",                              // <.>
+    "remote": "https://example.com:4984/remote_db1",
+    "user": "user1",                                  // <.>
+    "password": "password",
+    "batch_size": 1000,                               // <.>
+    "conflict_resolution_type": "custom",             // <.>
+    "custom_conflict_resolver": "",                   // <.>
+    "continuous": false,                              // <.>
+    "enable_delta_sync": false,                       // <.>
+    "filter": "sync_gateway/bychannel",               // <.>
+    "query_params": ["channel.user1"]                 // <.>
+    "max_backoff_time": 5,                            // <.>
+    "purge_on_removal": false                         // <.>
+    "state": "running"                                // <.>
+    // end::icr-rep-sample-create-pull-body[]
   }
-   // end::icr-rep-sample-create-pull[]
+}
+// end::icr-rep-sample-create-pull[]
 
 // tag::icr-rep-sample-create-pull-callouts-full[]
 <.> All replications are defined at database level within the context of a local database (e.g. `DB1`)
@@ -980,40 +985,40 @@ Because it is also persistent, it will start automatically following Sync Gatewa
   //  . . . application logic to determine winner
   //  . . .
   return conflict.LocalDocument;  // <.>
-}`" // <.>
+  }`" // <.>
 
-// end::icr-conflict-resolver-structure[]
+  // end::icr-conflict-resolver-structure[]
 
-// tag::icr-conflict-resolver-structure-callouts[]
-<.> The `conflict` structure comprises both conflicting documents.
-+
---
-[source, json]
-----
-type Conflict struct {
-	LocalDocument  Body `json:"LocalDocument"`
-	RemoteDocument Body `json:"RemoteDocument"`
-}
-----
+  // tag::icr-conflict-resolver-structure-callouts[]
+  <.> The `conflict` structure comprises both conflicting documents.
+  +
+  --
+  [source, json]
+  ----
+  type Conflict struct {
+    LocalDocument  Body `json:"LocalDocument"`
+    RemoteDocument Body `json:"RemoteDocument"`
+  }
+  ----
 
-LocalDocument::
-This LocalDocument object encapsulates the body and metadata of the local conflicting document revision being replicated. Its content matches the JSON stored at the local Sync Gateway.
+  LocalDocument::
+  This LocalDocument object encapsulates the body and metadata of the local conflicting document revision being replicated. Its content matches the JSON stored at the local Sync Gateway.
 
-RemoteDocument::
-The RemoteDocument object, encapsulates the body and metadata of the remote conflicting document revision being replicated. Its content matches the JSON stored at the remote Sync Gateway.
+  RemoteDocument::
+  The RemoteDocument object, encapsulates the body and metadata of the remote conflicting document revision being replicated. Its content matches the JSON stored at the remote Sync Gateway.
 
---
+  --
 
-<.> You should return one of:
-+
---
-* conflict.LocalDocument
-* conflict.RemoteDocument
-* a new document body comprising the merged local and remote documents
-* a *nil* body, which will be resolved as a *delete*
+  <.> You should return one of:
+  +
+  --
+  * conflict.LocalDocument
+  * conflict.RemoteDocument
+  * a new document body comprising the merged local and remote documents
+  * a *nil* body, which will be resolved as a *delete*
 
---
+  --
 
-<.> The conflict resolver function is enclosed by backticks (````)
+  <.> The conflict resolver function is enclosed by backticks (````)
 
-// end::icr-conflict-resolver-structure-callouts[]
+  // end::icr-conflict-resolver-structure-callouts[]
