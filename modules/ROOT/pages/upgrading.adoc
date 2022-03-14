@@ -39,20 +39,26 @@ include::partial$_set_page_context.adoc[]
 :param-related: {get-started-prepare--xref} | {get-started-install--xref} | {release-notes--xref}
 include::partial$_show_page_header_block.adoc[]
 
+
 == Upgrade Approaches
+
 
 A rolling upgrade is the recommended method to upgrade a Sync Gateway cluster.
 At a high level, a rolling upgrade consists of the following steps:
 
 . The load balancer configuration is updated to stop any HTTP traffic going to the node that will be upgraded.
+
 . The upgrade is performed on the given node
+
 . The load balancer configuration is updated to re-balance the HTTP traffic across all nodes.
 
 Those steps are then repeated for each node in the {sgw} cluster.
 
+
 == Upgrade to 3.0
 
-=== Using Persistent Configuration
+
+=== Use Persistent Configuration
 
 The use of 3.0's Persistent Configuration feature is strongly recommended.
 It is the default operational mode when starting {sgw}.
@@ -65,38 +71,60 @@ The feature provides a smooth upgrade path for existing users by automatically c
 The migration to 3.0 configuration is a ONE WAY process; to continue using legacy-mode configuration see: <<lbl-3-0-upgrade-opt-out>>
 --
 
-Just startup a {sgw} node using your existing configuration properties file.
-{sgw-t} will take the appropriate upgrade path as shown in <<tbl-enhancedcfg>>.
+==== Considerations
 
 Before commencing your upgrade consider your requirements for
-<<lbl-3-0-config-grps>>,
+<<lbl-3-0-config-grps>> although most users will likely find the default group sufficient,
 <<lbl-3-0-config-tls>> and
 <<lbl-3-0-config-adm>>.
 
-Also:
+You should also:
 
-* {Sgw-t} must have write access to the directory containing the existing configuration (the one to be converted).
+* Ensure {Sgw-t} has write access to the directory containing the existing configuration (the one to be converted).
 It will be used to backup the existing configuration, and to write the upgraded config.
-* If your existing configuration has multiple databases, all of the *server* fields used to connect to _Couchbase Server_ must match. Whilst the connection credentials used may differ between databases,
-{sgw-t} will only use the first set of credentials for the bootstrap configuration file.
+
+* Ensure that, if your existing configuration has multiple databases, all of the *server* fields used to connect to _Couchbase Server_ match. +
+Although the connection credentials used may differ between databases, {sgw-t} will only use the *first* set of credentials for the bootstrap configuration file.
++
 
 NOTE: Automatic upgrade cannot be done if you have multiple distinct server fields within the configuration file and you will need to manually create their own bootstrap configuration.
 
+
+==== Process
+
+Just start up a {sgw} node using your existing configuration properties file.
+
+On starting, {sgw-t} will take the appropriate upgrade path as shown in <<tbl-enhancedcfg>>.
+
+
 .Upgrade Paths
-[#tbl-enhancedcfg,cols="1a,1a", options="header"]
+[#tbl-enhancedcfg,cols="1a,2a,2a", options="header"]
 |===
-^| Configuration exists in Server bucket -- a node with this _group ID_ has already started ^| No configuration exists -- this is first node with this _group ID_ to start
 
-|{sgw-s} ignores the configuration file and uses the configuration associated with the _group ID_ provided (or the default group if no _group ID_ is provided).
+.>| Configuration Status .>| Inference .>| Outcome
 
-|{sgw-s} uses the configuration file to derive and persist a configuration for this node.
+| No configuration exists
+
+| This is first node in the default group or with this _group ID_ to start
+
+| {sgw-s} uses the configuration file to derive and persist a configuration for this node.
+
+| Configuration exists in the Server bucket +
+
+| A node in the default group, or with this _group ID_, has already started
+
+| {sgw-s} ignores the configuration file and uses the configuration associated with the default group, or _group ID_ provided.
+
 
 |===
+
 
 [#lbl-3-0-config-grps]
-=== Configuration Groups
+==== Configuration Groups
 
-Before commencing your upgrade consider your requirements for grouping {sgw} nodes within your {sgw} cluster -- see: {configuration-overview--xref--groups}
+Whilst the provided default group will suffice for most deployments {sgw} does allow for the configuration of more complex node groupings.
+
+So, before commencing your upgrade consider your requirements for grouping {sgw} nodes within your {sgw} cluster -- see: {configuration-overview--xref--groups}
 
 If you want the {sgw} to associate with a specific configuration group Id, you must add the `bootstrap_group_id` value to the configuration file prior to startup -- see: {bootstrap-schema--xref--bootstrap-group-id}
 
@@ -112,7 +140,7 @@ If you wish to use non-secure connection, perhaps in a test environment, you nee
 
 
 [#lbl-3-0-config-adm]
-=== Secure Administration
+==== Secure Administration
 
 Secure Administration is under-pinned by the use of Couchbase Server RBAC-users to authenticate and authorize access to Admin (and Metrics) API functionality.
 This requires you set-up and configure appropriate users -- see: {rest-api-access--xref}.
@@ -121,7 +149,7 @@ To opt out of this, you can configure  {bootstrap-schema--xref--api-admin-interf
 
 
 [#lbl-3-0-upgrade-opt-out]
-=== Continue to use Legacy-mode Configuration File
+=== Use Legacy-mode Configuration
 
 :no-admonition:
 include::partial$block-caveats.adoc[tags=disable-persistent-config]
@@ -357,7 +385,7 @@ Caveats:
 Any {configuration-properties-legacy--xref--db-replications} ({configuration-properties-legacy--xref--db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {configuration-properties-legacy--xref--databases} section will run using the SG{nbsp}Replicate protocol.
 This is subject to any compatibility constraints defined in the {compatibility--xref}.
 
-Existing replications implementing custom {legacy-sgreplicate-resolving-conflicts--xref} strategies (via the REST endpoint) will continue to function in the same manner as for SG{nbsp}Replicate replications after upgrade
+Existing replications implementing custom conflict resolution strategies (via the REST endpoint) will continue to function in the same manner as for SG{nbsp}Replicate replications after upgrade
 
 === Upgrading existing replications
 To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replication, reconfigure them using Inter-Sync Gateway Replication's {configuration-properties-legacy--xref--db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
@@ -658,7 +686,7 @@ The following steps outline a recommended method for migrating from Bucket Shado
 . Follow the recommendations in the xref:server:install:upgrade-online.adoc[Couchbase Server documentation] to upgrade all instances to 5.0.
 . Create a new bucket on Couchbase Server (*bucket 2*).
 . Install Sync Gateway 1.5 on a separate node with shared access enabled and connect it to the new bucket (*bucket 2*).
-. Setup a xref:{legacy-sg-replicate--page}[push replication] from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.
+. Setup a push replication from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.
 . Once the replication has completed, test your application is performing as expected.
 . Update the load balancer to direct incoming traffic to the Sync Gateway 1.5 instance when you are ready to upgrade.
 . Delete the first bucket (*bucket 1*).

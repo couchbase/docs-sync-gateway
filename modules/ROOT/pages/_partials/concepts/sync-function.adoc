@@ -28,7 +28,7 @@ For example, to grant a user access to a channel use the {sync-function-api-acce
 
 The `access()` function can also operate on roles.
 If a user name string begins with role: then the remainder of the string is interpreted as a role name.
-There’s no ambiguity here, because ":" is an illegal character in a user or role name.
+There's no ambiguity here, because ":" is an illegal character in a user or role name.
 
 Because anonymous requests are authenticated as the user "GUEST", you can make a channel and its documents public by calling access with a username of GUEST.
 
@@ -97,33 +97,33 @@ The sync function arguments are:
 |Name
 |Description
 
-|doc
-|This object references the content of the document that is being saved.
+| doc
+| This object references the content of the document that is being saved.
 It matches the JSON saved by the Couchbase Lite application and replicated to Sync Gateway.
 
 The document's `_id` property contains the document ID
 The document's `_rev` property is the new revision ID.
 If the document is being deleted, it will have  a `_deleted` property with the value `true`.
 
-|oldDoc
-|If the document has been saved before, this object references the revision being replaced; otherwise it is null. +
+| oldDoc
+| If the document has been saved before, this object references the revision being replaced; otherwise it is null. +
 *Note:*  In the case of a document with conflicts, the current provisional winning revision is passed in `oldDoc`.
 
-Your implementation of the sync function can omit the oldDoc parameter if you do not need it (JavaScript ignores extra parameters passed to a function).
+Your implementation of the sync function can omit the `oldDoc` parameter if you do not need it (JavaScript ignores extra parameters passed to a function).
 
-|Meta (optional)
-|From 3.0 the Sync Function includes support for a new `meta` argument.
+| meta (optional)
+| From 3.0 the Sync Function includes support for a new `meta` argument.
 
-This argument references the user defined XATTR that you are using to hold access grant data.
+This argument references the user defined XATTR that you can use to hold access grant data.
 
-The referenced object can include items such as channels or roles. So instead of embedding channel information directly within the document body, users can specify this user-defined XATTR which is associated with the document -- see {access-control-how-use-xattrs-for-access-grants--xref}.
+The referenced object can include items such as channels or roles. So instead of embedding channel information directly within the document body, users can specify the user-defined XATTR associated with the document -- see {access-control-how-use-xattrs-for-access-grants--xref}.
 
 |===
 
 
 == Configuration
 
-If you don’t supply a sync function, Sync Gateway uses the {configuration-schema-database--pfx--db}-sync[default Sync Function].
+If you don't supply a sync function, Sync Gateway uses the {configuration-schema-database--pfx--db}-sync[default Sync Function].
 
 [#ex-prov]
 .Configuring a Sync Function
@@ -251,7 +251,7 @@ function (doc, oldDoc, meta) {
     }
   }
   // Finally, assign the document to the channels in the list:
-  channel(meta.XattrChannels.channels); // <5>
+  channel(meta.xattrs.[xattrName]); // <5>
 }
 ----
 

@@ -16,7 +16,10 @@ include::partial$_show_page_header_block.adoc[]
 :idseparator: -
 :url-openid: https://openid.net/specs/openid-connect-core-1_0.html
 
+
 == Introduction
+
+
 Authentication is the process of verifying the identity of a user.
 {sgw-te} supports the following authentication methods:
 
@@ -36,7 +39,9 @@ Use OpenID Connect providers (Google+, Paypal, etc.) to authenticate users.
 Static providers: {sgw} currently supports authentication endpoints for Facebook, Google+ and OpenID Connect providers
 --
 
+
 == Anonymous Access
+
 
 A special user account named `GUEST` applies to unauthenticated requests.
 Any request to the Public REST API that does not have an `Authorization` header or a session cookie is treated as coming from the `GUEST` account.
@@ -53,7 +58,9 @@ $ curl -X PUT localhost:4985/$DB/_user/GUEST --data \
    '{"disabled":false, "admin_channels":["public"]}'
 ----
 
+
 == Basic Authentication
+
 
 Once the user has been created on {sgw}, you can provide the same **username**/**password** to the `BasicAuthenticator` class of {cbl-te}.
 Under the hood, the replicator will send the credentials in the first request to retrieve a `SyncGatewaySession` cookie and use it for all subsequent requests during the replication.
@@ -61,10 +68,14 @@ This is the recommended way of using basic authentication.
 
 :param-page: replication
 :param-bookmark: basic-authentication
-include::{root-partials}blocklinks-cbl.adoc[]
+include::partial$blocklinks-cbl.adoc[]
 
 
 == Auth Providers
+
+.Deprecation Notice
+CAUTION: This feature is deprecated. +
+It can be enabled *only* when running in legacy mode.
 
 {sgw} provides a turn-key solution to authenticate with Facebook or Google.
 
@@ -141,16 +152,26 @@ This method relies on {sgw} to retrieve the ID token.
 {url-openid}#ImplicitFlowAuth[Implicit Flow] has the key feature of allowing clients to obtain their own Open ID token and use it to authenticate against {sgw}.
 The implicit flow with {sgw} is as follows:
 
-. The client obtains a *signed* Open ID token directly from an OpenID Connect provider. Note that only signed tokens are supported.
+. The client obtains a *signed* Open ID token directly from an OpenID Connect provider.
+Note that only signed tokens are supported.
 To verify that the Open ID token being sent is indeed signed, you can use the https://jwt.io/#debugger-io[jwt.io Debugger].
 In the algorithm dropdown, make sure to select `RS256` as the signing algorithm (other options such as `HS256` are not yet supported by {sgw}).
+
 . The client includes the Open ID token as an `Authorization: Bearer <id_token>` header on requests made against the {sgw} REST API.
+
 . {sgw} matches the token to a provider in its configuration file based on the issuer and audience in the token.
+
 . {sgw} validates the token, based on the provider definition.
+
 . Upon successful validation, {sgw} authenticates the user based on the subject and issuer in the token.
 
-Since Open ID tokens are typically large, the usual approach is to use the Open ID token to obtain a {sgw} session id (using the xref:rest-api.adoc#/session/post\__db___session[POST /db/_session] endpoint), and then use the returned session id for subsequent authentication requests.
+Since Open ID tokens are typically large, the usual approach is to use the Open ID token to obtain a {sgw} session id (using the
+xref:rest-api.adoc#/session/post\__db___session[POST /db/_session]
+endpoint), and then use the returned session id for subsequent authentication requests.
 
+=====
+*Note:* This example is based on a deployment using legacy configuration.
+[{tabs}]
 ====
 
 REST API::
@@ -172,6 +193,7 @@ include::{examples-lib}[tags="oidc-config-simple"]
 <.> Use `register` to auto-register a {sgw} user on successful completion of the validation
 
 ====
+=====
 
 ==== Client Authentication
 

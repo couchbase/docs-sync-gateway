@@ -1,7 +1,7 @@
 // tag::sync-function-using-xattr[]
 function (doc, oldDoc, meta) { // <.>
 
-  if (meta.xattrs.channelXattr == "undefined") // <.>
+  if (meta.xattrs.channelXattr === undefined) // <.>
     {
       console.log("no user_xattr_key defined")
       channel(null)
