@@ -16,37 +16,23 @@ include::partial$_show_page_header_block.adoc[]
 
 == Overview
 
-From {sgw-te} 3.0, TLS is required by default for all communications with Couchbase Server.
+TLS is required by default for all communications with Couchbase Server footnote:[From release 3.0].
 TLS v1.3 is supported as the default protocol.
 
 This approach means that that all endpoints communicating with {sgw} must also be encrypted, including:
 
 * REST API endpoints
+
 * Replication and client side network traffic, for example through Couchbase Lite replications
 
 We strongly recommend always having TLS enabled, although this can be over-ridden for *development and testing only*.
 
 Additionally, the _Admin_ and _Metrics REST API_ security is also enhanced by the use of _Couchbase Server RBAC user_ credentials to authenticate and authorize access -- see: {rest-api-access--xref}
 
-// ===  Behavior
-
-// .{sgw} <--> REST API
-// [#tbl-restapi-behavior, cols="1a,1,1a, options="header"]
-// |===
-
-// .>h| Configuration Properties
-// .>h| Default Behavior
-// .>h| Opt-Out Trigger
-
-// |{bootstrap-schema--xref--api-https-tls-cert-path} +
-// {bootstrap-schema--xref--api-https-tls-key-path}
-// |TLS encryption is enabled by default, unless the opt-out is triggered
-// |Omit the key and certificate path properties from the configuration
-
-// |===
 
 [#lbl-cbs-comms]
 == Couchbase Server Connection
+
 
 By default {sgw-te} requires TLS encryption and the server scheme is specified as `couchbases://`.
 
@@ -69,13 +55,13 @@ Command-line flag
 |`bootstrap.use_tls_server` +
 CLI: `-bootstrap.use_tls_server`
 |TLS enabled +
-|Omit from bootstrap file or set this `false` in CLI to turn-off off TLS completely -- *development and testing only*
+|Set this `false` in CLI or bootstrap file to turn-off off TLS completely -- *development and testing only*
 
 |`bootstrap.server_tls_skip_verify` +
 CLI: `-bootstrap.server_tls_skip_verify`
 |TLS enabled unless `use_tls_server` opt-out used
-|* Omit from bootstrap file or set this `true` in CLI to skip server verification of certificates (self- or CA-signed) but leave encryption enabled. +
-* Do not provide `ca_cert_path`, `x509_cert_path`, or `x509_cert_path`
+|* Set this `true` in CLI or bootstrap file to skip server verification of certificates (self- or CA-signed) but leave encryption enabled. +
+* Do not provide `ca_cert_path`
 * Use for *development and testing only*
 
 | `bootstrap.ca_cert_path` +
@@ -123,8 +109,8 @@ This includes skipping validation of certs that are from a trusted/well known CA
 ** If `server_skip_tls_verify=false` +
 Then only certificates from a trusted/well known CA will be accepted
 
-|use_tls_server=false (or omitted) +
-server_skip_tls_verify=true (or included)
+a|`use_tls_server=false` +
+`server_skip_tls_verify=true` (or included)
 
 |===
 
@@ -172,7 +158,7 @@ Omit both options to use _plaintext_ -- for development and-or testing *only* --
 |{bootstrap-schema--xref--api-https-tls-cert-path} +
 {bootstrap-schema--xref--api-https-tls-key-path}
 |TLS verification and encryption is enabled by default, unless the opt-out is triggered
-|Provide nil values for the key and certificate paths
+|Omit from configuration
 
 |===
 
