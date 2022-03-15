@@ -33,7 +33,7 @@ include::partial$_show_page_header_block.adoc[]
 // BEGIN Local attributes
 //
 :fn-clog: footnote:fn-clog[Introduced in Sync Gateway version 2.1]
-:fn-dep-cfg: footnote:fn-dep-cfg[The pre-2.1 logging configuration method, using 'logging.default` is deprecated. If upgrading from a pre2.1 Sync Gateway version, then will observer warnings on startup stating what is required to update your configuration -- see also: {legacy-logging-pre2-1--xref} ]
+:fn-dep-cfg: footnote:fn-dep-cfg[The pre-2.1 logging configuration method, using 'logging.default` is deprecated. If upgrading from a pre2.1 Sync Gateway version, then you will observe warnings on startup stating what is required to update your configuration -- see also: {legacy-logging-pre2-1--xref} ]
 
 :fn-legacy-text: pass:q,a[For legacy Pre-3.0 see xref:configuration-properties-legacy.adoc[legacy Pre-3.0 configuration]]
 :fn-legacy-pre-3-0: footnote:fnleg3-0[{fn-legacy-text}]
@@ -102,7 +102,8 @@ You configure _continuous_ and _console_ logging requirements in the {configurat
 ----
 <.> Set the path to the log file(s)
 <.> Define the optional redaction level, here we select "partial" redaction -- see: <<lbl-log-redaction>>
-<.> Here we define the <<lbl-console-logs>> levels we require for debugging. In this instance turning on _debug_ level output for _all_ available log_keys -- see: {bootstrap-schema--xref--logging-console-log-keys} {fnref-legacy-pre-3-0}
+<.> Here we define the <<lbl-console-logs>> levels we require for debugging.
+In this instance turning on _debug_ level output for _all_ available log_keys -- see: {bootstrap-schema--xref--logging-console-log-keys} {fnref-legacy-pre-3-0}
 <.> The following logging properties enable, or disable, <<lbl-continuous-logging>> at the specified level -- see: {bootstrap-schema--xref--logging-console-log-level} {fnref-legacy-pre-3-0}
 <.> Here we set `error` level logging on and define the log-file rotation, for _errors_ messages
 <.> Here we set `warn` level logging on and define the log-file rotation, for _warnings_ messages
@@ -141,7 +142,7 @@ Changes to _console logging_ are independent of continuous logging, so you can, 
 
 [#lbl-log-api]
 === Admin REST API
-You can define console log settings in the configuration file, or more conveniently, you can use the Admin REST API to adjust them -- see: <<eg-setloggingwithapi>>.
+You can define console log settings in the bootstrap configuration file, or more conveniently, you can use the Admin REST API's `_config` endpoint to set them -- see: <<eg-setloggingwithapi>>.
 
 [#eg-setloggingwithapi]
 .Setting log_level and log_keys with API
@@ -149,13 +150,22 @@ You can define console log settings in the configuration file, or more convenien
 [source, console]
 ----
 
-curl --location --request POST 'http://localhost:4985/_logging?logLevel=trace' \ <.>
+curl --location --request PUT 'http://localhost:4985/_config' \
 --header 'Content-Type: application/json' \
---data-raw '{"HTTP":false, "WS": true, "WSFrame": true, "Replicate": true}' <.>
+--data-raw '{
+    "console": {
+
+        "log_level": "trace", // <.>
+        "log_keys": "[\"WS\",\"WSFrame\",\"Replicate\"]",  // <.>
+
+    }
+  }'
+
 
 ----
 <.> Here we define the _log_level_ to be `trace` for maximum verbosity
-<.> Here we specify the particular _log_keys_ we want to focus on; perhaps we suspect a websocket or replication issue?
+<.> Here we specify the particular _log_keys_ we want to focus on. +
+Note here we have chosen to exclude `http`; perhaps we want to focus on a websocket or replication issue.
 
 The console log will show the following after this command:
 [source,console]
@@ -227,29 +237,37 @@ You can define the required {bootstrap-schema--xref--logging-console-log-keys} w
 h|Log Key
 h|Description
 
-a|*Deprecated*
-{asterisk}
+a| {asterisk}
 a|This wildcard log key, enables all log keys
 
 [source, console]
 ----
-
-curl --location --request PUT 'http://localhost:4985/_logging?logLevel=trace' \
+curl --location --request PUT 'http://localhost:4985/_config' \
 --header 'Content-Type: application/json' \
---data-raw '{"*": true}'
+--data-raw '{
+    "console": {
 
+      "log_keys": "[\"*\"]
+
+    }
+  }'
 ----
 
 |none
-a|*Deprecated*
+a|
 Disable all log keys; no logging output
 
 [source, console]
 ----
-curl --location --request PUT 'http://localhost:4985/_logging?logLevel=trace' \
+curl --location --request PUT 'http://localhost:4985/_config' \
 --header 'Content-Type: application/json' \
---data-raw '{"none": true}'
-----
+--data-raw '{
+    "console": {
+
+        "log_keys": "[\"none\"]
+
+    }
+  }'
 
 |Admin
 |Admin processes in Sync Gateway.
@@ -288,10 +306,11 @@ curl --location --request PUT 'http://localhost:4985/_logging?logLevel=trace' \
 |Additional information about HTTP requests (response times, status codes).
 
 |Import
-|Introduced in Sync Gateway 1.5 to help troubleshoot the import process of a document (this is the Sync Gateway process to make a document that was added through N1QL or the Server SDKs mobile-aware). This log key can be useful to troubleshoot why a given document was not successfully imported.
+| This log key can be useful to troubleshoot why a given document was not successfully imported.
 
 |Javascript
-|All logging from Javascript. This includes: sync function, import filters, webhook filter function, and the custom ISGR conflict resolvers
+|All logging from Javascript.
+This includes: sync function, import filters, webhook filter function, and custom inter-Sync{nbsp}Gateway{nbsp}replication conflict resolvers
 
 |Migrate
 |Logs messages that show when old inline document metadata is upgraded to xattrs
@@ -300,7 +319,8 @@ curl --location --request PUT 'http://localhost:4985/_logging?logLevel=trace' \
 |Query is used for Sync Gateway code related to N1QL queries
 
 |Replicate
-|Log messages related to replications between Sync Gateways (using sg-replicate). This tag cannot be used for replications initiated by Couchbase Lite.
+|Log messages related to replications between Sync Gateways (using sg-replicate).
+This tag cannot be used for replications initiated by Couchbase Lite.
 
 |SGCluster
 |Log messages related to the sharded import and HA sg-replicate
