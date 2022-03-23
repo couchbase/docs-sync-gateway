@@ -29,6 +29,26 @@ security:
 basePath: /
 produces:
 - application/json
+
+# TAGS
+tags:
+  - name: Attachment
+    description: Work with attachments
+  - name: Authentication
+    description: Work with authentication
+  - name: Database
+    description: Work with databases
+  - name: Document
+    description: Work with documents and attachments
+  - name: Server
+    description: Work with the server
+  - name: Session
+    description: Work with sessions
+
+
+
+
+
 ################################################################################
 #                                   Parameters                                 #
 ################################################################################
@@ -577,7 +597,7 @@ paths:
     get:
       operationId: GetAttachment
       tags:
-      - attachment
+      - Attachment
       summary: Get attachment
       description: |
         This request retrieves a file attachment associated with the document. The raw data of the associated attachment is returned (just as if you were accessing a static file). The Content-Type response header is the same content type set when the document attachment was added to the database.
@@ -598,7 +618,7 @@ paths:
     put:
       operationId: UpdateAttachment
       tags:
-      - attachment
+      - Attachment
       summary: Add or update attachment
       description: |+
         This request adds or updates the supplied request content as an attachment to the specified document, the maximum content size of an attachment is 20MB. The attachment name must be a URL-encoded string (the file name). You must also supply either the rev query parameter or the If-Match HTTP header for validation, and the Content-Type headers (to set the attachment content type).
@@ -625,7 +645,7 @@ paths:
     post:
       operationId: UpdateDocsInBulk
       tags:
-      - database
+      - Database
       summary: Bulk docs
       description: |
         This request enables you to add, update, or delete multiple documents to a database in a single request. To add new documents, you can either specify the ID (`_id`) or let the software create an ID. To update existing documents, you must provide the document ID, revision identifier (`_rev`), and new document values. To delete existing documents you must provide the document ID, revision identifier, and the deletion flag (`_deleted`).
@@ -648,7 +668,7 @@ paths:
     get:
       operationId: GetServerInfo
       tags:
-      - server
+      - Server
       summary: Server
       description: |
         Returns meta-information about the server.
@@ -663,7 +683,7 @@ paths:
     post:
       operationId: GetDocsInBulk
       tags:
-      - database
+      - Database
       summary: Bulk get
       description: |
         This request returns any number of documents, as individual bodies in a MIME multipart response.
@@ -714,7 +734,7 @@ paths:
     get:
       operationId: GetLocalDoc
       tags:
-      - document
+      - Document
       summary: Get local doc
       description: |
         This request retrieves a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
@@ -726,7 +746,7 @@ paths:
     put:
       operationId: AddOrUpdateLocalDoc
       tags:
-      - document
+      - Document
       summary: Create or update a local document
       description: |
         This request creates or updates a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by the client's replicator, as a place to store replication checkpoint data.
@@ -738,7 +758,7 @@ paths:
     delete:
       operationId: DeleteLocalDoc
       tags:
-      - document
+      - Document
       summary: Delete a local document
       description: |
         This request deletes a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
@@ -756,7 +776,7 @@ paths:
     get:
       operationId: GetChanges
       tags:
-      - database
+      - Database
       parameters:
       - $ref: '#/parameters/limit'
       - $ref: '#/parameters/style'
@@ -781,7 +801,7 @@ paths:
     post:
       operationId: GetChangesWithParametersInBody
       tags:
-      - database
+      - Database
       parameters:
       - $ref: '#/parameters/changes_body'
       summary: Changes
@@ -799,7 +819,7 @@ paths:
     get:
       operationId: GetDocument
       tags:
-      - document
+      - Document
       parameters:
       - $ref: '#/parameters/rev_get'
       - $ref: '#/parameters/attachments'
@@ -817,7 +837,7 @@ paths:
     put:
       operationId: AddOrUpdateDocument
       tags:
-      - document
+      - Document
       parameters:
       - in: body
         name: Document
@@ -840,7 +860,7 @@ paths:
     delete:
       operationId: DeleteDocument
       tags:
-      - document
+      - Document
       parameters:
       - $ref: '#/parameters/rev_delete'
       summary: Delete document
@@ -857,7 +877,7 @@ paths:
     get:
       operationId: GetAllDocs
       tags:
-      - database
+      - Database
       summary: All docs
       description: |
         This request returns a built-in view of all the documents in the database.
@@ -879,7 +899,7 @@ paths:
     post:
       operationId: GetAllDocsWithParametersInBody
       tags:
-      - database
+      - Database
       summary: All docs
       description: |
         This request retrieves specified documents from the database.
@@ -905,7 +925,7 @@ paths:
     get:
       operationId: GetOpenID
       tags:
-      - auth
+      - Authentication
       summary: OpenID Connect Authentication.
       description: |
         Called by clients to initiate the OIDC Authorization Code flow.
@@ -933,7 +953,7 @@ paths:
     get:
       operationId: GetOpenIDAuthCallBack
       tags:
-      - auth
+      - Authentication
       summary: OpenID Connect Authentication callback.
       description: |
         Sync Gateway callback URL that clients are redirected to by the OpenID Connect provider.
@@ -985,7 +1005,7 @@ paths:
     get:
       operationId: GetOpenIDAuth
       tags:
-      - auth
+      - Authentication
       summary: OpenID Connect Authentication.
       description: |
         Called by clients to initiate the OIDC Authorization Code flow.
@@ -1013,7 +1033,7 @@ paths:
     get:
       operationId: GetOpenIDRefreshToken
       tags:
-      - auth
+      - Authentication
       summary: OpenID Connect refresh.
       description: |
         Used to obtain a new OpenID Connect ID token based on the provided refresh token.
@@ -1062,7 +1082,7 @@ paths:
     post:
       operationId: AuthenticationViaFacebook
       tags:
-        - auth
+        - Authentication
       summary: User creation / authentication via Facebook
       description: |
         Sync Gateway allows users to authenticate using a Facebook account. Your application is responsible for generating a Facebook token; this generally needs to be done by running the Facebook login flow inside a web-view and capturing the generated token. This endpoint can be used to check the validity of the access token.
@@ -1094,7 +1114,7 @@ paths:
     post:
       operationId: AuthenticationViaGoogle
       tags:
-        - auth
+        - Authentication
       summary: User creation / authentication via Google
       description: |
         Sync Gateway allows users to authenticate using a Google account. Your application is responsible for generating a Google token; this generally needs to be done by running the Google login flow inside a web-view and capturing the generated token. This endpoint can be used to check the validity of the access token.
@@ -1126,7 +1146,7 @@ paths:
     post:
       operationId: GetRevisionIds
       tags:
-      - database
+      - Database
       summary: Used by the replicator
       description: Given a set of document/revision IDs, returns the subset of those that do not correspond to revisions stored in the database.
       parameters:
@@ -1161,7 +1181,7 @@ paths:
     get:
       operationId: GetDatabaseInfo
       tags:
-      - database
+      - Database
       summary: Database info
       description: |
         This request retrieves information about the database.
@@ -1177,7 +1197,7 @@ paths:
     post:
       operationId: AddDocument
       tags:
-      - document
+      - Document
       summary: Create document
       description: |
         This request creates a new document in the specified database. You can either specify the document ID by including the _id in the request message body (the value must be a string), or let the software generate an ID.
@@ -1200,7 +1220,7 @@ paths:
     post:
       operationId: AddUserSession
       tags:
-      - session
+      - Session
       summary: Create a user session
       description: |
         If the credentials provided in the request body are valid, the session is created with an idle session timeout of 24 hours. An idle session timeout in the context of Sync Gateway is defined as the following: if 10% or more of the current expiration time has elapsed when a subsequent request with that session id is processed, the session's expiry time is automatically updated to 24 hours from that time.
@@ -1225,7 +1245,7 @@ paths:
     delete:
       operationId: DeleteUserSession
       tags:
-      - session
+      - Session
       summary: Delete a user session
       description: |
         This request deletes the session that currently authenticates the requests.

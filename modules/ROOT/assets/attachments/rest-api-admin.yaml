@@ -1,4 +1,4 @@
-swagger: '2.0'
+swagger: "2.0"
 info:
   title: Sync Gateway
   description: |+
@@ -17,6 +17,11 @@ consumes:
 produces:
 - application/json
 # - application/javascript
+securityDefinitions:
+  BasicAuth:
+    type: basic
+
+
 paths:
   /:
     get:
@@ -32,13 +37,14 @@ paths:
             $ref: '#/definitions/Server'
   /_config:
     get:
-      operationId: 'server_config_get'
+      operationId: 'get_Server_configuration'
       tags:
       - Server
-      - Bootstrap
+      - 'Bootstrap Configuration'
       summary: Get Server Configuration
       description: |+
-        Returns the Sync Gateway configuration of the running instance. This is a good method to check if a particular key was set correctly on the config file.
+        Returns the Sync Gateway configuration of the running instance.
+        This is a good method to check if a particular key was set correctly on the config file.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
@@ -51,7 +57,7 @@ paths:
       operationId: 'logging_options'
       tags:
       - Server
-      - Bootstrap
+      - 'Bootstrap Configuration'
       - Logging
       summary: Update bootstrap logging options without needing a restart
       description: |+
@@ -67,8 +73,6 @@ paths:
           description: Returned updated Bootstrap logging settings
           schema:
             $ref: '#/definitions/bootstrap_config_model'
-
-
   /_expvar:
     get:
       operationId: 'stats_get'
@@ -230,6 +234,7 @@ paths:
       responses:
         200:
           description: The request was successful.
+
   /_replicate:
     post:
       tags:
@@ -289,8 +294,7 @@ paths:
     get:
       tags:
       - Server
-      - Replication
-      summary: Return Replication Status (v1)
+      summary: Return list of active tasks (v1 replications only)
       description: |+
         *Deprecated @ 2.8*
 
@@ -308,12 +312,10 @@ paths:
         200:
           description: Information about active replications.
           schema:
-
-            items:
-              type: object
-              $ref: '#/definitions/ActiveTaskResponseBody'
+            $ref: '#/definitions/ActiveTasks_response_model'
   /{db}/:
     get:
+      operationId: get_database_information
       tags:
       - 'Database Management'
       summary: Get DB Info
@@ -337,6 +339,7 @@ paths:
     post:
       tags:
       - Document
+      operationId: create_database_document
       summary: Create document
       description: |+
         This request creates a new document in the specified database.
@@ -356,11 +359,9 @@ paths:
           type: object
       responses:
         201:
-          description: The document was written successfully
-          schema:
-            $ref: '#/responses/200-doc'
+          $ref: '#/responses/200-doc'
     put:
-      operationId: 'db_config_create'
+      operationId: create_database
       summary: Create a Sync Gateway Database
       tags:
       - 'Database Management'
@@ -406,9 +407,7 @@ paths:
       - $ref: '#/parameters/db'
       responses:
         200:
-          description: Success
-          schema:
-            $ref: '#/responses/200-doc'
+          $ref: '#/responses/200-doc'
   /{db}/_bulk_docs:
     post:
       tags:
@@ -429,9 +428,7 @@ paths:
         201:
           description: Documents have been created or updated. The response object is an array with the status for each document submitted in the original request.
           schema:
-
-            items:
-              $ref: '#/definitions/BulkDocsSuccess'
+            $ref: '#/definitions/BulkDocsSuccess'
         409:
           description: The operation failed with a forbidden error. Probably because the document already exists in the database but a revision number wasn't specified.
           schema:
@@ -458,7 +455,7 @@ paths:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/revs'
       - $ref: '#/parameters/revs_limit'
-      - $ref: '#/parameters/attachments'
+      - $ref: '#/parameters/include_attachments'
       - $ref: '#/parameters/bulkget'
       responses:
         200:
@@ -508,9 +505,8 @@ paths:
       - $ref: '#/parameters/local_doc'
       responses:
         200:
-          description: The message body contains the following objects in a JSON document.
-          schema:
-            $ref: '#/responses/200-doc'
+          description: OK
+
     put:
       tags:
       - Document
@@ -527,9 +523,7 @@ paths:
       - $ref: '#/parameters/local_doc'
       responses:
         201:
-          description: Created
-          schema:
-            $ref: '#/responses/200-doc'
+          $ref: '#/responses/200-doc'
     delete:
       tags:
       - Document
@@ -548,9 +542,7 @@ paths:
       - $ref: '#/parameters/batch'
       responses:
         200:
-          description: Document successfully removed
-          schema:
-            $ref: '#/responses/200-doc'
+          $ref: '#/responses/200-doc'
   /{db}/_changes:
     get:
       tags:
@@ -861,12 +853,11 @@ paths:
     get:
       tags:
       - Document
-
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/doc'
       - $ref: '#/parameters/rev_get'
-      - $ref: '#/parameters/attachments'
+      - $ref: '#/parameters/include_attachments'
       - $ref: '#/parameters/atts_since'
       - $ref: '#/parameters/open_revs'
       - $ref: '#/parameters/revs'
@@ -879,7 +870,6 @@ paths:
 
         -- Sync Gateway Application
         -- Sync Gateway Application Read Only
-
       responses:
         200:
           description: The message body contains the following objects in a JSON document.
@@ -911,15 +901,14 @@ paths:
 
       responses:
         200:
-          description: The response is a JSON document that contains the following objects
-          schema:
-            $ref: '#/responses/200-doc'
+          $ref: '#/responses/200-doc'
     delete:
       tags:
       - Document
       summary: Delete document
       description: |+
-        This request deletes a document from the database. When a document is deleted, the revision number is updated so the database can track the deletion in synchronized copies.
+        This request deletes a document from the database.
+        When a document is deleted, the revision number is updated so the database can track the deletion in synchronized copies.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
@@ -931,9 +920,8 @@ paths:
       - $ref: '#/parameters/rev_delete'
       responses:
         200:
-          description: Document successfully removed
-          schema:
-            $ref: '#/responses/200-doc'
+          description: OK
+
   /{db}/{doc}/{attachment}:
     get:
       tags:
@@ -941,7 +929,7 @@ paths:
       summary: Get attachment
       description: |+
         Use this request to get the file attachment associated with a document.
-        It returns the raw data of the associated attachmen, just as if you were accessing a static file.
+        It returns the raw data of the associated attachment, just as if you were accessing a static file.
 
         The Content-Type response header is the same content type set when the document attachment was added to the database.
 
@@ -1016,15 +1004,88 @@ paths:
       - $ref: '#/parameters/doc'
       - $ref: '#/parameters/attachment'
       - $ref: '#/parameters/rev'
-      - $ref: '#/parameters/body'
+      - in: body
+        name: body
+        description: The request body
+        schema:
+          type: string
+          format: binary
       - $ref: '#/parameters/content_type'
       responses:
         200:
           description: Operation completed successfully
-          schema:
-            $ref: '#/responses/200-doc'
         409:
           description: Conflict, the document revision wasn't specified or it's not the latest.
+
+
+  /{db}/_design/{ddoc}:
+    get:
+      tags:
+      - 'Design Documents'
+      summary: Get Views of a design document
+      description: |+
+        Query a design document.
+
+        *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
+
+        -- Sync Gateway Application
+        -- Sync Gateway Application Read Only
+      parameters:
+      - $ref: '#/parameters/db'
+      - $ref: '#/parameters/ddoc'
+      responses:
+        200:
+          description: Views for design document
+          schema:
+            type: object
+            properties:
+              my_view_name:
+                $ref: '#/definitions/View'
+    put:
+      tags:
+      - 'Design Documents'
+      summary: Update views of a design document
+      description: |+
+        Update views of a design document
+
+        *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
+
+        -- Sync Gateway Application
+      parameters:
+      - $ref: '#/parameters/db'
+      - $ref: '#/parameters/ddoc'
+      - in: body
+        name: body
+        description: The request body
+        required: false
+        schema:
+          $ref: '#/definitions/View'
+      responses:
+        200:
+          description: OK
+    delete:
+      tags:
+      - 'Design Documents'
+      summary: Delete design document
+      description: |+
+        Delete a design document.
+
+        *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
+
+        -- Sync Gateway Application
+
+      parameters:
+      - $ref: '#/parameters/db'
+      - $ref: '#/parameters/ddoc'
+      responses:
+        200:
+          description: The status
+          schema:
+            $ref: '#/definitions/Design'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
   /{db}/_design/{ddoc}/_view/{view}:
     get:
@@ -1043,7 +1104,6 @@ paths:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/ddoc'
       - $ref: '#/parameters/view'
-
       - in: query
         name: conflicts
         description: Include conflict information in the response. This parameter is ignored if the include_docs parameter is false.
@@ -1326,7 +1386,7 @@ paths:
           description: Bad request.
         401:
           description: Authentication failed.  Unable to refresh token.
-  /{db}/_replication/:
+  /{db}/_replication:
     post:
       tags:
       - Replication
@@ -1347,8 +1407,8 @@ paths:
 
       parameters:
       - $ref: '#/parameters/db'
-      - $ref: '#/parameters/db-local'
       - $ref: '#/parameters/replication__replication-body'
+
       responses:
         200:
           description: Replication successfully updated
@@ -1372,15 +1432,13 @@ paths:
 
       parameters:
       - $ref: '#/parameters/db'
-      - $ref: '#/parameters/db-local'
+
       responses:
         200:
           description: Successful response - returns an array of replication definitions in the body as JSON
           schema:
+            $ref: '#/definitions/ReplicationResponseBody'
 
-            items:
-              # type: object
-              $ref: '#/definitions/ReplicationResponseBody'
   /{db}/_replication/{replicationID}:
     get:
       tags:
@@ -1395,15 +1453,11 @@ paths:
 
       parameters:
       - $ref: '#/parameters/db'
-      - $ref: '#/parameters/db-local'
       - $ref: '#/parameters/replication_id-required'
       responses:
         200:
           description: Successful response - returns requested replication definition in the body as JSON
           schema:
-            #
-            # items:
-            type: object
             $ref: '#/definitions/ReplicationResponseBody'
     put:
       tags:
@@ -1426,7 +1480,7 @@ paths:
         -- Sync Gateway Replicator
 
       parameters:
-        - $ref: '#/parameters/db-local'
+        - $ref: '#/parameters/db'
         - $ref: '#/parameters/replication_id-upsert'
         - $ref: '#/parameters/replication__replication-body'
       responses:
@@ -1453,13 +1507,13 @@ paths:
         -- Sync Gateway Replicator
 
       parameters:
-        - $ref: '#/parameters/db-local'
+        - $ref: '#/parameters/db'
         - $ref: '#/parameters/replication_id-required'
       responses:
         200:
           description: Replication successfully deleted
 
-  /{db}/_replicationStatus?{queryString}:
+  /{db}/_replicationStatus:
     get:
       tags:
         - Replication
@@ -1533,9 +1587,7 @@ paths:
         200:
           description: Returns information about the active replications
           schema:
-
-            items:
-              $ref: '#/definitions/ReplicationStatusResponseBody'
+            $ref: '#/definitions/ReplicationStatusResponseBody'
 
   /{db}/_replicationStatus/{replicationID}:
     get:
@@ -1558,7 +1610,7 @@ paths:
           schema:
             type: object
             $ref: '#/definitions/ReplicationStatusResponseBody'
-  /{db}/_replicationStatus/{replicationID}?action={action}:
+  # /{db}/_replicationStatus/{replicationID}:
     put:
       tags:
       - Replication
@@ -1612,100 +1664,33 @@ paths:
         name: body
         description: Request body
         schema:
-          description: A dictionary with document IDs as keys.
-          type: object
-          additionalProperties:
-            description: An array of revision IDs for that document.
+          description: A dictionary with document IDs as keys to revision IDs for that document.
+          type: array
+          items:
+            properties:
+              key:
+                type: string
+                description: document id
+              value:
+                type: string
+                description: revision id
 
-            items:
-              type: string
-      responses:
-        200:
-          description: The request was successful
-          schema:
-            description: A dictionary with document IDs as keys.
-            type: object
-            additionalProperties:
-              type: object
-              properties:
-                missing:
-
-                  description: A list of revision IDs for that document (the ones that are not stored in the database).
-  /{db}/_design/{ddoc}:
-    get:
-      tags:
-      - 'Design Documents'
-      summary: Get Views of a design document
-      description: |+
-        Query a design document.
-
-        *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
-
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
-      parameters:
-      - $ref: '#/parameters/db'
-      - $ref: '#/parameters/ddoc'
       responses:
         200:
           description: |+
-            Views for design document
-
+            The request was successful.
+            Returns a list of revision IDs for that document (the ones that are not stored in the database)
           schema:
-            type: object
-            properties:
-              my_view_name:
-                $ref: '#/definitions/View'
-    put:
-      tags:
-      - 'Design Documents'
-      summary: Update views of a design document
-      description: |+
-        Update views of a design document
-
-        *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
-
-        -- Sync Gateway Application
-
-      parameters:
-      - $ref: '#/parameters/db'
-      - $ref: '#/parameters/ddoc'
-      - in: body
-        name: body
-        description: The request body
-        required: false
-        schema:
-          $ref: "#/definitions/View"
-      responses:
-        201:
-          description: Successful operation
-          schema:
-            $ref: '#/responses/200-doc'
-    delete:
-      tags:
-      - 'Design Documents'
-      summary: Delete design document
-      description: |+
-        Delete a design document.
-
-        *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
-
-        -- Sync Gateway Application
-
-      parameters:
-      - $ref: '#/parameters/db'
-      - $ref: '#/parameters/ddoc'
-      responses:
-        200:
-          description: The status
-          schema:
-            type: object
+            type: array
             items:
-              $ref: '#/definitions/Design'
-        default:
-          description: Unexpected error
-          schema:
-            $ref: '#/definitions/Error'
+              properties:
+                key:
+                  type: string
+                  description: document id
+                value:
+                  type: string
+                  description: revision id
+
   /{db}/_offline:
     post:
       tags:
@@ -1776,9 +1761,9 @@ paths:
               description: Delay in seconds before bringing the database online.
       responses:
         200:
-          description: OK – online request accepted.
+          description: OK -- online request accepted.
         503:
-          description: Service Unavailable – Database resync is in progress.
+          description: Service Unavailable -- Database resync is in progress.
   /{db}/_purge:
     post:
       tags:
@@ -1802,17 +1787,14 @@ paths:
           $ref: '#/definitions/PurgeBody'
       responses:
         200:
-          description: OK – The purge operation was successful
+          description: OK -- The purge operation was successful
           schema:
-            type: object
-            description: Response object
-            properties:
-              a_doc_id:
-
-                description: Contains one property for each document ID successfully purged, the property key is the "docID" and the property value is a list containing the single entry "*".
-                items:
-                  type: string
-                  description: Revision ID that was purged
+            type: array
+            description: |+
+              Response object, contains one property for each document ID successfully purged, the property key is the "docID" and the property value is a list containing the single entry "*".
+            items:
+              type: string
+              description: Revision ID that was purged
   /{db}/_raw/{doc}:
     get:
       tags:
@@ -1897,7 +1879,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        – Sync Gateway Architect
+        -- Sync Gateway Architect
 
       parameters:
       - $ref: '#/parameters/db'
@@ -1952,14 +1934,19 @@ paths:
         -- Sync Gateway Architect
         -- Sync Gateway Application
         -- Sync Gateway Application Read Only
+      parameters:
+      - $ref: '#/parameters/db'
 
       responses:
         200:
-          description: 200 OK – Returns the list of roles as an array of strings
-          schema:
+          description: |+
+            200 OK -- Returns the list of roles as an array of strings
 
-            description: The message body contains the list of roles in a JSON array. Each element of the array is a string representing the name of a role in the specified database.
+            The message body contains the list of roles in a JSON array. Each element of the array is a string representing the name of a role in the specified database.
+          schema:
+            type: array
             items:
+              description: ""
               type: string
         401:
           $ref: '#/responses/Unauthorized'
@@ -2012,14 +1999,14 @@ paths:
               name:
                 type: string
               admin_channels:
-
+                type: array
                 description: |+
-                  The admin channels that this role has granted access to. Admin channels are the ones which are
-                  granted access to in the config file or via the Admin REST API.
+                    The admin channels that this role has granted access to. Admin channels are the ones which are
+                    granted access to in the config file or via the Admin REST API.
                 items:
                   type: string
               all_channels:
-
+                type: array
                 description: All the channels that this role has access to.
                 items:
                   type: string
@@ -2066,7 +2053,7 @@ paths:
       - $ref: '#/parameters/role_name'
       responses:
         200:
-          description: 200 OK – The role was successfully deleted
+          description: 200 OK -- The role was successfully deleted
   /{db}/_session:
     post:
       tags:
@@ -2131,12 +2118,12 @@ paths:
       - $ref: '#/parameters/sessionid'
       responses:
         200:
-          description: 200 OK – Request completed successfully.
+          description: 200 OK -- Request completed successfully.
           schema:
             type: object
             properties:
               authentication_handlers:
-
+                type: array
                 items:
                   type: object
                   description: List of supported authentication handlers
@@ -2162,7 +2149,7 @@ paths:
       - $ref: '#/parameters/sessionid'
       responses:
         200:
-          description: 200 OK – Request completed successfully. If the session is successfully deleted, the response has an empty message body. If the session is not deleted, the message body contains error information.
+          description: 200 OK -- Request completed successfully. If the session is successfully deleted, the response has an empty message body. If the session is not deleted, the message body contains error information.
   /{db}/_user/{name}/_session:
     delete:
       tags:
@@ -2217,9 +2204,11 @@ paths:
       - $ref: '#/parameters/db'
       responses:
         200:
-          description: The message body contains the list of users in a JSON array. Each element of the array is a string representing the name of a user in the specified database.
+          description:  |+
+            The message body contains the list of users in a JSON array.
+            Each element of the array is a string representing the name of a user in the specified database.
           schema:
-
+            type: array
             items:
               type: string
               description: username
@@ -2316,24 +2305,14 @@ paths:
         401:
           $ref: '#/responses/Unauthorized'
 
-#
+
 responses:
-
-  '200-doc':
-    description: OK
+  200-doc:
+    description: Operation completed successfully
     schema:
-      properties:
-        id:
-          type: string
-          description: Document identifier
-        rev:
-          type: string
-          description: Revision identifier
-        ok:
-          type: boolean
-          description: Indicates whether the operation was successful
+      $ref: '#/definitions/doc-resp'
 
-  '200-db-compact-get':
+  200-db-compact-get:
     description: |+
       OK - A successful response will return a JSON object containing the _compact status.
 
@@ -2352,7 +2331,7 @@ responses:
           "phase": "cleanup"
         }
 
-  '200-db-compact-post-start':
+  200-db-compact-post-start:
     description: |
       OK - This successful response indicates _compact process was started.
       The response body comprises a JSON object showing the _compact status.
@@ -2367,8 +2346,8 @@ responses:
           "atts_compacted": 0
         }
 
-  '400-db-compact-post-bad-request':
-    description: |
+  400-db-compact-post-bad-request:
+    description: |+
       Bad Request
 
         This can mean that a required parameter has not been provided, the value supplied is invalid, or the combination of provided parameters is invalid.
@@ -2377,73 +2356,24 @@ responses:
           -- A GET /{db}/_compact request is submitted with an invalid value for type parameter (anything other than tombstone or attachment).
           -- A POST /{db}/_compact request is submitted with an invalid value for type parameter (type must be either tombstone or attachment) and or action parameter (action must be either start or stop).
 
-  '503-db-compact-post-unavailable':
-    description: |
+  503-db-compact-post-unavailable:
+    description: |+
       Service Unavailable
 
       A 503 Service Unavailable error indicates that the system is not ready to handle the submitted compaction start request due another compaction is running.
       You may encounter this error when you submit a compaction request in the middle of another.
-
-  # '200-db-compact-post-stop':
-  #   description: |
-  #     OK - This successful response indicates the _compact process was stopped.
-  #     The response body comprises a JSON object showing the closing _compact status.
-  #   schema:
-  #     $ref: '#/definitions/Compact_Response'
-  #     example:
-  #       {
-  #         "id": "8",
-  #         "status": "Stopped",
-  #         "start_time": "2015-09-23T17:27:17.55+01:00",
-  #         "end_time": "2015-09-23T17:30:17.55+01:00",
-  #         "duration": "3s",
-  #         "atts_compacted": 108,
-  #         "docs_processed": 200
-  #       }
-
-  # '200-db-compact-post-in-progress':
-  #   description: |
-  #     OK - If you make a subsequent post request whilst _compact is in progress, your response body comprises a JSON object showing the in-progress _compact status, just as if you had issued a GET request
-  #   schema:
-  #     $ref: '#/definitions/Compact_Response'
-  #     example:
-  #       {
-  #         "id": "1",
-  #         "status": "Running",
-  #         "start_time": "2015-09-23T17:27:17.55+01:00",
-  #         "end_time": "2015-09-23T17:30:17.55+01:00",
-  #         "duration": "12.677085ms",
-  #         "mark_atts_marked": 20,
-  #         "mark_docs_processed": 300
-  #       }
-
-
-  '200-db-config':
-    description: OK
-    schema:
-      $ref: '#/definitions/database'
 
   200-import-filter:
     description: OK
     schema:
       $ref: '#/definitions/Import_filter'
 
-  '200-role':
-    description: OK
-    schema:
-      $ref: '#/definitions/role'
-
-  '200-sync':
+  200-sync:
     description: OK
     schema:
       $ref: '#/definitions/sync_function'
 
-  '200-bootstrap':
-    description: OK
-    schema:
-      $ref: '#/definitions/bootstrap_config_model'
-
-  '200-User':
+  200-User:
     description: 200 OK - Returns information about the specified user
     schema:
       $ref: '#/definitions/User-response'
@@ -2461,7 +2391,7 @@ responses:
           "email": "jim.roberts@gmail.com"
         }
 
-  '200-resync':
+  200-resync:
     description: OK
     schema:
       $ref: '#/definitions/Resync-response'
@@ -2474,24 +2404,15 @@ responses:
           "docs_processed": 0
         }
 
-  '400-resync-post-stopped':
+  400-resync-post-stopped:
     description: 400 - Database _resync not running
-    # schema:
-    #   $ref: '#/definitions/resync-post-error-response'
 
-  # '503-resync-post-running':
-  #   description: 503 - Database _resync already in progress
-    # schema:
-    #   $ref: '#/definitions/resync-post-error-response'
-
-  '503-resync-post':
+  503-resync-post:
     description: |+
       503 error code. The meaning varies depending on the action parameter:
 
       - action=start -- Database must be offline before calling _resync.
       - action=stop -- Database _resync already in progress
-    # schema:
-    #   $ref: '#/definitions/resync-post-error-response'
 
   OK:
     description: 200 - OK - Operation successful
@@ -2506,7 +2427,8 @@ responses:
     description: 404 - Not Found - Object missing or misreferenced
 
   Conflict:
-    description: 409 - Conflict – For example, an object with this name already exists
+    description: 409 - Conflict -- For example, an object with this name already exists
+
 
 definitions:
 
@@ -2677,7 +2599,7 @@ definitions:
               Change requires HTTP server restart
             properties:
               headers:
-
+                type: array
                 description: |+
                   List of HTTP headers that can be used by domains specified in the `origin` and `login_origin` properties.<br>
                   A common value is `["Content-Type"]` as clients use the `Content-Type: application/json` header when sending data as JSON in the body of POST/PUT requests.
@@ -2685,15 +2607,16 @@ definitions:
                   Change requires HTTP server restart
                 items:
                   type: string
-              login_origin:
 
+              login_origin:
+                type: array
                 description: |+
                   List of allowed login origins.
 
                   Change requires HTTP server restart
-
                 items:
                   type: string
+
               max_age:
                 type: integer
                 description: |+
@@ -2703,7 +2626,7 @@ definitions:
                   Change requires HTTP server restart
 
               origin:
-
+                type: array
                 description: |+
                   List of allowed origins; use a wildcard character (*) to allow access from everywhere.
 
@@ -2916,6 +2839,7 @@ definitions:
             description: |+
               The level of logging. Log levels accumulate as you read down the table (i.e log entries at WARN will also be included in the INFO and DEBUG logs).
           log_keys:
+            type: array
             description: |+
               List of log keys to enable for diagnostic logging. Example:
 
@@ -2955,7 +2879,6 @@ definitions:
               - `SyncMsg`: Can be used for additional Sync logging output
               - `WS`: Websocket replication log messages
               - `WSFrame`: Can be used for additional WS logging output
-
             items:
               type: string
             default: '["HTTP"]'
@@ -3274,78 +3197,6 @@ definitions:
             description: |+
               Size of the collation buffer
 
-
-  bucket_configuration_model:
-    type: object
-    title: bucket_configuration_model
-    description: |+
-      Defines the Couchbase Server bucket to which this Sync Gateway database is associated.
-    required:
-    - Server
-    - bucket
-    # - username
-    - password
-
-    properties:
-
-      server:
-        type: string
-        readOnly: true
-        description: |+
-          Read-only item inherited from the bootstrap configuration file; cannot be changed using the REST API.
-
-          Defines the Couchbase Server connection string.
-
-      bucket:
-        type: string
-        default: database name
-        description: |+
-          The `bucket` property defines the Couchbase Server bucket name for this database.
-
-          If not specified, then the database `name` is used as the `bucket` name.
-
-      username:
-        type: string
-        description: |+
-          The item defines the RBAC user's username for authenticating to Couchbase Server.
-
-          There is no default.
-
-      password:
-        type: string
-        description: |+
-          The item defines the RBAC user's password for authenticating to Couchbase Server.
-
-          There is no default.
-
-      certpath:
-        type: string
-        description: |+
-          Absolute or relative path on the filesystem to the TLS certificate file to be used to connect to the Couchbase Server.
-
-          Relative paths are relative to the directory that contains the Sync Gateway executable.
-
-      keypath:
-        type: string
-        description: |+
-          Absolute or relative path on the filesystem to the TLS private key file to be used to connect to the Couchbase Server.
-
-          Relative paths are relative to the directory that contains the Sync Gateway executable.
-
-      cacertpath:
-        type: string
-        description: |+
-          Absolute or relative path on the filesystem to the root CA certificate to verify the certificate chain and hostname of the Couchbase Server cluster.
-
-          Required for X509 Authentication.
-
-          Relative paths are relative to the directory that contains the Sync Gateway executable.
-
-      kv_tls_port:
-        type: string
-        description: |+
-          Unused item
-
   database:
     type: object
     title: "Database"
@@ -3492,88 +3343,82 @@ definitions:
 
         properties:
           document_changed:
+            title: "Document Changed"
             description: The configuration for the action to perform when a document change is detected.
+            properties:
+              filter:
+                type: string
+                description: |+
+                  Use ```document_changed.filter``` to define a JavaScript function that determines which documents to post.
 
-            items:
-              # type: object
-              title: "Document Changed"
-              properties:
-                filter:
-                  type: string
-                  description: |+
-                    Use ```document_changed.filter``` to define a JavaScript function that determines which documents to post.
+                  The filter function accepts the document body as input and returns a boolean value.
 
-                    The filter function accepts the document body as input and returns a boolean value.
+                  -- If the filter function returns true, then Sync Gateway posts the document.
+                  -- If the filter function returns false, then Sync Gateway does not post the document.
+                  -- If no filter function is defined, then Sync Gateway posts all changed documents.
 
-                    -- If the filter function returns true, then Sync Gateway posts the document.
-                    -- If the filter function returns false, then Sync Gateway does not post the document.
-                    -- If no filter function is defined, then Sync Gateway posts all changed documents.
+                  Filtering only determines which documents to post.
+                  It does not extract specific content from documents and post only that.
 
-                    Filtering only determines which documents to post.
-                    It does not extract specific content from documents and post only that.
-                  # required: 'true'
-                handler:
-                  type: string
-                  description: |+
-                    Specify the type of event handler.
+              handler:
+                type: string
+                description: |+
+                  Specify the type of event handler.
 
-                    This must be `webhook` currently).
-                options:
-                  type: string
-                  description: |+
-                    Options can be specified per-handler, and are specific to each handler type.
-                timeout:
-                  type: integer
-                  description: |+
-                    Defines the period in seconds to wait for a response to the POST operation.
+                  This must be `webhook` currently).
+              options:
+                type: string
+                description: |+
+                  Options can be specified per-handler, and are specific to each handler type.
+              timeout:
+                type: integer
+                description: |+
+                  Defines the period in seconds to wait for a response to the POST operation.
 
-                    Using a timeout ensures that slow-running POST operations don't cause the webhook event queue to back up.
+                  Using a timeout ensures that slow-running POST operations don't cause the webhook event queue to back up.
 
-                    Slow-running POST operations are discarded (if they time out), so that new events can be processed. When the timeout is reached, Sync Gateway stops listening for a response.
+                  Slow-running POST operations are discarded (if they time out), so that new events can be processed. When the timeout is reached, Sync Gateway stops listening for a response.
 
-                    A value of 0 (zero) means no timeout.
+                  A value of 0 (zero) means no timeout.
 
-                    You should not need to adjust it to tune performance as he default value should work well in the majority of cases.
-                  default: 60
-                url:
-                  description: |+
-                    Defines the URL to post documents to (for a webhook event handler).
-                  type: string
-                  # required: true
+                  You should not need to adjust it to tune performance as he default value should work well in the majority of cases.
+                default: 60
+              url:
+                description: |+
+                  Defines the URL to post documents to (for a webhook event handler).
+                type: string
+                # required: true
+
           db_state_changed:
-
             description: |+
                 Use the `db_state_changed` property group to define the actions to perform when a `db_state` change is detected.
-            items:
-              title: db_state_changed model
-              type: object
-              properties:
-                filter:
-                  type: string
-                  description: |+
-                    Use `db_state_changed.filter``` to define a JavaScript function that determines which state changes to post.
+            title: db_state_changed model
+            type: object
+            properties:
+              filter:
+                type: string
+                description: |+
+                  Use `db_state_changed.filter``` to define a JavaScript function that determines which state changes to post.
+              handler:
+                type: string
+                description: |+
+                  Specify the type of event handler.
 
-                handler:
-                  type: string
-                  description: |+
-                    Specify the type of event handler.
+                  This must be `webhook` currently).
+              options:
+                type: string
+                description: |+
+                  Options can be specified per-handler, and are specific to each handler type.
+              timeout:
+                type: integer
+                description: |+
+                  Defines the period in seconds to wait for a response to the operation.
+                  Default: 60
+              url:
+                type: string
+                description: |+
+                  Defines the URL to post to (for a webhook event handler).
 
-                    This must be `webhook` currently).
-                options:
-                  type: string
-                  description: |+
-                    Options can be specified per-handler, and are specific to each handler type.
-                timeout:
-                  type: integer
-                  description: |+
-                    Defines the period in seconds to wait for a response to the operation.
-
-                  default: 60
-                url:
-                  description: |+
-                    Defines the URL to post to (for a webhook event handler).
-                  type: string
-                  # required: true
           max_processes:
             type: integer
             description: |+
@@ -3583,6 +3428,7 @@ definitions:
               You should not need to adjust it to tune performance.
               However, if you wish to ensure that most webhook posts are sent, you can set it to sufficiently high value.
             default: 500
+
           wait_for_process:
             type: string
             description: |+
@@ -4290,13 +4136,13 @@ definitions:
         description: |+
           Name of the role
       admin_channels:
-
+        type: array
         description: |+
           Array of channel names the role allows access to
         items:
           type: string
       all_channels:
-
+        type: array
         readOnly: true
         description: |+
           Lists all the channels the role has access to including any assigned by the `sync` function.
@@ -4304,377 +4150,6 @@ definitions:
           This is a derived property and changes to it are ignored.
         items:
           type: string
-
-
-  replication:
-    type: object
-    description: |+
-      This replication request message body is a JSON document that comprises all the properties required to upsert a replication.
-
-      If the `replicationID` matches an existing `replication_id` then the values of any properties provided in the body are used to update the existing replication's property values.
-    properties:
-        replication_id:
-          type: string
-          description: |+
-            **About**
-
-            The *replication_id* property specifies either:
-            - For NEW replications, the ID to be assigned to the the replication. If no *replication_id* is specified, Sync Gateway will assign a random UUID to new replications.
-            - For existing replications, this is the ID of the required replication.
-            - If **cancel=true**, this is the id of the active replication task to be cancelled.
-
-            **Constraints**
-
-            If this is specified in the body of a POST or PUT request then it must be the same value as specified in the request URL.
-
-        remote:
-          type: string
-          description: |+
-            **About**
-
-            The **remote** property represents the endpoint of s database for the remote Sync Gateway.
-            That is, it identifies the remote Sync Gateway database that is the subject of this replication's push, pull or pushAndPull action.
-
-            Typically the endpoint will include URI, Port and Database name elements.
-
-            **Format**
-
-            - a string containing a valid URL for a (remote) Sync Gateway database.
-            - an object whose url property contains the Sync Gateway database URL.
-
-            **Behavior**
-
-              Dependent upon setting of **direction**.
-
-              If **direction** is :
-              - *pull*, 'remote' defines the remote cluster *from* which data is pulled
-              - *push*, 'remote' defines the remote cluster *to* which data is pushed
-              - *pushAndPull*, 'remote' defines the *push* configuration.
-
-            **Example**
-
-            ```json
-            "remote": "http://www.example.com:4984/sample-database",
-            ```
-
-        username:
-          type: string
-          default: Mandatory
-          description: |+
-            **About**
-
-            Use `username` to provide the name of the accredited user running this replication.
-
-            **Behavior**
-
-            These details are used to authenticate credentials and approve access to data
-
-            Once provided and recorded, the username data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
-
-        password:
-          type: string
-          default: mandatory
-          description: |+
-            **About**
-
-              Use `password` to provide the login password value for the accredited user running this replication.
-
-            **Behavior**
-
-              These details are used to authenticate credentials and approve access to data.
-
-              Once provided and recorded, the password data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
-
-        direction:
-          type: string
-          description: |+
-            **About**
-
-            The mandatory `direction` property specifies whether the replication is *push*, *pull* or *pushAndPull* relative to this node.
-
-            The property value is referenced by the [remote](rest-api-admin.html#database-this_db-replications-remote) property.
-
-            **Behavior**
-
-            - `pull` -- changes are pulled from the `remote` database
-            - `push` -- changes are pushed to the `remote` database
-            - `pushAndPull` -- changes are both pushed-to and pulled-from the `remote` database
-
-            **Constraints**
-
-            Replications created prior to version 2.8 derive their *direction* from the source/target url of the replication.
-
-        conflict_resolution_type:
-          type: string
-          default: default
-          description: |+
-            **About**
-
-            The **`conflict_resolution_type`** property defines the conflict resolution policy that Sync Gateway applies when resolving conflicting revisions.
-
-            The default behavior is that automatic conflict resolution policy is applied.
-
-            **Valid options**
-              - `default`
-              - `localWins`
-              - `remoteWins`
-              - `custom`
-
-            **Behavior**
-
-            - *default* -- Selecting `default` applies the following conflict resolution policy
-              - Deletes always win (the delete with longest revision history wins if both revisions are deletes)
-              - The revision with the longest revision history wins (so, the one with most changes and consequently the highest revision Id).
-
-            - *localWins* -- Selecting `localWins` will result in local revisions always being the winner in any conflict.
-            - *remoteWins* -- Selecting `remoteWins` will result in remote revisions always being the winner in any conflict.
-
-
-            - *custom* -- Selecting `custom` specifies that you want to handle conflict resolution with your own application logic. You **must** provide this logic as a Javascript function by specifying it in using the custom-conflict-resolver parameter.
-
-            **Example**
-            ```
-            "conflict_resolution_type":"remoteWins"
-            ```
-
-            **Constraints**
-
-            - Replications created prior to version 2.8 will default to `default`.
-
-        custom_conflict_resolver:
-          type: string
-          default: none
-          description: |+
-            **About**
-
-            The optional `custom_conflict_resolver` property specifies the Javascript function that will be used to resolve conflicts, if the custom conflict resolution type is specified in the `conflict_resolution_type`.
-
-            **Options**
-
-            The property is *mandatory* when `conflict_resolution_type=custom` and will be ignored in all other cases.
-
-            **Using**
-
-            Provide the required logic in a Javascript function, as a string within backticks (see also the description for the `sync` function`.
-
-            The function takes one parameter `struct` representing the conflict and comprising
-            - the document id
-            - the local document
-            - the remote document
-
-            The function returns a document `struct` representing the winning revision.
-
-            **Example**
-            ```
-            "custom_conflict_resolver":`
-              function(conflict) {
-                console.log("full remoteDoc doc: "+JSON.stringify(conflict.RemoteDocument));
-              return conflict.RemoteDocument;
-            }`
-            ```
-
-            **Constraints**
-
-            Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
-
-        purge_on_removal:
-          type: boolean
-          default: false
-          description: |+
-            **About**
-
-            The optional `purge_on_removal` property specifies, per replication, whether the removal of a `channel` triggers a purge.
-
-            **Options**
-            - `true` or `false`
-            - Default = false -- Document removals are ignored by receiving end
-
-            **Behavior**
-
-            If `purge_on_removal=false`, then the removal of channels is ignored (not purged) by the receiving end.
-
-            **Constraints**
-
-            Replications created prior to version 2.8 *must* be run with `purge_on_removal=false`.
-
-        enable_delta_sync:
-          type: boolean
-          default: false
-          description: |+
-            **About**
-
-            The optional `enable_delta_sync` parameter turns on delta sync for a replication.
-            It works in conjunction with the database level setting `delta_sync.enabled`.
-
-            **Options**
-
-            - `"enable_delta_sync": true`, the replication can use delta sync (depending on `delta_sync.enabled` setting)
-            - `"enable_delta_sync": false`, the replication cannot use delta sync
-
-            **Behavior**
-
-            The optional `enable_delta_sync` parameter works in conjunction with the database level `delta_sync.enabled` setting, to determine whether this replication uses delta sync.
-
-            - **If** `"delta_sync.enabled": true` for both databases involved in the replication, then this parameter enables or disables its use for this specific replication.
-            -  In all other cases it has no effect and the replication runs without delta-sync.
-
-            **Constraints**
-
-            - Applies **ONLY** to Enterprise Edition deployments.
-            - Depends upon the setting of the database level parameter `delta_sync.enabled`
-            - Replications created prior to version 2.8 must run with `"enable_delta_sync": false`
-            - Push replications will not use Delta Sync when pushing to a pre-2.8 target
-
-        max_backoff_time:
-          type: integer
-          default: 5
-          description: |+
-            The **max_backoff_time**property specifies the time-period (in minutes) during which Sync Gateway will attempt to reconnect lost or unreachable *remote* targets.
-
-            On disconnection, Sync Gateway will do an exponential backoff up to the specified value, after which it will attempt to reconnect indefinitely every *max_backoff_time* minutes.
-
-            If a zero value is specified, then Sync Gateway will do an exponential backoff up to an interval of five minutes before stopping the replication.
-
-            NOTE -- this value defaults to five minutes for replications created prior to version 2.8.
-
-        initial_state:
-          type: string
-          default: Running
-          description: |+
-            **About**
-
-            The optional `initial_state` property is used to specify that the replication must be launched in 'Stopped' mode
-
-            **Behavior**
-
-            All replications are configured to start on Sync Gateway launch. So, if omitted, the state defaults to 'Running'.
-
-            **Constraints*
-
-            Replications created prior to version 2.8 will all default to a state of 'Running'.
-
-        continuous:
-          type: boolean
-          default: false
-          description: |+
-            **About**
-
-            The `continuous` property specifies whether this replication will run in continuous mode.
-
-            **Behavior**
-
-            - `continuous=true`-- In continuous mode, changes are immediately synced in accordance with the replication definition.
-            - `continuous=false`-- Detected changes are synced in accordance with the replication definition. The replication ceases once all revisions are processed.
-
-            **Constraints**
-
-            - Optional for stops and removes
-
-        filter:
-          type: string
-          description: |+
-            **About**
-
-            Use the optional `filter`property to defines the function to be used to filter documents.
-
-            **Options**
-
-            A common value used when replicating from Sync Gateway is `sync_gateway/bychannel`. This option limits the pull replication to a specific set of channels. You can specify the required channels using `query_params`.
-
-            **Behavior**
-
-            Works in conjunction with `query_params` to control the documents processed by the replication.
-
-            **Example**
-
-            ```
-            "filter":"sync_gateway/bychannel"
-            ```
-
-            **Constraints**
-
-            OPTIONAL for stops and removes (even if defined during creation)
-
-        query_params:
-
-          description: |+
-            **About**
-
-            The `query_params` property defines a set of key/value pairs used in the query string of the replication.
-
-            **Behavior**
-
-            This property works in conjunction with `filters` and `channels` to provide routing.
-
-            **Using**
-
-            You can use `query_params`' *channels* function to *pull* from a specific set of `channels`.
-            To do so, you would also need to set the `filter` to  `sync_gateway/bychannels`.
-
-            **Example**
-
-            ```json
-              "filter":"sync_gateway/bychannel",
-              "query_params": {
-                "channels":["channel.user1"]
-              },
-            ```
-
-            **Constraints**
-
-            OPTIONAL for stops and removes (even if defined during creation)
-
-          items:
-            type: string
-
-        cancel:
-          type: boolean
-          default: false
-          description: |+
-            **About**
-
-            Use this parameter on,y when you want to want to cancel an existing active replication.
-
-            **Constraints**
-
-            - This parameter is **NOT** available in configured replications; only those initialized using the Admin REST API.
-            - **NOTE** that the body of the request must be the same as the replication's replication definition for the cancellation request to be honoured.
-            For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
-
-        adhoc:
-          type: boolean
-          default: false
-          description: |+
-            **About**
-
-            Use the Admin REST API's `adhoc` parameter to specify that a replication is ad hoc rather than persistent.
-
-            **Behavior**
-
-            Ad hoc replications behave the same as normal replications, but they are automatically removed when their status changes to stopped.
-            This will usually be on completion, but may also be as a result of user action.
-
-            **Constraints**
-
-            This parameter is **NOT** available to configured replications; only those initialized using the Admin REST API.
-
-        batch_size:
-          type: integer
-          default: 200
-          description: |+
-            **About**
-
-            Use the optional `batch_size` property to specify the number of changes to be included in a single batch during replication.
-
-        perf_tuning_params:
-
-          description: |+
-            The perf_tuning_params are not available in this release.
-
-            NOTE -- This property replaces the 'changes_feed_limit' at version 2.8
-          items:
-            type: string
-
 
   sync_function:
     type: string
@@ -4720,7 +4195,7 @@ definitions:
           Mandatory, unless `allow_empty_password=true`.
 
       admin_channels:
-
+        type: array
         description: |+
           The channels that the user is able to access.
         items:
@@ -4729,7 +4204,7 @@ definitions:
             Channel name
 
       admin_roles:
-
+        type: array
         description: |+
           An array of the roles this user is associated with.
         items:
@@ -4779,7 +4254,7 @@ definitions:
           The user name (the same name used in the URL path).
 
       admin_channels:
-
+        type: array
         description: |+
           The channels that the user is able to access.
         items:
@@ -4810,13 +4285,13 @@ definitions:
 
   AllDatabases:
     type: array
-    description: List of available datasese in cluster
+    description: List of available databases in cluster
     items:
       type: string
       description: Database name
 
 
-  ActiveTaskResponseBody:
+  ActiveTasks_response_model:
     type: object
     properties:
       source:
@@ -4916,15 +4391,7 @@ definitions:
               time_saved:
                 type: string
                 description: Timestamp of the last operation?
-  DocumentResponse:
-    type: object
-    properties:
-      _id:
-        type: string
-        description: Document identifier
-      _rev:
-        type: string
-        description: Revision identifier
+
   Error:
     type: object
     properties:
@@ -4935,12 +4402,14 @@ definitions:
         type: string
       fields:
         type: string
+
   SGCollectInfoStats:
     type: object
     properties:
       status:
         type: string
         description: The current status of sgcollect_info
+
   ExpVars:
     type: object
     properties:
@@ -5217,18 +4686,6 @@ definitions:
       rev:
         type: string
         description: Revision identifier
-  Success:
-    type: object
-    properties:
-      id:
-        type: string
-        description: Design document identifier
-      rev:
-        type: string
-        description: Revision identifier
-      ok:
-        type: boolean
-        description: Indicates whether the operation was successful
 
   ChangesFeedRow:
     type: object
@@ -5248,28 +4705,7 @@ definitions:
       seq:
         type: integer
         description: Update sequence number
-  InvalidJSON:
-    description: The request provided invalid JSON data
-  View:
-    type: object
-    properties:
-      _rev:
-        type: string
-        description: Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)
-      views:
-        type: object
-        description: List of views to save on this design document.
-        properties:
-          my_view_name:
-            type: object
-            description: The view's map/reduce functions.
-            properties:
-              map:
-                type: string
-                description: Inline JavaScript definition for the map function
-              reduce:
-                type: string
-                description: Inline JavaScript definition for the reduce function
+
   QueryRow:
     type: object
     properties:
@@ -5285,6 +4721,7 @@ definitions:
       doc:
         type: object
         description: The document body. This is only returned if `include_docs=true` is specified in the URL.
+
   Design:
     type: object
     properties:
@@ -5442,7 +4879,20 @@ definitions:
                   stub:
                     type: boolean
                     default: true
-#
+
+  doc-resp:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Document identifier
+      rev:
+        type: string
+        description: Revision identifier
+      ok:
+        type: boolean
+        description: Indicates whether the operation was successful
+
   QueryResult:
     type: object
     properties:
@@ -5450,14 +4900,13 @@ definitions:
         type: string
         description: Starting index of the returned rows.
       rows:
-
+        type: array
         items:
           $ref: '#/definitions/QueryRow'
       total_rows:
         type: integer
         description: Number of documents in the database. This number is not the number of rows returned.
 
-#
   ReplicationResponse:
     type: object
     properties:
@@ -5468,7 +4917,7 @@ definitions:
         type: string
         description: Session identifier
 
-# REPLICATIONSTATUS new at 2.8
+  # REPLICATIONSTATUS new at 2.8
   ReplicationStatusResponseBody:
     type: object
     properties:
@@ -5554,7 +5003,7 @@ definitions:
           ```
 
           It comprises the replication definition as would be returned using a `GET` request to the  `_replication` endpoint.
-#
+
   Resync-response:
     type: object
     properties:
@@ -5594,42 +5043,7 @@ definitions:
 
           In the event of an error in the `_resync` process this field will contain error details.
           Otherwise it is not visible.
-#
 
-
-#
-  resync-post-response:
-    type: object
-    properties:
-      status:
-        type: string
-        description: |+
-          Indicates the status of the resync operation.
-
-          For `start` this will return ```running``` status
-          For `stop`` this will return ```stopping``` status
-
-      start_time:
-        type: string
-        description: |+
-          The `_resync` process start time in ISO 8601 format (for example: `2012-04-23T18:25:43.511Z`)
-
-      docs_changed:
-        type: integer
-        description: |+
-          Shows the number of documents that have been changed as a result of the sync function.
-
-          For `start` this will return ```0```
-          For `stop`` this will return ```0``` status
-
-      docs_procesed:
-        type: integer
-        description: |+
-          Shows the number of documents that have been run through the sync function.
-
-          For `start` this will return ```0```
-          For `stop`` this will return ```0``` status
-#
   Server:
     type: object
     properties:
@@ -5646,50 +5060,13 @@ definitions:
         type: string
         description: Sync Gateway version number
 
-  Session:
-    type: object
-    properties:
-      authentication_handlers:
-
-        description: List of authentication methods.
-        items:
-          type: string
-      ok:
-        type: boolean
-        description: Always true if the operation was successful.
-      userCtx:
-        $ref: '#/definitions/UserContext'
-  UserContext:
-    type: object
-    description: Context for this user.
-    properties:
-      channels:
-        type: object
-        description: Key-value pairs with a channel name as the key and the sequence number that granted the user access to the channel as value.Note that `!` is the public channel and every user has access to it.
-      name:
-        type: string
-        description: The user's name.
-
-  ReplicationStatusResponse-Success:
-    type: object
-    properties:
-      200:
-        description: The request was successful.
-
-        items:
-          type: object
-          $ref: '#/definitions/ReplicationStatusResponseBody'
-
-
   ReplicationResponseBody:
     type: object
     description: This is the replication definition set returned in response to a `GET` request.
     properties:
       this_rep:
         type: object
-        description: |+
-
-
+        description: This is the replication definition set returned in response to a `GET` request.
         properties:
           adhoc:
             type: boolean
@@ -5894,14 +5271,11 @@ definitions:
                 All password data is redacted and is displayed as a string of `****`.
 
           perf_tuning_params:
-
+            type: object
             description: |+
               The perf_tuning_params are yet to be defined (subject to performance testing)
 
               NOTE -- This property replaces the 'changes_feed_limit' at version 2.8
-            items:
-              type: string
-
 
           purge_on_removal:
             type: boolean
@@ -5925,7 +5299,7 @@ definitions:
 
 
           query_params:
-
+            type: array
             description: |+
               **About**
 
@@ -5955,7 +5329,6 @@ definitions:
 
             items:
               type: string
-
 
           remote:
             type: string
@@ -6018,16 +5391,6 @@ definitions:
 
                 This field is redacted a string of '****' is displayed in its place.
 
-  block-rep-cancel-text:
-    description: |+
-      You can cancel continuous replications by adding the cancel field to the JSON request object and setting the value to true.
-
-      Note that the structure of the request must be identical to the original for the cancellation request to be honoured.
-
-      For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
-
-# END: Define sync-gateway replications
-
   ReplicationStatistics-SGR1:
 
     description: This is the replication definition set returned in response to an ExpVars `GET` request.
@@ -6080,185 +5443,73 @@ definitions:
                 Used by versions 1 and 2.
 
 
-  perReplicationStats-SGR1:
-            # $ref: "#/definitions/perReplicationStats-SGR1"
+  View:
     type: object
     properties:
-      per_replication:
-
-        description: |+
-          An array of stats for each replication declared in the config file
-
-          **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-        items:
-          type: object
-          description: Stats for a given replication_id
-          properties:
-            $replication_id:
-              type: object
-              properties:
-                sgr_active:
-                  type: boolean
-                  description: |+
-                    Whether the replication is active at this time.
-                    **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-                sgr_docs_checked_sent:
-                  type: integer
-                  description: |+
-                    The total number of documents checked for changes since replication started.
-                    This represents the number of potential change notifications pushed by Sync Gateway.
-                    **Constraints**
-                      This is not necessarily the number of documents pushed, as a given target might already have the change.
-                      Used by versions 1 and 2.
-                sgr_num_attachments_transferred:
-                  type: integer
-                  description: |+
-                    The total number of attachments transferred since replication started.
-                    **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-                sgr_num_attachment_bytes_transferred:
-                  type: integer
-                  description: |+
-                    The total number of attachment bytes transferred since replication started.
-                    **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-                sgr_num_docs_failed_to_push:
-                  type: integer
-                  description: |+
-                    The total number of documents that failed to be pushed since replication started.
-                    Used by versions 1 and 2.
-                sgr_num_docs_pushed:
-                  type: integer
-                  description: |+
-                    The total number of documents that were pushed since replication started.
-                    Used by versions 1 and 2.
+      _rev:
+        type: string
+        description: Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)
+      views:
+        type: object
+        description: List of views to save on this design document.
+        properties:
+          my_view_name:
+            type: object
+            description: The view's map/reduce functions.
+            properties:
+              map:
+                type: string
+                description: Inline JavaScript definition for the map function
+              reduce:
+                type: string
+                description: Inline JavaScript definition for the reduce function
 
 
-  perReplicationStats-SGR2:
 
-      description: This is the replication definition set returned in response to an ExpVars `GET` request.
-      items:
-          type: object
-          properties:
-            replname:
-              type: object
-              description: |+
-                This object comprises the stats collected and recorded for the inter-sync-gateway replication named $replname (which equates to a `replication_id`).
-                The same structure is used to return statistics from inter-sync-gateway replications versions 1 and 2, but not all items are populated by each version.
-              properties:
-                sgr_active:
-                  type: boolean
-                  description: |+
-                    Whether the replication is active at this time.
-                    **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-
-                sgr_docs_checked_sent:
-                    type: integer
-                    description: |+
-                      The total number of documents checked for changes since replication started.
-                      This represents the number of potential change notifications pushed by Sync Gateway.
-
-                      **Constraints**
-                      - This is not necessarily the number of documents pushed, as a given target might already have the change.
-                      - Used by versions 1 and 2.
-
-                sgr_num_attachments_transferred:
-                    type: integer
-                    description: |+
-                      The total number of attachments transferred since replication started.
-                      **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-
-                sgr_num_attachment_bytes_transferred:
-                    type: integer
-                    description: |+
-                      The total number of attachment bytes transferred since replication started.
-                      **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
-
-                sgr_num_docs_failed_to_push:
-                    type: integer
-                    description: |+
-                      The total number of documents that failed to be pushed since replication started.
-
-                      Used by versions 1 and 2.
-                sgr_num_docs_pushed:
-                    type: integer
-                    description: |+
-                      The total number of documents that were pushed since replication started.
-
-                      Used by versions 1 and 2.
-
-                sgr_delta_pull_replication_count:
-                    type: integer
-                    description: |+
-                      The total number documents with deltas pulled
-
-                sgr_delta_push_doc_count:
-                    type: integer
-                    description: |+
-                      The total number of documents with deltas pushed
-
-                sgr_deltas_sent:
-                    type: integer
-                    description: |+
-                      The total number of deltas sent
-
-                sgr_deltas_requested:
-                    type: integer
-                    description: |+
-                      The total number of deltas requested
-
-                sgr_conflict_detected:
-                    type: integer
-                    description: |+
-                      The total number of documents where conflicts were detected
-
-                sgr_conflict_resolved:
-                    type: integer
-                    description: |+
-                      The total number of conflicting documents that were resolved successfully (by the active node)
-
-                sgw_conflict_skipped_error:
-                    type: integer
-                    description: |+
-                        The total number of documents that were skipped during sync because of an error in conflict resolution
 parameters:
+
   access:
     name: access
     in: query
     description: Indicates whether to include in the response a list of what access this document grants (i.e. which users it allows to access which channels.) This option may only be used from the admin port.
     type: boolean
     default: false
+
   active_only:
     name: active_only
     in: query
     description: Default is false. When true, the changes response doesn't include either deleted documents, or notification for documents that the user no longer has access to.
     type: boolean
     default: false
+
   attachment:
     in: path
     name: attachment
-    description: Attachment name. This value must be URL encoded. For example, if the attachment name is `blob_/avatar`, the path component passed to the URL should be `blob_%2Favatar` (tested with [URLEncoder](https://www.urlencoder.org/)).
+    description: |+
+      Attachment name.
+      This value must be URL encoded.
+      For example, if the attachment name is `blob_/avatar`, the path component passed to the URL should be `blob_%2Favatar` (tested with [URLEncoder](https://www.urlencoder.org/)).
     type: string
     required: true
-  attachments:
-    in: query
-    name: attachments
-    description: Default is false. Include attachment bodies in response.
-    type: boolean
-    default: false
-  atts_since:
-    name: atts_since
-    in: query
-    description: Include attachments only since specified revisions. Does not include attachments for specified revisions.
 
+  atts_since:
+    in: query
+    name: atts_since
+    description: |+
+      Include attachments only since specified revisions.
+      Does not include attachments for specified revisions.
+    type: array
     items:
       type: string
-    required: false
-  body:
-    name: body
-    in: body
-    description: The request body
-    schema:
-      type: string
-      format: binary
+
+  include_attachments:
+    in: query
+    name: attachments
+    description: |+
+      Include attachment bodies in response.
+      Default is false.
+    type: boolean
+    default: false
 
   bootstrap-logging:
     name: bootstrap logging setting
@@ -6272,16 +5523,20 @@ parameters:
     name: BulkGetBody
     description: List of documents being requested. Each array element is an object that must contain an id property giving the document ID. It may contain a rev property if a specific revision is desired. It may contain an atts_since property (as in a single-document GET) to limit which attachments are sent.
     schema:
-      type: object
-      properties:
-        docs:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: Document ID.
+          att_since:
+            type: string
+            description: att_since
+          rev:
+            type: string
+            description: rev
 
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                description: Document ID.
   channels:
     in: query
     name: channels
@@ -6366,39 +5621,30 @@ parameters:
     type: string
     required: true
 
-  db-local:
-    name: db
-    in: path
-    # summary: Local database
-    description: Name of the local database
-    type: string
-    required: true
   ddoc:
     name: ddoc
     in: path
     description: Design document name
     type: string
     required: true
-  descending:
-    name: descending
-    in: query
-    description: Default is false. Return documents in descending order.
-    type: boolean
-    required: false
+
   doc:
     name: doc
     in: path
     description: Document ID
     type: string
     required: true
+
   doc_ids:
     in: query
     name: doc_ids
-    description: A list of document IDs as a valid JSON array. The response will be filtered to only documents with these IDs. This parameter must be used with the `filter=_doc_ids` and `feed=normal` parameters.
-
+    description: |+
+      A list of document IDs as a valid JSON array.
+      The response will be filtered to only documents with these IDs.
+      This parameter must be used with the `filter=_doc_ids` and `feed=normal` parameters.
+    type: array
     items:
       type: string
-
 
   endkey:
     name: endkey
@@ -6412,18 +5658,7 @@ parameters:
     description: Default is 'normal'. Specifies type of change feed. Valid values are normal, continuous, longpoll, websocket.
     type: string
     default: 'normal'
-  group:
-    in: query
-    name: group
-    description: Group the results using the reduce function to a group or single row.
-    type: boolean
-    default: false
-  group_level:
-    in: query
-    name: group_level
-    description: Specify the group level to be used.
-    type: integer
-    required: false
+
   heartbeat:
     in: query
     name: heartbeat
@@ -6444,10 +5679,11 @@ parameters:
       Note that this is an array field, so to retrieve docs with Ids of "keyid1" and "keyid4", for example, use a request in this format --
 
       ```curl -X GET \ 'http://localhost:4985/test_db/_all_docs?keys=[%22keyid1%22,%22keyid4%22]' \ -H 'Accept: application/json'```
-
+    type: array
     items:
       type: string
-    required: false
+
+
   limit:
     in: query
     name: limit
@@ -6459,22 +5695,24 @@ parameters:
     description: Local document IDs begin with _local/.
     type: string
     required: true
+
   new_edits:
     name: new_edits
     in: query
     description: Default is true. Setting this to false indicates that the request body is an already-existing revision that should be directly inserted into the database, instead of a modification to apply to the current document. (This mode is used by the replicato.) This option must be used in conjunction with the `_revisions` property in the request body.
     type: boolean
     default: true
+
   open_revs:
-    name: open_revs
     in: query
+    name: open_revs
     description: |+
-      Option to fetch specified revisions of the document. The value can be `all` to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=["rev1", "rev2"]). Only [leaf revision](glossary.html) bodies that haven't been pruned are guaranteed to be returned.
+      Option to fetch specified revisions of the document.
+      The value can be `all` to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=["rev1", "rev2"]). Only [leaf revision](glossary.html) bodies that haven't been pruned are guaranteed to be returned.
 
-      If this option is specified the response will be in multipart format. Use the `Accept: application/json` request header to get the result as a JSON object.
-
-    items:
-      type: string
+      If this option is specified the response will be in multipart format.
+      Use the `Accept: application/json` request header to get the result as a JSON object.
+    type: string
     required: false
 
   replication__replication-body:
@@ -6718,13 +5956,11 @@ parameters:
               Once provided and recorded, the password data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
 
         perf_tuning_params:
-
+          type: object
           description: |+
             The perf_tuning_params are not available in this release.
 
             NOTE -- This property replaces the 'changes_feed_limit' at version 2.8
-          items:
-            type: string
 
         purge_on_removal:
           type: boolean
@@ -6747,7 +5983,7 @@ parameters:
             Replications created prior to version 2.8 *must* be run with `purge_on_removal=false`.
 
         query_params:
-
+          type: array
           description: |+
             **About**
 
@@ -6774,7 +6010,6 @@ parameters:
             **Constraints**
 
             OPTIONAL for stops and removes (even if defined during creation)
-
           items:
             type: string
 
@@ -6859,7 +6094,7 @@ parameters:
 
             Once provided and recorded, the username data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
 
-# FROM db extract
+
 
   import_filter_body:
     name: import_filter
@@ -6877,22 +6112,6 @@ parameters:
     schema:
       $ref: '#/definitions/role'
 
-  role_name_def:
-    in: path
-    name: name
-    description: |+
-      When passing a role name in a URL path it must be escaped again using percent encoding e.g. if a role is created with the name "0|59", the '|' character must first be percent-encoded resulting in "0%7C59". When using the same role name in a URL path it must be percent-encoded a second time resulting in "0%257C59"
-    type: string
-    required: true
-
-  name_def:
-    in: path
-    name: name
-    description: |+
-      When passing a user name in a URL path it must be escaped again using percent encoding e.g. if a user is created with the name "0|59", the '|' character must first be percent-encoded resulting in "0%7C59". When using the same user name in a URL path it must be percent-encoded a second time resulting in "0%257C59"
-    type: string
-    required: true
-
   sync_function_body:
     name: sync function
     description: The Javascipt code for the sync function
@@ -6908,11 +6127,6 @@ parameters:
     schema:
       $ref: '#/definitions/User'
 
-
-
-
-# END: Define sync-gateway replications
-#
 
   replication_id-upsert:
     in: path
@@ -7067,6 +6281,7 @@ parameters:
     schema:
       properties:
         docs:
+          type: array
           description: List containing new or updated documents. Each object in the array can contain the following properties _id, _rev, _deleted, and values for new and updated documents.
 
           items:
@@ -7109,7 +6324,9 @@ parameters:
         channels:
           description: A comma-separated list of channel names. The response will be filtered to only documents in these channels. (This parameter must be used with the sync_gateway/bychannel filter parameter; see below.)
           type: string
+
         doc_ids:
+          type: array
           description: A list of document IDs as a valid JSON array. The response will be filtered to only documents with these IDs. (This parameter must be used with the _doc_ids filter parameter; see below.)
 
           items:
@@ -7283,6 +6500,7 @@ parameters:
         ticket:
           type: string
           description: Zendesk ticket number to use when uploading logs.
+
   name:
     in: path
     name: name
@@ -7292,10 +6510,13 @@ parameters:
       When passing a user name in a URL path it must be escaped again using percent encoding e.g. if a user is created with the name "0|59", the '|' character must first be percent-encoded resulting in "0%7C59". When using the same user name in a URL path it must be percent-encoded a second time resulting in "0%257C59"
     type: string
     required: true
+
   replicate__replication-body:
     in: body
     name: ReplicationBody
-    description: The request message body is a JSON document that contains the following objects.
+    description: |+
+      SGR1 replication
+      The request message body is a JSON document that contains the following objects.
     schema:
       type: object
       properties:
@@ -7352,15 +6573,15 @@ parameters:
     type: boolean
     default: false
     required: false
+
+
 tags:
   # - name: attachment
   #   description: Groups all endpoints for attachment activities
   - name: Authentication
     description: Manage OpenID Connect providers
-
-  - name: Bootstrap
+  - name: 'Bootstrap Configuration'
     description: Returns bootstrap settings and updates logging options
-
   - name: 'Database Configuration'
     description: Configure sync gateway databases
   - name: 'Database Management'
