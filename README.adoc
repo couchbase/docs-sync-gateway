@@ -62,9 +62,88 @@ Keep in mind these key repository features:
 
  ** The {url-playbook}[docs site playbook] instructs Antora to automatically aggregate any branch names that start with *release/*.
 
+
 == Documentation Site Toolchain
+
 
 The documentation source files are marked up with AsciiDoc.
 Once merged into a version branch, the source files and their assets are aggregated, converted to HTML, and published by Antora to our staging and production sites.
 
 The docs components and {url-ui}[site UI] are orchestrated by the {url-playbook}[docs site playbook] as described in the {url-contribute}[contributing guide].
+
+
+== Significant Files
+
+._partials Files
+* `_set_page_context.adoc` +
+The contents of the `modules/ROOT/pages/_partials/_set_page_context.adoc` file are used to set-up the environment for each page.
++
+This file in turn calls `_define_page_index.adoc` and `_define_component_attributes.adoc`.
++
+Together, these included files define a tailored, platform-specific environment, whilst utilizing common text files to describe Couchbase Lite functionality.
+
+* `_define_component_attributes.adoc` +
+The
+`modules/ROOT/pages/_partials/_attributes_local.adoc`
+file sets the value of attributes.
+
+* `_define_page_index.adoc` +
+This file sets the page xref attributes used in cross-references throughout the documentation.
+It picks-up the platform parameters from the `_set_page_context.adoc`
+
+* `block-related-content-<topic>.adoc` +
+These files are/may be used to present the appropriate releated content links at the foot of each page.
+
+* `blocklinks-cbl.adoc` +
+Presents a standard parameterized block of links into the array of Couchbase Lite platform modules.
+
+* `pn-issues-list.adoc` +
+This file is used to hold all issues, known errors etc for this 'major' release.
+Its contents are included in the release notes.
+
+* `stats-scheme-<group>.adoc` +
+Provide xref links into the stats schema.
+Included by `stats-monitoring.adoc`.
+
+* `topic-group-<topic>.adoc` +
+Use to present a standardized _related links_ section at the head of 'most' pages.
+
+
+.Assets Files
+* `assets/s2adoc` folder +
+The contents of this folder provide Swagger2Markup configuration to generate static pages for the API content; these supplement the SwaggerUI pages..
+
+* `static_restapi` folder +
+The content of this folder are generated using Swagger2Markup to process the various API yaml file and produce browseable API content.
+
+* `assets/attachments/rest-api-admin.yaml` +
+The contents of this file describe the ADMIN REST API. They are used by both Swagger2Markup and SwaggerUI to generate static and dynamic API pages respectively.
+
+* `assets/attachments/rest-api-public.yaml` +
+The contents of this file describe the PUBLIC REST API. They are used by both Swagger2Markup and SwaggerUI to generate static and dynamic API pages respectively.
+
+* `assets/attachments/rest-api-metrics.yaml` +
+The contents of this file describe the METRICS REST API. They are used by both Swagger2Markup and SwaggerUI to generate static and dynamic API pages respectively.
+
+== Page Structure
+
+Within the ROOT/PAGES folder, each page calls
+
+. `_set_page_context.adoc`, which in turn:
+
+.. Sets any required module-level (ROOT) parameters
+
+.. Invokes `_define_component_attributes.adoc` to set common attributes
+
+.. Invokes `_define_page_index.adoc` to set up xref attribute for page cross-references
+
+.. Invokes `_define_glossary_links.adoc` to set up xref attributes for the glossary
+
+. Invokes `_show_page_header_block.adoc` to render the standard page header, abstract etc
+
+. Renders the required content
+
+. Includes a `common` footer file, for example `block-related-content-api.adoc`
+
+
+
