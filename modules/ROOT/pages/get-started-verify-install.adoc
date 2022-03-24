@@ -47,6 +47,7 @@ You will have successfully completed installation and can now build on this with
 [#lbl-config]
 == Bootstrap Sync Gateway
 
+
 To configure {sgw} to connect to a {cbs}:
 
 . Ensure your {sgw} service is stopped/unloaded
@@ -181,20 +182,21 @@ It adds a user called `sgwuser1`.
 ====
 [source, bash]
 ----
-curl --location --request PUT 'http://127.0.0.1:4985/traveldb/_user/sgwuser1' \ // <.>
---header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
+curl --location -g --request POST 'http://localhost:4985/traveldb/_user/' \ // <.>
 --header 'Content-Type: application/json' \
+--header 'Authorization: Basic e3tkYmFkbWlufX06cGFzc3dvcmQ=' \ // <.>
 --data-raw '{
-    "name": "sgwuser1", //
+    "name": "sgwuser1", // <.>
+    "password": "passwordstring",
     "roles": ["stdrole"] // <.>
     "admin_channels": ["public"] // <.>
 }'
 
 ----
-<.> Here we identify +
-The name of the {sgw} database -- `traveldb` +
-The create user action, `_user` and +
-The user's name `sgwuser1`
+<.> Here we identify the name of the {sgw} database -- `traveldb` and the required object, `_user`
+<.> The user/password credential represented in the _Authorization_ header relate to the Sync Gateway admin user
+<.> Here we give the credentials of the user we want to create. So, the user's name `sgwuser1` and required password.
+If we omit the password a random password is generated.
 <.> Now we identify any roles accessible to this user; it will inherit any channels associated with the role(s).
 <.> Now we identify any channels accessible to this user, in addition to those inherited from the role; these will be used by the Sync Function to control access.
 
