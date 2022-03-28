@@ -1,0 +1,1063 @@
+
+[[_definitions]]
+== Definitions
+
+:page-partials:
+// == Document begin hook
+
+This definitions section describes the data models used by the operations described in the <<_paths>> section.
+
+
+
+
+[[_activetasks_model]]
+=== ActiveTasks_model
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**continuous** +
+__optional__|Whether the replication is continuously monitoring for changes on the source database to send them to the target.|boolean
+|**direction** +
+__optional__|Inter-Sync Gateway Replication (v1) is uni-directional; valid values are *push* or *pull*.|string
+|**doc_write_failures** +
+__optional__|The number of docs that have failed to be written (pushed) to the target database. These docs will not be retried.|integer
+|**docs_read** +
+__optional__|The number of docs that have been read (fetched) from the source database.|integer
+|**docs_written** +
+__optional__|The number of docs that have been written (pushed) to the target database.|integer
+|**end_last_seq** +
+__optional__|_Deprecated_ The most recent `last_seq` value received from the source database during replication.
+Use the *last_seq_push* and *last_seq_pull* values instead.|integer
+|**is_persistent** +
+__optional__|flag to distinguish between the persistent and adhoc replications|boolean
+|**last_seq_pull** +
+__optional__|The last seq number pulled from the source to target.
+
+The last_seq_pull result can be used by apps to determine if a specific document has been synced to target or not. Do this by querying the **_raw** endpoint and comparing the sequence number of document with the last_seq value that was replicated.|integer
+|**last_seq_push** +
+__optional__|The last seq number pushed from the source to target.
+
+The last_seq_push result can be used by apps to determine if a specific document has been synced to target or not. Do this by querying the **_raw** endpoint and comparing the sequence number of document with the last_seq value that was replicated.|integer
+|**replication_id** +
+__optional__|The replication Id.|string
+|**source** +
+__optional__|The URL of the source database (i.e `&quot;http://example.com:4985/source&quot;`).|string
+|**status** +
+__optional__|Stopped / running
+
+These will be *adhoc* replications (running) or persistent replications (stopped or running).|string
+|**target** +
+__optional__|The URL of the target database (i.e `&quot;http://example.com:4985/target&quot;`).|string
+|===
+
+
+[[_alldatabases]]
+=== AllDatabases
+List of available databases in cluster
+
+__Type__ : < string > array
+
+
+[[_alldocs]]
+=== AllDocs
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**keys** +
+__optional__|List of identifiers of the documents to retrieve|< string > array
+|===
+
+
+[[_bulkdocssuccess]]
+=== BulkDocsSuccess
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**id** +
+__optional__|Design document identifier|string
+|**rev** +
+__optional__|Revision identifier|string
+|===
+
+
+[[_changes]]
+=== Changes
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**last_seq** +
+__optional__|Last change sequence number|object
+|**results** +
+__optional__|List of changes to the database. See the following table for a list of fields in this object.|< <<_changesfeedrow,ChangesFeedRow>> > array
+|===
+
+
+[[_changesfeedrow]]
+=== ChangesFeedRow
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**changes** +
+__optional__|List of the document’s leafs. Each leaf object contains one field, rev.|< object > array
+|**id** +
+__optional__|Document identifier|string
+|**seq** +
+__optional__|Update sequence number|integer
+|===
+
+
+[[_compact_response]]
+=== Compact_Response
+JSON Respponse to a _compact request
+
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**compact_id** +
+__optional__|Unique identifier|string
+|**end_time** +
+__optional__|Time the _compact process ended e.g. "2015-09-23T17:27:17.55+01:00"|string
+|**last_error** +
+__optional__|Text of the last error message.|string
+|**marked_attachments** +
+__optional__|The number of attachments marked during the ``mark``` phase.|integer
+|**phase** +
+__optional__|This item indicates the current phase of `running` compact processes.
+It can be useful in monitoring progress.
+
+For failed processes, this indicates the phase at which a compact_id restart will commence (where relevant).
+
+Phases include:
+- mark
+- sweep
+- cleanup|string
+|**purged_attachments** +
+__optional__|The number of attachments purged by the `sweep` phase of the _compact process.|integer
+|**start_time** +
+__optional__|Time the _compact process started e.g. "2015-09-23T17:27:17.55+01:00"|string
+|**status** +
+__optional__|State of the _compact process (Running, Stopped, Completed)|string
+|===
+
+
+[[_database_model]]
+=== Database_model
+This `database` object defines the JSON configuration of a sync gateway database.
+
+Provision the configuration using the request message body of a `put /{db}/` and-or ```put /{db}/_config'''
+that comprises all the properties required to upsert a replication.
+defines the configuration of a given Sync Gateway database.
+
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**allow_conflicts** +
+__optional__|**Deprecated at 3.0 **
+
+Use `allow_conflict` to define whether Sync Gateway will handle conflicts.
+
+The default of `true` indicates that conflicts are handled.
+
+Set the value to `false` to cause Sync Gateway to reject any attempt to write conflicting revisions (returning a `409` HTTP status code).
+It will be up to the client to resolve the conflict.
+
+Restarting Sync Gateway with this property enabled will not automatically result in disk space savings (compaction on a document won't occur until a document is updated).
+
+_Constraints:_
+- Push replications to pre-2.8 targets do not support the `&quot;allow_conflicts&quot;: false` setting; the target must use `&quot;allow_conflicts&quot;: true`.
+
+Change initiates a database restart. +
+**Default** : `true`|boolean
+|**allow_empty_password** +
+__optional__|Use `allow_empty_password` to define whether to Sync Gateway users can be created with empty passwords. +
+**Default** : `false`|boolean
+|**bucket** +
+__optional__|Defines the Couchbase Server bucket to be used for this Sync Gateway database
+bucket
+
+If not specified, then the database name is used as the bucket name. +
+**Default** : `"the database name"`|string
+|**bucket_op_timeout_ms** +
+__optional__|Use `bucket_op_timeout_ms` to define how long Sync Gateway will wait for a bucket operation to complete before timing out and trying again.
+
+You may increase this value where there is a heavy load on Couchbase Server and operations are likely to take more than 2.5 seconds to complete.
+
+The default value is 2500 milliseconds.
+
+Changes initiate a database restart.|integer
+|**cache** +
+__optional__|The `cache` group of properties define the configuration for this database's channel and revision caches|object
+|**client_partition_window_secs** +
+__optional__|Use the `client_partition_window_secs` property to define how long clients can remain offline for without losing replication metadata.
+
+Default 2 592 000 seconds (30 days) +
+**Default** : `"2592000"`|string
+|**compact_interval_days** +
+__optional__|Use `` property to define the interval between scheduled compaction runs (in days).
+
+Set a zero (0) value to suppress running compactions.
+
+Change initiates a database restart.|number
+|**delta_sync** +
+__optional__|_NOTE:_ Delta Sync is an Enterprise Edition feature on Sync Gateway and Couchbase Lite.
+
+Use the `delta_sync` object to specify the delta sync configuration properties.
+
+In this context, delta-sync, is the ability to replicate only those parts of a Couchbase mobile document that have changed.
+This results in significant savings in bandwidth consumption as well as throughput improvements; both useful benefits when network bandwidth is typically constrained.
+
+Delta Sync does not apply to attachment contents.
+
+Delta Sync is disabled by default on the Sync Gateway. You can enable it through the `enabled` property.
+
+If delta sync is enabled on Sync Gateway, then Couchbase Lite clients will switch to using delta sync automatically.
+Similarly, if delta sync is disabled on Sync Gateway, clients will switch to normal mode.
+
+Changes initiate a database reload|object
+|**enable_shared_bucket_access** +
+__optional__|*Deprecated at 3.0*
+
+use the `enable_shared_bucket_access` property to define whether to use extended attributes to store sync metadata; this is required to enable mobile-to-server data sync (_mobile convergence_).
+
+You can learn more about this functionality in link:sync-with-couchbase-server.html[Syncing with Couchbase Server]
+
+This property works in conjunction with the `import_docs` property, which determines whether a node participates in import processing.
+Leave `enable_shared_bucket_access` `true` on all nodes participating in such a configuration.
+
+On start-up, Sync Gateway will generate the mobile-specific metadata for all the pre-existing documents in the Couchbase Server bucket. From then on, documents can be inserted on the Server directly (with N1QL or SDKs) or through the Sync Gateway REST API.
+
+Change initiates a database restart +
+**Default** : `true`|boolean
+|**event_handlers** +
+__optional__|Webhooks in Sync Gateway are designed to minimize performance impacts on Sync Gateway's regular processing.
+
+Sync Gateway manages the number of processes that are spawned for webhook event handling, so that slow response times from the HTTP POST operations don't consume available CPU resources on Sync Gateway nodes.
+
+When a `webhook` event handler is defined, after Sync Gateway has updated a document, Sync Gateway adds a `document_changed` event to an asynchronous event-processing queue (the event queue).
+
+New processes are then spawned to apply the `filter` function to the documents and to perform the HTTP POST operations.
+
+When an event is not added to the event queue, but is instead discarded, a warning message is written to the the Sync Gateway log.
+
+You can configure Sync Gateway to log information about event handling, by including either the log key `Event` or `Events+` in the `Log` property in your Sync Gateway configuration file. `Events+` is more verbose.
+
+See also:
+link:webhooks.html[Webhook]..|object
+|**guest** +
+__optional__|Defines whether a GUEST user is available and able to interacted, unauthenticated, with the Public REST API|object
+|**import_backup_old_rev** +
+__optional__|Use the `import_backup_old_rev` property to define whether import should attempt to create a temporary backup of the previous revision body, when available|string
+|**import_docs** +
+__optional__|Use the `import_docs` property to define whether the Sync Gateway node should automatically import Couchbase Server documents;
+
+This property works in conjunction with the `enable_shared_bucket_access` property, which enables Xattrs.
+
+Since Sync Gateway 2.7, all Sync Gateway nodes can be configured as import nodes. This results in performance benefits as the import process is shared across all Sync Gateway nodes.
+Prior to version 2.7, `import_docs` can only be set to `true` on a single node.
+
+Changes initiate a database restart +
+**Default** : `false`|boolean
+|**import_filter** +
+__optional__||<<_import_filter,Import_filter>>
+|**import_partitions** +
+__optional__|Use the `import_partitions` property to define how many import partitions should be used for import sharding.
+
+Partitions are distributed among all Sync Gateway nodes participating in import processing (import_docs:true), and each process a subset of the server's vbuckets.
+
+Each partition is processed by a separate goroutine, so `import_partitions` can be used to tune concurrency based on the number of Sync Gateway nodes, and the number of cores per node.|integer
+|**isgr_enabled** +
+__optional__|Use the `isgr_enabled` property to define whether this Sync Gateway node can be assigned inter-Sync Gateway replications for this database.
+
+If set to false, the Sync Gateway node will not participate in inter-Sync Gateway replications. +
+**Default** : `true`|boolean
+|**isgr_websocket_heartbeat_secs** +
+__optional__|If set, this duration (in seconds) is used as a custom heartbeat interval for websocket ping frames in inter-Sync Gateway replications.|integer
+|**local_doc_expiry_secs** +
+__optional__|Use the `local_doc_expiry_secs` property to define an expiry value for local documents managed on Sync Gateway.
+
+Local documents are used by the Couchbase Lite replicator to track up to which sequence number a given client has synchronized and where it should resume the next time it connects to Sync Gateway.
+
+Clients failing to replicate within the expiry window are forced to restart their replication from the beginning (sequence zero).
+
+This property is intended to minimize accumulation of obsolete replication checkpoint documents in the Couchbase Server bucket.
+
+The default is `7776000` seconds (90 days).|integer
+|**name** +
+__optional__|Use `name` to define the Sync Gateway database name.
+
+Change initiates database restart|string
+|**num_index_replicas** +
+__optional__|use `num_index_replicas` property to define the number of index replicas used when creating the core Sync Gateway indexes.
+
+Only applicable if `databases.$db.use_views` is set to `false` (default value).
+
+Change initiates a database restart.|integer
+|**offline** +
+__optional__|Use `offline` to determine whether Sync Gateway should start the database in offline mode.
+
+The default of false means the database will be online. +
+**Default** : `false`|boolean
+|**oidc** +
+__optional__|Use the `oidc` object properties to defined any OpenID Connect providers and associated credentials.|object
+|**old_rev_expiry_seconds** +
+__optional__|Use the `old_rev_expiry_seconds` property to define the number of seconds before old revisions are removed from Couchbase Server buckets.|integer
+|**query_pagination_limit** +
+__optional__|Use the `query_pagination_limit` property to define the Query limit to be used during pagination of large queries.
+
+Change initiates a database restart.|integer
+|**revs_limit** +
+__optional__|This property defines the maximum depth to which a document's revision tree can grow; its value governs the point at which to prune a document's revision tree.
+
+The default and minimum values of `revs_limit` are dependent on whether link:configuration-schema-database.html#database-allow_conflicts[allow_conflicts] is set True or False – see the _Default and Minimum Values_ table below.
+
+The process to remove obsolete revisions is called pruning and runs automatically every time a revision is added. Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite. On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
+
+If there are conflicting revisions, the document may end up with *disconnected branches* after the pruning process. In the animation below, the document has a conflicting branch (revisions `4&#39;` - `1001&#39;`). When the shortest branch (in this case the conflicting branch) reaches the 1003rd update, it gets is cut off. The revision tree is not in a corrupted state and the logic that chooses the winning revision still applies. But it may make it impossible to do certain merges (n-way merge) to resolve conflicts and will occupy disk space that could have been freed if the conflict was resolved early on.<br><br>
+
+![](https://cl.ly/3C1G3t3R1v19/pruning-sg.gif)
+
+If the revision tree gets into this state then the only option to resolve the conflict is to pick a winning branch and tombstone all the non-winning conflicting branches.
+
+*NOTE:* Setting the `revs_limit` to a value below 100 when `allow_conflicts = true` may adversely affect the conflict resolution process, as there may be insufficient revision history to resolve a given conflict.
+
+==== Default and Minimum Values
+
+*For Releases 2.6+*
+
+allow_conflicts =\|+ True \|+ False
+ :— \|+ :——-: \|+ :——-:
+`revs_limit` default \|+ 100 \|+ 50 \|+
+`revs_limit` minimum \|+ 20 \|+ 1 \|+
+
+*For Releases 2.0 - 2.5*
+
+allow_conflicts = \|+ &lt;– True –&gt; \|+&lt;– False –&gt;
+ :— \|+ :——-: \|+ :——-:
+ `revs_limit` default \|+ 100 \|+ 1000
+ `revs_limit` minimum \|+ 50 \|+ 1
+
+*For Release 1.x*
+- `revs_limit` default = 1000
+- `revs_limit` minimum = 20
+
+See also:
+- Sync Gateway purge endpoint link:rest-api-admin.html#/Document_model/post__db___purge[/{db}/_purge].
+- Sync Gateway link:rest-api-admin.html#/Document_model/put__db___doc_[document TTLs].
+
+minimum – see Default and Minimum Values table in description|integer
+|**send_www_authenticate_header** +
+__optional__|Whether to send WWW-Authenticate header in 401 responses. +
+**Default** : `true`|boolean
+|**serve_insecure_attachment_types** +
+__optional__|The sending of a content-disposition header for attachments with headers such as "text/html"
+forces a download, rather than browser rendering.
+
+Use this option to suppress sending the content-disposition, allowing the browser to render the attachment. +
+**Default** : `false`|boolean
+|**session_cookie_http_only** +
+__optional__|This flag disallows cookies from being used by Javascript; by default javascript CAN use them +
+**Default** : `false`|boolean
+|**session_cookie_name** +
+__optional__|Starting in Sync Gateway 2.0, it is possible to customize the session cookie name that is used for this database.
+
+This property is mostly used by web applications interacting with multiple Sync Gateway databases.
+
+Browsers typically have two methods of determining which cookie to use for a given request: the `URL` path, or the cookie name.
+
+Use this property, to set different cookie names for each database specified in the configuration file. Let's consider the following configuration file:
+
+[source,json]
+----
+{
+    "databases": {
+      "db1": {
+        "session_cookie_name": "CustomName1",
+        "bucket": "bucket-1"
+        },
+        "db2": {
+          "session_cookie_name": "CustomName2",
+          "bucket": "bucket-2"
+        }
+      }
+    }
+}
+
+----
+
+With this configuration, the `Set-Cookie` response header of the POST `:4984/{db}/_session` endpoint (Public REST API) would then have the form "CustomName1=3cad4b95524179bf144fe0d92b8f09877bb86bf5;path=/db1/".
+
+When using POST `:4985/{db}/_session` (Admin REST API) to create a session, the cookie value is returned in the response body instead of the `Set-Cookie` header. In this case, it could also be set by the client, for web applications it would be the following in JavaScript:
+
+[source,javascript]
+----
+cookie1String = "CustomName1=3cad4b95524179bf144fe0d92b8f09877bb86bf5;path=/db1/";
+document.cookie = cookie1String;
+---- +
+**Default** : `"SyncGatewaySession"`|string
+|**session_cookie_secure** +
+__optional__|Override secure cookie flag (that is, disable secure cookies).
+
+If SSLCert is set, then secure cookies are also used by default. However, this flag can be set `false` to override this behavior and allow insecure cookies to be used alongside SSL.
+
+If SSLCert is not set then this flag defaults to false. +
+**Default** : `true`|boolean
+|**slow_query_warning_threshold** +
+__optional__|The maximum wait time, in milliseconds,for N1QL or View queries made by Sync Gateway
+
+Log warnings if the run time of a N1QL or View query, made by Sync Gateway, exceeds this value.|integer
+|**sync** +
+__optional__||<<_sync_function,sync_function>>
+|**unsupported** +
+__optional__|This group comprises an unrelated collection of unsupported properties that may, potentially, be useful in controlled testing scenarios.
+
+NOTE: Due to the unsupported nature of these options, there is no guarantee on their continued availability.|object
+|**use_views** +
+__optional__|If set to `true`, Sync Gateway will use views instead of GSI for system functions like authentication and replication. +
+**Default** : `false`|boolean
+|**user_xattr_key** +
+__optional__|The `user_xattr_key` identifies the user xattr used to hold the channel access grants for documents in this database.
+
+If it is not specified or its value is spaces or null then this feature is disabled (default).
+
+If you change the value of this key, no existing grant assignments will be changed until a document mutation is triggered.
+This can be done in a number of ways:
+– a mutation to the document which we’ll see via DCP
+– an on-demand import either through write or get
+– by using the resync function.
+
+_Dependencies:_
+ The `user_xattr_key` feature requires that –
+ - `enable_shared_bucket_access` be = `true`
+ - xattrs be supported on the connected Couchbase Server
+
+Change initiates a database restart +
+**Default** : `"none"`|string
+|**view_query_timeout_secs** +
+__optional__|Use the `view_query_timeout_secs` property to define the view query timeout in seconds.
+
+This is the time Sync Gateway should wait for a view query response from Couchbase Server before it times out.
+
+The timeout applies to both view and N1QL queries issued by Sync Gateway.|integer
+|===
+
+
+[[_design]]
+=== Design
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**count** +
+__optional__|Total number of items available.|integer (int32)
+|**limit** +
+__optional__|Number of items to retrieve (100 max).|integer (int32)
+|**offset** +
+__optional__|Position in pagination.|integer (int32)
+|===
+
+
+[[_docmetadata]]
+=== DocMetadata
+
+[options="header", cols=".^3,.^4"]
+|===
+|Name|Schema
+|**_sync** +
+__optional__|object
+|===
+
+
+[[_document_model]]
+=== Document_model
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**_attachments** +
+__optional__|Array of attachments|< object > array
+|**_exp** +
+__optional__|Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document (TTL is not supported for databases in walrus mode). The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2016 at 17:00 in the BST timezone would be 2016-07-06T17:00:00+01:00; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of GET /{db}/{doc} when show_exp=true is included in the querystring.
+
+As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.|string
+|**_id** +
+__optional__|The document ID.|string
+|**_rev** +
+__optional__|Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)|string
+|**_revisions** +
+__optional__||object
+|===
+
+
+[[_error]]
+=== Error
+
+[options="header", cols=".^3,.^4"]
+|===
+|Name|Schema
+|**code** +
+__optional__|integer (int32)
+|**fields** +
+__optional__|string
+|**message** +
+__optional__|string
+|===
+
+
+[[_expvars]]
+=== ExpVars
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**cb** +
+__optional__|Variables reported by the Couchbase SDK (go_couchbase package)|object
+|**cmdline** +
+__optional__|Built-in variables from the Go runtime, lists the command-line arguments|object
+|**mc** +
+__optional__|Variables reported by the low-level memcached API (gomemcached package)|object
+|**memstats** +
+__optional__|Dumps a large amount of information about the memory heap and garbage collector|object
+|**syncGateway_changeCache** +
+__optional__||object
+|**syncGateway_db** +
+__optional__||object
+|**syncgateway** +
+__optional__|Monitoring stats|object
+|===
+
+
+[[_forbidden]]
+=== Forbidden
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**error** +
+__optional__|**Default** : `"conflict"`|string
+|**id** +
+__optional__||string
+|**reason** +
+__optional__||string
+|**status** +
+__optional__||integer
+|===
+
+
+[[_import_filter]]
+=== Import_filter
+The `import_filter` controls whether a document written to the Couchbase Server bucket should be made available to Couchbase Mobile clients (that is, whether it ought to be imported).
+
+You should provision the filter as a Javascript function in the request body of a call to the Admin Rest API endpoint `put {db}/_config/import_filter`.
+
+Set the header's content type to `content-Type: application/javascript`.
+
+The function takes the document body as parameter and is expected to return a boolean to indicate whether the document should be imported.
+
+If you do not provide a filter function then no filter will be applied and ALL documents will be imported.
+
+__Type__ : string
+
+
+[[_logtags]]
+=== LogTags
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**Access** +
+__optional__|access() calls made by the sync function|boolean
+|**Attach** +
+__optional__|Attachment processing|boolean
+|**Auth** +
+__optional__|Authentication|boolean
+|**Bucket** +
+__optional__|Sync Gateway interactions with the bucket (verbose logging).|boolean
+|**CRUD** +
+__optional__|Updates made by Sync Gateway to documents (CRUD+ for verbose logging)|boolean
+|**Cache** +
+__optional__|Interactions with Sync Gateway's in-memory channel cache (Cache+ for verbose logging)|boolean
+|**Changes** +
+__optional__|Processing of _changes requests (Changes+ for verbose logging)|boolean
+|**DCP** +
+__optional__|DCP-feed processing (verbose logging)|boolean
+|**Events** +
+__optional__|Event processing (webhooks) (Events+ for verbose logging)|boolean
+|**Feed** +
+__optional__|Server-feed processing (Feed+ for verbose logging)|boolean
+|**HTTP** +
+__optional__|All requests made to the Sync Gateway REST APIs (Sync and Admin). Note that the log keyword HTTP is always enabled, which means that HTTP requests and error responses are always logged (in a non-verbose manner). HTTP+ provides more verbose HTTP logging.|boolean
+|===
+
+
+[[_purgebody]]
+=== PurgeBody
+Document ID
+
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**a_doc_id** +
+__optional__|Only possible value is `[&quot;*&quot;]`. It permanently removes all revisions for that document ID.|< enum (*) > array
+|===
+
+
+[[_queryresult]]
+=== QueryResult
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**offset** +
+__optional__|Starting index of the returned rows.|string
+|**rows** +
+__optional__||< <<_queryrow,QueryRow>> > array
+|**total_rows** +
+__optional__|Number of documents in the database. This number is not the number of rows returned.|integer
+|===
+
+
+[[_queryrow]]
+=== QueryRow
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**doc** +
+__optional__|The document body. This is only returned if `include_docs=true` is specified in the URL.|object
+|**id** +
+__optional__|The ID of the document.|string
+|**key** +
+__optional__|The key in the output row.|object
+|**value** +
+__optional__|The value in the output row.|object
+|===
+
+
+[[_replicationresponse]]
+=== ReplicationResponse
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**ok** +
+__optional__|Indicates whether the replication operation was successful|boolean
+|**session_id** +
+__optional__|Session identifier|string
+|===
+
+
+[[_replicationresponsebody]]
+=== ReplicationResponseBody
+This is the replication definition set returned in response to a `GET` request.
+
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**this_rep** +
+__optional__|This is the replication definition set returned in response to a `GET` request.|object
+|===
+
+
+[[_replicationstatistics-sgr1]]
+=== ReplicationStatistics-SGR1
+This is the replication definition set returned in response to an ExpVars `GET` request.
+
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**replname** +
+__optional__|This object comprises the stats collected and recorded for the inter-sync-gateway replication named $replname (which equates to a `replication_id`).
+The same structure is used to return statistics from inter-sync-gateway replications versions 1 and 2, but not all items are populated by each version.|object
+|===
+
+
+[[_replicationstatusresponsebody]]
+=== ReplicationStatusResponseBody
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**config** +
+__optional__|This optional response content is returned only when using the {querystring} option with `includeConfig=true`. For example,
+
+----
+GET http://localhost:4985/db-local/_replicationStatus?includeError=true&includeConfig=true
+----
+
+It comprises the replication definition as would be returned using a `GET` request to the `_replication` endpoint.|object
+|**delta_recv** +
+__optional__|The number of delta-sync changes sent|integer
+|**delta_requested** +
+__optional__|The number of delta-sync changes requested.
+
+This should always be non-zero when delta_sync.enabled is true.|integer
+|**delta_sent** +
+__optional__|This is the number of deltas sent.
+
+Whether or not deltas are sent and-or received is based on whether the remote:
+- has deltas enabled, and-or
+- can generate a delta for the requested revision.|integer
+|**doc_write_conflict** +
+__optional__|The number of docs that were in conflict.|integer
+|**doc_write_failures** +
+__optional__|The number of docs that have failed to be written (pushed) to the target database. These docs will not be retried.|integer
+|**docs_purged** +
+__optional__|The number of docs that have been purged.|integer
+|**docs_read** +
+__optional__|The number of docs that have been read (fetched) from the source database.|integer
+|**docs_written** +
+__optional__|The number of docs that have been written (pushed) to the target database.|integer
+|**error_message** +
+__optional__|A message describing the reason for the latest error. It is reset each Sync Gateway restart.|string
+|**last_seq_pull** +
+__optional__|Last sequence number processed in pull replication.
+
+The last_seq_pull result can be used by apps to determine if a specific document has been synced to target or not.
+
+To do this, query the **_raw** endpoint and compare the sequence number of the document with the last_seq value (push or pull as approperiate) replicated.|string
+|**last_seq_push** +
+__optional__|Last sequence value processed in push replication.
+
+The last_seq_push result can be used by apps to determine if a specific document has been synced to target or not.
+
+To do this, query the **_raw** endpoint and compare the sequence number of the document with the last_seq value (push or pull as approperiate) replicated.|string
+|**rejected_by_local** +
+__optional__|Count of documents that were received by the local but did not get replicated because they were rejected by the sync function on the local|integer
+|**rejected_by_remote** +
+__optional__|Count of documents that were sent to the remote but did not get replicated because they were rejected by the sync function on the remote|integer
+|**replication_id** +
+__optional__|The replication Id.|string
+|**status** +
+__optional__|The status of the replication.
+
+Valid values are:
+- Starting
+- Started
+- Stopping
+- Stopped
+- Error|string
+|===
+
+
+[[_resync-response]]
+=== Resync-response
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**docs_changed** +
+__optional__|Shows the number of documents that have been changed as a result of the sync function.
+
+Docs are only changed if when run through the new sync function the resulting doc is different to the currently stored doc.|integer
+|**docs_procesed** +
+__optional__|Shows the number of documents that have been run through the sync function.|integer
+|**last_error** +
+__optional__|Will ONLY be present when status = “stopped on error”
+
+In the event of an error in the `_resync` process this field will contain error details.
+Otherwise it is not visible.|string
+|**start_time** +
+__optional__|The `_resync` process start time in ISO 8601 format (for example: `2012-04-23T18:25:43.511Z`)|string
+|**status** +
+__optional__|Indicates the status of the resync operation.
+
+Possible values:
+
+– running,
+– stopped,
+– stopping,
+– stopped on error|string
+|===
+
+
+[[_sgcollectinfostats]]
+=== SGCollectInfoStats
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**status** +
+__optional__|The current status of sgcollect_info|string
+|===
+
+
+[[_server]]
+=== Server
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**couchdb** +
+__optional__|Contains the string 'Welcome' (this is required for compatibility with CouchDB)|string
+|**vendor/name** +
+__optional__|The server type ('Couchbase Sync Gateway)|string
+|**vendor/version** +
+__optional__|The server version|string
+|**version** +
+__optional__|Sync Gateway version number|string
+|===
+
+
+[[_user]]
+=== User
+Definition of a Sync Gateway user
+
+Change initiates database restart
+
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**admin_channels** +
+__optional__|The channels that the user is able to access.|< string > array
+|**admin_roles** +
+__optional__|An array of the roles this user is associated with.|< string > array
+|**all_channels** +
+__optional__|Shows the channels the user can access, as granted by the sync function.
+
+This is a read-only property.
+Changes to it are ignored.|< string > array
+|**disabled** +
+__optional__|This property is usually not included.
+
+If the value is `true`, access for the account is disabled and the user will not be able to login.|boolean
+|**email** +
+__optional__|Email address of the user.|string
+|**name** +
+__required__|The user name (the same name used in the URL path).
+
+The valid characters for a user name are alphanumeric ASCII characters and the underscore character.
+
+The name property is required in a POST request.
+
+You don’t need to include it in a PUT request because the user name is specified in the URL.|string
+|**password** +
+__optional__|Password of the user.
+
+Mandatory, unless `allow_empty_password=true`.|string
+|**roles** +
+__optional__|Shows the roles this user is associated with by the Sync function.
+
+This is a read-only property.
+Changes to it are ignored.|< string > array
+|===
+
+
+[[_user-response]]
+=== User-response
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**admin_channels** +
+__optional__|The channels that the user is able to access.|< string > array
+|**all_channels** +
+__optional__|Shows the channels the user can access, as granted by the sync function.|< string > array
+|**disabled** +
+__optional__|This property is usually not included.
+If the value is `true`, access for the account is disabled and the user will not be able to login.|boolean
+|**email** +
+__optional__|Email address of the user.|string
+|**name** +
+__optional__|The user name (the same name used in the URL path).|string
+|===
+
+
+[[_view]]
+=== View
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**_rev** +
+__optional__|Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)|string
+|**views** +
+__optional__|List of views to save on this design document.|object
+|===
+
+
+[[_bootstrap_config_model]]
+=== bootstrap_config_model
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**api** +
+__optional__|Holding object for API related settings.|object
+|**bootstrap** +
+__optional__|Sync Gateway's start-up configuration file|object
+|**logging** +
+__optional__||<<_logging,logging>>
+|===
+
+
+[[_doc-resp]]
+=== doc-resp
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**id** +
+__optional__|Document identifier|string
+|**ok** +
+__optional__|Indicates whether the operation was successful|boolean
+|**rev** +
+__optional__|Revision identifier|string
+|===
+
+
+[[_logging]]
+=== logging
+Holding object for all logging-related settings
+
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**console** +
+__optional__|Settings for the console output logging.|object
+|**debug** +
+__optional__|The debug logging-level provides lower level development analysis
+
+* Minimum max_age is 1 day
+_ Log File Name is `sg_debug.log`|object
+|**error** +
+__optional__|The level of logging as a key. Log levels accumulate as you read down the table (i.e log entries at WARN will also be included in the INFO and DEBUG logs).
+
+[cols="<,<,<,<"]
+\|===
+\|Level \|Description \|Minimum max_age \|Log File Name
+
+\|ERROR \|Critical error messages. \|180 days \|sg_error.log
+\|WARN \|Something is wrong but SG can still service requests \|90 days \|sg_warn.log
+\|INFO \|Important diagnostics for support and customers \|3 days \|sg_info.log
+\|DEBUG \|Lower level development analysis \|1 day \|sg_debug.log
+\|===
+
+Each log level takes a dictionary as value and various properties can set for each log level. For example:
+
+[source,javascript]
+----
+"logging": {
+    "log_file_path": "/home/sync_gateway/logs", // Where to put log files
+    "console": {
+        "log_level": "info",  // What level to output to console - [error\|+warn\|+info\|+debug\|+none]
+        "log_keys": ["HTTP"], // What log keys to output to console (comma separated)
+        "color_enabled": true
+    },
+    "error": {
+        "enabled": true,
+        "rotation": {
+            "max_size": 100,    // Threshold in megabytes to rotate logs
+            "max_age": 360,     // Maximum days to retain log files (Min: 180)
+            "localtime": false // Use local computer's time on backup timestamps (false=UTC)
+        }
+    },
+    "warn": {
+        "enabled": true,
+        "rotation": {
+            "max_size": 100,
+            "max_age": 180,     // (Minimum: 90)
+            "localtime": false
+        }
+    },
+    "info": {
+        "enabled": true,
+        "rotation": {
+            "max_size": 100,
+            "max_age": 6,     // (Minimum: 3)
+            "localtime": false
+        }
+    },
+    "debug": {
+        "enabled": false,
+        "rotation": {
+            "max_size": 100,
+            "max_age": 2,     // (Minimum: 1)
+            "localtime": false
+        }
+    }
+}
+
+----
+
+Changes require full logging re-initialization|object
+|**info** +
+__optional__|The information logging-level provides important diagnostics for support and customers|object
+|**log_file_path** +
+__optional__|Absolute or relative path on the filesystem to the log file. A relative path is from the directory that contains the Sync Gateway executable file.
+
+Changes require full logging re-initialization|string
+|**redaction_level** +
+__optional__|Optionally, log files can be redacted. This means that user-data, considered to be private, is removed. Such data includes:
+ - Key/value pairs in JSON documents
+ - Usernames
+ - Query-fields that reference key/value pairs and/or usernames
+ - Names and email addresses retrieved during product registration
+ - Extended attributes
+
+This redaction of user-data is referred to as partial redaction. To enable it, the value must be `&quot;partial&quot;` in the configuration file:
+
+[source,json]
+----
+{
+  "logging": {
+    "redaction_level": "partial"
+  }
+}
+---- +
+**Default** : `"none"`|string
+|**stats** +
+__optional__|The stats logging level|object
+|**trace** +
+__optional__|The trace logging-level.|object
+|**warn** +
+__optional__|The warning logging-level is triggered when Sync Gateway detects something is wrong but it can still service requests
+
+* Minimum max_age is 90 days
+* Log File Name is `sg_wan.log`|object
+|===
+
+
+[[_role]]
+=== role
+Use the `role` property to define a Sync Gateway role
+
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**admin_channels** +
+__optional__|Array of channel names the role allows access to|< string > array
+|**all_channels** +
+__optional__|Lists all the channels the role has access to including any assigned by the `sync` function.
+
+This is a derived property and changes to it are ignored.|< string > array
+|**name** +
+__required__|Name of the role|string
+|===
+
+
+[[_sync_function]]
+=== sync_function
+The `sync` property is a Javascript function that determines which users can access which documents.
+
+This JavaScript function is provisioned using the Admin Rest API Endpoint
+`put /{db}/_config/sync`
+
+Add the function as plain javascript in the request body, with the `content-Type: application/javascript` header.
+
+__Type__ : string
+
+
+

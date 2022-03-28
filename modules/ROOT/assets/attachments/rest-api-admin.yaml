@@ -21,12 +21,12 @@ securityDefinitions:
   BasicAuth:
     type: basic
 
-
 paths:
   /:
     get:
       tags:
       - Server
+      operationId: get_server_metadata
       summary: Get Server Metadata
       description: |+
         Returns meta-information about the server.
@@ -37,7 +37,7 @@ paths:
             $ref: '#/definitions/Server'
   /_config:
     get:
-      operationId: 'get_Server_configuration'
+      operationId: 'get_server_configuration'
       tags:
       - Server
       - 'Bootstrap Configuration'
@@ -48,24 +48,24 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
       responses:
         200:
           description: Sync Gateway configuration of the running instance.
 
     put:
-      operationId: 'logging_options'
+      operationId: 'put_logging_options'
       tags:
       - Server
       - 'Bootstrap Configuration'
       - Logging
-      summary: Update bootstrap logging options without needing a restart
+      summary: Update Logging Options
       description: |+
         Update bootstrap logging options without needing a restart
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
       parameters:
         - $ref: '#/parameters/bootstrap-logging'
       responses:
@@ -75,10 +75,10 @@ paths:
             $ref: '#/definitions/bootstrap_config_model'
   /_expvar:
     get:
-      operationId: 'stats_get'
+      operationId: 'get_sync_gateway_statistics'
       tags:
       - Server
-      summary: Get Runtime Stats
+      summary: Get Sync Gateway Statistics
       description: |+
         The ```Expvar```method returns a number of runtime variables that you can view for debugging or performance monitoring purposes.
 
@@ -89,7 +89,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
         -- External stats reader
       responses:
         200:
@@ -99,7 +99,7 @@ paths:
 
   /_logging:
     get:
-      operationId: 'logging_tags_get'
+      operationId: 'get_logging_tags'
       tags:
       - Server
       summary: Get Logging Tags
@@ -108,7 +108,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
       responses:
         200:
           description: |+
@@ -128,7 +128,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
       parameters:
       - $ref: '#/parameters/level'
       - $ref: '#/parameters/logLevel'
@@ -148,7 +148,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
       parameters:
       - $ref: '#/parameters/level'
       - $ref: '#/parameters/logLevel'
@@ -160,13 +160,13 @@ paths:
     get:
       tags:
       - Server
-      summary: Gets the status of sgcollect_info
+      summary: Get Sgcollect_info Status
       description: |+
         Will return information about whether sgcollect_info is currently running or not.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
 
       responses:
         200:
@@ -176,13 +176,13 @@ paths:
     post:
       tags:
       - Server
-      summary: Trigger sgcollect_info
+      summary: Start Sgcollect_info
       description: |+
         Starting in Sync Gateway 2.1, sgcollect_info can be triggered using this endpoint.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
 
       parameters:
       - $ref: '#/parameters/sgcollect_info'
@@ -192,13 +192,13 @@ paths:
     delete:
       tags:
       - Server
-      summary: Stops any currently running sgcollect_info
+      summary: Stop Sgcollect_info
       description: |+
         sgcollect_info can be cancelled using ths endpoint.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
 
       parameters:
       - $ref: '#/parameters/sgcollect_info'
@@ -209,7 +209,7 @@ paths:
     post:
       tags:
       - Server
-      summary: Remove obsolete design documents
+      summary: Delete Obsolete Design Documents
       description: |+
         Starting in Sync Gateway 2.0, design documents used internally by Sync Gateway will include a version number in their name.<br><br>
 
@@ -227,7 +227,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
 
       parameters:
       - $ref: '#/parameters/upgrade_preview'
@@ -237,33 +237,32 @@ paths:
 
   /_replicate:
     post:
+      deprecated: true
       tags:
       - Server
-      summary: Starts or cancels a database replication operation
+      summary: Start or Cancels Replication
       description: |+
-        <h5>**Deprecated @ 2.8** This API endpoint is now deprecated. It is replaced by the Inter-Sync Gateway Replication (v2) replication endpoint -- see [_replication](#/replication/post__db___replication__replicationID_) endpoint</h5>
+        This API endpoint is now deprecated.
+        It is replaced by the Inter-Sync Gateway Replication (v2) replication endpoint
 
-        **About**
+        *About*
 
         This endpoint is used to start or cancel a database replication operation.
 
         - Starting a replication with the _replicate endpoint will implicitly set `adhoc=true` for the replication
         - Setting `cancel=true` will set the replication state to **STOPPING**
 
-        <br><br>
-        **Canceling replications**
+        *Canceling replications*
 
         You can cancel continuous replications by adding the cancel field to the JSON request object and setting the value to true.
-        <br>
+
         Note that the structure of the request must be identical to the original for the cancellation request to be honoured.
         For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
 
-        <br><br>
-
-        **Constraints**
+        *Constraints*
 
         - Use this endpoint only for Inter-Sync Gateway Replication (v1) replications.
-        # - users wanting to us Inter-Sync Gateway Replication (v2) replications  should use [_replication](#/replication/post__db___replication__replicationID_) **not** this endpoint.
+
       parameters:
       - $ref: '#/parameters/replicate__replication-body'
       responses:
@@ -275,13 +274,13 @@ paths:
     get:
       tags:
       - Server
-      summary: List all databases
+      summary: Get List of All Databases
       description: |+
         List all databases
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
       responses:
         200:
           description: Identify all available databases
@@ -294,7 +293,8 @@ paths:
     get:
       tags:
       - Server
-      summary: Return list of active tasks (v1 replications only)
+      deprecated: true
+      summary: Get List of Active Tasks (v1 replications only)
       description: |+
         *Deprecated @ 2.8*
 
@@ -304,52 +304,87 @@ paths:
         Use this end point to return the status of active Inter-Sync Gateway Replication (v1) replications. Only replications configured on the local node are returned.
 
         The response is as defined in [_replicationStatus](#/replications/get__db___replicationStatus) except that it also includes:
-          - **end_last_seq**, which returns the maximum of (last_seq_pull, last_seq_push)
-          - **start_last_seq**, which is not populated (as was the case prior to Sync Gateway 2.8)
+
+        - **end_last_seq**, which returns the maximum of (last_seq_pull, last_seq_push)
+        - **start_last_seq**, which is not populated (as was the case prior to Sync Gateway 2.8)
 
         The Inter-Sync Gateway Replication (v2) equivalent is `_replicationStatus?localOnly=true&activeOnly=true` -- see [_replicationStatus](#/replications/get__db___replicationStatus).
       responses:
         200:
           description: Information about active replications.
           schema:
-            $ref: '#/definitions/ActiveTasks_response_model'
+            $ref: '#/definitions/ActiveTasks_model'
   /{db}/:
     get:
       operationId: get_database_information
       tags:
       - 'Database Management'
-      summary: Get DB Info
+      # title: Get database information
+      summary: Get Database Data
       description: |+
         This request retrieves information about the database.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Dev Ops
+        - Sync Gateway Dev Ops
       parameters:
       - $ref: '#/parameters/db'
       responses:
         200:
-          description: Request completed successfully.
+          description: |+
+            Request completed successfully.
+            The information is returned in the response body.
           schema:
-            $ref: '#/definitions/Database-info'
+            properties:
+              db_name:
+                type: string
+                title: Database name
+                description: Name of the database
+              db_uuid:
+                type: integer
+                description: Database identifier
+              disk_format_version:
+                type: integer
+                description: Database schema version
+              disk_size:
+                type: integer
+                description: Total amount of data stored on the disk (in bytes)
+              instance_start_time:
+                type: string
+                description: Date and time the database was opened (in microseconds since 1 January 1970)
+              state:
+                type: string
+                description: |+
+                  The state of the specified database.
+
+                  Possible values are 'Online' and 'Offline'.
+
+                  A database can be taken offline and brought back online using the /{db}/_offline and /{db}/_online endpoints on the Admin REST API.
+              update_seq:
+                type: string
+                description: Number of updates to the database
+
         401:
-          description: Unauthorized. Login required.
+          description: |+
+            Unauthorized.
+            Login required.
         404:
           description: Not Found. Requested database not found.
     post:
       tags:
       - Document
       operationId: create_database_document
-      summary: Create document
+      summary: Create Document
       description: |+
         This request creates a new document in the specified database.
+
         You can either specify the document ID by including the _id in the request message body (the value must be a string), or let the software generate an ID.
 
         The maximum size allowed for a document is 20MB.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
+        - Sync Gateway Application
       parameters:
       - $ref: '#/parameters/db'
       - in: body
@@ -362,7 +397,7 @@ paths:
           $ref: '#/responses/200-doc'
     put:
       operationId: create_database
-      summary: Create a Sync Gateway Database
+      summary: Create Database
       tags:
       - 'Database Management'
       description: |+
@@ -382,7 +417,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
       parameters:
         - $ref: '#/parameters/db'
         - $ref: '#/parameters/database_config_body'
@@ -395,13 +430,13 @@ paths:
     delete:
       tags:
       - 'Database Management'
-      summary: Delete database
+      summary: Delete Database
       description: |+
         Delete database
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
 
       parameters:
       - $ref: '#/parameters/db'
@@ -412,7 +447,7 @@ paths:
     post:
       tags:
       - 'Database Management'
-      summary: Bulk docs
+      summary: Add, Update or Delete Bulk Documents
       description: |+
         This request enables you to add, update, or delete multiple documents to a database in a single request. To add new documents, you can either specify the ID (`_id`) or let the software create an ID. To update existing documents, you must provide the document ID, revision identifier (`_rev`), and new document values. To delete existing documents you must provide the document ID, revision identifier, and the deletion flag (`_deleted`).
 
@@ -420,7 +455,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
+        - Sync Gateway Application
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/bulkdocs'
@@ -437,17 +472,20 @@ paths:
     post:
       tags:
       - 'Database Management'
-      summary: Bulk get
+      summary: Get Bulk Documents
       description: |+
         This request returns any number of documents, as individual bodies in a MIME multipart response.
-        Each enclosed body contains one requested document. The bodies appear in the same order as in the request, but can also be identified by their X-Doc-ID and X-Rev-ID headers.
-        A body for a document with no attachments will have content type application/json and contain the document itself.
-        A body for a document that has attachments will be written as a nested multipart/related body. Its first part will be the document's JSON, and the subsequent parts will be the attachments (each identified by a Content-Disposition header giving its attachment name.)
+
+        Each enclosed body contains one requested document.
+        The bodies appear in the same order as in the request, but can also be identified by their X-Doc-ID and X-Rev-ID headers.
+        - A body for a document with no attachments will have content type application/json and contain the document itself.
+        - A body for a document that has attachments will be written as a nested multipart/related body.
+        Its first part will be the document's JSON, and the subsequent parts will be the attachments (each identified by a Content-Disposition header giving its attachment name.)
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
 
       produces:
       - 'multipart/mixed'
@@ -491,14 +529,18 @@ paths:
     get:
       tags:
       - Document
-      summary: Get local doc
+      summary: Get Specific Local Document
       description: |+
-        This request retrieves a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
+        This request retrieves a local document.
+
+        Local document IDs begin with _local/.
+        Local documents are not replicated or indexed, don't support attachments, and don't save revision histories.
+        In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
 
       parameters:
       - $ref: '#/parameters/db'
@@ -510,13 +552,13 @@ paths:
     put:
       tags:
       - Document
-      summary: Create or update a local document
+      summary: Update Specific Local Document
       description: |+
         This request creates or updates a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by the client's replicator, as a place to store replication checkpoint data.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
+        - Sync Gateway Application
 
       parameters:
       - $ref: '#/parameters/db'
@@ -527,13 +569,13 @@ paths:
     delete:
       tags:
       - Document
-      summary: Delete a local document
+      summary: Delete Specific Local Document
       description: |+
         This request deletes a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
+        - Sync Gateway Application
 
       parameters:
       - $ref: '#/parameters/db'
@@ -547,6 +589,19 @@ paths:
     get:
       tags:
       - 'Database Management'
+      summary: Get List of Changes (query parameters)
+      description: |+
+        This request retrieves a sorted list of changes made to documents in the database, in time order of application.
+
+        Each document appears at most once, ordered by its most recent change, regardless of how many times it's been changed.
+        This request can be used to listen for update and modifications to the database for post processing or synchronization.
+        A continuously connected changes feed is a reasonable approach for generating a real-time log for most applications.
+
+        *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
+
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
+
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/limit'
@@ -560,16 +615,6 @@ paths:
       - $ref: '#/parameters/since'
       - $ref: '#/parameters/heartbeat'
       - $ref: '#/parameters/timeout'
-      summary: Changes
-      description: |+
-        This request retrieves a sorted list of changes made to documents in the database, in time order of application. Each document appears at most once, ordered by its most recent change, regardless of how many times it's been changed.
-        This request can be used to listen for update and modifications to the database for post processing or synchronization. A continuously connected changes feed is a reasonable approach for generating a real-time log for most applications.
-
-        *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
-
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
-
       responses:
         200:
           description: Request completed successfully
@@ -578,18 +623,18 @@ paths:
     post:
       tags:
       - 'Database Management'
-
-      parameters:
-      - $ref: '#/parameters/db'
-      - $ref: '#/parameters/changes_body'
       summary: Changes
       description: |+
         Same as the GET /_changes request except the parameters are in the JSON body.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
+
+      parameters:
+      - $ref: '#/parameters/db'
+      - $ref: '#/parameters/changes_body'
 
       responses:
         200:
@@ -601,7 +646,7 @@ paths:
     get:
       tags:
       - 'Database Management'
-      summary: Get the current status
+      summary: Get Compact Status
       description: |+
         Use this request to return the current status of a compaction.
 
@@ -632,7 +677,7 @@ paths:
       tags:
       - 'Database Management'
 
-      summary: Compact the database
+      summary: Compact Database
       description: |+
         Use the ```/{db}/_compact``` endpoint to start a compaction process.
         The process purges the JSON bodies of non-leaf revisions.
@@ -648,7 +693,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
 
       parameters:
       - $ref: '#/parameters/db'
@@ -675,7 +720,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
 
       parameters:
       - $ref: '#/parameters/db'
@@ -698,8 +743,8 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
+        - Sync Gateway Architect
+        - Sync Gateway Application
 
       parameters:
         - $ref: '#/parameters/db'
@@ -714,13 +759,13 @@ paths:
       operationId: "get_import_filter"
       tags:
       - 'Database Configuration'
-      summary: Get import_filter function
+      summary: Get Import_Filter Function
       description: |+
         Use this convenience endpoint to get the content of the current `import_filter`
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
 
       consumes: ['application/javascript']
 
@@ -735,7 +780,7 @@ paths:
       operationId: "update_import_filter"
       tags:
       - 'Database Configuration'
-      summary: Update import_filter function
+      summary: Update Import_Filter Function
       description: |+
         Use this convenience endpoint to add or update the `import_filter` Javascript function for an existing Sync Gateway database.
 
@@ -743,7 +788,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
 
       consumes: ['application/javascript']
 
@@ -759,13 +804,13 @@ paths:
       operationId: "delete_import_filter"
       tags:
       - 'Database Configuration'
-      summary: Delete import_filter function
+      summary: Delete Import_Filter Function
       description: |+
         Use this convenience endpoint to remove an existing`import_filter`.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
 
       consumes: ['application/javascript']
 
@@ -783,13 +828,13 @@ paths:
       tags:
       - 'Access Control'
       - 'Database Configuration'
-      summary: Get current Sync Function
+      summary: Get Sync Function
       description: |+
         Get the content of the current Sync Function
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
 
       consumes: ['application/javascript']
       parameters:
@@ -804,7 +849,7 @@ paths:
       tags:
       - 'Access Control'
       - 'Database Configuration'
-      summary: Update a Sync Function
+      summary: Update Sync Function
       description: |+
         Use this convenience endpoint to add or update the `Sync` function for an existing Sync Gateway database
 
@@ -813,7 +858,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
 
 
       consumes: ['application/javascript']
@@ -830,14 +875,13 @@ paths:
       tags:
       - 'Access Control'
       - 'Database Configuration'
-      summary: Update a Sync Function
+      summary: Delete Sync Function
       description: |+
         Use this convenience endpoint to remove an existing `Sync` function
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-
+        - Sync Gateway Architect
 
       consumes: ['application/javascript']
       parameters:
@@ -862,14 +906,14 @@ paths:
       - $ref: '#/parameters/open_revs'
       - $ref: '#/parameters/revs'
       - $ref: '#/parameters/show_exp'
-      summary: Get document
+      summary: Get Specific Document
       description:
         This request retrieves a document from a database.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
       responses:
         200:
           description: The message body contains the following objects in a JSON document.
@@ -887,7 +931,7 @@ paths:
         name: Document
         description: Request body
         schema:
-          $ref: '#/definitions/Document'
+          $ref: '#/definitions/Document_model'
       summary: Create or update document
       description: |+
         This request creates a new document or creates a new revision of an existing document. It enables you to specify the identifier for a new document rather than letting the software create an identifier. If you want to create a new document and let the software create an identifier, use the POST /db request.
@@ -897,7 +941,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
+        - Sync Gateway Application
 
       responses:
         200:
@@ -912,7 +956,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
+        - Sync Gateway Application
 
       parameters:
       - $ref: '#/parameters/db'
@@ -940,8 +984,8 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
 
       parameters:
       - $ref: '#/parameters/db'
@@ -997,7 +1041,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
+        - Sync Gateway Application
 
       parameters:
       - $ref: '#/parameters/db'
@@ -1028,8 +1072,8 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/ddoc'
@@ -1050,7 +1094,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
+        - Sync Gateway Application
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/ddoc'
@@ -1072,7 +1116,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
+        - Sync Gateway Application
 
       parameters:
       - $ref: '#/parameters/db'
@@ -1097,8 +1141,8 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
 
       parameters:
       - $ref: '#/parameters/db'
@@ -1191,8 +1235,8 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/access'
@@ -1218,8 +1262,8 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/access'
@@ -1422,7 +1466,7 @@ paths:
       tags:
       - Replication
       summary:
-        Retrieve all replication definitions
+        Get all replication definitions
       description: |+
         Returns an array object containing all replication definitions
 
@@ -1443,7 +1487,7 @@ paths:
     get:
       tags:
       - Replication
-      summary: Retrieve a replication definition
+      summary: Get a replication definition
       description: |+
         Returns requested (**replicationID**) replication definition
 
@@ -1650,13 +1694,13 @@ paths:
     post:
       tags:
       - 'Database Management'
-      summary: Used by the replicator
+      summary: Get Revisions DIff List
       description: |+
         Given a set of document/revision IDs, returns the subset of those that do not correspond to revisions stored in the database.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
+        - Sync Gateway Application
 
       parameters:
       - $ref: '#/parameters/db'
@@ -1695,8 +1739,11 @@ paths:
     post:
       tags:
       - 'Database Management'
-      summary: This request takes the specified database offline.
+      operationId: take_database_offline
+      summary: Take Database Offline
       description: |+
+        This request takes the specified database offline.
+
         An offline database is not accessible through Sync Gateway's Public REST API. However, some commands can be given to Sync Gateway through the Admin REST API.
 
         Taking a database offline will:
@@ -1716,7 +1763,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
       parameters:
       - $ref: '#/parameters/db'
       responses:
@@ -1726,14 +1773,14 @@ paths:
     post:
       tags:
       - 'Database Management'
-      summary: Bring a database online.
+      summary: Bring Database Online.
       description: |+
         When a database is online, Sync Gateway serves both Public and Admin REST API requests for the database. This request brings the specified database online, either immediately or after a specified delay.
 
         Bringing a database online:
 
-        - Closes the datbases connection to the backing Couchbase Server bucket.
-        - Reloads the database configuration, and connects to the backing Cocuhbase Server bucket.
+        - Closes the databases connection to the backing Couchbase Server bucket.
+        - Reloads the database configuration, and connects to the backing Couchbase Server bucket.
         - Re-establishes access to the database from the Public REST API.
         - Accepts all Admin API requests.
 
@@ -1746,7 +1793,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
       parameters:
       - $ref: '#/parameters/db'
       - in: body
@@ -1777,7 +1824,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
+        - Sync Gateway Application
       parameters:
       - $ref: '#/parameters/db'
       - in: body
@@ -1807,8 +1854,8 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/doc'
@@ -1843,7 +1890,7 @@ paths:
     post:
       tags:
       - 'Database Management'
-      summary: Start/stop the Resync process
+      summary: Start or Stop Resync
       description: |+
 
         Use the _resync operation whenever you have modified the database's sync function such that the channel or access mappings for any existing document would change as a result.
@@ -1879,7 +1926,7 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
+        - Sync Gateway Architect
 
       parameters:
       - $ref: '#/parameters/db'
@@ -1913,8 +1960,8 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/doc'
@@ -1925,15 +1972,15 @@ paths:
     get:
       tags:
       - 'Database Security'
-      summary: Get roles
+      summary: Get All Roles
       description: |+
         This request returns all the roles in the specified database.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Architect
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
       parameters:
       - $ref: '#/parameters/db'
 
@@ -1954,14 +2001,14 @@ paths:
     post:
       tags:
       - 'Database Security'
-      summary: Role
+      summary: Create New Role
       description: |+
         This request creates a new role
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
+        - Sync Gateway Architect
+        - Sync Gateway Application
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/role'
@@ -1976,15 +2023,15 @@ paths:
     get:
       tags:
       - 'Database Security'
-      summary: Get role
+      summary: Get Specific Role
       description: |+
         Request a specific role by name.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Architect
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
 
         Without `Application` or `Application Read Only` users will be unable to see dynamic user or role data.
       parameters:
@@ -2017,14 +2064,14 @@ paths:
       operationId: "upsert_role"
       tags:
       - 'Database Security'
-      summary: Upsert a Role
+      summary: Update Specific Role
       description: |+
         Use this convenience endpoint to upsert a Sync Gateway role.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
+        - Sync Gateway Architect
+        - Sync Gateway Application
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/role_name'
@@ -2039,14 +2086,14 @@ paths:
     delete:
       tags:
       - 'Database Security'
-      summary: Deletes the role
+      summary: Delete Specific Role
       description: |+
         This request deletes the role with the specified name.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
+        - Sync Gateway Architect
+        - Sync Gateway Application
 
       parameters:
       - $ref: '#/parameters/db'
@@ -2058,7 +2105,7 @@ paths:
     post:
       tags:
       - Session
-      summary: Creates a new session
+      summary: Create New Session
       description: |+
         If the credentials provided in the request body are valid, the session is created with an idle session timeout of 24 hours.
         An idle session timeout in the context of Sync Gateway is defined as the following:
@@ -2066,8 +2113,8 @@ paths:
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
+        - Sync Gateway Architect
+        - Sync Gateway Application
 
       parameters:
       - $ref: '#/parameters/db'
@@ -2081,7 +2128,10 @@ paths:
               type: string
               description: Username of the user the session will be associated to.
             ttl:
-              description: Default is 24 hours (86400 seconds). The TTL (time-to-live) of the session, in seconds. The value must be greater than 0.
+              description: |+
+                Default is 24 hours (86400 seconds).
+                The TTL (time-to-live) of the session, in seconds.
+                The value must be greater than 0.
               type: integer
               default: 86400
               example: 180
@@ -2104,15 +2154,15 @@ paths:
     get:
       tags:
       - Session
-      summary: Retrieves information about a session
+      summary: Get Session Data
       description: |+
         This request retrieves information about a session.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Architect
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/sessionid'
@@ -2136,32 +2186,36 @@ paths:
     delete:
       tags:
       - Session
-      summary: Deletes a single session
+      summary: Delete Specific Session
       description: |+
         This request deletes a single session.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
+        - Sync Gateway Architect
+        - Sync Gateway Application
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/sessionid'
       responses:
         200:
-          description: 200 OK -- Request completed successfully. If the session is successfully deleted, the response has an empty message body. If the session is not deleted, the message body contains error information.
+          description: |+
+            200 OK -- Request completed successfully.
+
+            If the session is successfully deleted, the response has an empty message body.
+            If the session is not deleted, the message body contains error information.
   /{db}/_user/{name}/_session:
     delete:
       tags:
       - Session
-      summary: Deletes all user sessions
+      summary: Delete All User Sessions
       description: |+
         This request delete the session for the specified user.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
+        - Sync Gateway Architect
+        - Sync Gateway Application
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/name'
@@ -2172,14 +2226,14 @@ paths:
     delete:
       tags:
       - Session
-      summary: Deletes a specific user session
+      summary: Delete Specific User Session
       description: |+
         This request delete the specified session for the specified user.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
+        - Sync Gateway Architect
+        - Sync Gateway Application
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/name'
@@ -2191,15 +2245,15 @@ paths:
     get:
       tags:
       - 'Database Security'
-      summary: Retrieves all users
+      summary: Get All Users
       description: |+
-        This request returns all users
+        This request returns a list of all users
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Architect
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
       parameters:
       - $ref: '#/parameters/db'
       responses:
@@ -2217,14 +2271,14 @@ paths:
     post:
       tags:
       - 'Database Security'
-      summary: Create a new user
+      summary: Create New User
       description: |+
         This request creates a new user
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application`
+        - Sync Gateway Architect
+        - Sync Gateway Application`
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/user'
@@ -2240,15 +2294,15 @@ paths:
     get:
       tags:
       - 'Database Security'
-      summary: Retrieve a User
+      summary: Get User Data
       description: |+
         This request returns information about the specified user.
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
-        -- Sync Gateway Application Read Only
+        - Sync Gateway Architect
+        - Sync Gateway Application
+        - Sync Gateway Application Read Only
 
         Without `Application` or `Application Read Only` users will be unable to see dynamic user or role data.
       parameters:
@@ -2265,14 +2319,14 @@ paths:
       operationId: "upsert_user"
       tags:
       - 'Database Security'
-      summary: Upsert a User
+      summary: Update User Data
       description: |+
         Use this method to create or update a user
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
+        - Sync Gateway Architect
+        - Sync Gateway Application
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/name'
@@ -2288,14 +2342,14 @@ paths:
     delete:
       tags:
       - 'Database Security'
-      summary: Delete a User
+      summary: Delete Specific User
       description: |+
         This request deletes the user with the specified name
 
         *Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):*
 
-        -- Sync Gateway Architect
-        -- Sync Gateway Application
+        - Sync Gateway Architect
+        - Sync Gateway Application
       parameters:
       - $ref: '#/parameters/db'
       - $ref: '#/parameters/name'
@@ -3197,7 +3251,7 @@ definitions:
             description: |+
               Size of the collation buffer
 
-  database:
+  Database_model:
     type: object
     title: "Database"
     description: |+
@@ -3282,8 +3336,8 @@ definitions:
           - `revs_limit` minimum = 20
 
           See also:
-          - Sync Gateway purge endpoint [/{db}/_purge](rest-api-admin.html#/Document/post__db___purge).
-          - Sync Gateway [document TTLs](rest-api-admin.html#/document/put__db___doc_).
+          - Sync Gateway purge endpoint [/{db}/_purge](rest-api-admin.html#/Document_model/post__db___purge).
+          - Sync Gateway [document TTLs](rest-api-admin.html#/Document_model/put__db___doc_).
 
           minimum -- see Default and Minimum Values table in description
 
@@ -4154,9 +4208,11 @@ definitions:
   sync_function:
     type: string
     description: |+
-      The `sync` property is a Javascript Sync function that determines which users can access which documents.
+      The `sync` property is a Javascript function that determines which users can access which documents.
 
-      This JavaScript filter function is provisioned using the Admin Rest API Endpoint ```put /{db}/_config/sync```.
+      This JavaScript function is provisioned using the Admin Rest API Endpoint
+      ```put /{db}/_config/sync```
+
       Add the function as plain javascript in the request body, with the ```content-Type: application/javascript``` header.
 
     default: |+
@@ -4291,7 +4347,7 @@ definitions:
       description: Database name
 
 
-  ActiveTasks_response_model:
+  ActiveTasks_model:
     type: object
     properties:
       source:
@@ -4799,32 +4855,7 @@ definitions:
           - sweep
           - cleanup
 
-  Database-info:
-    type: object
-    description: Database Information
-    properties:
-      db_name:
-        type: string
-        description: Name of the database
-      db_uuid:
-        type: integer
-        description: Database identifier
-      disk_format_version:
-        type: integer
-        description: Database schema version
-      disk_size:
-        type: integer
-        description: Total amount of data stored on the disk (in bytes)
-      instance_start_time:
-        type: string
-        description: Date and time the database was opened (in microseconds since 1 January 1970)
-      state:
-        type: string
-        description: The state of the specified database. Possible values are 'Online' and 'Offline'. A database can be taken offline and brought back online using the /{db}/_offline and /{db}/_online endpoints on the Admin REST API.
-      update_seq:
-        type: string
-        description: Number of updates to the database
-  Document:
+  Document_model:
     type: object
     properties:
       _id:
@@ -5612,7 +5643,7 @@ parameters:
     description: |+
       Provision the database configuration details as JSON object in request body
     schema:
-      $ref: '#/definitions/database'
+      $ref: '#/definitions/Database_model'
 
   db:
     name: db
@@ -6286,7 +6317,7 @@ parameters:
 
           items:
             type: object
-            $ref: '#/definitions/Document'
+            $ref: '#/definitions/Document_model'
         new_edits:
           description: Indicates whether to assign new revision identifiers to new edits.
           type: boolean

@@ -1,0 +1,3911 @@
+
+[[_paths]]
+== Resources
+
+:page-partials:
+// == Document begin hook
+
+This resources section groups together the available API operations under functional categories.
+
+include::_resources_toc.adoc[]
+
+
+
+[[_access_control_resource]]
+=== Access Control
+Convenience API for Sync function upsert
+
+
+[[_get_sync_function]]
+==== Get Sync Function
+....
+GET /{db}/_config/sync
+....
+
+
+===== Description
+Get the content of the current Sync Function
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_sync_function,sync_function>>
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+===== Consumes
+
+* `application/javascript`
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"\"function(doc, oldDoc) {\\n  channel(doc.channels);\\n}\\n\\n\""
+----
+
+
+[[_update_sync_function]]
+==== Update Sync Function
+....
+PUT /{db}/_config/sync
+....
+
+
+===== Description
+Use this convenience endpoint to add or update the `Sync` function for an existing Sync Gateway database
+
+See the 'Model' below for more info
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**sync function** +
+__required__|The Javascipt code for the sync function|<<_sync_function,sync_function>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_sync_function,sync_function>>
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+===== Consumes
+
+* `application/javascript`
+
+
+===== Example HTTP request
+
+====== Request body
+[source,json]
+----
+"\"function(doc, oldDoc) {\\n  channel(doc.channels);\\n}\\n\\n\""
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"\"function(doc, oldDoc) {\\n  channel(doc.channels);\\n}\\n\\n\""
+----
+
+
+[[_delete_sync_function]]
+==== Delete Sync Function
+....
+DELETE /{db}/_config/sync
+....
+
+
+===== Description
+Use this convenience endpoint to remove an existing `Sync` function
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**sync function** +
+__required__|The Javascipt code for the sync function|<<_sync_function,sync_function>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_sync_function,sync_function>>
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+===== Consumes
+
+* `application/javascript`
+
+
+===== Example HTTP request
+
+====== Request body
+[source,json]
+----
+"\"function(doc, oldDoc) {\\n  channel(doc.channels);\\n}\\n\\n\""
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"\"function(doc, oldDoc) {\\n  channel(doc.channels);\\n}\\n\\n\""
+----
+
+
+[[_authentication_resource]]
+=== Authentication
+Manage OpenID Connect providers
+
+
+[[_db_oidc_get]]
+==== OpenID Connect Authentication.
+....
+GET /{db}/_oidc
+....
+
+
+===== Description
+Called by clients to initiate the OIDC Authorization Code flow.
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Query**|**offline** +
+__optional__|When true, requests a refresh token from the OP. Sets access_type=offline and prompt=consent on the redirect to the OP. Secure clients should set offline=true and persist the returned refresh token to secure storage.|boolean
+|**Query**|**provider** +
+__optional__|OpenId Connect provider to be used for authentication, from the list of providers defined in the Sync Gateway Config. If not specified, will attempt to authenticate using the default provider.|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**302**|Redirect to the requested OpenID Connect provider for authentication. Redirect link is returned in the Location header.|No Content
+|**400**|Bad request. Reason is returned as "OpenID Connect not configured for database default". If a provider was specified in the request, that provider was not defined in the Sync Gateway config. If no provider was specified, OpenID Connect is not configured in the Sync Gateway config.|No Content
+|**500**|Server Error. Sync Gateway is unable to connect and validate the OpenID Connect provider requested.|No Content
+|===
+
+
+[[_db_oidc_callback_get]]
+==== OpenID Connect Authentication callback.
+....
+GET /{db}/_oidc_callback
+....
+
+
+===== Description
+Sync Gateway callback URL that clients are redirected to by the OpenID Connect provider.
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Query**|**code** +
+__required__|OpenID Connect Authorization code.|string
+|**Query**|**provider** +
+__optional__|OpenId Connect provider to be used for authentication, from the list of providers defined in the Sync Gateway Config. If not specified, will attempt to authenticate using the default provider.|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful OpenID Connect authentication.|object
+|**400**|Bad request.|No Content
+|**401**|Authentication failed. Reason returned in the response body.|No Content
+|===
+
+
+[[_db_oidc_challenge_get]]
+==== OpenID Connect Authentication.
+....
+GET /{db}/_oidc_challenge
+....
+
+
+===== Description
+Called by clients to initiate the OIDC Authorization Code flow.
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Query**|**offline** +
+__optional__|When true, requests a refresh token from the OP. Sets access_type=offline and prompt=consent on the redirect to the OP. Secure clients should set offline=true and persist the returned refresh token to secure storage.|boolean
+|**Query**|**provider** +
+__optional__|OpenId Connect provider to be used for authentication, from the list of providers defined in the Sync Gateway Config. If not specified, will attempt to authenticate using the default provider.|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**302**|Redirect to the requested OpenID Connect provider for authentication. Redirect link is returned in the Location header.|No Content
+|**400**|Bad request. Reason is returned as "OpenID Connect not configured for database default". If a provider was specified in the request, that provider was not defined in the Sync Gateway config. If no provider was specified, OpenID Connect is not configured in the Sync Gateway config.|No Content
+|**500**|Server Error. Sync Gateway is unable to connect and validate the OpenID Connect provider requested.|No Content
+|===
+
+
+[[_db_oidc_refresh_get]]
+==== OpenID Connect refresh.
+....
+GET /{db}/_oidc_refresh
+....
+
+
+===== Description
+Used to obtain a new OpenID Connect ID token based on the provided refresh token.
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Query**|**provider** +
+__optional__|OpenId Connect provider to be used for authentication, from the list of providers defined in the Sync Gateway Config. If not specified, will attempt to authenticate using the default provider.|string
+|**Query**|**refresh_token** +
+__required__|OpenID Connect refresh token.|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful OpenID Connect authentication.|object
+|**400**|Bad request.|No Content
+|**401**|Authentication failed. Unable to refresh token.|No Content
+|===
+
+
+[[_bootstrap_configuration_resource]]
+=== Bootstrap Configuration
+Returns bootstrap settings and updates logging options
+
+
+[[_get_server_configuration]]
+==== Get Server Configuration
+....
+GET /_config
+....
+
+
+===== Description
+Returns the Sync Gateway configuration of the running instance.
+This is a good method to check if a particular key was set correctly on the config file.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Sync Gateway configuration of the running instance.|No Content
+|===
+
+
+[[_put_logging_options]]
+==== Update Logging Options
+....
+PUT /_config
+....
+
+
+===== Description
+Update bootstrap logging options without needing a restart
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^4"]
+|===
+|Type|Name|Schema
+|**Body**|**bootstrap logging setting** +
+__required__|<<_logging,logging>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Returned updated Bootstrap logging settings|<<_bootstrap_config_model,bootstrap_config_model>>
+|===
+
+
+[[_database_configuration_resource]]
+=== Database Configuration
+Configure sync gateway databases
+
+
+[[_db_config_get]]
+==== Get Database Configuration
+....
+GET /{db}/_config
+....
+
+
+===== Description
+Returns the Sync Gateway configuration of the database specified in the URL. This is a good method to check if a particular key was set correctly on the config file.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Sync Gateway configuration of the running instance.|No Content
+|===
+
+
+[[_update_db_config]]
+==== Update Database Configuration
+....
+PUT /{db}/_config
+....
+
+
+===== Description
+Use this endpoint to update the configuration of an existing Sync Gateway database.
+
+Provide the database name in the URL path.
+Provide the required database configuration settings as a JSON object in the request body.
+You only need to provide those settings you wish to change.
+
+By default the updated database is brought online immediately, *unless* you include `&quot;offline&quot;: true` in the configuration.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**database configuration details** +
+__optional__|Provision the database configuration details as JSON object in request body|<<_database_model,Database_model>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|200 - OK - Operation successful|No Content
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+[[_get_import_filter]]
+==== Get Import_Filter Function
+....
+GET /{db}/_config/import_filter
+....
+
+
+===== Description
+Use this convenience endpoint to get the content of the current `import_filter`
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_import_filter,Import_filter>>
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+===== Consumes
+
+* `application/javascript`
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"\"function(doc) {\\n  if (doc.type != 'mobile') {\\n    return false\\n  }\\n  return true\\n}\\n\\n\""
+----
+
+
+[[_update_import_filter]]
+==== Update Import_Filter Function
+....
+PUT /{db}/_config/import_filter
+....
+
+
+===== Description
+Use this convenience endpoint to add or update the `import_filter` Javascript function for an existing Sync Gateway database.
+
+See the 'Model' below for more info
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**import_filter** +
+__required__|The Javascipt code for the import filter function|<<_import_filter,Import_filter>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_import_filter,Import_filter>>
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+===== Consumes
+
+* `application/javascript`
+
+
+===== Example HTTP request
+
+====== Request body
+[source,json]
+----
+"\"function(doc) {\\n  if (doc.type != 'mobile') {\\n    return false\\n  }\\n  return true\\n}\\n\\n\""
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"\"function(doc) {\\n  if (doc.type != 'mobile') {\\n    return false\\n  }\\n  return true\\n}\\n\\n\""
+----
+
+
+[[_delete_import_filter]]
+==== Delete Import_Filter Function
+....
+DELETE /{db}/_config/import_filter
+....
+
+
+===== Description
+Use this convenience endpoint to remove an existing`import_filter`.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_import_filter,Import_filter>>
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+===== Consumes
+
+* `application/javascript`
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"\"function(doc) {\\n  if (doc.type != 'mobile') {\\n    return false\\n  }\\n  return true\\n}\\n\\n\""
+----
+
+
+[[_get_sync_function]]
+==== Get Sync Function
+....
+GET /{db}/_config/sync
+....
+
+
+===== Description
+Get the content of the current Sync Function
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_sync_function,sync_function>>
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+===== Consumes
+
+* `application/javascript`
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"\"function(doc, oldDoc) {\\n  channel(doc.channels);\\n}\\n\\n\""
+----
+
+
+[[_update_sync_function]]
+==== Update Sync Function
+....
+PUT /{db}/_config/sync
+....
+
+
+===== Description
+Use this convenience endpoint to add or update the `Sync` function for an existing Sync Gateway database
+
+See the 'Model' below for more info
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**sync function** +
+__required__|The Javascipt code for the sync function|<<_sync_function,sync_function>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_sync_function,sync_function>>
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+===== Consumes
+
+* `application/javascript`
+
+
+===== Example HTTP request
+
+====== Request body
+[source,json]
+----
+"\"function(doc, oldDoc) {\\n  channel(doc.channels);\\n}\\n\\n\""
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"\"function(doc, oldDoc) {\\n  channel(doc.channels);\\n}\\n\\n\""
+----
+
+
+[[_delete_sync_function]]
+==== Delete Sync Function
+....
+DELETE /{db}/_config/sync
+....
+
+
+===== Description
+Use this convenience endpoint to remove an existing `Sync` function
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**sync function** +
+__required__|The Javascipt code for the sync function|<<_sync_function,sync_function>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_sync_function,sync_function>>
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+===== Consumes
+
+* `application/javascript`
+
+
+===== Example HTTP request
+
+====== Request body
+[source,json]
+----
+"\"function(doc, oldDoc) {\\n  channel(doc.channels);\\n}\\n\\n\""
+----
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"\"function(doc, oldDoc) {\\n  channel(doc.channels);\\n}\\n\\n\""
+----
+
+
+[[_database_management_resource]]
+=== Database Management
+Create and manage sync gateway databases
+
+
+[[_get_database_information]]
+==== Get Database Data
+....
+GET /{db}/
+....
+
+
+===== Description
+This request retrieves information about the database.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Request completed successfully.
+The information is returned in the response body.|object
+|**401**|Unauthorized.
+Login required.|No Content
+|**404**|Not Found. Requested database not found.|No Content
+|===
+
+
+[[_create_database]]
+==== Create Database
+....
+PUT /{db}/
+....
+
+
+===== Description
+Use this method to create a new Sync Gateway database.
+
+The database name is taken from the URL path.
+Pass the required database configuration settings as a JSON object in the request body.
+
+----
+{
+    "name": "todo_db"
+    "bucket": "todo_app"
+}
+----
+
+By default the created database is brought online immediately, *unless* you include `&quot;offline&quot;: true` in the configuration.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**database configuration details** +
+__optional__|Provision the database configuration details as JSON object in request body|<<_database_model,Database_model>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**201**|201 - OK - Create Operation successful|No Content
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+[[_db_delete]]
+==== Delete Database
+....
+DELETE /{db}/
+....
+
+
+===== Description
+Delete database
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Operation completed successfully|<<_doc-resp,doc-resp>>
+|===
+
+
+[[_db_all_docs_post]]
+==== All docs
+....
+POST /{db}/_all_docs
+....
+
+
+===== Description
+This request retrieves specified documents from the database.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**db** +
+__required__|Database name|string|
+|**Query**|**access** +
+__optional__|Indicates whether to include in the response a list of what access this document grants (i.e. which users it allows to access which channels.) This option may only be used from the admin port.|boolean|`"false"`
+|**Query**|**channels** +
+__optional__|Indicates whether to include in the response a channels property containing an array of channels this document is assigned to. (Channels not accessible by the user making the request will not be listed.)|boolean|`"false"`
+|**Query**|**include_docs** +
+__optional__|Default is false. Indicates whether to include the associated document with each result. If there are conflicts, only the winning revision is returned.|boolean|`"false"`
+|**Query**|**revs** +
+__optional__|Default is false. Indicates whether to include a _revisions property for each document in the response, which contains a revision history of the document. The length of the returned revision tree can be specified with the `revs_limit` querystring parameter.|boolean|`"false"`
+|**Query**|**update_seq** +
+__optional__|Default is false. Indicates whether to include the update_seq (document sequence ID) property in the response.|boolean|`"false"`
+|**Body**|**body** +
+__optional__|Request body|<<_alldocs,AllDocs>>|
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Query results|<<_queryresult,QueryResult>>
+|===
+
+
+[[_db_all_docs_get]]
+==== All docs
+....
+GET /{db}/_all_docs
+....
+
+
+===== Description
+This request returns a built-in view of all the documents in the database.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**db** +
+__required__|Database name|string|
+|**Query**|**access** +
+__optional__|Indicates whether to include in the response a list of what access this document grants (i.e. which users it allows to access which channels.) This option may only be used from the admin port.|boolean|`"false"`
+|**Query**|**channels** +
+__optional__|Indicates whether to include in the response a channels property containing an array of channels this document is assigned to. (Channels not accessible by the user making the request will not be listed.)|boolean|`"false"`
+|**Query**|**endkey** +
+__optional__|If this parameter is provided, stop returning records when the specified key is reached.|string|
+|**Query**|**include_docs** +
+__optional__|Default is false. Indicates whether to include the associated document with each result. If there are conflicts, only the winning revision is returned.|boolean|`"false"`
+|**Query**|**keys** +
+__optional__|Specify a list of document IDs.
+Note that this is an array field, so to retrieve docs with Ids of "keyid1" and "keyid4", for example, use a request in this format –
+
+`curl -X GET \ &#39;http://localhost:4985/test_db/_all_docs?keys=[%22keyid1%22,%22keyid4%22]&#39; \ -H &#39;Accept: application/json&#39;`|< string > array|
+|**Query**|**limit** +
+__optional__|Limits the number of result rows to the specified value. Using a value of 0 has the same effect as the value 1.|integer|
+|**Query**|**revs** +
+__optional__|Default is false. Indicates whether to include a _revisions property for each document in the response, which contains a revision history of the document. The length of the returned revision tree can be specified with the `revs_limit` querystring parameter.|boolean|`"false"`
+|**Query**|**startkey** +
+__optional__|Returns records starting with the specified key.|string|
+|**Query**|**update_seq** +
+__optional__|Default is false. Indicates whether to include the update_seq (document sequence ID) property in the response.|boolean|`"false"`
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Query results|<<_queryresult,QueryResult>>
+|===
+
+
+[[_db_bulk_docs_post]]
+==== Add, Update or Delete Bulk Documents
+....
+POST /{db}/_bulk_docs
+....
+
+
+===== Description
+This request enables you to add, update, or delete multiple documents to a database in a single request. To add new documents, you can either specify the ID (`_id`) or let the software create an ID. To update existing documents, you must provide the document ID, revision identifier (`_rev`), and new document values. To delete existing documents you must provide the document ID, revision identifier, and the deletion flag (`_deleted`).
+
+The JSON returned by the `_bulk_docs` operation consists of an array of JSON structures, one for each document in the original submission. The returned JSON structure should be examined to ensure that all of the documents submitted in the original request were successfully added to the database.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**BulkDocsBody** +
+__optional__|The request body|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Documents have been created or updated. The response object is an array with the status for each document submitted in the original request.|<<_bulkdocssuccess,BulkDocsSuccess>>
+|**409**|The operation failed with a forbidden error. Probably because the document already exists in the database but a revision number wasn't specified.|<<_forbidden,Forbidden>>
+|===
+
+
+[[_db_bulk_get_post]]
+==== Get Bulk Documents
+....
+POST /{db}/_bulk_get
+....
+
+
+===== Description
+This request returns any number of documents, as individual bodies in a MIME multipart response.
+
+Each enclosed body contains one requested document.
+The bodies appear in the same order as in the request, but can also be identified by their X-Doc-ID and X-Rev-ID headers.
+- A body for a document with no attachments will have content type application/json and contain the document itself.
+- A body for a document that has attachments will be written as a nested multipart/related body.
+Its first part will be the document's JSON, and the subsequent parts will be the attachments (each identified by a Content-Disposition header giving its attachment name.)
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**db** +
+__required__|Database name|string|
+|**Query**|**attachments** +
+__optional__|Include attachment bodies in response.
+Default is false.|boolean|`"false"`
+|**Query**|**revs** +
+__optional__|Default is false. Indicates whether to include a _revisions property for each document in the response, which contains a revision history of the document. The length of the returned revision tree can be specified with the `revs_limit` querystring parameter.|boolean|`"false"`
+|**Query**|**revs_limit** +
+__optional__|The number of revisions to include in the response from the document history. This parameter is only honoured if the `revs=true` querystring parameter is also sent in the request. If `revs=true` is specified and `revs_limit` isn't, the full revision history is returned.|integer|
+|**Body**|**BulkGetBody** +
+__optional__|List of documents being requested. Each array element is an object that must contain an id property giving the document ID. It may contain a rev property if a specific revision is desired. It may contain an atts_since property (as in a single-document GET) to limit which attachments are sent.|< object > array|
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Request completed successfully|No Content
+|**301**|Request failed with a forbidden error. This usually happens because the user requesting that document doesn't have access to it. Access to documents is granted to users through channels.|object
+|===
+
+
+===== Produces
+
+* `multipart/mixed`
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+{
+  "multipart/mixed (document found)" : "--1cba224ff2aa106566e3ab65de9c861c24558ba368f8cd7f6fcde53b88f4\nContent-Type: application/json\n\n{\"_id\":\"doc123\",\"_rev\":\"1-c543d6514c609f65180f94af247aaffe\",\"hello\":\"world!\"}\n--1cba224ff2aa106566e3ab65de9c861c24558ba368f8cd7f6fcde53b88f4\n",
+  "multipart/mixed (document not found)" : "--1cba224ff2aa106566e3ab65de9c861c24558ba368f8cd7f6fcde53b88f4\nContent-Type: application/json; error=\"true\"\n\n{\"error\":\"not_found\",\"id\":\"doc1234\",\"reason\":\"missing\",\"status\":404}\n--1cba224ff2aa106566e3ab65de9c861c24558ba368f8cd7f6fcde53b88f4\n"
+}
+----
+
+
+[[_db_changes_post]]
+==== Changes
+....
+POST /{db}/_changes
+....
+
+
+===== Description
+Same as the GET /_changes request except the parameters are in the JSON body.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**ChangesBody** +
+__optional__|The request body|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Request completed successfully|<<_changes,Changes>>
+|===
+
+
+[[_db_changes_get]]
+==== Get List of Changes (query parameters)
+....
+GET /{db}/_changes
+....
+
+
+===== Description
+This request retrieves a sorted list of changes made to documents in the database, in time order of application.
+
+Each document appears at most once, ordered by its most recent change, regardless of how many times it's been changed.
+This request can be used to listen for update and modifications to the database for post processing or synchronization.
+A continuously connected changes feed is a reasonable approach for generating a real-time log for most applications.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**db** +
+__required__|Database name|string|
+|**Query**|**active_only** +
+__optional__|Default is false. When true, the changes response doesn't include either deleted documents, or notification for documents that the user no longer has access to.|boolean|`"false"`
+|**Query**|**channels** +
+__optional__|A comma-separated list of channel names. The response will be filtered to only documents in these channels. (This parameter must be used with the *sync_gateway/bychannel* filter parameter; see below.)|string|
+|**Query**|**doc_ids** +
+__optional__|A list of document IDs as a valid JSON array.
+The response will be filtered to only documents with these IDs.
+This parameter must be used with the `filter=_doc_ids` and `feed=normal` parameters.|< string > array|
+|**Query**|**feed** +
+__optional__|Default is 'normal'. Specifies type of change feed. Valid values are normal, continuous, longpoll, websocket.|string|`"normal"`
+|**Query**|**filter** +
+__optional__|Indicates that the reported documents should be filtered. The valid values are sync_gateway/bychannel and _doc_ids.|string|
+|**Query**|**heartbeat** +
+__optional__|Default is 0. Interval in milliseconds at which an empty line (CRLF) is written to the response. This helps prevent gateways from deciding the socket is idle and closing it. Only applicable to longpoll or continuous feeds. Overrides any timeout to keep the feed alive indefinitely. Setting to 0 results in no heartbeat.|integer|`0`
+|**Query**|**include_docs** +
+__optional__|Default is false. Indicates whether to include the associated document with each result. If there are conflicts, only the winning revision is returned.|boolean|`"false"`
+|**Query**|**limit** +
+__optional__|Limits the number of result rows to the specified value. Using a value of 0 has the same effect as the value 1.|integer|
+|**Query**|**since** +
+__optional__|Starts the results from the change immediately after the given sequence ID. Sequence IDs should be considered opaque; they come from the last_seq property of a prior response.|integer|
+|**Query**|**style** +
+__optional__|Default is 'main_only'. Number of revisions to return in the changes array. main_only returns the current winning revision, all_docs returns all leaf revisions including conflicts and deleted former conflicts.|string|`"main_only"`
+|**Query**|**timeout** +
+__optional__|Default is 300000. Maximum period in milliseconds to wait for a change before the response is sent, even if there are no results. Only applicable for longpoll or continuous feeds. Setting to 0 results in no timeout.|integer|`300000`
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Request completed successfully|<<_changes,Changes>>
+|===
+
+
+[[_db_compact_post]]
+==== Compact Database
+....
+POST /{db}/_compact
+....
+
+
+===== Description
+Use the `/{db}/_compact` endpoint to start a compaction process.
+The process purges the JSON bodies of non-leaf revisions.
+
+Using this endpoint following a failed compaction will trigger a restart of the compact_id at the appropriate phase (where possible).
+
+This process is also run periodically by the system.
+
+Note – Leaf revisions are not purged during compaction.
+
+Compaction does not remove JSON bodies of leaf nodes (conflicting branches).
+So it is also important to resolve conflicts in your application in order to re-claim disk space.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**db** +
+__required__|Database name|string|
+|**Query**|**action** +
+__optional__|Use the `action` parameter to _start_ or _stop_ a `_compact` process.
+
+The value must be one of :
+– `start` – immediately starts (or restarts) a compaction and returns its status
+– `stop` – immediately stops the active compaction and returns the status
+
+This parameter works in conjunction with compaction type.|string|`"start"`
+|**Query**|**dry_run** +
+__optional__|Use `dry_run` only for attachment compaction.
+
+If this is set to `true` the process will run but will not execute the final purge of attachments.
+It can be used to check how many attachments will be purged.|string|`"false"`
+|**Query**|**reset** +
+__optional__|Use `reset` only for attachment compaction.
+
+If this is set to `true` the `start` action will not attempt to resume a failed process but will force a fresh compact to start.|string|`"false"`
+|**Query**|**type** +
+__optional__|Use the `type` option to specify the type of compaction required.
+
+The type must be one of :
+– `attachment` for legacy pre-3.0 attachment compaction
+– `tombstone` for database compaction, which purges the JSON bodies of non-leaf revisions.
+
+This parameter works in conjunction with compaction action.|string|`"tombstone"`
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK - This successful response indicates _compact process was started.
+The response body comprises a JSON object showing the _compact status.|<<_compact_response,Compact_Response>>
+|**400**|Bad Request
+
+This can mean that a required parameter has not been provided, the value supplied is invalid, or the combination of provided parameters is invalid.
+
+Compaction API returns a 400 Bad Request error in the following cases:
+ – A GET /{db}/_compact request is submitted with an invalid value for type parameter (anything other than tombstone or attachment).
+ – A POST /{db}/_compact request is submitted with an invalid value for type parameter (type must be either tombstone or attachment) and or action parameter (action must be either start or stop).|No Content
+|**503**|Service Unavailable
+
+A 503 Service Unavailable error indicates that the system is not ready to handle the submitted compaction start request due another compaction is running.
+You may encounter this error when you submit a compaction request in the middle of another.|No Content
+|===
+
+
+[[_db_compact_get]]
+==== Get Compact Status
+....
+GET /{db}/_compact
+....
+
+
+===== Description
+Use this request to return the current status of a compaction.
+
+Set the `type` parameter to one of:
+- tombstone – A GET request to /{db}/_compact?type=tombstone returns the number of tombstones removed.
+- attachment – A GET request to /{db}/_compact?type=attachment returns the number of attachments that are removed from the bucket.
+
+For example:
+`{
+    &quot;status&quot;: &quot;running&quot;,
+    &quot;start_time&quot;: &quot;2021-12-02T18:26:17.086152Z&quot;,
+    &quot;last_error&quot;: &quot;&quot;,
+    &quot;marked_attachments&quot;: 0,
+    &quot;purged_attachments&quot;: 0,
+    &quot;compact_id&quot;: &quot;68302d2d-2c56-434e-94e0-33c0d0437828&quot;,
+    &quot;phase&quot;: &quot;cleanup&quot;
+    }`
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**db** +
+__required__|Database name|string|
+|**Query**|**type** +
+__optional__|Use the `type` option to specify the type of compaction required.
+
+The type must be one of :
+– `attachment` for legacy pre-3.0 attachment compaction
+– `tombstone` for database compaction, which purges the JSON bodies of non-leaf revisions.
+
+This parameter works in conjunction with compaction action.|string|`"tombstone"`
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK - A successful response will return a JSON object containing the _compact status.
+
+The current phase of `running` compact processes is returned in `phase`.|<<_compact_response,Compact_Response>>
+|===
+
+
+[[_take_database_offline]]
+==== Take Database Offline
+....
+POST /{db}/_offline
+....
+
+
+===== Description
+This request takes the specified database offline.
+
+An offline database is not accessible through Sync Gateway's Public REST API. However, some commands can be given to Sync Gateway through the Admin REST API.
+
+Taking a database offline will:
+
+* Cleanly closes all active `_changes` feeds for this database.
+* Rejects all access to the database through the Public REST API (503 Service Unavailable).
+* Rejects most Admin API requests (503 Service Unavailable). A specific, short list of Admin REST API requests remain available (`GET /{db}`, `PUT /{db}/_config`, `POST /{db}/_resync`).
+* Stops webhook event handlers.
+* Does not take the backing Couchbase Server bucket offline. The bucket remains available and Sync Gateway keeps its connection to the bucket.
+
+When a database is offline, you can load properties for the database, without stopping and re-starting the Sync Gateway instance. The new properties are applied when the database is brought online.
+
+Taking a database offline that is in the progress of coming online will take the database offline after it comes online.
+
+For more information about taking a database offline and bringing it back online, see link:database-offline.html[this guide].
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Database brought online|No Content
+|===
+
+
+[[_db_online_post]]
+==== Bring Database Online.
+....
+POST /{db}/_online
+....
+
+
+===== Description
+When a database is online, Sync Gateway serves both Public and Admin REST API requests for the database. This request brings the specified database online, either immediately or after a specified delay.
+
+Bringing a database online:
+
+* Closes the databases connection to the backing Couchbase Server bucket.
+* Reloads the database configuration, and connects to the backing Couchbase Server bucket.
+* Re-establishes access to the database from the Public REST API.
+* Accepts all Admin API requests.
+
+You can bring an offline database online after a specific delay. Uses for this include:
+
+* Making a database available for Couchbase Mobile clients at a specific time.
+* Making databases on several Sync Gateway instances available at the same time.
+
+For more information about taking a database offline and bringing it back online, see link:database-offline.html[this guide].
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**body** +
+__optional__|Optional request body to specify a delay.|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK – online request accepted.|No Content
+|**503**|Service Unavailable – Database resync is in progress.|No Content
+|===
+
+
+[[_db_resync_post]]
+==== Start or Stop Resync
+....
+POST /{db}/_resync
+....
+
+
+===== Description
+Use the _resync operation whenever you have modified the database's sync function such that the channel or access mappings for any existing document would change as a result.
+
+The request will start or stop the _resync process depending upon the `action` parameter provided.
+If no `action` parameter is given then `start` is assumed.
+
+*`action=start`*
+
+The start action causes all documents to be reprocessed by the database's sync function.
+This is an *asynchronous* operation.
+
+When the sync function is invoked by `_resync`, the requireUser() and requireRole() calls will always return 'true'.
+
+A _resync operation on a database that is not in the offline state will be rejected (503 Service Unavailable).
+
+*`action=stop`*
+
+The currently running resync operation is stopped.
+
+*`regenerate_sequences=true`*
+*Use this only when requested to do so by the Couchbase support team*
+
+This request will start a resync while regenerating sequences.
+
+The resync action is carried out *only* on the node that the POST is made to.
+It is not cross-node aware.
+
+In a multi-node cluster, the resync must be only run on one node.
+Users should bring other nodes offline before initiating this action.
+Starting it on more than one node will result in multiple resyncs running, with undefined system behavior.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**db** +
+__required__|Database name|string|
+|**Query**|**action** +
+__optional__|The action query can be “start” or “stop”.
+If neither is provided,“start” is used as the default.
+
+* Start will 'begin' the asynchrounous resync operation.
+* Stop will stop the resync operation and will return|string|`"start"`
+|**Query**|**regenerate_sequences** +
+__optional__|*Use this only when requested to do so by the Couchbase support team*
+
+Set *`regenerate_sequences=true`* along with
+`action=start` in order to begin a resync while regenerating sequences.|string|`"none"`
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_resync-response,Resync-response>>
+|**400**|400 - Database _resync not running|No Content
+|**503**|503 error code. The meaning varies depending on the action parameter:
+
+* action=start – Database must be offline before calling _resync.
+
+* action=stop – Database _resync already in progress|No Content
+|===
+
+
+[[_db_resync_get]]
+==== Show resync status
+....
+GET /{db}/_resync
+....
+
+
+===== Description
+This request returns the status of the asynchronous `_resync` operation, including:
+
+* status
+* docs processed
+* docs changed
+* last error (if any)
+
+*Sync Gateway Roles Required:*
+
+* Sync Gateway Architect
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_resync-response,Resync-response>>
+|===
+
+
+[[_db_revs_diff_post]]
+==== Get Revisions DIff List
+....
+POST /{db}/_revs_diff
+....
+
+
+===== Description
+Given a set of document/revision IDs, returns the subset of those that do not correspond to revisions stored in the database.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**body** +
+__optional__|Request body|< object > array
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The request was successful.
+Returns a list of revision IDs for that document (the ones that are not stored in the database)|< object > array
+|===
+
+
+[[_database_security_resource]]
+=== Database Security
+Create and manage database users and roles
+
+
+[[_db_role_post]]
+==== Create New Role
+....
+POST /{db}/_role
+....
+
+
+===== Description
+This request creates a new role
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**role configuration data** +
+__optional__|Provision the role configuration data in JSON format in the body|<<_role,role>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**201**|201 - OK - Create Operation successful|No Content
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|**409**|409 - Conflict – For example, an object with this name already exists|No Content
+|===
+
+
+[[_db_role_get]]
+==== Get All Roles
+....
+GET /{db}/_role
+....
+
+
+===== Description
+This request returns all the roles in the specified database.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|200 OK – Returns the list of roles as an array of strings
+
+The message body contains the list of roles in a JSON array. Each element of the array is a string representing the name of a role in the specified database.|< string > array
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+[[_db_role_name_get]]
+==== Get Specific Role
+....
+GET /{db}/_role/{name}
+....
+
+
+===== Description
+Request a specific role by name.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+Without `Application` or `Application Read Only` users will be unable to see dynamic user or role data.
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**name** +
+__required__|Role name, may contain any combination of the characters `[a-z A-Z 0-9 - + . @ %]`, when creating a role any other characters must be percent encoded, see: https://en.wikipedia.org/wiki/Percent-encoding.
+
+When passing a role name in a URL path it must be escaped again using percent encoding e.g. if a role is created with the name "0\|59", the '\|' character must first be percent-encoded resulting in "0%7C59". When using the same role name in a URL path it must be percent-encoded a second time resulting in "0%257C59"|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The response contains information about this role.|object
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+[[_upsert_role]]
+==== Update Specific Role
+....
+PUT /{db}/_role/{name}
+....
+
+
+===== Description
+Use this convenience endpoint to upsert a Sync Gateway role.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**name** +
+__required__|Role name, may contain any combination of the characters `[a-z A-Z 0-9 - + . @ %]`, when creating a role any other characters must be percent encoded, see: https://en.wikipedia.org/wiki/Percent-encoding.
+
+When passing a role name in a URL path it must be escaped again using percent encoding e.g. if a role is created with the name "0\|59", the '\|' character must first be percent-encoded resulting in "0%7C59". When using the same role name in a URL path it must be percent-encoded a second time resulting in "0%257C59"|string
+|**Body**|**role** +
+__optional__|The message body is a JSON document that contains the following objects.|<<_role,role>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|200 - OK - Operation successful|No Content
+|**201**|201 - OK - Create Operation successful|No Content
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+[[_db_role_name_delete]]
+==== Delete Specific Role
+....
+DELETE /{db}/_role/{name}
+....
+
+
+===== Description
+This request deletes the role with the specified name.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**name** +
+__required__|Role name, may contain any combination of the characters `[a-z A-Z 0-9 - + . @ %]`, when creating a role any other characters must be percent encoded, see: https://en.wikipedia.org/wiki/Percent-encoding.
+
+When passing a role name in a URL path it must be escaped again using percent encoding e.g. if a role is created with the name "0\|59", the '\|' character must first be percent-encoded resulting in "0%7C59". When using the same role name in a URL path it must be percent-encoded a second time resulting in "0%257C59"|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|200 OK – The role was successfully deleted|No Content
+|===
+
+
+[[_db_user_post]]
+==== Create New User
+....
+POST /{db}/_user/
+....
+
+
+===== Description
+This request creates a new user
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application`
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**user configuration data** +
+__optional__|Provision the user configuration data in JSON format in the body|<<_user,User>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**201**|201 - OK - Create Operation successful|No Content
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|**409**|409 - Conflict – For example, an object with this name already exists|No Content
+|===
+
+
+[[_db_user_get]]
+==== Get All Users
+....
+GET /{db}/_user/
+....
+
+
+===== Description
+This request returns a list of all users
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The message body contains the list of users in a JSON array.
+Each element of the array is a string representing the name of a user in the specified database.|< string > array
+|**404**|404 - Not Found - Object missing or misreferenced|No Content
+|===
+
+
+[[_db_user_name_get]]
+==== Get User Data
+....
+GET /{db}/_user/{name}
+....
+
+
+===== Description
+This request returns information about the specified user.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+Without `Application` or `Application Read Only` users will be unable to see dynamic user or role data.
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**name** +
+__required__|User's name, may contain contain any combination of the characters `[a-z A-Z 0-9 - + . @ %]`, when creating a user any other characters must be percent encoded, see: https://en.wikipedia.org/wiki/Percent-encoding.
+
+When passing a user name in a URL path it must be escaped again using percent encoding e.g. if a user is created with the name "0\|59", the '\|' character must first be percent-encoded resulting in "0%7C59". When using the same user name in a URL path it must be percent-encoded a second time resulting in "0%257C59"|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|200 OK - Returns information about the specified user|<<_user-response,User-response>>
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+[[_upsert_user]]
+==== Update User Data
+....
+PUT /{db}/_user/{name}
+....
+
+
+===== Description
+Use this method to create or update a user
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**name** +
+__required__|User's name, may contain contain any combination of the characters `[a-z A-Z 0-9 - + . @ %]`, when creating a user any other characters must be percent encoded, see: https://en.wikipedia.org/wiki/Percent-encoding.
+
+When passing a user name in a URL path it must be escaped again using percent encoding e.g. if a user is created with the name "0\|59", the '\|' character must first be percent-encoded resulting in "0%7C59". When using the same user name in a URL path it must be percent-encoded a second time resulting in "0%257C59"|string
+|**Body**|**body** +
+__optional__|Request body|<<_user,User>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|200 - OK - Operation successful|No Content
+|**201**|201 - OK - Create Operation successful|No Content
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+[[_db_user_name_delete]]
+==== Delete Specific User
+....
+DELETE /{db}/_user/{name}
+....
+
+
+===== Description
+This request deletes the user with the specified name
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**name** +
+__required__|User's name, may contain contain any combination of the characters `[a-z A-Z 0-9 - + . @ %]`, when creating a user any other characters must be percent encoded, see: https://en.wikipedia.org/wiki/Percent-encoding.
+
+When passing a user name in a URL path it must be escaped again using percent encoding e.g. if a user is created with the name "0\|59", the '\|' character must first be percent-encoded resulting in "0%7C59". When using the same user name in a URL path it must be percent-encoded a second time resulting in "0%257C59"|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|200 - OK - Operation successful|No Content
+|**401**|401 - Unauthorized - Error validating credentials|No Content
+|===
+
+
+[[_design_documents_resource]]
+=== Design Documents
+Work with sync gateway design docs
+
+
+[[_db_design_ddoc_get]]
+==== Get Views of a design document
+....
+GET /{db}/_design/{ddoc}
+....
+
+
+===== Description
+Query a design document.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**ddoc** +
+__required__|Design document name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Views for design document|object
+|===
+
+
+[[_db_design_ddoc_put]]
+==== Update views of a design document
+....
+PUT /{db}/_design/{ddoc}
+....
+
+
+===== Description
+Update views of a design document
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**ddoc** +
+__required__|Design document name|string
+|**Body**|**body** +
+__optional__|The request body|<<_view,View>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|No Content
+|===
+
+
+[[_db_design_ddoc_delete]]
+==== Delete design document
+....
+DELETE /{db}/_design/{ddoc}
+....
+
+
+===== Description
+Delete a design document.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**ddoc** +
+__required__|Design document name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The status|<<_design,Design>>
+|**default**|Unexpected error|<<_error,Error>>
+|===
+
+
+[[_db_design_ddoc_view_view_get]]
+==== Query a view
+....
+GET /{db}/_design/{ddoc}/_view/{view}
+....
+
+
+===== Description
+Query a view on a design document.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**ddoc** +
+__required__|Design document name|string
+|**Path**|**view** +
+__required__|View name|string
+|**Query**|**conflicts** +
+__optional__|Include conflict information in the response. This parameter is ignored if the include_docs parameter is false.|boolean
+|**Query**|**descending** +
+__optional__|Return documents in descending order.|boolean
+|**Query**|**end_key** +
+__optional__|Alias for the endkey parameter.|string
+|**Query**|**end_key_doc_id** +
+__optional__|Alias for the endkey_docid parameter.|string
+|**Query**|**endkey** +
+__optional__|If this parameter is provided, stop returning records when the specified key is reached.|string
+|**Query**|**endkey_docid** +
+__optional__|If this parameter is provided, stop returning records when the specified document identifier is reached.|string
+|**Query**|**group** +
+__optional__|Group the results using the reduce function to a group or single row.|boolean
+|**Query**|**group_level** +
+__optional__|Specify the group level to be used.|integer
+|**Query**|**include_docs** +
+__optional__|Only works when using Couchbase Server 3.0 and earlier. Indicates whether to include the full content of the documents in the response.|boolean
+|**Query**|**inclusive_end** +
+__optional__|Indicates whether the specified end key should be included in the result.|boolean
+|**Query**|**key** +
+__optional__|If this parameter is provided, return only document that match the specified key.|string
+|**Query**|**limit** +
+__optional__|If this parameter is provided, return only the specified number of documents.|integer
+|**Query**|**skip** +
+__optional__|If this parameter is provided, skip the specified number of documents before starting to return results.|integer
+|**Query**|**stale** +
+__optional__|Allow the results from a stale view to be used, without triggering a rebuild of all views within the encompassing design document. Valid values are ok and update_after.|string
+|**Query**|**start_key** +
+__optional__|Alias for startkey param.|string
+|**Query**|**startkey** +
+__optional__|If this parameter is provided, return documents starting with the specified key.|string
+|**Query**|**startkey_docid** +
+__optional__|If this parameter is provided, return documents starting with the specified document identifier.|string
+|**Query**|**update_seq** +
+__optional__|Indicates whether to include the update_seq property in the response.|boolean
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Query results|<<_queryresult,QueryResult>>
+|===
+
+
+[[_document_resource]]
+=== Document
+Manage documents and attachments
+
+
+[[_create_database_document]]
+==== Create Document
+....
+POST /{db}/
+....
+
+
+===== Description
+This request creates a new document in the specified database.
+
+You can either specify the document ID by including the _id in the request message body (the value must be a string), or let the software generate an ID.
+
+The maximum size allowed for a document is 20MB.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**body** +
+__optional__|The document body|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Operation completed successfully|<<_doc-resp,doc-resp>>
+|===
+
+
+[[_db_local_local_doc_get]]
+==== Get Specific Local Document
+....
+GET /{db}/_local/{local_doc}
+....
+
+
+===== Description
+This request retrieves a local document.
+
+Local document IDs begin with _local/.
+Local documents are not replicated or indexed, don't support attachments, and don't save revision histories.
+In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**local_doc** +
+__required__|Local document IDs begin with _local/.|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|No Content
+|===
+
+
+[[_db_local_local_doc_put]]
+==== Update Specific Local Document
+....
+PUT /{db}/_local/{local_doc}
+....
+
+
+===== Description
+This request creates or updates a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by the client's replicator, as a place to store replication checkpoint data.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**local_doc** +
+__required__|Local document IDs begin with _local/.|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Operation completed successfully|<<_doc-resp,doc-resp>>
+|===
+
+
+[[_db_local_local_doc_delete]]
+==== Delete Specific Local Document
+....
+DELETE /{db}/_local/{local_doc}
+....
+
+
+===== Description
+This request deletes a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**local_doc** +
+__required__|Local document IDs begin with _local/.|string
+|**Query**|**batch** +
+__optional__|Stores the document in batch mode. To use, set the value to ok.|string
+|**Query**|**rev** +
+__optional__|Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Operation completed successfully|<<_doc-resp,doc-resp>>
+|===
+
+
+[[_db_purge_post]]
+==== Purge document
+....
+POST /{db}/_purge
+....
+
+
+===== Description
+The purge command provides a way to remove a document from the bucket itself. The operation removes all the revisions (active and tombstones) for the specified document(s). A common usage of this endpoint is to remove tombstone documents that are no longer needed, thus recovering storage space and reducing data replicated to clients. Other clients are not notified when a revision has been purged; so in order to purge a revision from the system it must be done from all databases (on Couchbase Lite and Sync Gateway).
+
+When *convergence* is enabled (introduced in Sync Gateway 1.5), this endpoint removes the document and its associated extended attributes.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**body** +
+__optional__|The message body is a JSON document that contains the following objects.|<<_purgebody,PurgeBody>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK – The purge operation was successful|< string > array
+|===
+
+
+[[_db_raw_doc_get]]
+==== Document with metadata
+....
+GET /{db}/_raw/{doc}
+....
+
+
+===== Description
+Returns the document with the metadata.
+
+Note: The direct use of this endpoint is unsupported. The sync metadata is maintained internally by Sync Gateway and its structure can change. It should not be used to drive business logic of applications since the response to the `/{db}/_raw/{id}` endpoint can change at any time.\
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**doc** +
+__required__|Document ID|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|<<_docmetadata,DocMetadata>>
+|===
+
+
+[[_db_revtree_doc_get]]
+==== Revision Tree structure in Graphviz Dot format | not officially supported
+....
+GET /{db}/_revtree/{doc}
+....
+
+
+===== Description
+Returns the dot syntax of the revision tree which can be rendered into a PNG image with the http://www.graphviz.org/[CLI dot tool].
+
+* Install the dot tool via `brew install graphviz`.
+* Save the response text to a file (for example, *revtree.dot*).
+* Render a PNG by calling `dot -Tpng revtree.dot &gt; revtree.png`.
+
+*Note:* This endpoint is useful for debugging purposes only. It is not officially supported.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**doc** +
+__required__|Document ID|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Success and returns the revtree as plain text.|No Content
+|===
+
+
+===== Produces
+
+* `text/plain`
+
+
+[[_db_doc_get]]
+==== Get Specific Document
+....
+GET /{db}/{doc}
+....
+
+
+===== Description
+This request retrieves a document from a database.
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+- Sync Gateway Application - Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**db** +
+__required__|Database name|string|
+|**Path**|**doc** +
+__required__|Document ID|string|
+|**Query**|**attachments** +
+__optional__|Include attachment bodies in response.
+Default is false.|boolean|`"false"`
+|**Query**|**atts_since** +
+__optional__|Include attachments only since specified revisions.
+Does not include attachments for specified revisions.|< string > array|
+|**Query**|**open_revs** +
+__optional__|Option to fetch specified revisions of the document.
+The value can be `all` to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=["rev1", "rev2"]). Only link:glossary.html[leaf revision] bodies that haven't been pruned are guaranteed to be returned.
+
+If this option is specified the response will be in multipart format.
+Use the `Accept: application/json` request header to get the result as a JSON object.|string|
+|**Query**|**rev** +
+__optional__|Revision identifier of the revision to get. By default, Sync Gateway returns the current revision. This parameter is generally only needed for conflict resolution. For example where the app might need to retrieve a conflicting leaf revision that isn't the current revision.|string|
+|**Query**|**revs** +
+__optional__|Default is false. Indicates whether to include a _revisions property for each document in the response, which contains a revision history of the document. The length of the returned revision tree can be specified with the `revs_limit` querystring parameter.|boolean|`"false"`
+|**Query**|**show_exp** +
+__optional__|Whether to show the _exp property in the response.|boolean|`"false"`
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The message body contains the following objects in a JSON document.|object
+|===
+
+
+[[_db_doc_put]]
+==== Create or update document
+....
+PUT /{db}/{doc}
+....
+
+
+===== Description
+This request creates a new document or creates a new revision of an existing document. It enables you to specify the identifier for a new document rather than letting the software create an identifier. If you want to create a new document and let the software create an identifier, use the POST /db request.
+If the document specified by doc does not exist, a new document is created and assigned the identifier specified in doc. If the document already exists, the document is updated with the JSON document in the message body and given a new revision. The maximum size allowed for a document is 20MB.
+
+Since Sync Gateway 1.3, an expiry property (`_exp`) can also be specified to purge the document after a given time. If *convergence* is enabled (introduced in Sync Gateway 1.5), the behavior of the expiry feature changes in the following way: when the expiry value is reached, instead of getting purged, the *active* revision of the document is tombstoned. If there is another non-tombstoned revision for this document (i.e a conflict) it will become the active revision. The tombstoned revision will be purged when the server's metadata purge interval is reached.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**db** +
+__required__|Database name|string|
+|**Path**|**doc** +
+__required__|Document ID|string|
+|**Query**|**new_edits** +
+__optional__|Default is true. Setting this to false indicates that the request body is an already-existing revision that should be directly inserted into the database, instead of a modification to apply to the current document. (This mode is used by the replicato.) This option must be used in conjunction with the `_revisions` property in the request body.|boolean|`"true"`
+|**Query**|**rev** +
+__required__|Revision identifier of the revision to update. It must be the last revision in the history.|string|
+|**Body**|**Document** +
+__optional__|Request body|<<_document_model,Document_model>>|
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Operation completed successfully|<<_doc-resp,doc-resp>>
+|===
+
+
+[[_db_doc_delete]]
+==== Delete document
+....
+DELETE /{db}/{doc}
+....
+
+
+===== Description
+This request deletes a document from the database.
+When a document is deleted, the revision number is updated so the database can track the deletion in synchronized copies.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**doc** +
+__required__|Document ID|string
+|**Query**|**rev** +
+__required__|Revision identifier of the revision to delete. It must be the identifier of the latest revision in the history.|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK|No Content
+|===
+
+
+[[_db_doc_attachment_get]]
+==== Get attachment
+....
+GET /{db}/{doc}/{attachment}
+....
+
+
+===== Description
+Use this request to get the file attachment associated with a document.
+It returns the raw data of the associated attachment, just as if you were accessing a static file.
+
+The Content-Type response header is the same content type set when the document attachment was added to the database.
+
+To remove an attachment from a document, simply update the `_attachments` dictionary of the document in the PUT "/{db}/{id}" request.
+
+Use the `meta` parameter to request that only the document ID of the attachment blob be returned
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**attachment** +
+__required__|Attachment name.
+This value must be URL encoded.
+For example, if the attachment name is `blob_/avatar`, the path component passed to the URL should be `blob_%2Favatar` (tested with https://www.urlencoder.org/[URLEncoder]).|string|
+|**Path**|**db** +
+__required__|Database name|string|
+|**Path**|**doc** +
+__required__|Document ID|string|
+|**Query**|**meta** +
+__optional__|If `true` only the document ID of the attachment blob is returned in the response body|boolean|`"false"`
+|**Query**|**rev** +
+__optional__|Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)|string|
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The message body contains the attachment, in the format specified in the Content-Type header.|string (binary)
+|**304**|Not Modified, the attachment wasn't modified if ETag equals the If-None-Match header|No Content
+|**400**|Bad Request – A non boolean value was supplied for the meta parameter.|No Content
+|**404**|Not Found, the specified database, document or attachment was not found.|No Content
+|===
+
+
+===== Example HTTP response
+
+====== Response 200
+[source,json]
+----
+"GET /{db}/{doc}/{attachment}?meta=true\n{\n  \"content_type\": \"text/plain\",\n  \"length\": 2,\n  \"key\": \"_sync:att2:uU0nuZNNPgilLlLX2n2r+sSE7+N6U4DukIj3rOLvzek=:sha1-Kq5sNclPz7QV2+lfQIuc6R7oRu0=\"\n}\n\n"
+----
+
+
+[[_db_doc_attachment_put]]
+==== Add or update a document attachment
+....
+PUT /{db}/{doc}/{attachment}
+....
+
+
+===== Description
+Use this request to add or update the supplied request content as an attachment to the specified document.
+
+* The maximum content size of an attachment is 20MB.
+* The attachment name must be a URL-encoded string (the file name).
+* You must also supply either the rev query parameter or the If-Match HTTP header for validation, and the Content-Type headers (to set the attachment content type).
+
+When uploading an attachment using an existing attachment name, the corresponding stored content of the database will be updated. Because you must supply the revision information to add an attachment to the document, this serves as validation to update the existing attachment.
+
+Uploading an attachment updates the corresponding document revision.
+Revisions are tracked for the parent document, not individual attachments.
+
+To remove an attachment from a document, simply update the `_attachments` dictionary of the document in the PUT "{db}/{id}" request.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Header**|**Content-Type** +
+__optional__|Attachment Content-Type|string
+|**Path**|**attachment** +
+__required__|Attachment name.
+This value must be URL encoded.
+For example, if the attachment name is `blob_/avatar`, the path component passed to the URL should be `blob_%2Favatar` (tested with https://www.urlencoder.org/[URLEncoder]).|string
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**doc** +
+__required__|Document ID|string
+|**Query**|**rev** +
+__optional__|Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)|string
+|**Body**|**body** +
+__optional__|The request body|string (binary)
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Operation completed successfully|No Content
+|**409**|Conflict, the document revision wasn't specified or it's not the latest.|No Content
+|===
+
+
+[[_logging_resource]]
+=== Logging
+Update bootstrap logging settings
+
+
+[[_put_logging_options]]
+==== Update Logging Options
+....
+PUT /_config
+....
+
+
+===== Description
+Update bootstrap logging options without needing a restart
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^4"]
+|===
+|Type|Name|Schema
+|**Body**|**bootstrap logging setting** +
+__required__|<<_logging,logging>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Returned updated Bootstrap logging settings|<<_bootstrap_config_model,bootstrap_config_model>>
+|===
+
+
+[[_replication_resource]]
+=== Replication
+Manage inter-Sync Gateway replication
+
+
+[[_db_replication_post]]
+==== Create a new replication definition
+....
+POST /{db}/_replication
+....
+
+
+===== Description
+The **_replication** endpoint is used to manage both _ad hoc_ and _persistent_ replication operations.
+
+Using a POST request you can insert a new set of replication details.
+
+<br>**To Cancel a Replication**
+You can cancel continuous replications by adding the cancel field to the JSON request object and setting the value to true.
+Note that the structure of the request must be identical to the original for the cancellation request to be honoured.
+For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+– Sync Gateway Replicator
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**ReplicationBody** +
+__optional__|This replication request message body is a JSON document that comprises all the properties required to upsert a replication.
+
+If the `replicationID` matches an existing `replication_id` then the values of any properties provided in the body are used to update the existing replication's property values.|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Replication successfully updated|<<_replicationresponse,ReplicationResponse>>
+|**201**|Replication successfully inserted|<<_replicationresponse,ReplicationResponse>>
+|===
+
+
+[[_db_replication_get]]
+==== Get all replication definitions
+....
+GET /{db}/_replication
+....
+
+
+===== Description
+Returns an array object containing all replication definitions
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+– Sync Gateway Replicator
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful response - returns an array of replication definitions in the body as JSON|<<_replicationresponsebody,ReplicationResponseBody>>
+|===
+
+
+[[_db_replication_replicationid_get]]
+==== Get a replication definition
+....
+GET /{db}/_replication/{replicationID}
+....
+
+
+===== Description
+Returns requested (**replicationID**) replication definition
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+– Sync Gateway Replicator
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**replicationID** +
+__required__|The {replicationID} parameter identifies the target replication.|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful response - returns requested replication definition in the body as JSON|<<_replicationresponsebody,ReplicationResponseBody>>
+|===
+
+
+[[_db_replication_replicationid_put]]
+==== Upsert a replication definition
+....
+PUT /{db}/_replication/{replicationID}
+....
+
+
+===== Description
+The **_replication** endpoint is used to manage both _ad hoc_ and _persistent_ replication operations.
+
+Using a PUT request you can update (or insert, if it doesn't exist) a set of replication details.
+
+<br>**To cancel a replication**
+You can cancel continuous replications by adding the cancel field to the JSON request object and setting the value to true.
+
+Note that the structure of the request must be identical to the original for the cancellation request to be honoured.
+
+For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+– Sync Gateway Replicator
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**replicationID** +
+__required__||string
+|**Body**|**ReplicationBody** +
+__optional__|This replication request message body is a JSON document that comprises all the properties required to upsert a replication.
+
+If the `replicationID` matches an existing `replication_id` then the values of any properties provided in the body are used to update the existing replication's property values.|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Replication successfully updated|<<_replicationresponse,ReplicationResponse>>
+|**201**|Replication successfully inserted|<<_replicationresponse,ReplicationResponse>>
+|===
+
+
+[[_db_replication_replicationid_delete]]
+==== Cancel and delete replication
+....
+DELETE /{db}/_replication/{replicationID}
+....
+
+
+===== Description
+Deletes a specific (**replicationID**) replication
+- Removes persisted replication definition
+- Removes all checkpoints associated with the replication
+- Deletes all replication status information associated with the replication
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+– Sync Gateway Replicator
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**replicationID** +
+__required__|The {replicationID} parameter identifies the target replication.|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Replication successfully deleted|No Content
+|===
+
+
+[[_db_replicationstatus_get]]
+==== Returns replication status data for  replications matching the criteria
+....
+GET /{db}/_replicationStatus
+....
+
+
+===== Description
+*About*
+
+Returns replication status data for all replications matching the criteria specified in the {querystring} parameter.
+
+*Options*
+
+The `{queryString}` parameter supports the following filter parameters - see _Parameter_ section for more details
+
+* `activeOnly`
+* `localOnly`
+* `includeConfig`
+* `includeError`
+
+*Behavior*
+
+The selection is made from all replications across _all_ nodes.
+
+By default the response includes status data for replications in any state (starting, running, stopped or error) from across all nodes.
+
+<h5>Example</h5>
+
+```
+ http://localhost:4985/{db}/_replicationStatus?activeOnly=false&localOnly=false&includeError=true
+
+```
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+– Sync Gateway Replicator
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**db** +
+__required__|Database name|string|
+|**Query**|**activeOnly** +
+__optional__|When _true_, only active replications (state=starting, running, stopping) are returned|boolean|`"false"`
+|**Query**|**includeConfig** +
+__optional__|When _true_ the replication definition is included in the response.|boolean|`"false"`
+|**Query**|**includeError** +
+__optional__|When false, omits replications stopped due to error (state=error)
+
+By default the response includes replications in `error` state.|boolean|`"true"`
+|**Query**|**localOnly** +
+__optional__|When _true_ returns only replications run (or running) the local node since startup.
+
+By default the response includes replications run or running across all nodes since node start-up.|boolean|`"false"`
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Returns information about the active replications|<<_replicationstatusresponsebody,ReplicationStatusResponseBody>>
+|===
+
+
+[[_db_replicationstatus_replicationid_get]]
+==== Returns information on specified replication
+....
+GET /{db}/_replicationStatus/{replicationID}
+....
+
+
+===== Description
+Returns the status of the requested (**replicationID**) replication
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+– Sync Gateway Replicator
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**replicationID** +
+__required__|The {replicationID} parameter identifies the target replication.|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Information about specified replication.|<<_replicationstatusresponsebody,ReplicationStatusResponseBody>>
+|===
+
+
+[[_db_replicationstatus_replicationid_put]]
+==== Modify replication status
+....
+PUT /{db}/_replicationStatus/{replicationID}
+....
+
+
+===== Description
+Use this endpoint to change the status of the specified (**replicationID**) replication using the value of the `action` parameter.
+
+The `action` parameter specifies the status to be set - valid values are
+
+* `start` – starts a stopped replication
+
+* `stop` – stops an active replication
+
+* `reset` – resets a stopped replication (resets checkpoint to zero). For bidirectional replication, both push and pull checkpoints are reset to zero.
+
+For example
+
+`
+   http://localhost:4985/fred/_replicationStatus/{replicationID}?action=start
+`
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+– Sync Gateway Replicator
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Path**|**db** +
+__required__|Database name|string|
+|**Path**|**replicationID** +
+__required__|The {replicationID} parameter identifies the target replication.|string|
+|**Query**|**action** +
+__required__|The value of the {action} parameter specifies the value you want the selected replication's status set to.
+
+* *start* : Use this action to start a stopped replication
+* *stop* : Use this action to stop a started replication
+* *reset* : Use this action to reset a stopped replication. This will set the checkpoint to zero. For bidirectional replication, both push and pull checkpoints are reset to zero.|string|`"none"`
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The required status is successfully set|<<_replicationstatusresponsebody,ReplicationStatusResponseBody>>
+|===
+
+
+[[_server_resource]]
+=== Server
+Manage server activities
+
+
+[[_get_server_metadata]]
+==== Get Server Metadata
+....
+GET /
+....
+
+
+===== Description
+Returns meta-information about the server.
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Meta-information about the server.|<<_server,Server>>
+|===
+
+
+[[_active_tasks_get]]
+==== Get List of Active Tasks (v1 replications only)
+....
+GET /_active_tasks
+....
+
+[CAUTION]
+====
+operation.deprecated
+====
+
+
+===== Description
+_Deprecated @ 2.8_
+
+Replaced by Inter-Sync Gateway Replication (v2)'s _[_replicationStatus](#/server/get__replicationStatus)_ endpoint.
+This **_active_tasks** endpoint is retained *only* for backward compatibility.
+
+Use this end point to return the status of active Inter-Sync Gateway Replication (v1) replications. Only replications configured on the local node are returned.
+
+The response is as defined in [_replicationStatus](#/replications/get__db___replicationStatus) except that it also includes:
+
+* *end_last_seq*, which returns the maximum of (last_seq_pull, last_seq_push)
+* *start_last_seq*, which is not populated (as was the case prior to Sync Gateway 2.8)
+
+The Inter-Sync Gateway Replication (v2) equivalent is `_replicationStatus?localOnly=true&amp;activeOnly=true` – see [_replicationStatus](#/replications/get__db___replicationStatus).
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Information about active replications.|<<_activetasks_model,ActiveTasks_model>>
+|===
+
+
+[[_all_dbs_get]]
+==== Get List of All Databases
+....
+GET /_all_dbs
+....
+
+
+===== Description
+List all databases
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Identify all available databases|< <<_alldatabases,AllDatabases>> > array
+|===
+
+
+[[_get_server_configuration]]
+==== Get Server Configuration
+....
+GET /_config
+....
+
+
+===== Description
+Returns the Sync Gateway configuration of the running instance.
+This is a good method to check if a particular key was set correctly on the config file.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Sync Gateway configuration of the running instance.|No Content
+|===
+
+
+[[_put_logging_options]]
+==== Update Logging Options
+....
+PUT /_config
+....
+
+
+===== Description
+Update bootstrap logging options without needing a restart
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^4"]
+|===
+|Type|Name|Schema
+|**Body**|**bootstrap logging setting** +
+__required__|<<_logging,logging>>
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Returned updated Bootstrap logging settings|<<_bootstrap_config_model,bootstrap_config_model>>
+|===
+
+
+[[_get_sync_gateway_statistics]]
+==== Get Sync Gateway Statistics
+....
+GET /_expvar
+....
+
+
+===== Description
+The `Expvar`method returns a number of runtime variables that you can view for debugging or performance monitoring purposes.
+
+This method can also be accessed using Sync Gateway's link:rest-api-metrics.html[Metrics REST API]
+
+*See* : link:stats-monitoring.html[Sync Gateway Statistics Schema] for more details on the metrics collected and reported by Sync Gateway.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+– External stats reader
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|OK - indicates success|<<_expvars,ExpVars>>
+|===
+
+
+[[_logging_tags_post]]
+==== Set Logging Tags
+....
+POST /_logging
+....
+
+
+===== Description
+Enabling logging for a tag provides additional diagnostic information for that logging area.
+
+The POST request only updates the tags specified in the request body.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**level** +
+__optional__|*Deprecated* – please use `logLevel` instead
+This setting determines the verbosity of the logging
+– level=1 - The default, regular, logging
+– level=2 - Enables warnings and panics logging
+– level=3 - Will log panics only|integer
+|**Query**|**logLevel** +
+__optional__|This setting determines the verbosity of the logging.
+
+Available values are
+– `none`
+– `error`
+– `warn`
+– `info`
+– `debug`
+– `trace`
+
+Note that the setting is additive. For example, setting `info` will also enable both `error` and `warn`.|string
+|**Body**|**log_keys** +
+__optional__|Use the body to provide a list of the log keys you want to set.
+
+For example – `{&quot;Changes++&quot;:true, &quot;Cache&quot;:true, &quot;HTTP&quot;:true, &quot;DCP&quot;:true, &quot;WS&quot;: true, &quot;WSFrame&quot;: true, &quot;Replicate&quot;: true}`|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**201**|The operation was successful|No Content
+|===
+
+
+[[_get_logging_tags]]
+==== Get Logging Tags
+....
+GET /_logging
+....
+
+
+===== Description
+Get logging tags of running instance.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The response is a set of key-value pairs.
+The key is a log tag and the value is a boolean to indicate whether this tag is enabled.|<<_logtags,LogTags>>
+|===
+
+
+[[_logging_tags_put]]
+==== Set Logging Tags
+....
+PUT /_logging
+....
+
+
+===== Description
+Enabling logging for a tag provides additional diagnostic information for that logging area.
+
+The PUT request replaces all existing logging tags with the ones specified in the request body.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**level** +
+__optional__|*Deprecated* – please use `logLevel` instead
+This setting determines the verbosity of the logging
+– level=1 - The default, regular, logging
+– level=2 - Enables warnings and panics logging
+– level=3 - Will log panics only|integer
+|**Query**|**logLevel** +
+__optional__|This setting determines the verbosity of the logging.
+
+Available values are
+– `none`
+– `error`
+– `warn`
+– `info`
+– `debug`
+– `trace`
+
+Note that the setting is additive. For example, setting `info` will also enable both `error` and `warn`.|string
+|**Body**|**log_keys** +
+__optional__|Use the body to provide a list of the log keys you want to set.
+
+For example – `{&quot;Changes++&quot;:true, &quot;Cache&quot;:true, &quot;HTTP&quot;:true, &quot;DCP&quot;:true, &quot;WS&quot;: true, &quot;WSFrame&quot;: true, &quot;Replicate&quot;: true}`|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**201**|The operation was successful|No Content
+|===
+
+
+[[_post_upgrade_post]]
+==== Delete Obsolete Design Documents
+....
+POST /_post_upgrade
+....
+
+
+===== Description
+Starting in Sync Gateway 2.0, design documents used internally by Sync Gateway will include a version number in their name.<br><br>
+
+This version is incremented at each change, but the previous version of the design documents are retained, as they may be required by other nodes.<br><br>
+
+Use this `_post_upgrade` endpoint to remove any obsolete design documents when you are sure they are no longer needed.<br><br>
+
+_TIP:_ Use the `preview=true` query string option to check which design documents will be removed.<br><br>
+
+Typical use cases for this end point include:<br>
+
+* After upgrading Sync Gateway – see (link:upgrade.html#upgrade[upgrade guide]).
+
+* After moving from _non-import-docs_ to _import-docs_ methods. That is, from `import-docs=False` to `import-docs=True`
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4,.^2"]
+|===
+|Type|Name|Description|Schema|Default
+|**Query**|**preview** +
+__optional__|Lists the design documents to be removed if the request is sent without this paramter.|boolean|`"false"`
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The request was successful.|No Content
+|===
+
+
+[[_replicate_post]]
+==== Start or Cancels Replication
+....
+POST /_replicate
+....
+
+[CAUTION]
+====
+operation.deprecated
+====
+
+
+===== Description
+This API endpoint is now deprecated.
+It is replaced by the Inter-Sync Gateway Replication (v2) replication endpoint
+
+_About_
+
+This endpoint is used to start or cancel a database replication operation.
+
+* Starting a replication with the _replicate endpoint will implicitly set `adhoc=true` for the replication
+
+* Setting `cancel=true` will set the replication state to *STOPPING*
+
+_Canceling replications_
+
+You can cancel continuous replications by adding the cancel field to the JSON request object and setting the value to true.
+
+Note that the structure of the request must be identical to the original for the cancellation request to be honoured.
+For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
+
+_Constraints_
+
+* Use this endpoint only for Inter-Sync Gateway Replication (v1) replications.
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**ReplicationBody** +
+__optional__|SGR1 replication
+The request message body is a JSON document that contains the following objects.|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|200 OK|<<_replicationresponse,ReplicationResponse>>
+|===
+
+
+[[_sgcollect_info_post]]
+==== Start Sgcollect_info
+....
+POST /_sgcollect_info
+....
+
+
+===== Description
+Starting in Sync Gateway 2.1, sgcollect_info can be triggered using this endpoint.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**sgcollect_info** +
+__optional__|Options that can be specified to use in an sgcollect_info run|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The request was successful.|No Content
+|===
+
+
+[[_sgcollect_info_get]]
+==== Get Sgcollect_info Status
+....
+GET /_sgcollect_info
+....
+
+
+===== Description
+Will return information about whether sgcollect_info is currently running or not.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The operation was successful|<<_sgcollectinfostats,SGCollectInfoStats>>
+|===
+
+
+[[_sgcollect_info_delete]]
+==== Stop Sgcollect_info
+....
+DELETE /_sgcollect_info
+....
+
+
+===== Description
+sgcollect_info can be cancelled using ths endpoint.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Dev Ops
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**sgcollect_info** +
+__optional__|Options that can be specified to use in an sgcollect_info run|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|The request was successful.|No Content
+|===
+
+
+[[_session_resource]]
+=== Session
+Manage user sessions
+
+
+[[_db_session_post]]
+==== Create New Session
+....
+POST /{db}/_session
+....
+
+
+===== Description
+If the credentials provided in the request body are valid, the session is created with an idle session timeout of 24 hours.
+An idle session timeout in the context of Sync Gateway is defined as the following:
+- If 10% or more of the current expiration time has elapsed when a subsequent request with that session id is processed, the session's expiry time is automatically updated to 24 hours from that time.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Body**|**SessionBody** +
+__optional__|The message body is a JSON document that contains the following objects.|object
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Session successfully created.|object
+|===
+
+
+[[_db_session_sessionid_get]]
+==== Get Session Data
+....
+GET /{db}/_session/{sessionid}
+....
+
+
+===== Description
+This request retrieves information about a session.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**sessionid** +
+__required__|Session id|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|200 OK – Request completed successfully.|object
+|===
+
+
+[[_db_session_sessionid_delete]]
+==== Delete Specific Session
+....
+DELETE /{db}/_session/{sessionid}
+....
+
+
+===== Description
+This request deletes a single session.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**sessionid** +
+__required__|Session id|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|200 OK – Request completed successfully.
+
+If the session is successfully deleted, the response has an empty message body.
+If the session is not deleted, the message body contains error information.|No Content
+|===
+
+
+[[_db_user_name_session_delete]]
+==== Delete All User Sessions
+....
+DELETE /{db}/_user/{name}/_session
+....
+
+
+===== Description
+This request delete the session for the specified user.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**name** +
+__required__|User's name, may contain contain any combination of the characters `[a-z A-Z 0-9 - + . @ %]`, when creating a user any other characters must be percent encoded, see: https://en.wikipedia.org/wiki/Percent-encoding.
+
+When passing a user name in a URL path it must be escaped again using percent encoding e.g. if a user is created with the name "0\|59", the '\|' character must first be percent-encoded resulting in "0%7C59". When using the same user name in a URL path it must be percent-encoded a second time resulting in "0%257C59"|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|User session deleted.|No Content
+|===
+
+
+[[_db_user_name_session_sessionid_delete]]
+==== Delete Specific User Session
+....
+DELETE /{db}/_user/{name}/_session/{sessionid}
+....
+
+
+===== Description
+This request delete the specified session for the specified user.
+
+_Sync Gateway Roles Required (CBS 7.0.2 Developer Preview):_
+
+* Sync Gateway Architect
+* Sync Gateway Application
+
+
+===== Parameters
+
+[options="header", cols=".^2,.^3,.^9,.^4"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**db** +
+__required__|Database name|string
+|**Path**|**name** +
+__required__|User's name, may contain contain any combination of the characters `[a-z A-Z 0-9 - + . @ %]`, when creating a user any other characters must be percent encoded, see: https://en.wikipedia.org/wiki/Percent-encoding.
+
+When passing a user name in a URL path it must be escaped again using percent encoding e.g. if a user is created with the name "0\|59", the '\|' character must first be percent-encoded resulting in "0%7C59". When using the same user name in a URL path it must be percent-encoded a second time resulting in "0%257C59"|string
+|**Path**|**sessionid** +
+__required__|Session id|string
+|===
+
+
+===== Responses
+
+[options="header", cols=".^2,.^14,.^4"]
+|===
+|HTTP Code|Description|Schema
+|**200**|User session deleted.|No Content
+|===
+
+
+
