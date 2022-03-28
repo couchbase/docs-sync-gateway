@@ -1,0 +1,371 @@
+
+[[_definitions]]
+== Definitions
+
+:page-partials:
+// == Document begin hook
+
+This definitions section describes the data models used by the operations described in the <<_paths>> section.
+
+
+
+
+[[_alldocs]]
+=== AllDocs
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**keys** +
+__optional__|List of identifiers of the documents to retrieve|< string > array
+|===
+
+
+[[_changes]]
+=== Changes
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**last_seq** +
+__optional__|Last change sequence number|object
+|**results** +
+__optional__|List of changes to the database. See the following table for a list of fields in this object.|< <<_changesfeedrow,ChangesFeedRow>> > array
+|===
+
+
+[[_changesfeedrow]]
+=== ChangesFeedRow
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**changes** +
+__optional__|List of the document's leafs. Each leaf object contains one field, rev.|< object > array
+|**deleted** +
+__optional__|Indicate whether the row is deleted +
+**Default** : `false`|boolean
+|**doc** +
+__optional__||object
+|**id** +
+__optional__|Document identifier|string
+|**seq** +
+__optional__|Update sequence number|integer
+|===
+
+
+[[_database]]
+=== Database
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**db_name** +
+__optional__|Name of the database|string
+|**db_uuid** +
+__optional__|Database identifier|integer
+|**disk_format_version** +
+__optional__|Database schema version|integer
+|**disk_size** +
+__optional__|Total amount of data stored on the disk (in bytes)|integer
+|**instance_start_time** +
+__optional__|Date and time the database was opened (in microseconds since 1 January 1970)|string
+|**state** +
+__optional__|The state of the specified database. Possible values are 'Online' and 'Offline'. A database can be taken offline and brought back online using the /{db}/_offline and /{db}/_online endpoints on the Admin REST API.|string
+|**update_seq** +
+__optional__|Number of updates to the database|string
+|===
+
+
+[[_design]]
+=== Design
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**count** +
+__optional__|Total number of items available.|integer (int32)
+|**limit** +
+__optional__|Number of items to retrieve (100 max).|integer (int32)
+|**offset** +
+__optional__|Position in pagination.|integer (int32)
+|===
+
+
+[[_document]]
+=== Document
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**_attachments** +
+__optional__||object
+|**_exp** +
+__optional__|Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document (TTL is not supported for databases in walrus mode). The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2016 at 17:00 in the BST timezone would be 2016-07-06T17:00:00+01:00; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of GET /{db}/{doc} when show_exp=true is included in the querystring.
+
+As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.|string
+|**_id** +
+__optional__|The document ID.|string
+|**_rev** +
+__optional__|Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)|string
+|**_revisions** +
+__optional__||object
+|===
+
+
+[[_documentresponse]]
+=== DocumentResponse
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**_id** +
+__optional__|Document identifier|string
+|**_rev** +
+__optional__|Revision identifier|string
+|===
+
+
+[[_error]]
+=== Error
+
+[options="header", cols=".^3,.^4"]
+|===
+|Name|Schema
+|**code** +
+__optional__|integer (int32)
+|**fields** +
+__optional__|string
+|**message** +
+__optional__|string
+|===
+
+
+[[_expvars]]
+=== ExpVars
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**cb** +
+__optional__|Variables reported by the Couchbase SDK (go_couchbase package)|object
+|**cmdline** +
+__optional__|Built-in variables from the Go runtime, lists the command-line arguments|object
+|**mc** +
+__optional__|Variables reported by the low-level memcached API (gomemcached package)|object
+|**memstats** +
+__optional__|Dumps a large amount of information about the memory heap and garbage collector|object
+|**syncGateway_changeCache** +
+__optional__||object
+|**syncGateway_db** +
+__optional__||object
+|===
+
+
+[[_forbidden]]
+=== Forbidden
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**error** +
+__optional__|**Default** : `"conflict"`|string
+|**id** +
+__optional__||string
+|**reason** +
+__optional__||string
+|**status** +
+__optional__||integer
+|===
+
+
+[[_logtags]]
+=== LogTags
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**Access** +
+__optional__|access() calls made by the sync function|boolean
+|**Attach** +
+__optional__|Attachment processing|boolean
+|**Auth** +
+__optional__|Authentication|boolean
+|**Bucket** +
+__optional__|Sync Gateway interactions with the bucket (verbose logging).|boolean
+|**CRUD** +
+__optional__|Updates made by Sync Gateway to documents (CRUD+ for verbose logging)|boolean
+|**Cache** +
+__optional__|Interactions with Sync Gateway's in-memory channel cache (Cache+ for verbose logging)|boolean
+|**Changes** +
+__optional__|Processing of _changes requests (Changes+ for verbose logging)|boolean
+|**DCP** +
+__optional__|DCP-feed processing (verbose logging)|boolean
+|**Events** +
+__optional__|Event processing (webhooks) (Events+ for verbose logging)|boolean
+|**Feed** +
+__optional__|Server-feed processing (Feed+ for verbose logging)|boolean
+|**HTTP** +
+__optional__|All requests made to the Sync Gateway REST APIs (Sync and Admin). Note that the log keyword HTTP is always enabled, which means that HTTP requests and error responses are always logged (in a non-verbose manner). HTTP+ provides more verbose HTTP logging.|boolean
+|===
+
+
+[[_purgebody]]
+=== PurgeBody
+Document ID
+
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**a_doc_id** +
+__optional__|Only possible value is `[&quot;*&quot;]`. It permanently removes all revisions for that document ID.|< enum (*) > array
+|===
+
+
+[[_queryresult]]
+=== QueryResult
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**offset** +
+__optional__|Starting index of the returned rows.|string
+|**rows** +
+__optional__||< <<_queryrow,QueryRow>> > array
+|**total_rows** +
+__optional__|Number of documents in the database. This number is not the number of rows returned.|integer
+|===
+
+
+[[_queryrow]]
+=== QueryRow
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**doc** +
+__optional__|The document body. This is only returned if `include_docs=true` is specified in the URL.|object
+|**id** +
+__optional__|The ID of the document.|string
+|**key** +
+__optional__|The key in the output row.|object
+|**value** +
+__optional__|The value in the output row.|object
+|===
+
+
+[[_replication]]
+=== Replication
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**ok** +
+__optional__|Indicates whether the replication operation was successful|boolean
+|**session_id** +
+__optional__|Session identifier|string
+|===
+
+
+[[_serverdata_model]]
+=== ServerData_model
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**couchdb** +
+__optional__|Contains the string 'Welcome' (this is required for compatibility with CouchDB)|string
+|**vendor/name** +
+__optional__|The server type ('Couchbase Sync Gateway)|string
+|**vendor/version** +
+__optional__|The server version|string
+|**version** +
+__optional__|Sync Gateway version number|string
+|===
+
+
+[[_session]]
+=== Session
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**authentication_handlers** +
+__optional__|List of authentication methods.|< string > array
+|**ok** +
+__optional__|Always true if the operation was successful.|boolean
+|**userCtx** +
+__optional__||<<_usercontext,UserContext>>
+|===
+
+
+[[_success]]
+=== Success
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**id** +
+__optional__|Design document identifier|string
+|**ok** +
+__optional__|Indicates whether the operation was successful|boolean
+|**rev** +
+__optional__|Revision identifier|string
+|===
+
+
+[[_user]]
+=== User
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**admin_channels** +
+__optional__|Array of channel names to give the user access to|< string > array
+|**admin_roles** +
+__optional__|Array of role names to assign to this user|< string > array
+|**all_channels** +
+__optional__|Array of channel names the user is given access to|< string > array
+|**disabled** +
+__optional__|Boolean property to disable this user. The user will not be able to login if this property is set to true.|boolean
+|**email** +
+__optional__|Email of the user that will be created.|string
+|**name** +
+__optional__|Name of the user that will be created|string
+|**password** +
+__optional__|Password of the user that will be created. Required, unless the allow_empty_password Sync Gateway per-database configuration value is set to true, in which case the password can be omitted.|string
+|**roles** +
+__optional__|Array of role names the user is given access to|< string > array
+|===
+
+
+[[_usercontext]]
+=== UserContext
+Context for this user.
+
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**channels** +
+__optional__|Key-value pairs with a channel name as the key and the sequence number that granted the user access to the channel as value. `!` is the public channel and every user has access to it.|object
+|**name** +
+__optional__|The user's name.|string
+|===
+
+
+[[_view]]
+=== View
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**_rev** +
+__optional__|Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)|string
+|**views** +
+__optional__|List of views to save on this design document.|object
+|===
+
+
+

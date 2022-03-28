@@ -1,0 +1,64 @@
+
+[[_definitions]]
+== Definitions
+
+:page-partials:
+// == Document begin hook
+
+This definitions section describes the data models used by the operations described in the <<_paths>> section.
+
+
+
+
+[[_expvars]]
+=== ExpVars
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**cb** +
+__optional__|Variables reported by the Couchbase SDK (go_couchbase package)|object
+|**cmdline** +
+__optional__|Built-in variables from the Go runtime, lists the command-line arguments|object
+|**mc** +
+__optional__|Variables reported by the low-level memcached API (gomemcached package)|object
+|**memstats** +
+__optional__|Dumps a large amount of information about the memory heap and garbage collector|object
+|**syncGateway_changeCache** +
+__optional__||object
+|**syncGateway_db** +
+__optional__||object
+|**syncgateway** +
+__optional__|Monitoring stats|object
+|===
+
+
+[[_metrics]]
+=== Metrics
+The Prometheus output is expected to by consumed only by a Prometheus server.
+For that reason its format is irrelevant, and a brief extract is show here for completeness and information only.
+
+* For more details on the metrics collected and reported by Sync Gateway – see: link:stats-monitoring.html[Sync Gateway Statistics Schema].
+* For more details on Monitoring Sync Gateway using the `_metrics` feed – see: our blog on https://blog.couchbase.com/monitoring-and-visualization-of-couchbase-sync-gateway-with-prometheus-and-grafana/[Monitoring and Visualization of Couchbase Sync Gateway with Prometheus and Grafana]
+
+----
+...
+# HELP go_gc_duration_seconds A summary of the pause duration of garbage collection cycles.
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile="0"} 0.0001155
+go_gc_duration_seconds{quantile="0.25"} 0.0001254
+go_gc_duration_seconds{quantile="0.5"} 0.0001597
+go_gc_duration_seconds{quantile="0.75"} 0.0001806
+go_gc_duration_seconds{quantile="1"} 0.0049731
+go_gc_duration_seconds_sum 0.006334
+go_gc_duration_seconds_count 9
+# HELP go_goroutines Number of goroutines that currently exist.
+# TYPE go_goroutines gauge
+go_goroutines 205
+...
+----
+
+__Type__ : object
+
+
+

@@ -1,11 +1,11 @@
 swagger: '2.0'
 info:
   title: Sync Gateway
-  description: |2
+  description: |+
     This yaml API spec documents the Sync Gateway Public REST API.
 
-    The swagger spec isn’t officially supported or actively maintained. It is offered as a convenient starting point for developers.
-
+    The swagger spec isn't officially supported or actively maintained.
+    It is offered as a convenient starting point for developers.
   version: '2.0'
 # the domain of the service
 host: localhost:4984
@@ -39,16 +39,13 @@ tags:
   - name: Database
     description: Work with databases
   - name: Document
-    description: Work with documents and attachments
+    description: Work with documents
+  - name: 'Document (local)'
+    description: Work with local documents
   - name: Server
     description: Work with the server
   - name: Session
     description: Work with sessions
-
-
-
-
-
 ################################################################################
 #                                   Parameters                                 #
 ################################################################################
@@ -598,11 +595,14 @@ paths:
       operationId: GetAttachment
       tags:
       - Attachment
-      summary: Get attachment
-      description: |
-        This request retrieves a file attachment associated with the document. The raw data of the associated attachment is returned (just as if you were accessing a static file). The Content-Type response header is the same content type set when the document attachment was added to the database.
+      summary: Get Specific Attachment
+      description: |+
+        This request retrieves a file attachment associated with the document.
+        The raw data of the associated attachment is returned (just as if you were accessing a static file).
+        The Content-Type response header is the same content type set when the document attachment was added to the database.
 
-        To remove an attachment from a document, simply update the `_attachments` dictionary of the document in the PUT `/{db}/{id}` request. From then on, the attachment will not be replicated but will still reside in the Couchbase Server bucket (see open ticket [#1648](https://github.com/couchbase/sync_gateway/issues/1648)).
+        To remove an attachment from a document, simply update the `_attachments` dictionary of the document in the PUT `/{db}/{id}` request.
+        From then on, the attachment will not be replicated but will still reside in the Couchbase Server bucket (see open ticket [#1648](https://github.com/couchbase/sync_gateway/issues/1648)).
       parameters:
       - $ref: '#/parameters/rev'
       responses:
@@ -619,15 +619,19 @@ paths:
       operationId: UpdateAttachment
       tags:
       - Attachment
-      summary: Add or update attachment
+      summary: Create or Update Specific Attachment
       description: |+
-        This request adds or updates the supplied request content as an attachment to the specified document, the maximum content size of an attachment is 20MB. The attachment name must be a URL-encoded string (the file name). You must also supply either the rev query parameter or the If-Match HTTP header for validation, and the Content-Type headers (to set the attachment content type).
+        This request adds or updates the supplied request content as an attachment to the specified document, the maximum content size of an attachment is 20MB.
+        The attachment name must be a URL-encoded string (the file name).
+        You must also supply either the rev query parameter or the If-Match HTTP header for validation, and the Content-Type headers (to set the attachment content type).
 
-          When uploading an attachment using an existing attachment name, the corresponding stored content of the database will be updated. Because you must supply the revision information to add an attachment to the document, this serves as validation to update the existing attachment.
+        When uploading an attachment using an existing attachment name, the corresponding stored content of the database will be updated. Because you must supply the revision information to add an attachment to the document, this serves as validation to update the existing attachment.
 
-          Uploading an attachment updates the corresponding document revision. Revisions are tracked for the parent document, not individual attachments.
+        Uploading an attachment updates the corresponding document revision.
+        Revisions are tracked for the parent document, not individual attachments.
 
-          To remove an attachment from a document, simply update the `_attachments` dictionary of the document in the PUT `/{db}/{id}` request. From then on, the attachment will not be replicated but will still reside in the Couchbase Server bucket (see open ticket [#1648](https://github.com/couchbase/sync_gateway/issues/1648)).
+        To remove an attachment from a document, simply update the `_attachments` dictionary of the document in the PUT `/{db}/{id}` request.
+        From then on, the attachment will not be replicated but will still reside in the Couchbase Server bucket (see open ticket [#1648](https://github.com/couchbase/sync_gateway/issues/1648)).
       parameters:
       - $ref: '#/parameters/rev'
       - $ref: '#/parameters/body'
@@ -646,7 +650,7 @@ paths:
       operationId: UpdateDocsInBulk
       tags:
       - Database
-      summary: Bulk docs
+      summary: Create, Update or Delete Bulk docs
       description: |
         This request enables you to add, update, or delete multiple documents to a database in a single request. To add new documents, you can either specify the ID (`_id`) or let the software create an ID. To update existing documents, you must provide the document ID, revision identifier (`_rev`), and new document values. To delete existing documents you must provide the document ID, revision identifier, and the deletion flag (`_deleted`).
 
@@ -659,7 +663,14 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/definitions/BulkDocsSuccess'
+              properties:
+                id:
+                  type: string
+                  description: Design document identifier
+                rev:
+                  type: string
+                  description: Revision identifier
+
         409:
           description: The operation failed with a forbidden error. Probably because the document already exists in the database but a revision number wasn't specified.
           schema:
@@ -669,14 +680,14 @@ paths:
       operationId: GetServerInfo
       tags:
       - Server
-      summary: Server
+      summary: Get Server Data
       description: |
         Returns meta-information about the server.
       responses:
         200:
           description: Meta-information about the server.
           schema:
-            $ref: '#/definitions/Server'
+            $ref: '#/definitions/ServerData_model'
   /{db}/_bulk_get:
     parameters:
     - $ref: '#/parameters/db'
@@ -684,12 +695,15 @@ paths:
       operationId: GetDocsInBulk
       tags:
       - Database
-      summary: Bulk get
-      description: |
+      summary: Get Bulk Documents
+      description: |+
         This request returns any number of documents, as individual bodies in a MIME multipart response.
-        Each enclosed body contains one requested document. The bodies appear in the same order as in the request, but can also be identified by their X-Doc-ID and X-Rev-ID headers.
+
+        Each enclosed body contains one requested document.
+        The bodies appear in the same order as in the request, but can also be identified by their X-Doc-ID and X-Rev-ID headers.
         A body for a document with no attachments will have content type application/json and contain the document itself.
-        A body for a document that has attachments will be written as a nested multipart/related body. Its first part will be the document's JSON, and the subsequent parts will be the attachments (each identified by a Content-Disposition header giving its attachment name.)
+        A body for a document that has attachments will be written as a nested multipart/related body.
+        Its first part will be the document's JSON, and the subsequent parts will be the attachments (each identified by a Content-Disposition header giving its attachment name.)
       produces:
       - 'multipart/mixed'
       parameters:
@@ -734,10 +748,15 @@ paths:
     get:
       operationId: GetLocalDoc
       tags:
-      - Document
-      summary: Get local doc
-      description: |
-        This request retrieves a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
+      - 'Document (local)'
+      summary: Get Specific Local Document
+      description: |+
+        This request retrieves a local document.
+
+        Local document IDs begin with _local/.
+        Local documents are not replicated or indexed, don't support attachments, and don't save revision histories.
+
+        In practice local documents mostly used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
       responses:
         200:
           description: The message body contains the following objects in a JSON document.
@@ -746,10 +765,15 @@ paths:
     put:
       operationId: AddOrUpdateLocalDoc
       tags:
-      - Document
-      summary: Create or update a local document
-      description: |
-        This request creates or updates a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by the client's replicator, as a place to store replication checkpoint data.
+      - 'Document (local)'
+      summary: Create or Update a Local Document
+      description: |+
+        This request creates or updates a local document.
+
+        Local document IDs begin with _local/.
+        Local documents are not replicated or indexed, don't support attachments, and don't save revision histories.
+
+        In practice they are almost only used by the client's replicator, as a place to store replication checkpoint data.
       responses:
         201:
           description: Created
@@ -758,10 +782,13 @@ paths:
     delete:
       operationId: DeleteLocalDoc
       tags:
-      - Document
-      summary: Delete a local document
-      description: |
-        This request deletes a local document. Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
+      - 'Document (local)'
+      summary: Delete Specific Local Document
+      description: |+
+        This request deletes a local document.
+
+        Local document IDs begin with _local/. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories.
+        In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
       parameters:
       - $ref: '#/parameters/rev'
       - $ref: '#/parameters/batch'
@@ -789,10 +816,13 @@ paths:
       - $ref: '#/parameters/since'
       - $ref: '#/parameters/heartbeat'
       - $ref: '#/parameters/timeout'
-      summary: Changes
-      description: |
-        This request retrieves a sorted list of changes made to documents in the database, in time order of application. Each document appears at most once, ordered by its most recent change, regardless of how many times it's been changed.
-        This request can be used to listen for update and modifications to the database for post processing or synchronization. A continuously connected changes feed is a reasonable approach for generating a real-time log for most applications.
+      summary: Get Changes Feed (query parameters)
+      description: |+
+        This request retrieves a sorted list of changes made to documents in the database, in time order of application.
+
+        Each document appears at most once, ordered by its most recent change, regardless of how many times it's been changed.
+        This request can be used to listen for update and modifications to the database for post processing or synchronization.
+        A continuously connected changes feed is a reasonable approach for generating a real-time log for most applications.
       responses:
         200:
           description: Request completed successfully
@@ -804,7 +834,7 @@ paths:
       - Database
       parameters:
       - $ref: '#/parameters/changes_body'
-      summary: Changes
+      summary: Get Changes Feed (body parameters)
       description: |
         Same as the GET /_changes request except the parameters are in the JSON body.
       responses:
@@ -827,7 +857,7 @@ paths:
       - $ref: '#/parameters/open_revs'
       - $ref: '#/parameters/revs'
       - $ref: '#/parameters/show_exp'
-      summary: Get document
+      summary: Get Specific Document
       description: This request retrieves a document from a database.
       responses:
         200:
@@ -846,12 +876,21 @@ paths:
           $ref: '#/definitions/Document'
       - $ref: '#/parameters/new_edits'
       - $ref: '#/parameters/rev_put'
-      summary: Create or update document
-      description: |
-        This request creates a new document or creates a new revision of an existing document. It enables you to specify the identifier for a new document rather than letting the software create an identifier. If you want to create a new document and let the software create an identifier, use the POST /db request.
-        If the document specified by doc does not exist, a new document is created and assigned the identifier specified in doc. If the document already exists, the document is updated with the JSON document in the message body and given a new revision. The maximum size allowed for a document is 20MB.
+      summary: Create or Update Specific Document
+      description: |+
+        This request creates a new document or creates a new revision of an existing document.
+        It enables you to specify the identifier for a new document rather than letting the software create an identifier.
 
-        Since Sync Gateway 1.3, an expiry property (`_exp`) can also be specified to purge the document after a given time. If **convergence** is enabled (introduced in Sync Gateway 1.5), the behaviour of the expiry feature changes in the following way: when the expiry value is reached, instead of getting purged, the **active** revision of the document is tombstoned. If there is another non-tombstoned revision for this document (i.e a conflict) it will become the active revision. The tombstoned revision will be purged when the server's metadata purge interval is reached.
+        If you want to create a new document and let the software create an identifier, use the POST /db request.
+
+        If the document specified by doc does not exist, a new document is created and assigned the identifier specified in doc.
+        If the document already exists, the document is updated with the JSON document in the message body and given a new revision.
+        The maximum size allowed for a document is 20MB.
+
+        Since Sync Gateway 1.3, an expiry property (`_exp`) can also be specified to purge the document after a given time.
+        If **convergence** is enabled (introduced in Sync Gateway 1.5), the behavior of the expiry feature changes in the following way: when the expiry value is reached, instead of getting purged, the **active** revision of the document is tombstoned.
+        If there is another non-tombstoned revision for this document (i.e a conflict) it will become the active revision.
+        The tombstoned revision will be purged when the server's metadata purge interval is reached.
       responses:
         200:
           description: The response is a JSON document that contains the following objects
@@ -863,9 +902,11 @@ paths:
       - Document
       parameters:
       - $ref: '#/parameters/rev_delete'
-      summary: Delete document
-      description: |
-        This request deletes a document from the database. When a document is deleted, the revision number is updated so the database can track the deletion in synchronized copies.
+      summary: Delete Specific Document
+      description: |+
+        This request deletes a document from the database.
+
+        When a document is deleted, the revision number is updated so the database can track the deletion in synchronized copies.
       responses:
         200:
           description: Document successfully removed
@@ -878,8 +919,8 @@ paths:
       operationId: GetAllDocs
       tags:
       - Database
-      summary: All docs
-      description: |
+      summary: Get All Docs
+      description: |+
         This request returns a built-in view of all the documents in the database.
       parameters:
       - $ref: '#/parameters/access'
@@ -900,7 +941,7 @@ paths:
       operationId: GetAllDocsWithParametersInBody
       tags:
       - Database
-      summary: All docs
+      summary: Get All Specified Documents
       description: |
         This request retrieves specified documents from the database.
       parameters:
@@ -954,7 +995,7 @@ paths:
       operationId: GetOpenIDAuthCallBack
       tags:
       - Authentication
-      summary: OpenID Connect Authentication callback.
+      summary: Get OIDC Callback.
       description: |
         Sync Gateway callback URL that clients are redirected to by the OpenID Connect provider.
       parameters:
@@ -1006,18 +1047,23 @@ paths:
       operationId: GetOpenIDAuth
       tags:
       - Authentication
-      summary: OpenID Connect Authentication.
+      summary: Get OIDC Authentication.
       description: |
         Called by clients to initiate the OIDC Authorization Code flow.
       parameters:
       - in: query
         name: offline
-        description: When true, requests a refresh token from the OP. Sets access_type=offline and prompt=consent on the redirect to the OP. Secure clients should set offline=true and persist the returned refresh token to secure storage.
+        description: |+
+          When true, requests a refresh token from the OP.
+          Sets access_type=offline and prompt=consent on the redirect to the OP.
+          Secure clients should set offline=true and persist the returned refresh token to secure storage.
         type: boolean
         required: false
       - in: query
         name: provider
-        description: OpenId Connect provider to be used for authentication, from the list of providers defined in the Sync Gateway Config. If not specified, will attempt to authenticate using the default provider.
+        description: |+
+          OpenId Connect provider to be used for authentication, from the list of providers defined in the Sync Gateway Config.
+          If not specified, will attempt to authenticate using the default provider.
         type: string
         required: false
       responses:
@@ -1034,7 +1080,7 @@ paths:
       operationId: GetOpenIDRefreshToken
       tags:
       - Authentication
-      summary: OpenID Connect refresh.
+      summary: Get OIDC Refresh.
       description: |
         Used to obtain a new OpenID Connect ID token based on the provided refresh token.
       parameters:
@@ -1082,11 +1128,14 @@ paths:
     post:
       operationId: AuthenticationViaFacebook
       tags:
-        - Authentication
-      summary: User creation / authentication via Facebook
-      description: |
-        Sync Gateway allows users to authenticate using a Facebook account. Your application is responsible for generating a Facebook token; this generally needs to be done by running the Facebook login flow inside a web-view and capturing the generated token. This endpoint can be used to check the validity of the access token.
-        To allow Facebook Login with Sync Gateway, it must be explicitely enabled in the Sync Gateway configuration file by setting the [facebook.register](config-properties.html#facebook-register) property to `true`.
+      - Authentication
+      summary: Get Facebook Authenticated Session
+      description: |+
+        Sync Gateway allows users to authenticate using a Facebook account.
+
+        Your application is responsible for generating a Facebook token; this generally needs to be done by running the Facebook login flow inside a web-view and capturing the generated token.
+        This endpoint can be used to check the validity of the access token.
+        To allow Facebook Login with Sync Gateway, it must be explicitly enabled in the Sync Gateway configuration file by setting the [facebook.register](config-properties.html#facebook-register) property to `true`.
       parameters:
         - in: body
           name: body
@@ -1114,10 +1163,13 @@ paths:
     post:
       operationId: AuthenticationViaGoogle
       tags:
-        - Authentication
-      summary: User creation / authentication via Google
-      description: |
-        Sync Gateway allows users to authenticate using a Google account. Your application is responsible for generating a Google token; this generally needs to be done by running the Google login flow inside a web-view and capturing the generated token. This endpoint can be used to check the validity of the access token.
+      - Authentication
+      summary: Get Google Authenticated Session
+      description: |+
+        Sync Gateway allows users to authenticate using a Google account.
+
+        Your application is responsible for generating a Google token; this generally needs to be done by running the Google login flow inside a web-view and capturing the generated token.
+        This endpoint can be used to check the validity of the access token.
         To allow Google Login with Sync Gateway, it must be explicitly enabled in the Sync Gateway configuration file by setting the [google.register](config-properties.html#google-register) property to `true` and setting the [google.app_client_id](config-properties.html#google-app_client_id) property with a Google app client ID.
       parameters:
         - in: body
@@ -1147,7 +1199,7 @@ paths:
       operationId: GetRevisionIds
       tags:
       - Database
-      summary: Used by the replicator
+      summary: Get Revision ID Diff
       description: Given a set of document/revision IDs, returns the subset of those that do not correspond to revisions stored in the database.
       parameters:
       - in: body
@@ -1182,7 +1234,7 @@ paths:
       operationId: GetDatabaseInfo
       tags:
       - Database
-      summary: Database info
+      summary: Get Database Data
       description: |
         This request retrieves information about the database.
       responses:
@@ -1198,9 +1250,11 @@ paths:
       operationId: AddDocument
       tags:
       - Document
-      summary: Create document
+      summary: Create New Document
       description: |
-        This request creates a new document in the specified database. You can either specify the document ID by including the _id in the request message body (the value must be a string), or let the software generate an ID.
+        This request creates a new document in the specified database.
+
+        You can either specify the document ID by including the _id in the request message body (the value must be a string), or let the software generate an ID.
 
         The maximum size allowed for a document is 20MB.
       parameters:
@@ -1221,9 +1275,11 @@ paths:
       operationId: AddUserSession
       tags:
       - Session
-      summary: Create a user session
-      description: |
-        If the credentials provided in the request body are valid, the session is created with an idle session timeout of 24 hours. An idle session timeout in the context of Sync Gateway is defined as the following: if 10% or more of the current expiration time has elapsed when a subsequent request with that session id is processed, the session's expiry time is automatically updated to 24 hours from that time.
+      summary: Create User Session
+      description: |+
+        If the credentials provided in the request body are valid, the session is created with an idle session timeout of 24 hours.
+
+        An idle session timeout in the context of Sync Gateway is defined as the following: if 10% or more of the current expiration time has elapsed when a subsequent request with that session id is processed, the session's expiry time is automatically updated to 24 hours from that time.
       parameters:
       - in: body
         name: SessionBody
@@ -1246,7 +1302,7 @@ paths:
       operationId: DeleteUserSession
       tags:
       - Session
-      summary: Delete a user session
+      summary: Delete User Session
       description: |
         This request deletes the session that currently authenticates the requests.
       parameters:
@@ -1256,54 +1312,11 @@ paths:
         type: string
       responses:
         200:
-          description: The session was successfuly removed.
+          description: The session was successfully removed.
 ################################################################################
 #                                 Definitions                                  #
 ################################################################################
 definitions:
-  DocMetadata:
-    type: object
-    properties:
-      _sync:
-        type: object
-        properties:
-          rev:
-            type: string
-            description: Revision number of the current revision
-          sequence:
-            type: integer
-            description: Sequence number of this document
-          recent_sequences:
-            type: array
-            items:
-              type: integer
-              description: Previous sequence numbers
-          parents:
-            type: array
-            items:
-              type: integer
-              description: N/A
-          history:
-            type: object
-            properties:
-              revs:
-                type: array
-                items:
-                  type: string
-                  description: N/A
-              parents:
-                type: array
-                items:
-                  type: integer
-                  description: N/A
-              channels:
-                type: array
-                items:
-                  type: string
-                  description: N/A
-              time_saved:
-                type: string
-                description: Timestamp of the last operation?
   DocumentResponse:
     type: object
     properties:
@@ -1461,15 +1474,6 @@ definitions:
           type: string
           description: Only possible value is `"*"`. It permanently removes all revisions for that document ID.
           enum: ["*"]
-  BulkDocsSuccess:
-    type: object
-    properties:
-      id:
-        type: string
-        description: Design document identifier
-      rev:
-        type: string
-        description: Revision identifier
   Success:
     type: object
     properties:
@@ -1526,7 +1530,7 @@ definitions:
     properties:
       changes:
         type: array
-        description: List of the document’s leafs. Each leaf object contains one field, rev.
+        description: List of the document's leafs. Each leaf object contains one field, rev.
         items:
           type: object
           properties:
@@ -1699,7 +1703,7 @@ definitions:
       session_id:
         type: string
         description: Session identifier
-  Server:
+  ServerData_model:
     type: object
     properties:
       couchdb:
