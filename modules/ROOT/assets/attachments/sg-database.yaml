@@ -1,7 +1,7 @@
 properties:
-  database:
+  Database_model:
     type: object
-    title: "Database Configuration"
+    title: "Database"
     description: |+
       This `database` object defines the JSON configuration of a sync gateway database.
 
@@ -21,6 +21,7 @@ properties:
 
           If not specified, then the database name is used as the bucket name.
 
+
       name:
         type: string
         description: |+
@@ -29,16 +30,7 @@ properties:
           Change initiates database restart
 
       sync:
-        type: string
-        description: |+
-          The `sync` property is a Javascript Sync function that determines which users can access which documents.
-
-          This JavaScript filter function is provisioned using the Admin Rest API Endpoint ```put /{db}/_config/sync```.
-          Add the function as plain javascript in the request body, with the ```content-Type: application/javascript``` header.
-
-        default: |+
-          `function(doc, oldDoc) {channel(doc.channels);}`
-
+        $ref: '#/definitions/sync_function'
 
       guest:
         type: object
@@ -54,13 +46,12 @@ properties:
               For example:
               ```curl -X PUT username:password@localhost:4985/db/_config -H "Content-Type: application/json" --data-binary '{"guest": {"disabled":false}}```
 
-
       revs_limit:
         type: integer
         description: |+
           This property defines the maximum depth to which a document's revision tree can grow; its value governs the point at which to prune a document's revision tree.
 
-          The default and minimum values of `revs_limit` are dependent on whether [allow_conflicts](config-properties.html#databases-this_db-allow_conflicts) is set True or False -- see the *Default and Minimum Values* table below.
+          The default and minimum values of `revs_limit` are dependent on whether [allow_conflicts](configuration-schema-database.html#database-allow_conflicts) is set True or False -- see the *Default and Minimum Values* table below.
 
           The process to remove obsolete revisions is called pruning and runs automatically every time a revision is added. Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite. On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
 
@@ -93,8 +84,8 @@ properties:
           - `revs_limit` minimum = 20
 
           See also:
-          - Sync Gateway purge endpoint [/{db}/_purge](admin-rest-api.html#/document/post__db___purge).
-          - Sync Gateway [document TTLs](admin-rest-api.html#/document/put__db___doc_).
+          - Sync Gateway purge endpoint [/{db}/_purge](rest-api-admin.html#/Document_model/post__db___purge).
+          - Sync Gateway [document TTLs](rest-api-admin.html#/Document_model/put__db___doc_).
 
           minimum -- see Default and Minimum Values table in description
 
@@ -126,19 +117,7 @@ properties:
         default: 16
 
       import_filter:
-        type: string
-        description: |+
-          The `import_filter` controls whether a document written to the Couchbase Server bucket should be made available to Couchbase Mobile clients (that is, whether it ought to be imported).
-
-          You should provision the filter as a Javascript function in the request body of a call to the Admin Rest API endpoint ```put {db}/_config/import_filter```.
-
-          Set the header's content type to ```content-Type: application/javascript```.
-
-          The function takes the document body as parameter and is expected to return a boolean to indicate whether the document should be imported.
-
-          If you do not provide a filter function then no filter will be applied and ALL documents will be imported.
-        default: "No filter"
-        example: "function(doc) {if (doc.type != 'mobile') {return false} return true}"
+        $ref: '#/definitions/Import_filter'
 
       import_backup_old_rev:
         type: string
@@ -161,92 +140,87 @@ properties:
 
           You can configure Sync Gateway to log information about event handling, by including either the log key ```Event``` or ```Events+``` in the `Log` property in your Sync Gateway configuration file. `Events+` is more verbose.
 
-          See also: {webhooks--xref}
+          See also:
+          [Webhook](webhooks.html)..
 
         properties:
           document_changed:
+            title: "Document Changed"
             description: The configuration for the action to perform when a document change is detected.
-            type: array
-            items:
-              # type: object
-              title: "Document Changed"
-              properties:
-                filter:
-                  type: string
-                  description: |+
-                    Use ```document_changed.filter``` to define a JavaScript function that determines which documents to post.
+            properties:
+              filter:
+                type: string
+                description: |+
+                  Use ```document_changed.filter``` to define a JavaScript function that determines which documents to post.
 
-                    The filter function accepts the document body as input and returns a boolean value.
+                  The filter function accepts the document body as input and returns a boolean value.
 
-                    -- If the filter function returns true, then Sync Gateway posts the document.
-                    -- If the filter function returns false, then Sync Gateway does not post the document.
-                    -- If no filter function is defined, then Sync Gateway posts all changed documents.
+                  -- If the filter function returns true, then Sync Gateway posts the document.
+                  -- If the filter function returns false, then Sync Gateway does not post the document.
+                  -- If no filter function is defined, then Sync Gateway posts all changed documents.
 
-                    Filtering only determines which documents to post.
-                    It does not extract specific content from documents and post only that.
-                  # required: 'true'
-                handler:
-                  type: string
-                  description: |+
-                    Specify the type of event handler.
+                  Filtering only determines which documents to post.
+                  It does not extract specific content from documents and post only that.
 
-                    This must be `webhook` currently).
-                options:
-                  type: string
-                  description: |+
-                    Options can be specified per-handler, and are specific to each handler type.
-                timeout:
-                  type: integer
-                  description: |+
-                    Defines the period in seconds to wait for a response to the POST operation.
+              handler:
+                type: string
+                description: |+
+                  Specify the type of event handler.
 
-                    Using a timeout ensures that slow-running POST operations don't cause the webhook event queue to back up.
+                  This must be `webhook` currently).
+              options:
+                type: string
+                description: |+
+                  Options can be specified per-handler, and are specific to each handler type.
+              timeout:
+                type: integer
+                description: |+
+                  Defines the period in seconds to wait for a response to the POST operation.
 
-                    Slow-running POST operations are discarded (if they time out), so that new events can be processed. When the timeout is reached, Sync Gateway stops listening for a response.
+                  Using a timeout ensures that slow-running POST operations don't cause the webhook event queue to back up.
 
-                    A value of 0 (zero) means no timeout.
+                  Slow-running POST operations are discarded (if they time out), so that new events can be processed. When the timeout is reached, Sync Gateway stops listening for a response.
 
-                    You should not need to adjust it to tune performance as he default value should work well in the majority of cases.
-                  default: 60
-                url:
-                  description: |+
-                    Defines the URL to post documents to (for a webhook event handler).
-                  type: string
-                  # required: true
+                  A value of 0 (zero) means no timeout.
+
+                  You should not need to adjust it to tune performance as he default value should work well in the majority of cases.
+                default: 60
+              url:
+                description: |+
+                  Defines the URL to post documents to (for a webhook event handler).
+                type: string
+                # required: true
+
           db_state_changed:
-            type: array
             description: |+
                 Use the `db_state_changed` property group to define the actions to perform when a `db_state` change is detected.
-            items:
-              title: db_state_changed model
-              type: object
-              properties:
-                filter:
-                  type: string
-                  description: |+
-                    Use `db_state_changed.filter``` to define a JavaScript function that determines which state changes to post.
+            title: db_state_changed model
+            type: object
+            properties:
+              filter:
+                type: string
+                description: |+
+                  Use `db_state_changed.filter``` to define a JavaScript function that determines which state changes to post.
+              handler:
+                type: string
+                description: |+
+                  Specify the type of event handler.
 
-                handler:
-                  type: string
-                  description: |+
-                    Specify the type of event handler.
+                  This must be `webhook` currently).
+              options:
+                type: string
+                description: |+
+                  Options can be specified per-handler, and are specific to each handler type.
+              timeout:
+                type: integer
+                description: |+
+                  Defines the period in seconds to wait for a response to the operation.
+                  Default: 60
+              url:
+                type: string
+                description: |+
+                  Defines the URL to post to (for a webhook event handler).
 
-                    This must be `webhook` currently).
-                options:
-                  type: string
-                  description: |+
-                    Options can be specified per-handler, and are specific to each handler type.
-                timeout:
-                  type: integer
-                  description: |+
-                    Defines the period in seconds to wait for a response to the operation.
-
-                  default: 60
-                url:
-                  description: |+
-                    Defines the URL to post to (for a webhook event handler).
-                  type: string
-                  # required: true
           max_processes:
             type: integer
             description: |+
@@ -256,6 +230,7 @@ properties:
               You should not need to adjust it to tune performance.
               However, if you wish to ensure that most webhook posts are sent, you can set it to sufficiently high value.
             default: 500
+
           wait_for_process:
             type: string
             description: |+
@@ -567,7 +542,7 @@ properties:
                       *Optional*
 
                   scope:
-                    type: [string]
+                    type: string
                     description: |+
                       By default, Sync Gateway uses the scope "openid email" when calling the OP's authorize endpoint.
 
@@ -680,6 +655,7 @@ properties:
 
           Change initiates a database restart
 
+
       session_cookie_secure:
         type: boolean
         default: 'true'
@@ -693,7 +669,7 @@ properties:
       session_cookie_name:
         type: string
         description: |+
-          It is possible to customize the session cookie name used for this database.
+          Starting in Sync Gateway 2.0, it is possible to customize the session cookie name that is used for this database.
 
           This property is mostly used by web applications interacting with multiple Sync Gateway databases.
 
@@ -712,9 +688,9 @@ properties:
                     "session_cookie_name": "CustomName2",
                     "bucket": "bucket-2"
                   }
+                }
               }
           }
-
           ```
 
           With this configuration, the `Set-Cookie` response header of the POST `:4984/{db}/_session` endpoint (Public REST API) would then have the form "CustomName1=3cad4b95524179bf144fe0d92b8f09877bb86bf5;path=/db1/".
@@ -798,8 +774,7 @@ properties:
 
           Delta Sync does not apply to attachment contents.
 
-          Delta Sync is disabled by default on the Sync Gateway.
-          You can enable it through the `enabled` property.
+          Delta Sync is disabled by default on the Sync Gateway. You can enable it through the `enabled` property.
 
           If delta sync is enabled on Sync Gateway, then Couchbase Lite clients will switch to using delta sync automatically.
           Similarly, if delta sync is disabled on Sync Gateway, clients will switch to normal mode.
@@ -815,11 +790,6 @@ properties:
 
               ```json
               {
-                "logging": {
-                  "console": {
-                    "log_keys": ["*"]
-                  }
-                },
                 "databases": {
                   "db": {
                     "delta_sync": {
@@ -933,4 +903,3 @@ properties:
           Use the `client_partition_window_secs` property to define how long clients can remain offline for without losing replication metadata.
 
           Default 2 592 000 seconds (30 days)
-
