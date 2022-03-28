@@ -1,106 +1,48 @@
 properties:
-  replication:
+  Replication_model:
     type: object
+    title: "Replication"
     description: |+
-      This replication request message body is a JSON document that comprises all the properties required to upsert a replication.
-
-      If the `replicationID` matches an existing `replication_id` then the values of any properties provided in the body are used to update the existing replication's property values.
+      This replication model comprises all the properties required to define a replication.
     properties:
-      replication_id:
-        type: string
+      adhoc:
+        type: boolean
+        default: false
         description: |+
           **About**
 
-          The *replication_id* property specifies either:
-          - For NEW replications, the ID to be assigned to the the replication. If no *replication_id* is specified, Sync Gateway will assign a random UUID to new replications.
-          - For existing replications, this is the ID of the required replication.
-          - If **cancel=true**, this is the id of the active replication task to be cancelled.
+          Use the Admin REST API's `adhoc` parameter to specify that a replication is ad hoc rather than persistent.
+
+          **Behavior**
+
+          Ad hoc replications behave the same as normal replications, but they are automatically removed when their status changes to stopped.
+          This will usually be on completion, but may also be as a result of user action.
 
           **Constraints**
 
-          If this is specified in the body of a POST or PUT request then it must be the same value as specified in the request URL.
+          This parameter is **NOT** available to configured replications; only those initialized using the Admin REST API.
 
-      remote:
-        type: string
+      batch_size:
+        type: integer
+        default: 200
         description: |+
           **About**
 
-          The **remote** property represents the endpoint of a database for the remote Sync Gateway.
-          That is, it identifies the remote Sync Gateway database that is the subject of this replication's push, pull or pushAndPull action.
+          Use the optional `batch_size` property to specify the number of changes to be included in a single batch during replication.
 
-          Typically the endpoint will include URI, Port and Database name elements.
-
-          You can also include user credentials in the URL, in the form ```<username>:<password>```.
-          The credentials relate to an existing Sync Gateway user on the remote server.
-
-          **Example**
-          ``` "remote": "http://user:password@example.com:4985/db1-remote"```
-
-          **Format**
-
-          - a string containing a valid URL for a (remote) Sync Gateway database.
-          - an object whose url property contains the Sync Gateway database URL.
-
-          **Behavior**
-
-            Dependent upon setting of **direction**.
-
-            If **direction** is :
-            - *pull*, 'remote' defines the remote cluster *from* which data is pulled
-            - *push*, 'remote' defines the remote cluster *to* which data is pushed
-            - *pushAndPull*, 'remote' defines the *push* configuration.
-
-          **Example**
-
-          ```json
-          "remote": "http://www.example.com:4984/sample-database",
-          ```
-      username:
-        type: string
-        default: Mandatory
+      cancel:
+        type: boolean
+        default: false
         description: |+
           **About**
 
-          Use `username` to provide the name of the accredited user running this replication.
-
-          **Behavior**
-
-          These details are used to authenticate credentials and approve access to data
-
-          Once provided and recorded, the username data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
-
-      password:
-        type: string
-        default: mandatory
-        description: |+
-          **About**
-
-            Use `password` to provide the login password value for the accredited user running this replication.
-
-          **Behavior**
-
-            These details are used to authenticate credentials and approve access to data.
-
-            Once provided and recorded, the password data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
-
-      direction:
-        type: string
-        description: |+
-          **About**
-
-          The mandatory `direction` property specifies whether the replication is *push*, *pull* or *pushAndPull* relative to this node.
-
-          The property value is referenced by the [remote](rest-api-admin.html#database-this_db-replications-remote) property.
-
-          **Behavior**
-
-          - `pull` -- changes are pulled from the `remote` database
-          - `push` -- changes are pushed to the `remote` database
-          - `pushAndPull` -- changes are both pushed-to and pulled-from the `remote` database
+          Use this parameter on,y when you want to want to cancel an existing active replication.
 
           **Constraints**
 
-          Replications created prior to version 2.8 derive their *direction* from the source/target url of the replication.
+          - This parameter is **NOT** available in configured replications; only those initialized using the Admin REST API.
+          - **NOTE** that the body of the request must be the same as the replication's replication definition for the cancellation request to be honoured.
+          For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
 
       conflict_resolution_type:
         type: string
@@ -137,7 +79,25 @@ properties:
 
           **Constraints**
 
-          - replications created prior to version 2.8 will default to `default`.
+          - Replications created prior to version 2.8 will default to `default`.
+
+
+      continuous:
+        type: boolean
+        default: false
+        description: |+
+          **About**
+
+          The `continuous` property specifies whether this replication will run in continuous mode.
+
+          **Behavior**
+
+          - `continuous=true`-- In continuous mode, changes are immediately synced in accordance with the replication definition.
+          - `continuous=false`-- Detected changes are synced in accordance with the replication definition. The replication ceases once all revisions are processed.
+
+          **Constraints**
+
+          - Optional for stops and removes
 
       custom_conflict_resolver:
         type: string
@@ -175,25 +135,24 @@ properties:
 
           Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
 
-      purge_on_removal:
-        type: boolean
-        default: false
+      direction:
+        type: string
         description: |+
           **About**
 
-          The optional `purge_on_removal` property specifies, per replication, whether the removal of a `channel` triggers a purge.
+          The mandatory `direction` property specifies whether the replication is *push*, *pull* or *pushAndPull* relative to this node.
 
-          **Options**
-          - `true` or `false`
-          - Default = false -- document removals are ignored by receiving end
+          The property value is referenced by the [remote](rest-api-admin.html#database-this_db-replications-remote) property.
 
           **Behavior**
 
-          If `purge_on_removal=false`, then the removal of channels is ignored (not purged) by the receiving end.
+          - `pull` -- changes are pulled from the `remote` database
+          - `push` -- changes are pushed to the `remote` database
+          - `pushAndPull` -- changes are both pushed-to and pulled-from the `remote` database
 
           **Constraints**
 
-          Replications created prior to version 2.8 *must* be run with `purge_on_removal=false`.
+          Replications created prior to version 2.8 derive their *direction* from the source/target url of the replication.
 
       enable_delta_sync:
         type: boolean
@@ -222,52 +181,6 @@ properties:
           - Depends upon the setting of the database level parameter `delta_sync.enabled`
           - Replications created prior to version 2.8 must run with `"enable_delta_sync": false`
           - Push replications will not use Delta Sync when pushing to a pre-2.8 target
-
-      max_backoff_time:
-        type: integer
-        default: 5
-        description: |+
-          The **max_backoff_time**property specifies the time-period (in minutes) during which Sync Gateway will attempt to reconnect lost or unreachable *remote* targets.
-
-          On disconnection, Sync Gateway will do an exponential backoff up to the specified value, after which it will attempt to reconnect indefinitely every *max_backoff_time* minutes.
-
-          If a zero value is specified, then Sync Gateway will do an exponential backoff up to an interval of five minutes before stopping the replication.
-
-          NOTE -- this value defaults to five minutes for replications created prior to version 2.8.
-
-      initial_state:
-        type: string
-        default: Running
-        description: |+
-          **About**
-
-          The optional `initial_state` property is used to specify that the replication must be launched in 'Stopped' mode
-
-          **Behavior**
-
-          All replications are configured to start on Sync Gateway launch. So, if omitted, the state defaults to 'Running'.
-
-          **Constraints*
-
-          Replications created prior to version 2.8 will all default to a state of 'Running'.
-
-      continuous:
-        type: boolean
-        default: false
-        description: |+
-          **About**
-
-          The `continuous` property specifies whether this replication will run in continuous mode.
-
-          **Behavior**
-
-          - `continuous=true`-- In continuous mode, changes are immediately synced in accordance with the replication definition.
-          - `continuous=false`-- Detected changes are synced in accordance with the replication definition. The replication ceases once all revisions are processed.
-
-          **Constraints**
-
-          - Optional for stops and removes
-
       filter:
         type: string
         description: |+
@@ -292,6 +205,60 @@ properties:
           **Constraints**
 
           OPTIONAL for stops and removes (even if defined during creation)
+
+
+      max_backoff_time:
+        type: integer
+        default: 5
+        description: |+
+          The **max_backoff_time**property specifies the time-period (in minutes) during which Sync Gateway will attempt to reconnect lost or unreachable *remote* targets.
+
+          On disconnection, Sync Gateway will do an exponential backoff up to the specified value, after which it will attempt to reconnect indefinitely every *max_backoff_time* minutes.
+
+          If a zero value is specified, then Sync Gateway will do an exponential backoff up to an interval of five minutes before stopping the replication.
+
+          NOTE -- this value defaults to five minutes for replications created prior to version 2.8.
+
+      password:
+        type: string
+        default: mandatory
+        description: |+
+          **About**
+
+            Use `password` to provide the login password value for the accredited user running this replication.
+
+          **Behavior**
+
+            These details are used to authenticate credentials and approve access to data.
+
+            Once provided and recorded, the password data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
+
+      perf_tuning_params:
+        type: object
+        description: |+
+          The perf_tuning_params are not available in this release.
+
+          NOTE -- This property replaces the 'changes_feed_limit' at version 2.8
+
+      purge_on_removal:
+        type: boolean
+        default: false
+        description: |+
+          **About**
+
+          The optional `purge_on_removal` property specifies, per replication, whether the removal of a `channel` triggers a purge.
+
+          **Options**
+          - `true` or `false`
+          - Default = false -- Document removals are ignored by receiving end
+
+          **Behavior**
+
+          If `purge_on_removal=false`, then the removal of channels is ignored (not purged) by the receiving end.
+
+          **Constraints**
+
+          Replications created prior to version 2.8 *must* be run with `purge_on_removal=false`.
 
       query_params:
         type: array
@@ -321,56 +288,86 @@ properties:
           **Constraints**
 
           OPTIONAL for stops and removes (even if defined during creation)
-
         items:
           type: string
 
-      cancel:
-        type: boolean
-        default: false
+      remote:
+        type: string
         description: |+
           **About**
 
-          Use this parameter on,y when you want to want to cancel an existing active replication.
+          The **remote** property represents the endpoint of a database for the remote Sync Gateway.
+          That is, it identifies the remote Sync Gateway database that is the subject of this replication's push, pull or pushAndPull action.
 
-          **Constraints**
+          Typically the endpoint will include URI, Port and Database name elements.
 
-          - This parameter is **NOT** available in configured replications; only those initialized using the Admin REST API.
-          - **NOTE** that the body of the request must be the same as the replication's replication definition for the cancellation request to be honoured.
-          For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
+          You can also include user credentials in the URL, in the form ```<username>:<password>```.
+          The credentials relate to an existing Sync Gateway user on the remote server.
 
-      adhoc:
-        type: boolean
-        default: false
-        description: |+
-          **About**
+          **Example**
+          ``` "remote": "http://user:password@example.com:4985/db1-remote"```
 
-          Use the Admin REST API's `adhoc` parameter to specify that a replication is ad hoc rather than persistent.
+
+          **Format**
+
+          - a string containing a valid URL for a (remote) Sync Gateway database.
+          - an object whose url property contains the Sync Gateway database URL.
 
           **Behavior**
 
-          Ad hoc replications behave the same as normal replications, but they are automatically removed when their status changes to stopped.
-          This will usually be on completion, but may also be as a result of user action.
+            Dependent upon setting of **direction**.
 
-          **Constraints**
+            If **direction** is :
+            - *pull*, 'remote' defines the remote cluster *from* which data is pulled
+            - *push*, 'remote' defines the remote cluster *to* which data is pushed
+            - *pushAndPull*, 'remote' defines the *push* configuration.
 
-          This parameter is **NOT** available to configured replications; only those initialized using the Admin REST API.
+          **Example**
 
-      batch_size:
-        type: integer
-        default: 200
+          ```json
+          "remote": "http://www.example.com:4984/sample-database",
+          ```
+      replication_id:
+        type: string
         description: |+
           **About**
 
-          Use the optional `batch_size` property to specify the number of changes to be included in a single batch during replication.
+          The *replication_id* property specifies either:
+          - For NEW replications, the ID to be assigned to the the replication. If no *replication_id* is specified, Sync Gateway will assign a random UUID to new replications.
+          - For existing replications, this is the ID of the required replication.
+          - If **cancel=true**, this is the id of the active replication task to be cancelled.
 
-      perf_tuning_params:
-        type: array
+          **Constraints**
+
+          If this is specified in the body of a POST or PUT request then it must be the same value as specified in the request URL.
+
+
+      initial_state:
+        type: string
+        default: Running
         description: |+
-          The perf_tuning_params are not available in this release.
+          **About**
 
-          NOTE -- This property replaces the 'changes_feed_limit' at version 2.8
-        items:
-          type: string
+          The optional `initial_state` property is used to specify that the replication must be launched in 'Stopped' mode
 
+          **Behavior**
 
+          All replications are configured to start on Sync Gateway launch. So, if omitted, the state defaults to 'Running'.
+
+          **Constraints*
+
+          Replications created prior to version 2.8 will all default to a state of 'Running'.
+
+      username:
+        type: string
+        default: Mandatory
+        description: |+
+          **About**
+
+          Use `username` to provide the name of the accredited user running this replication.
+
+          **Behavior**
+
+          These details are used to authenticate credentials and approve access to data
+
+          Once provided and recorded, the username data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
