@@ -17,11 +17,204 @@ __optional__|Variables reported by the low-level memcached API (gomemcached pack
 |**memstats** +
 __optional__|Dumps a large amount of information about the memory heap and garbage collector|object
 |**syncGateway_changeCache** +
-__optional__||object
+__optional__||<<_expvars_syncgateway_changecache,syncGateway_changeCache>>
 |**syncGateway_db** +
-__optional__||object
+__optional__||<<_expvars_syncgateway_db,syncGateway_db>>
 |**syncgateway** +
-__optional__|Monitoring stats|object
+__optional__|Monitoring stats|<<_expvars_syncgateway,syncgateway>>
+|===
+
+[[_expvars_syncgateway_changecache]]
+**syncGateway_changeCache**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**lag-queue-0000ms** +
+__optional__|Histogram of delay from Tap feed till doc is posted to changes feed|object
+|**lag-tap-0000ms** +
+__optional__|Histogram of delay from doc save till it shows up in Tap feed|object
+|**lag-total-0000ms** +
+__optional__|Histogram of total delay from doc save till posted to changes feed|object
+|**maxPending** +
+__optional__|Max number of sequences waiting on a missing earlier sequence number|object
+|**outOfOrder** +
+__optional__|Number of out-of-order sequences posted|object
+|**view_queries** +
+__optional__|Number of queries to channels view|object
+|===
+
+[[_expvars_syncgateway_db]]
+**syncGateway_db**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**channelChangesFeeds** +
+__optional__|Number of calls to db.changesFeed, i.e. generating a changes feed for a single channel.|object
+|**channelLogAdds** +
+__optional__|Number of entries added to channel logs|object
+|**channelLogAppends** +
+__optional__|Number of times entries were written to channel logs using an APPEND operation|object
+|**channelLogCacheHits** +
+__optional__|Number of requests for channel-logs that were fulfilled from the in-memory cache|object
+|**channelLogRewriteCollisions** +
+__optional__|Number of collisions while attempting to rewrite channel logs using SET|object
+|**channelLogRewrites** +
+__optional__|Number of times entries were written to channel logs using a SET operation (rewriting the entire log)|object
+|**document_gets** +
+__optional__|Number of times a document was read from the database|object
+|**revisionCache_adds** +
+__optional__|Number of revisions added to the revision cache|object
+|**revisionCache_hits** +
+__optional__|Number of times a revision-cache lookup succeeded|object
+|**revisionCache_misses** +
+__optional__|Number of times a revision-cache lookup failed|object
+|**revs_added** +
+__optional__|Number of revisions added to the database (including deletions)|object
+|**sequence_gets** +
+__optional__|Number of times the database's lastSequence was read|object
+|**sequence_reserves** +
+__optional__|Number of times the database's lastSequence was incremented|object
+|===
+
+[[_expvars_syncgateway]]
+**syncgateway**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**global** +
+__optional__|Global Sync Gateway stats|<<_expvars_global,global>>
+|**per_db** +
+__optional__|This array contains stats for all databases declared in the config file – see the link:stats-monitoring.html[Sync Gateway Statistics Schema] for more details on the metrics collected and reported by Sync Gateway.
+
+The statistics for each {$db_name} database are grouped into:
+
+* cache related statistics
+* cbl_replication_push
+* cbl_replication_pull
+* database_related_statistics
+* delta_sync
+* gsi_views
+* security_related_statistics
+* shared_bucket_import
+* per_replication statistics for each `replication_id`|< <<_expvars_per_db,per_db>> > array
+|**per_replication** +
+__optional__|An array of stats for each replication declared in the config file
+
+*Deprecated @ 2.8*: used only by inter-sync-gateway replications version 1.|< <<_expvars_per_replication,per_replication>> > array
+|===
+
+[[_expvars_global]]
+**global**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**resource_utilization** +
+__optional__|Resource utilization stats|<<_expvars_global_resource_utilization,resource_utilization>>
+|===
+
+[[_expvars_global_resource_utilization]]
+**resource_utilization**
+
+[options="header", cols=".^3,.^4"]
+|===
+|Name|Schema
+|**admin_net_bytes_recv** +
+__optional__|integer
+|**admin_net_bytes_sent** +
+__optional__|integer
+|**error_count** +
+__optional__|integer
+|**go_memstats_heapalloc** +
+__optional__|integer
+|**go_memstats_heapidle** +
+__optional__|integer
+|**go_memstats_heapinuse** +
+__optional__|integer
+|**go_memstats_heapreleased** +
+__optional__|integer
+|**go_memstats_pausetotalns** +
+__optional__|integer
+|**go_memstats_stackinuse** +
+__optional__|integer
+|**go_memstats_stacksys** +
+__optional__|integer
+|**go_memstats_sys** +
+__optional__|integer
+|**goroutines_high_watermark** +
+__optional__|integer
+|**num_goroutines** +
+__optional__|integer
+|**process_cpu_percent_utilization** +
+__optional__|integer
+|**process_memory_resident** +
+__optional__|integer
+|**pub_net_bytes_recv** +
+__optional__|integer
+|**pub_net_bytes_sent** +
+__optional__|integer
+|**system_memory_total** +
+__optional__|integer
+|**warn_count** +
+__optional__|integer
+|===
+
+[[_expvars_per_db]]
+**per_db**
+
+[options="header", cols=".^3,.^4"]
+|===
+|Name|Schema
+|**cache** +
+__optional__|object
+|**database** +
+__optional__|object
+|**per_replication** +
+__optional__|< object > array
+|**security** +
+__optional__|object
+|===
+
+[[_expvars_per_replication]]
+**per_replication**
+
+[options="header", cols=".^3,.^4"]
+|===
+|Name|Schema
+|**$replication_id** +
+__optional__|<<_expvars_per_replication_replication_id,$replication_id>>
+|===
+
+[[_expvars_per_replication_replication_id]]
+**$replication_id**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**sgr_active** +
+__optional__|Whether the replication is active at this time.
+*Deprecated @ 2.8*: used only by inter-sync-gateway replications version 1.|boolean
+|**sgr_docs_checked_sent** +
+__optional__|The total number of documents checked for changes since replication started.
+This represents the number of potential change notifications pushed by Sync Gateway.
+*Constraints*
+ This is not necessarily the number of documents pushed, as a given target might already have the change.
+ Used by versions 1 and 2.|integer
+|**sgr_num_attachment_bytes_transferred** +
+__optional__|The total number of attachment bytes transferred since replication started.
+*Deprecated @ 2.8*: used only by inter-sync-gateway replications version 1.|integer
+|**sgr_num_attachments_transferred** +
+__optional__|The total number of attachments transferred since replication started.
+*Deprecated @ 2.8*: used only by inter-sync-gateway replications version 1.|integer
+|**sgr_num_docs_failed_to_push** +
+__optional__|The total number of documents that failed to be pushed since replication started.
+Used by versions 1 and 2.|integer
+|**sgr_num_docs_pushed** +
+__optional__|The total number of documents that were pushed since replication started.
+Used by versions 1 and 2.|integer
 |===
 
 

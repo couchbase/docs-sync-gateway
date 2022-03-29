@@ -2,109 +2,6 @@
 [[_definitions]]
 == Definitions
 
-[[_alldocs]]
-=== AllDocs
-
-[options="header", cols=".^3,.^11,.^4"]
-|===
-|Name|Description|Schema
-|**keys** +
-__optional__|List of identifiers of the documents to retrieve|< string > array
-|===
-
-
-[[_changes]]
-=== Changes
-
-[options="header", cols=".^3,.^11,.^4"]
-|===
-|Name|Description|Schema
-|**last_seq** +
-__optional__|Last change sequence number|object
-|**results** +
-__optional__|List of changes to the database. See the following table for a list of fields in this object.|< <<_changesfeedrow,ChangesFeedRow>> > array
-|===
-
-
-[[_changesfeedrow]]
-=== ChangesFeedRow
-
-[options="header", cols=".^3,.^11,.^4"]
-|===
-|Name|Description|Schema
-|**changes** +
-__optional__|List of the document's leafs. Each leaf object contains one field, rev.|< object > array
-|**deleted** +
-__optional__|Indicate whether the row is deleted +
-**Default** : `false`|boolean
-|**doc** +
-__optional__||object
-|**id** +
-__optional__|Document identifier|string
-|**seq** +
-__optional__|Update sequence number|integer
-|===
-
-
-[[_database]]
-=== Database
-
-[options="header", cols=".^3,.^11,.^4"]
-|===
-|Name|Description|Schema
-|**db_name** +
-__optional__|Name of the database|string
-|**db_uuid** +
-__optional__|Database identifier|integer
-|**disk_format_version** +
-__optional__|Database schema version|integer
-|**disk_size** +
-__optional__|Total amount of data stored on the disk (in bytes)|integer
-|**instance_start_time** +
-__optional__|Date and time the database was opened (in microseconds since 1 January 1970)|string
-|**state** +
-__optional__|The state of the specified database. Possible values are 'Online' and 'Offline'. A database can be taken offline and brought back online using the /{db}/_offline and /{db}/_online endpoints on the Admin REST API.|string
-|**update_seq** +
-__optional__|Number of updates to the database|string
-|===
-
-
-[[_design]]
-=== Design
-
-[options="header", cols=".^3,.^11,.^4"]
-|===
-|Name|Description|Schema
-|**count** +
-__optional__|Total number of items available.|integer (int32)
-|**limit** +
-__optional__|Number of items to retrieve (100 max).|integer (int32)
-|**offset** +
-__optional__|Position in pagination.|integer (int32)
-|===
-
-
-[[_document]]
-=== Document
-
-[options="header", cols=".^3,.^11,.^4"]
-|===
-|Name|Description|Schema
-|**_attachments** +
-__optional__||object
-|**_exp** +
-__optional__|Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document (TTL is not supported for databases in walrus mode). The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2016 at 17:00 in the BST timezone would be 2016-07-06T17:00:00+01:00; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of GET /{db}/{doc} when show_exp=true is included in the querystring.
-
-As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.|string
-|**_id** +
-__optional__|The document ID.|string
-|**_rev** +
-__optional__|Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)|string
-|**_revisions** +
-__optional__||object
-|===
-
-
 [[_documentresponse]]
 === DocumentResponse
 
@@ -148,9 +45,63 @@ __optional__|Variables reported by the low-level memcached API (gomemcached pack
 |**memstats** +
 __optional__|Dumps a large amount of information about the memory heap and garbage collector|object
 |**syncGateway_changeCache** +
-__optional__||object
+__optional__||<<_expvars_syncgateway_changecache,syncGateway_changeCache>>
 |**syncGateway_db** +
-__optional__||object
+__optional__||<<_expvars_syncgateway_db,syncGateway_db>>
+|===
+
+[[_expvars_syncgateway_changecache]]
+**syncGateway_changeCache**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**lag-queue-0000ms** +
+__optional__|Histogram of delay from Tap feed till doc is posted to changes feed|object
+|**lag-tap-0000ms** +
+__optional__|Histogram of delay from doc save till it shows up in Tap feed|object
+|**lag-total-0000ms** +
+__optional__|Histogram of total delay from doc save till posted to changes feed|object
+|**maxPending** +
+__optional__|Max number of sequences waiting on a missing earlier sequence number|object
+|**outOfOrder** +
+__optional__|Number of out-of-order sequences posted|object
+|**view_queries** +
+__optional__|Number of queries to channels view|object
+|===
+
+[[_expvars_syncgateway_db]]
+**syncGateway_db**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**channelChangesFeeds** +
+__optional__|Number of calls to db.changesFeed, i.e. generating a changes feed for a single channel.|object
+|**channelLogAdds** +
+__optional__|Number of entries added to channel logs|object
+|**channelLogAppends** +
+__optional__|Number of times entries were written to channel logs using an APPEND operation|object
+|**channelLogCacheHits** +
+__optional__|Number of requests for channel-logs that were fulfilled from the in-memory cache|object
+|**channelLogRewriteCollisions** +
+__optional__|Number of collisions while attempting to rewrite channel logs using SET|object
+|**channelLogRewrites** +
+__optional__|Number of times entries were written to channel logs using a SET operation (rewriting the entire log)|object
+|**document_gets** +
+__optional__|Number of times a document was read from the database|object
+|**revisionCache_adds** +
+__optional__|Number of revisions added to the revision cache|object
+|**revisionCache_hits** +
+__optional__|Number of times a revision-cache lookup succeeded|object
+|**revisionCache_misses** +
+__optional__|Number of times a revision-cache lookup failed|object
+|**revs_added** +
+__optional__|Number of revisions added to the database (including deletions)|object
+|**sequence_gets** +
+__optional__|Number of times the database's lastSequence was read|object
+|**sequence_reserves** +
+__optional__|Number of times the database's lastSequence was incremented|object
 |===
 
 
@@ -215,18 +166,108 @@ __optional__|Only possible value is `[&quot;*&quot;]`. It permanently removes al
 |===
 
 
-[[_queryresult]]
-=== QueryResult
+[[_success]]
+=== Success
 
 [options="header", cols=".^3,.^11,.^4"]
 |===
 |Name|Description|Schema
-|**offset** +
-__optional__|Starting index of the returned rows.|string
-|**rows** +
-__optional__||< <<_queryrow,QueryRow>> > array
-|**total_rows** +
-__optional__|Number of documents in the database. This number is not the number of rows returned.|integer
+|**id** +
+__optional__|Design document identifier|string
+|**ok** +
+__optional__|Indicates whether the operation was successful|boolean
+|**rev** +
+__optional__|Revision identifier|string
+|===
+
+
+[[_user]]
+=== User
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**admin_channels** +
+__optional__|Array of channel names to give the user access to|< string > array
+|**admin_roles** +
+__optional__|Array of role names to assign to this user|< string > array
+|**all_channels** +
+__optional__|Array of channel names the user is given access to|< string > array
+|**disabled** +
+__optional__|Boolean property to disable this user. The user will not be able to login if this property is set to true.|boolean
+|**email** +
+__optional__|Email of the user that will be created.|string
+|**name** +
+__optional__|Name of the user that will be created|string
+|**password** +
+__optional__|Password of the user that will be created. Required, unless the allow_empty_password Sync Gateway per-database configuration value is set to true, in which case the password can be omitted.|string
+|**roles** +
+__optional__|Array of role names the user is given access to|< string > array
+|===
+
+
+[[_changesfeedrow]]
+=== ChangesFeedRow
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**changes** +
+__optional__|List of the document's leafs. Each leaf object contains one field, rev.|< <<_changesfeedrow_changes,changes>> > array
+|**deleted** +
+__optional__|Indicate whether the row is deleted +
+**Default** : `false`|boolean
+|**doc** +
+__optional__||object
+|**id** +
+__optional__|Document identifier|string
+|**seq** +
+__optional__|Update sequence number|integer
+|===
+
+[[_changesfeedrow_changes]]
+**changes**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**rev** +
+__optional__|Identifier of the document revision that changed.|string
+|===
+
+
+[[_view]]
+=== View
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**_rev** +
+__optional__|Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)|string
+|**views** +
+__optional__|List of views to save on this design document.|<<_view_views,views>>
+|===
+
+[[_view_views]]
+**views**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**my_view_name** +
+__optional__|The view's map/reduce functions.|<<_view_my_view_name,my_view_name>>
+|===
+
+[[_view_my_view_name]]
+**my_view_name**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**map** +
+__optional__|Inline JavaScript definition for the map function|string
+|**reduce** +
+__optional__|Inline JavaScript definition for the reduce function|string
 |===
 
 
@@ -244,6 +285,136 @@ __optional__|The ID of the document.|string
 __optional__|The key in the output row.|object
 |**value** +
 __optional__|The value in the output row.|object
+|===
+
+
+[[_design]]
+=== Design
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**count** +
+__optional__|Total number of items available.|integer (int32)
+|**limit** +
+__optional__|Number of items to retrieve (100 max).|integer (int32)
+|**offset** +
+__optional__|Position in pagination.|integer (int32)
+|===
+
+
+[[_alldocs]]
+=== AllDocs
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**keys** +
+__optional__|List of identifiers of the documents to retrieve|< string > array
+|===
+
+
+[[_changes]]
+=== Changes
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**last_seq** +
+__optional__|Last change sequence number|object
+|**results** +
+__optional__|List of changes to the database. See the following table for a list of fields in this object.|< <<_changesfeedrow,ChangesFeedRow>> > array
+|===
+
+
+[[_database]]
+=== Database
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**db_name** +
+__optional__|Name of the database|string
+|**db_uuid** +
+__optional__|Database identifier|integer
+|**disk_format_version** +
+__optional__|Database schema version|integer
+|**disk_size** +
+__optional__|Total amount of data stored on the disk (in bytes)|integer
+|**instance_start_time** +
+__optional__|Date and time the database was opened (in microseconds since 1 January 1970)|string
+|**state** +
+__optional__|The state of the specified database. Possible values are 'Online' and 'Offline'. A database can be taken offline and brought back online using the /{db}/_offline and /{db}/_online endpoints on the Admin REST API.|string
+|**update_seq** +
+__optional__|Number of updates to the database|string
+|===
+
+
+[[_document]]
+=== Document
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**_attachments** +
+__optional__||<<_document_attachments,_attachments>>
+|**_exp** +
+__optional__|Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document (TTL is not supported for databases in walrus mode). The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2016 at 17:00 in the BST timezone would be 2016-07-06T17:00:00+01:00; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of GET /{db}/{doc} when show_exp=true is included in the querystring.
+
+As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.|string
+|**_id** +
+__optional__|The document ID.|string
+|**_rev** +
+__optional__|Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)|string
+|**_revisions** +
+__optional__||<<_document_revisions,_revisions>>
+|===
+
+[[_document_attachments]]
+**_attachments**
+
+[options="header", cols=".^3,.^4"]
+|===
+|Name|Schema
+|**attachment_name** +
+__optional__|<<_document_attachment_name,attachment_name>>
+|===
+
+[[_document_attachment_name]]
+**attachment_name**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**content_type** +
+__optional__|The content type of the attachment.|string
+|===
+
+[[_document_revisions]]
+**_revisions**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**ids** +
+__optional__|Array of valid revision IDs, in reverse order (latest first).|< string > array
+|**start** +
+__optional__|Prefix number for the latest revision.|integer
+|===
+
+
+[[_queryresult]]
+=== QueryResult
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**offset** +
+__optional__|Starting index of the returned rows.|string
+|**rows** +
+__optional__||< <<_queryrow,QueryRow>> > array
+|**total_rows** +
+__optional__|Number of documents in the database. This number is not the number of rows returned.|integer
 |===
 
 
@@ -292,46 +463,6 @@ __optional__||<<_usercontext,UserContext>>
 |===
 
 
-[[_success]]
-=== Success
-
-[options="header", cols=".^3,.^11,.^4"]
-|===
-|Name|Description|Schema
-|**id** +
-__optional__|Design document identifier|string
-|**ok** +
-__optional__|Indicates whether the operation was successful|boolean
-|**rev** +
-__optional__|Revision identifier|string
-|===
-
-
-[[_user]]
-=== User
-
-[options="header", cols=".^3,.^11,.^4"]
-|===
-|Name|Description|Schema
-|**admin_channels** +
-__optional__|Array of channel names to give the user access to|< string > array
-|**admin_roles** +
-__optional__|Array of role names to assign to this user|< string > array
-|**all_channels** +
-__optional__|Array of channel names the user is given access to|< string > array
-|**disabled** +
-__optional__|Boolean property to disable this user. The user will not be able to login if this property is set to true.|boolean
-|**email** +
-__optional__|Email of the user that will be created.|string
-|**name** +
-__optional__|Name of the user that will be created|string
-|**password** +
-__optional__|Password of the user that will be created. Required, unless the allow_empty_password Sync Gateway per-database configuration value is set to true, in which case the password can be omitted.|string
-|**roles** +
-__optional__|Array of role names the user is given access to|< string > array
-|===
-
-
 [[_usercontext]]
 === UserContext
 Context for this user.
@@ -344,19 +475,6 @@ Context for this user.
 __optional__|Key-value pairs with a channel name as the key and the sequence number that granted the user access to the channel as value. `!` is the public channel and every user has access to it.|object
 |**name** +
 __optional__|The user's name.|string
-|===
-
-
-[[_view]]
-=== View
-
-[options="header", cols=".^3,.^11,.^4"]
-|===
-|Name|Description|Schema
-|**_rev** +
-__optional__|Revision identifier of the parent revision the new one should replace. (Not used when creating a new document.)|string
-|**views** +
-__optional__|List of views to save on this design document.|object
 |===
 
 

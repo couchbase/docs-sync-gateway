@@ -138,7 +138,17 @@ To allow Facebook Login with Sync Gateway, it must be explicitly enabled in the 
 |**Path**|**db** +
 __required__|Database name|string
 |**Body**|**body** +
-__optional__|Request body|object
+__optional__|Request body|<<_authenticationviafacebook_body,body>>
+|===
+
+[[_authenticationviafacebook_body]]
+**body**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**access_token** +
+__optional__|The access token for the user to authenticate|string
 |===
 
 
@@ -176,7 +186,17 @@ To allow Google Login with Sync Gateway, it must be explicitly enabled in the Sy
 |**Path**|**db** +
 __required__|Database name|string
 |**Body**|**body** +
-__optional__|Request body|object
+__optional__|Request body|<<_authenticationviagoogle_body,body>>
+|===
+
+[[_authenticationviagoogle_body]]
+**body**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**id_token** +
+__optional__|The access token for the user to authenticate|string
 |===
 
 
@@ -257,9 +277,31 @@ __optional__|OpenId Connect provider to be used for authentication, from the lis
 [options="header", cols=".^2,.^14,.^4"]
 |===
 |HTTP Code|Description|Schema
-|**200**|Successful OpenID Connect authentication.|object
+|**200**|Successful OpenID Connect authentication.|<<_getopenidauthcallback_response_200,Response 200>>
 |**400**|Bad request.|No Content
 |**401**|Authentication failed. Reason returned in the response body.|No Content
+|===
+
+[[_getopenidauthcallback_response_200]]
+**Response 200**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**access_token** +
+__optional__|OpenID Connect access token|string
+|**expires_in** +
+__optional__|TTL for id_token|number
+|**id_token** +
+__optional__|OpenID Connect ID token|string
+|**name** +
+__optional__|Sync Gateway username|string
+|**refresh_token** +
+__optional__|OpenID Connect refresh token|string
+|**session_id** +
+__optional__|Sync Gateway session token|string
+|**token_type** +
+__optional__|OpenID Connect token type|string
 |===
 
 
@@ -332,9 +374,29 @@ __required__|OpenID Connect refresh token.|string
 [options="header", cols=".^2,.^14,.^4"]
 |===
 |HTTP Code|Description|Schema
-|**200**|Successful OpenID Connect authentication.|object
+|**200**|Successful OpenID Connect authentication.|<<_getopenidrefreshtoken_response_200,Response 200>>
 |**400**|Bad request.|No Content
 |**401**|Authentication failed. Unable to refresh token.|No Content
+|===
+
+[[_getopenidrefreshtoken_response_200]]
+**Response 200**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**access_token** +
+__optional__|OpenID Connect access token|string
+|**expires_in** +
+__optional__|TTL for id_token|number
+|**id_token** +
+__optional__|OpenID Connect ID token|string
+|**name** +
+__optional__|Sync Gateway username|string
+|**session_id** +
+__optional__|Sync Gateway session token|string
+|**token_type** +
+__optional__|OpenID Connect token type|string
 |===
 
 
@@ -486,7 +548,20 @@ The JSON returned by the `_bulk_docs` operation consists of an array of JSON str
 |**Path**|**db** +
 __required__|Database name|string
 |**Body**|**BulkDocsBody** +
-__optional__|The request body|object
+__optional__|The request body|<<_updatedocsinbulk_bulkdocsbody,BulkDocsBody>>
+|===
+
+[[_updatedocsinbulk_bulkdocsbody]]
+**BulkDocsBody**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**docs** +
+__optional__|List containing new or updated documents. Each object in the array can contain the following properties _id, _rev, _deleted, and values for new and updated documents.|< <<_document,Document>> > array
+|**new_edits** +
+__optional__|Indicates whether to assign new revision identifiers to new edits. +
+**Default** : `true`|boolean
 |===
 
 
@@ -495,8 +570,20 @@ __optional__|The request body|object
 [options="header", cols=".^2,.^14,.^4"]
 |===
 |HTTP Code|Description|Schema
-|**201**|Documents have been created or updated. The response object is an array with the status for each document submitted in the original request.|< object > array
+|**201**|Documents have been created or updated. The response object is an array with the status for each document submitted in the original request.|< <<_updatedocsinbulk_response_201,Response 201>> > array
 |**409**|The operation failed with a forbidden error. Probably because the document already exists in the database but a revision number wasn't specified.|<<_forbidden,Forbidden>>
+|===
+
+[[_updatedocsinbulk_response_201]]
+**Response 201**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**id** +
+__optional__|Design document identifier|string
+|**rev** +
+__optional__|Revision identifier|string
 |===
 
 
@@ -531,7 +618,27 @@ __optional__|Default is false. Indicates whether to include a _revisions propert
 |**Query**|**revs_limit** +
 __optional__|The number of revisions to include in the response from the document history. This parameter is only honoured if the `revs=true` querystring parameter is also sent in the request. If `revs=true` is specified and `revs_limit` isn't, the full revision history is returned.|integer|
 |**Body**|**BulkGetBody** +
-__optional__|List of documents being requested. Each array element is an object that must contain an id property giving the document ID. It may contain a rev property if a specific revision is desired. It may contain an atts_since property (as in a single-document GET) to limit which attachments are sent.|object|
+__optional__|List of documents being requested. Each array element is an object that must contain an id property giving the document ID. It may contain a rev property if a specific revision is desired. It may contain an atts_since property (as in a single-document GET) to limit which attachments are sent.|<<_getdocsinbulk_bulkgetbody,BulkGetBody>>|
+|===
+
+[[_getdocsinbulk_bulkgetbody]]
+**BulkGetBody**
+
+[options="header", cols=".^3,.^4"]
+|===
+|Name|Schema
+|**docs** +
+__optional__|< <<_db_bulk_get_post_docs,docs>> > array
+|===
+
+[[_db_bulk_get_post_docs]]
+**docs**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**id** +
+__optional__|Document ID.|string
 |===
 
 
@@ -541,7 +648,21 @@ __optional__|List of documents being requested. Each array element is an object 
 |===
 |HTTP Code|Description|Schema
 |**200**|Request completed successfully|No Content
-|**301**|Request failed with a forbidden error. This usually happens because the user requesting that document doesn't have access to it. Access to documents is granted to users through channels.|object
+|**301**|Request failed with a forbidden error. This usually happens because the user requesting that document doesn't have access to it. Access to documents is granted to users through channels.|<<_getdocsinbulk_response_301,Response 301>>
+|===
+
+[[_getdocsinbulk_response_301]]
+**Response 301**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**_id** +
+__optional__|The document ID that was requested|string
+|**_removed** +
+__optional__|**Default** : `true`|boolean
+|**_rev** +
+__optional__|The revision number that was requested|string
 |===
 
 
@@ -581,7 +702,67 @@ Same as the GET /_changes request except the parameters are in the JSON body.
 |**Path**|**db** +
 __required__|Database name|string
 |**Body**|**ChangesBody** +
-__optional__|The request body|object
+__optional__|The request body|<<_getchangeswithparametersinbody_changesbody,ChangesBody>>
+|===
+
+[[_getchangeswithparametersinbody_changesbody]]
+**ChangesBody**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**active_only** +
+__optional__|Default is false. When true, the changes response doesn't include either deleted documents, or notification for documents that the user no longer has access to. +
+**Default** : `false`|boolean
+|**channels** +
+__optional__|A comma-separated list of channel names. The response will be filtered to only documents in these channels. (This parameter must be used with the sync_gateway/bychannel filter parameter; see below.)|string
+|**doc_ids** +
+__optional__|A list of document IDs as a valid JSON array. The response will be filtered to only documents with these IDs. (This parameter must be used with the _doc_ids filter parameter; see below.)|< string > array
+|**feed** +
+__optional__|Default is 'normal'. Specifies type of change feed. Valid values are normal, continuous, longpoll, websocket. +
+**Default** : `"normal"`|string
+|**filter** +
+__optional__|Indicates that the returned documents should be filtered. The valid values are sync_gateway/bychannel and _doc_ids.|string
+|**heartbeat** +
+__optional__|The `heartbeat` defines the interval (in milliseconds) at which an empty line (CRLF) is written to the response. It helps prevent Sync Gateway from deciding the socket is idle and closing it.
+
+The `heartbeat` value overrides any `timeout` value, to keep the feed alive indefinitely.
+
+Setting `heartbeat=0` results in no heartbeat.
+
+*Default:* 0, which is no heartbeat
+
+*Constraints:*
+
+* Applies ONLY where `feed=longpoll` or `feed=continuous`
+
+* Minimum: 25000 (25 seconds)
+
+* Maximum: None – unless you define one in your configuration file using `MaxHeartbeat`|integer
+|**include_docs** +
+__optional__|Default is false. Indicates whether to include the associated document with each result. If there are conflicts, only the winning revision is returned. +
+**Default** : `false`|boolean
+|**limit** +
+__optional__|Limits the number of result rows to the specified value. Using a value of 0 has the same effect as the value 1.|integer
+|**since** +
+__optional__|Starts the results from the change immediately after the given sequence ID. Sequence IDs should be considered opaque; they come from the last_seq property of a prior response.|object
+|**style** +
+__optional__|Default is 'main_only'. Number of revisions to return in the changes array. The only possible value is all_docs and it returns all leaf revisions including conflicts and deleted former conflicts. +
+**Default** : `"main_only"`|string
+|**timeout** +
+__optional__|The `timeout` value defines the maximum period (in milliseconds) to wait for a change, before sending a response. This wait applies even when there are no results.
+
+Setting `timeout=0` results in no timeout.
+
+*Default:* 300000 (5 minutes/300 seconds)
+
+*Constraints:*
+
+* Applies ONLY where `feed=longpoll` or `feed=continuous`
+
+* Minimum: 0, no timeout
+
+* Maximum: 1500000 (15 minutes)|integer
 |===
 
 
@@ -704,7 +885,17 @@ __optional__|Request body|< string, < string > array > map
 [options="header", cols=".^2,.^14,.^4"]
 |===
 |HTTP Code|Description|Schema
-|**200**|The request was successful|< string, object > map
+|**200**|The request was successful|< string, <<_getrevisionids_response_200,Response 200>> > map
+|===
+
+[[_getrevisionids_response_200]]
+**Response 200**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**missing** +
+__optional__|A list of revision IDs for that document (the ones that are not stored in the database).|< string > array
 |===
 
 
@@ -1050,7 +1241,19 @@ An idle session timeout in the context of Sync Gateway is defined as the followi
 |**Path**|**db** +
 __required__|Database name|string
 |**Body**|**SessionBody** +
-__optional__|The message body is a JSON document that contains the following objects.|object
+__optional__|The message body is a JSON document that contains the following objects.|<<_addusersession_sessionbody,SessionBody>>
+|===
+
+[[_addusersession_sessionbody]]
+**SessionBody**
+
+[options="header", cols=".^3,.^11,.^4"]
+|===
+|Name|Description|Schema
+|**name** +
+__optional__|Username of the user the session will be associated to.|string
+|**password** +
+__optional__|User password.|string
 |===
 
 
