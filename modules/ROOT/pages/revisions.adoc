@@ -89,10 +89,11 @@ On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstone
 
 The algorithm allows the branch to retain a configurable number of revisions (revs_limit) and removes all older revisions.
 
-
 [#lbl-rtctrl]
 === Controls
-You can vary the number of retained revisions using the Configuration File's {configuration-schema-database--xref--revs-limit} setting.
+You can vary the number of retained revisions using the Configuration File's
+{configuration-schema-database--xref--revs-limit}
+setting.
 
 So, for example, with a `revs_limit` of 1,000 the algorithm will keep the last 1,000 revisions in the shortest non-tombstoned branch and remove any others from that branch.
 
@@ -102,10 +103,56 @@ Do not set `revs_limit` below 100 when `allow_conflicts = true` +
 *Otherwise* ... you may adversely affect the conflict resolution process, as there may be insufficient revision history to resolve a given conflict.
 --
 
+The default and minimum values of `revs_limit` are dependent on whether
+xref:configuration-schema-database.html#database-allow_conflicts[allow conflicts]
+ is set True or False -- see <<tbl_min_default_vals>>.
+
+The process to remove obsolete revisions is called pruning and runs automatically every time a revision is added.
+Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite.
+On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
+
+If there are conflicting revisions, the document may end up with **disconnected branches** after the pruning process.
+
+In the animation below, the document has a conflicting branch (revisions `4'` - `1001'`).
+When the shortest branch (in this case the conflicting branch) reaches the 1003rd update, it gets is cut off.
+The revision tree is not in a corrupted state and the logic that chooses the winning revision still applies.
+But it may make it impossible to do certain merges (n-way merge) to resolve conflicts and will occupy disk space that could have been freed if the conflict was resolved early on.
+
+.Pruning
+image::https://cl.ly/3C1G3t3R1v19/pruning-sg.gif[]
+
+If the revision tree gets into this state then the only option to resolve the conflict is to pick a winning branch and tombstone all the non-winning conflicting branches.
+
+NOTE: Setting the `revs_limit` to a value below 100 when `allow_conflicts = true` may adversely affect the conflict resolution process, as there may be insufficient revision history to resolve a given conflict.
+
+.Default and Minimum Values
+[#tbl_min_default_vals,cols="^1,^2,^2,^2"]
+|===
+
+.2+h| Release
+.2+h| Revs Limit
+2+h|Allow Conflicts setting
+
+h| True h| False
+
+.2+|2.6+
+| default |+ 100 |+ 50
+| minimum |+ 20 |+ 1
+
+.2+|2.0-2.5
+| default |+ 100 |+ 1000
+| minimum |+ 50 |+ 1
+
+.2+|1.x
+| default |+ 1000 |+ 1000
+| minimum |+ 20 |+ 20
+
+|===
+
 
 [#lbl-rtcons]
 === Constraints
-The default and minimum values of `revs_limit` are dependent on whether {configuration-schema-database--xref--allow-conflicts} is  True or False.
+The default and minimum values of `revs_limit` are dependent on whether {configuration-schema-database--xref--allow-conflicts} is True or False.
 
 The presence of multiple unresolved conflicts in a revision tree can impair the pruning process.
 It may result in obsolete revisions not being pruned or in the premature pruning of revisions.
