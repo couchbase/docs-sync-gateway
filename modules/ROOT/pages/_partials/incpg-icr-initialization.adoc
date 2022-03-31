@@ -11,10 +11,13 @@ ifndef::is_deep_toc[*_In this Section_*: <<replication-definition>>  |  <<generi
 
 
 == Introduction
+
+
 // tag::introduction[]
 Replications are initialized by submitting a {glos-term-replication-definition} using either:
 
 * A 'JSON' configuration file (`sync-gateway-config.json`)
+
 * The Admin REST API, using a utility such as `curl`, or an application such as _Postman_.
 
 Wherever they are defined, the elements of a replication definition are the same, with the exception of the
@@ -32,40 +35,57 @@ Replication highlights::
 +
 --
 * There are two types of replication: persistent and ad hoc (REST API only).
+
 * Replications of both types can run in one-shot or continuous replications modes.
+
 * All replications involve at least one local database.
+
 * Replications can be configured to purge documents when channel access is revoked (a removal notification is received).
 
 * Persistent continuous replications can be:
+
 ** Reset -- a {glos-term-checkpoint} can be reset to zero
+
 ** Updated -- only the parameter values provided in the PUT request body will be updated
 
 * Persistent and ad hoc replications can be:
+
 ** Removed -- only the replication_id is needed to delete ongoing continuous or one-shot replications.
 
 * {enterprise} only:
+
 ** Replications can use delta-sync mode, whereby only the changed data-items are replicated.
 --
 
 Running highlights::
 +
 --
+
 * Multiple identical replicators can be initiated on a Sync Gateway node provided each has a unique `replication_Id`.
+
 *  inter-Sync{nbsp}Gateway replications introduced in Sync Gateway 2.8 as well as SG-Replicate can run on the same node, but you must ensure that they each have a different `replication_id`.
+
 * The user under which replication is being run must have read and write access to the data being replicated.
+
 * Exponential backoff when connection lost; this can be customized using the {configuration-schema-database--xref--db-rep-backoff} configuration setting.
+
 * replications will continue trying to connect for 30 minutes following authentication failure (including user-invalid/doesn't exist).
+
 * Running replications can be stopped. Stopped replications can be (re)Started.
 // [On disconnected replications, replication will it will do exponential backoff upto reconnect-interval and then attempt to reconnect indefinitely based on this value. If 0, it will do exponential backoff upto 5 min before stopping the replication]
 
 * If ALL the Sync Gateway nodes in a source or target Sync Gateway cluster go down in the middle of continuous replication, by default, the system should pick up from the last document that was successfully processed by both sides when the replication/cluster is restarted
 
 * REST ONLY
+
 ** POST databases/\{tkn-db}/_replication creates a replication using the {rep-id} specified in the body or if none specified, a unique UUID.
+
 ** PUT databases/\{tkn-db}/_replication/\{rep-id} upserts replication {rep-id}.
 
 * {enterprise} only:
+
 ** Replications are distributed even across all available Sync Gateway nodes and so are not guaranteed to run on their originating node.
+
 ** If a multi-node Sync Gateway cluster loses a subset of sync gateway nodes, the remaining nodes continue replication uninterrupted IF they have been configured to handle the replication (continuous and one-shot replications).
 --
 ====
@@ -74,6 +94,7 @@ Running highlights::
 
 
 == Replication Definition
+
 
 All replications are 'initialized' by a {glos-term-replication-definition} in the configuration file or Admin REST API and operate within the context of a local database.
 
@@ -100,26 +121,58 @@ A number of database-level options are also especially relevant to Inter-Sync{nb
 
 
 === Replication-level Settings
-include::partial$icr-repl-props-table-sgr2.adoc[]
 
-// The `replications` value is an array of objects.
-// Each object defines a single replication.
+[[replication-properties]]
+.Replication Definition
+=====
 
-// // One-shot replications are always run asynchronously even if the `async` property is not set to true.
+[{tabs}]
+====
 
-// Replications may be given a user defined `replication_id` otherwise Sync Gateway will generate a random UUID.
+Summary of Parameters::
++
+--
+This table summarize all the available configurable items.
 
-// Replications defined in config may not contain the `cancel` or `adhoc` properties; these dynamic settings are API only parameters.
+include::partial$static_restapi/admin/definitions.adoc[tags=replication_model_table]
+--
 
-// .Simple replication config
-// ====
-// [source,javascript]
-// ----
-// include::{example-cfg}[tags=icr-replication-config]
-// ----
-// ====
+Configured Example::
++
+--
+This is an example of a replication definition. Its purpose is to illustrate all configurable items in use and so should not be considered a working example.
+
+It creates a replication with the replication_ID of `db1-rep-id1-pull-oneshot` on a local database `db1-local_`, pulling data from a remote database `db1-remote`.
+
+[source, json]
+----
+include::{example-cfg}[tag=icr-rep-sample-create-pull, indent=0]
+----
+
+include::{example-cfg}[tag=icr-rep-sample-create-pull-callouts-full, indent=0]
+
+--
+
+REST API Example::
++
+--
+This is an example of a replication definition as you might submit it to the Admin REST API.using `curl`.
+Its purpose is to illustrate all configurable items in use and so should not be considered a working example.
+
+It creates a replication with the replication_ID of `db1-rep-id1-pull-oneshot` on a local database `db1-local_`, pulling data from a remote database `db1-remote`.
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-sample-create-pull, indent=0]
+----
+
+include::{example-restapi}[tag=icr-rep-sample-create-pull-callouts, indent=0]
+--
+
+====
+=====
 
 == Generic Constraints
+
 
 .Replication
 [CAUTION]
@@ -128,7 +181,8 @@ All active nodes in an active cluster must be running Sync Gateway version 2.8+.
 --
 
 {enterprise}::
-All replications are distributed evenly across available nodes. This means they cannot be guaranteed to run on the node from which they originate.
+All replications are distributed evenly across available nodes.
+This means they cannot be guaranteed to run on the node from which they originate.
 
 Access rights::
 The user running the replication must have read and write access to the data being replicated.
@@ -142,7 +196,7 @@ However, you should avoid initializing identical pre-2.8 (SG Replicate) and 2.8+
 == Running Configured Replications
 Replications in the configuration file start automatically whenever Sync Gateway is (re)started.
 Unless you inhibit this by adding an `"initial_state": "stopped"` parameter to the replication definition -- see: {configuration-schema-database--xref--db-rep-initial_state}.
-You can manually start 'stopped' replication using {xref-sgw-pg-icr-admin-start}.
+You can manually start 'stopped' replication using {sync-inter-syncgateway-manage--xref-start}.
 
 .Configured Replications -- Continuous and One-shot
 =====
@@ -174,11 +228,13 @@ include::{example-cfg}[tag=icr-repl-create-pull-oneshot-callouts]
 ====
 =====
 
+
 == Running Admin REST API Replications
+
 
 Replications initialized by sending a `POST`, or `PUT`, request to the `_replication` endpoint will start running automatically, unless the `"initial_state": "stopped"` parameter is specified. with a JSON object defining the replication parameters -- as shown in  <<submitting-api-requests>>.
 
-* You can run multiple replications simultaneously with different replication topologies, provided both databases being synchronized have the same sync function.
+You can run multiple replications simultaneously with different replication topologies, provided both databases being synchronized have the same sync function.
 
 You can submit requests using the `curl` utility (as in these examples) or an application such as _Postman_.
 
@@ -207,7 +263,7 @@ One-shot::
 This example initializes a persistent, one-shot, replication between a local database and one on a remote Sync Gateway instance.
 
 The replication will run once, after a short delay to allow the Rest API to start.
-It will then run once after each Sync Gateway restart and-or when manually initiated using the `_replicationStatus` endpoint -- see {xref-sgw-pg-icr-admin}.
+It will then run once after each Sync Gateway restart and-or when manually initiated using the `_replicationStatus` endpoint -- see {sync-inter-syncgateway-manage--xref}.
 
 [source, json]
 ----

@@ -579,7 +579,7 @@ properties:
             description: |+
               This property defines the maximum depth to which a document's revision tree can grow; its value governs the point at which to prune a document's revision tree.
 
-              The default and minimum values of `revs_limit` are dependent on whether [allow_conflicts](config-properties.html#databases-this_db-allow_conflicts) is set True or False -- see the *Default and Minimum Values* table below.
+              The default and minimum values of `revs_limit` are dependent on whether [allow_conflicts](config-properties-legacy.html#databases-this_db-allow_conflicts) is set True or False -- see the *Default and Minimum Values* table below.
 
               The process to remove obsolete revisions is called pruning and runs automatically every time a revision is added. Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite. On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
 
@@ -893,22 +893,27 @@ properties:
 
               **Options**
 
-              Your replications can be one of two available types -- see [replication types](./../learn/icr-replication-types.html
+              Your replications can be one of two available types --
 
-              - Persistent -- the replication survives node restarts. These replications can also be launched dynamically using the Rest API `_replication` endpoint (see -- [Admin Rest API](./../refer/rest-api-admin.html))
+              - Persistent -- the replication survives node restarts.
+              These replications can also be launched dynamically using the Rest API `_replication` endpoint (see -- [Admin Rest API](./../refer/rest-api-admin.html))
 
-              - Ad-hoc -- the replication runs once and then the replication definition is removed when the replication is stopped. This includes when a one-shot replication completes, or a continuous replication is stopped via the _replicationStatus endpoint.
+              - Ad-hoc -- the replication runs once and then the replication definition is removed when the replication is stopped.
+              This includes when a one-shot replication completes, or a continuous replication is stopped via the _replicationStatus endpoint.
 
                 Transient replications are initiated using the REST API's *_replication* endpoint.
                 These replications are not guaranteed to run on the initiating node and will instead be distributed across available nodes.
 
               **Using**
 
-              To configure SG-Replicate 1.0 replications -- see [SG-Replicate 1.0 Replications](config-properties.html#replications).
+              To configure SG-Replicate 1.0 replications -- see
+              [SG-Replicate 1.0 Replications](config-properties-legacy.html#replications).
 
-              For more on upgrading from SG-Replicate 1.0 -- see [Moving to SG-Replicate 2.](./../upgrade.html#moving-to-sg-replicate-2-0).
+              For more on upgrading from SG-Replicate 1.0 -- see
+              [Moving to SG-Replicate 2.](./../upgrading.html#sg-replicate-to-inter-sync-gateway).
 
               **Constraints**
+
               - Replications are defined in the context of a local database, with the replication pulling-to or pushing-from this database. This change means that you cannot to set-up replication between two remote databases, as -- by definition -- at least one database **must** be local.
 
               - The following REST API only parameters are omitted from this configuration schema -- refer to [Admin Rest API](./refer/rest-api-admin.adoc) for details:
@@ -1085,7 +1090,7 @@ properties:
 
                       **Behavior**
 
-                      The property value is referenced by the [remote](config-properties.html#database-this_db-replications-remote) property.
+                      The property value is referenced by the [remote](config-properties-legacy.html#database-this_db-replications-remote) property.
 
                       - `pull` -- changes are pulled from the `remote` database
                       - `push` -- changes are pushed to the `remote` database
@@ -1093,7 +1098,7 @@ properties:
 
                       **Constraints**
 
-                      Replications created prior to version 2.8 derive their *direction* from the [source](config-properties.html#replications-source) and [target](config-properties.html#replications-target) url of the replication.
+                      Replications created prior to version 2.8 derive their *direction* from the [source](config-properties-legacy.html#replications-source) and [target](config-properties-legacy.html#replications-target) url of the replication.
 
                   enable_delta_sync:
                     type: boolean
@@ -1103,7 +1108,7 @@ properties:
 
                       Use `enable_delta_sync` to specify use of delta sync for this replication.
 
-                      It works in conjunction with [database.this_db.delta_sync.enabled](config-properties.html#databases-this_db-delta_sync-enabled), which specifies whether the database can use delta sync or not.
+                      It works in conjunction with [database.this_db.delta_sync.enabled](config-properties-legacy.html#databases-this_db-delta_sync-enabled), which specifies whether the database can use delta sync or not.
 
                       **Options**
 
@@ -1114,7 +1119,7 @@ properties:
 
                       **Behavior**
 
-                      The optional `enable_delta_sync` property works in conjunction with the database level [database.this_db.delta_sync.enabled](config-properties.html#databases-this_db-delta_sync-enabled) setting, to determine whether this replication uses delta sync.
+                      The optional `enable_delta_sync` property works in conjunction with the database level [database.this_db.delta_sync.enabled](config-properties-legacy.html#databases-this_db-delta_sync-enabled) setting, to determine whether this replication uses delta sync.
 
                       - **If** `"delta_sync.enabled": true` for both databases involved in the replication, then this parameter enables or disables its use for this specific replication.
 
@@ -1123,7 +1128,7 @@ properties:
                       **Constraints**
 
                       - Requires *Enterprise Edition*
-                      - Depends upon setting of [database.this_db.delta_sync.enabled](config-properties.html#databases-this_db-delta_sync)
+                      - Depends upon setting of [database.this_db.delta_sync.enabled](config-properties-legacy.html#databases-this_db-delta_sync)
                       - Replications created prior to version 2.8 must run with `"enable_delta_sync": false`
                       - Push replications will not use Delta Sync when pushing to a pre-2.8 target
                   filter:
@@ -1136,11 +1141,11 @@ properties:
 
                       **Options**
 
-                      A common value used when replicating from Sync Gateway is `sync_gateway/bychannel`. This option limits the pull replication to a specific set of channels. You can specify the required channels using [query_params](config-properties.html#databases-this_db-replications-query_params).
+                      A common value used when replicating from Sync Gateway is `sync_gateway/bychannel`. This option limits the pull replication to a specific set of channels. You can specify the required channels using [query_params](config-properties-legacy.html#databases-this_db-replications-query_params).
 
                       **Behavior**
 
-                      Works in conjunction with.[query_params](config-properties.html#databases-this_db-replications-query_params) to control the documents processed by the replication.
+                      Works in conjunction with.[query_params](config-properties-legacy.html#databases-this_db-replications-query_params) to control the documents processed by the replication.
 
                       **Example**
 
