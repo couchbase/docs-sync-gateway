@@ -361,7 +361,7 @@ properties:
           enable_shared_bucket_access:
             type: boolean
             description: |+
-              Introduced in Sync Gateway 1.5, this property specifies whether to enable Mobile-Server Data Sync (a.k.a _mobile convergence_). You can learn more about this functionality in [Syncing Mobile and Server](./../shared-bucket-access.html)
+              Introduced in Sync Gateway 1.5, this property specifies whether to enable Mobile-Server Data Sync (a.k.a _mobile convergence_). You can learn more about this functionality in [Syncing Mobile and Server](shared-bucket-access.html)
 
               This property works in conjunction with the [import_docs](#databases-this_db-import_docs) property, which determines whether a node participates in import processing.
 
@@ -400,7 +400,7 @@ properties:
               They are also accessible from N1QL in Couchbase Server 5.5 or above with the `().xattrs` property. For example, `SELECT meta().xattrs._sync from travel-sample where Meta().id = "user::demo";`.
 
               **WARNING:** The sync metadata is maintained internally by Sync Gateway and its structure can change at any time. It should not be used to drive business logic of applications. The direct use of the N1QL query is unsupported and must not be used in production environments.
-              The `raw` endpoint ([/db/_raw/{docid}](../../../references/sync-gateway/admin-rest-api/index.html#!/document/get_db_raw_doc)) on Sync Gateway's Admin REST API returns both the document and it's associated mobile metadata.
+              The `raw` endpoint ([/db/_raw/{docid}](rest-api-admin.html#/Document/get__db___raw__doc_)) on Sync Gateway's Admin REST API returns both the document and it's associated mobile metadata.
             default: 'false'
           event_handlers:
             type: object
@@ -579,7 +579,7 @@ properties:
             description: |+
               This property defines the maximum depth to which a document's revision tree can grow; its value governs the point at which to prune a document's revision tree.
 
-              The default and minimum values of `revs_limit` are dependent on whether [allow_conflicts](config-properties-legacy.html#databases-this_db-allow_conflicts) is set True or False -- see the *Default and Minimum Values* table below.
+              The default and minimum values of `revs_limit` are dependent on whether [allow_conflicts](configuration-properties-legacy.html#databases-this_db-allow_conflicts) is set True or False -- see the *Default and Minimum Values* table below.
 
               The process to remove obsolete revisions is called pruning and runs automatically every time a revision is added. Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite. On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
 
@@ -690,7 +690,7 @@ properties:
 
               **Lost Connections**
 
-              If the connection to Couchbase Server is lost during normal operations, Sync Gateway will automatically re-connect to another node in the cluster. During that re-connection period, the Sync Gateway will appear offline -- see [Taking Databases Offline](./../database-offline.html) -- and documents will not be replicated to mobile clients.
+              If the connection to Couchbase Server is lost during normal operations, Sync Gateway will automatically re-connect to another node in the cluster. During that re-connection period, the Sync Gateway will appear offline -- see [Taking Databases Offline](database-offline.html) -- and documents will not be replicated to mobile clients.
 
               The default value is an in-memory bucket called **walrus** that is only used during development and prototyping.
               Note that the **walrus** mode is being deprecated in Sync Gateway 2.5 and will be removed in a future release.
@@ -759,7 +759,7 @@ properties:
           sync:
             type: string
             description: |+
-              The sync function is a JavaScript function whose source code is stored in the Sync Gateway's database configuration file. Every time a new document, revision or deletion is added to a database, the sync function is called and given a chance to examine the document (see the [Sync Function API guide](./../advance/adv-sgw-cfg-sync-function.html)).
+              The sync function is a JavaScript function whose source code is stored in the Sync Gateway's database configuration file. Every time a new document, revision or deletion is added to a database, the sync function is called and given a chance to examine the document (see the [Sync Function API guide](advance/adv-sgw-cfg-sync-function.html)).
 
               If a document is in conflict there will be multiple current revisions. The default, the "winning" one is the one whose channel assignments and access grants take effect.
 
@@ -896,7 +896,7 @@ properties:
               Your replications can be one of two available types --
 
               - Persistent -- the replication survives node restarts.
-              These replications can also be launched dynamically using the Rest API `_replication` endpoint (see -- [Admin Rest API](./../refer/rest-api-admin.html))
+              These replications can also be launched dynamically using the Rest API `_replication` endpoint (see -- [Admin Rest API](rest-api-admin.html))
 
               - Ad-hoc -- the replication runs once and then the replication definition is removed when the replication is stopped.
               This includes when a one-shot replication completes, or a continuous replication is stopped via the _replicationStatus endpoint.
@@ -907,16 +907,16 @@ properties:
               **Using**
 
               To configure SG-Replicate 1.0 replications -- see
-              [SG-Replicate 1.0 Replications](config-properties-legacy.html#replications).
+              [SG-Replicate 1.0 Replications](configuration-properties-legacy.html#replications).
 
               For more on upgrading from SG-Replicate 1.0 -- see
-              [Moving to SG-Replicate 2.](./../upgrading.html#sg-replicate-to-inter-sync-gateway).
+              [Moving to SG-Replicate 2.](upgrading.html#sg-replicate-to-inter-sync-gateway).
 
               **Constraints**
 
               - Replications are defined in the context of a local database, with the replication pulling-to or pushing-from this database. This change means that you cannot to set-up replication between two remote databases, as -- by definition -- at least one database **must** be local.
 
-              - The following REST API only parameters are omitted from this configuration schema -- refer to [Admin Rest API](./refer/rest-api-admin.adoc) for details:
+              - The following REST API only parameters are omitted from this configuration schema -- refer to [Admin Rest API](./rest-api-admin.adoc) for details:
                 - `adhoc=true` for transient replications
                 - `cancel=true` to cancel a replication
             # items:
@@ -1017,7 +1017,7 @@ properties:
                       - `localWins` -- Selecting `localWins` will result in local revisions always being the winner in any conflict.
                       - `remoteWins` -- Selecting `remoteWins` will result in remote revisions always being the winner in any conflict.
 
-                      - `custom` -- Selecting `custom` specifies that you want to handle resolution with your own application logic. You **must** provide this logic as a Javascript function by specifying it using the a [custom-conflict-resolver](./../refer/config-properties.html#databases-this_db-replications-custom-conflict-resolver).
+                      - `custom` -- Selecting `custom` specifies that you want to handle resolution with your own application logic. You **must** provide this logic as a Javascript function by specifying it using the a [custom-conflict-resolver](configuration-properties-legacy.html#databases-this_db-replications-custom-conflict-resolver).
 
                       **Constraints**
                       - replications created prior to version 2.8 will default to `default`.
@@ -1056,9 +1056,9 @@ properties:
 
                       **Behavior**
 
-                      The optional `custom_conflict_resolver` property specifies the Javascript function that will be used to resolve conflicts. It is used only when `custom` is specified as the[conflict_resolution_type](./../refer/config-properties.html#databases-this_db-replications-conflict_resolution_type).
+                      The optional `custom_conflict_resolver` property specifies the Javascript function that will be used to resolve conflicts. It is used only when `custom` is specified as the[conflict_resolution_type](configuration-properties-legacy.html#databases-this_db-replications-conflict_resolution_type).
 
-                      Provide the required logic in a Javascript function, as a string within backticks (see also the description for the [sync function](./../refer/config-properties.html#databases-this_db-sync)).
+                      Provide the required logic in a Javascript function, as a string within backticks (see also the description for the [sync function](configuration-properties-legacy.html#databases-this_db-sync)).
 
                       The function takes one parameter `struct` representing the conflict and comprising
                       - the document id
@@ -1090,7 +1090,7 @@ properties:
 
                       **Behavior**
 
-                      The property value is referenced by the [remote](config-properties-legacy.html#database-this_db-replications-remote) property.
+                      The property value is referenced by the [remote](configuration-properties-legacy.html#database-this_db-replications-remote) property.
 
                       - `pull` -- changes are pulled from the `remote` database
                       - `push` -- changes are pushed to the `remote` database
@@ -1098,7 +1098,7 @@ properties:
 
                       **Constraints**
 
-                      Replications created prior to version 2.8 derive their *direction* from the [source](config-properties-legacy.html#replications-source) and [target](config-properties-legacy.html#replications-target) url of the replication.
+                      Replications created prior to version 2.8 derive their *direction* from the [source](configuration-properties-legacy.html#replications-source) and [target](configuration-properties-legacy.html#replications-target) url of the replication.
 
                   enable_delta_sync:
                     type: boolean
@@ -1108,7 +1108,7 @@ properties:
 
                       Use `enable_delta_sync` to specify use of delta sync for this replication.
 
-                      It works in conjunction with [database.this_db.delta_sync.enabled](config-properties-legacy.html#databases-this_db-delta_sync-enabled), which specifies whether the database can use delta sync or not.
+                      It works in conjunction with [database.this_db.delta_sync.enabled](configuration-properties-legacy.html#databases-this_db-delta_sync-enabled), which specifies whether the database can use delta sync or not.
 
                       **Options**
 
@@ -1119,7 +1119,7 @@ properties:
 
                       **Behavior**
 
-                      The optional `enable_delta_sync` property works in conjunction with the database level [database.this_db.delta_sync.enabled](config-properties-legacy.html#databases-this_db-delta_sync-enabled) setting, to determine whether this replication uses delta sync.
+                      The optional `enable_delta_sync` property works in conjunction with the database level [database.this_db.delta_sync.enabled](configuration-properties-legacy.html#databases-this_db-delta_sync-enabled) setting, to determine whether this replication uses delta sync.
 
                       - **If** `"delta_sync.enabled": true` for both databases involved in the replication, then this parameter enables or disables its use for this specific replication.
 
@@ -1128,7 +1128,7 @@ properties:
                       **Constraints**
 
                       - Requires *Enterprise Edition*
-                      - Depends upon setting of [database.this_db.delta_sync.enabled](config-properties-legacy.html#databases-this_db-delta_sync)
+                      - Depends upon setting of [database.this_db.delta_sync.enabled](configuration-properties-legacy.html#databases-this_db-delta_sync)
                       - Replications created prior to version 2.8 must run with `"enable_delta_sync": false`
                       - Push replications will not use Delta Sync when pushing to a pre-2.8 target
                   filter:
@@ -1141,11 +1141,11 @@ properties:
 
                       **Options**
 
-                      A common value used when replicating from Sync Gateway is `sync_gateway/bychannel`. This option limits the pull replication to a specific set of channels. You can specify the required channels using [query_params](config-properties-legacy.html#databases-this_db-replications-query_params).
+                      A common value used when replicating from Sync Gateway is `sync_gateway/bychannel`. This option limits the pull replication to a specific set of channels. You can specify the required channels using [query_params](configuration-properties-legacy.html#databases-this_db-replications-query_params).
 
                       **Behavior**
 
-                      Works in conjunction with.[query_params](config-properties-legacy.html#databases-this_db-replications-query_params) to control the documents processed by the replication.
+                      Works in conjunction with.[query_params](configuration-properties-legacy.html#databases-this_db-replications-query_params) to control the documents processed by the replication.
 
                       **Example**
 
@@ -1227,7 +1227,7 @@ properties:
 
                       **Behavior**
 
-                      This property works in conjunction with [filters](./../refer/config-properties.html#databases-this_db-replications-filter) and [channels](./../refer/config-properties.html#databases-this_db-replications-channels) to provide routing.
+                      This property works in conjunction with [filters](configuration-properties-legacy.html#databases-this_db-replications-filter) and [channels](configuration-properties-legacy.html#databases-this_db-replications-channels) to provide routing.
 
                       **Using**
 
@@ -1268,7 +1268,7 @@ properties:
                       The `remote` property represents a database endpoint for the remote Sync Gateway cluster.
                       That is, it identifies the remote cluster that is the subject of this replication's *push*, *pull* or *pushAndPull action*.
 
-                      The effect of this setting is dependent upon the setting of the [direction](./../refer/config-properties.html#databases-this_db-replications-direction) configuration property.
+                      The effect of this setting is dependent upon the setting of the [direction](configuration-properties-legacy.html#databases-this_db-replications-direction) configuration property.
 
                       If direction is :
                       - `direction=pull`, then `remote` defines the remote cluster *from* which data is pulled
@@ -1613,7 +1613,7 @@ properties:
     type: array
     description: |+
       **Support Notice**
-      (**Deprecated**) This SG-Replicate 1.0 method of configuring replication is deprecated at version 2.8. For replication using the SG-Replicate 2.0 protocol configure the replication properties under _database.replications_ instead -- see [SG-Replicate 2.0 Replications](./../refer/config-properties.html#databases-this_db-replications).
+      (**Deprecated**) This SG-Replicate 1.0 method of configuring replication is deprecated at version 2.8. For replication using the SG-Replicate 2.0 protocol configure the replication properties under _database.replications_ instead -- see [SG-Replicate 2.0 Replications](configuration-properties-legacy.html#databases-this_db-replications).
 
       **NOTE:** Sync Gateway will fail to start if any replications defined at this level do involve at least one local database (source and-or target); an error is recorder in the log.
 
@@ -1621,7 +1621,7 @@ properties:
       SG-Replicate 1.0 replications :
 
       - default to a 'Running' state
-      - do not support built-in, or custom, conflict resolution -- see [Resolving Conflicts](./../resolving-conflicts.html) and [SG-Replicate 2.0 Conflict Resolution](./../learn/icr-conflict-resolution.html)
+      - do not support built-in, or custom, conflict resolution -- see [SG-Replicate 2.0 Conflict Resolution](sync-inter-syncgateway-conflict-resolution.html)
       - use `source` and `target` to derive replication direction
     items:
       type: object
