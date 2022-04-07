@@ -1,0 +1,136 @@
+type: object
+properties:
+  Role:
+    title: Role Configuration Model
+    type: object
+    description: 'Use the `role` property to define a Sync Gateway role
+
+      '
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        description: 'Name of the role
+
+          '
+      admin_channels:
+        type: array
+        description: 'Array of channel names the role allows access to
+
+          '
+        items:
+          type: string
+      all_channels:
+        type: array
+        readOnly: true
+        description: 'Lists all the channels the role has access to including any
+          assigned by the `sync` function.
+
+
+          This is a derived property and changes to it are ignored.
+
+          '
+        items:
+          type: string
+  User:
+    type: object
+    title: User Configuration Model
+    description: 'Definition of a Sync Gateway user
+
+
+      Change initiates database restart
+
+
+      '
+    required:
+    - name
+    properties:
+      name:
+        type: string
+        description: 'The user name (the same name used in the URL path).
+
+
+          The valid characters for a user name are alphanumeric ASCII characters and
+          the underscore character.
+
+
+          The name property is required in a POST request.
+
+
+          You don''t need to include it in a PUT request because the user name is
+          specified in the URL.
+
+          '
+      password:
+        type: string
+        description: 'Password of the user.
+
+
+          Mandatory, unless `allow_empty_password=true`.
+
+
+          '
+      admin_channels:
+        type: array
+        description: 'The channels that the user is able to access.
+
+          '
+        items:
+          type: string
+          description: 'Channel name
+
+
+            '
+      admin_roles:
+        type: array
+        description: 'An array of the roles this user is associated with.
+
+          '
+        items:
+          type: string
+          description: Role name
+      all_channels:
+        type: array
+        description: 'Shows the channels the user can access, as granted by the sync
+          function.
+
+
+          This is a read-only property.
+
+          Changes to it are ignored.
+
+          '
+        readOnly: true
+        items:
+          type: string
+          description: Channel name
+      email:
+        type: string
+        description: 'Email address of the user.
+
+          '
+      disabled:
+        type: boolean
+        description: 'This property is usually not included.
+
+
+          If the value is `true`, access for the account is disabled and the user
+          will not be able to login.
+
+          '
+      roles:
+        type: array
+        readOnly: true
+        description: 'Shows the roles this user is associated with by the Sync function.
+
+
+          This is a read-only property.
+
+          Changes to it are ignored.
+
+
+          '
+        items:
+          type: string
+          description: Role name

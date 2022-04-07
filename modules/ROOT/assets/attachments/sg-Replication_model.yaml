@@ -1,0 +1,412 @@
+type: object
+title: Replication Model
+description: Data schema for the replication model
+properties:
+  adhoc:
+    type: boolean
+    default: false
+    description: '"
+
+      **About**
+
+
+      Use the Admin REST API''s `adhoc` parameter to specify that a replication is
+      ad hoc rather than persistent.
+
+
+      **Behavior**
+
+
+      Ad hoc replications behave the same as normal replications, but they are automatically
+      removed when their status changes to stopped.
+
+      This will usually be on completion, but may also be as a result of user action.
+
+
+      **Constraints**
+
+
+      This parameter is **NOT** available to configured replications; only those initialized
+      using the Admin REST API."
+
+      '
+  batch_size:
+    type: integer
+    default: 200
+    description: '**About**
+
+
+      Use the optional `batch_size` property to specify the number of changes to be
+      included in a single batch during replication.
+
+      '
+  cancel:
+    type: boolean
+    default: false
+    description: '**About**
+
+
+      Use this parameter on,y when you want to want to cancel an existing active replication.
+
+
+      **Constraints**
+
+
+      - This parameter is **NOT** available in configured replications; only those
+      initialized using the Admin REST API.
+
+
+      - **NOTE** that the body of the request must be the same as the replication''s
+      replication definition for the cancellation request to be honoured.
+
+      For example, if you requested continuous replication, the cancellation request
+      must also contain the continuous field.
+
+      '
+  conflict_resolution_type:
+    type: string
+    default: default
+    description: "**About**\n\nThe **`conflict_resolution_type`** property defines\
+      \ the conflict resolution policy that Sync Gateway applies when resolving conflicting\
+      \ revisions.\n\nThe default behavior is that automatic conflict resolution policy\
+      \ is applied.\n\n**Valid options**\n  - `default`\n  - `localWins`\n  - `remoteWins`\n\
+      \  - `custom`\n\n**Behavior**\n\n- *default* - Selecting `default` applies the\
+      \ following conflict resolution policy\n  - Deletes always win (the delete with\
+      \ longest revision history wins if both revisions are deletes)\n  - The revision\
+      \ with the longest revision history wins (so, the one with most changes and\
+      \ consequently the highest revision Id).\n\n- *localWins* - Selecting `localWins`\
+      \ will result in local revisions always being the winner in any conflict.\n\
+      - *remoteWins* - Selecting `remoteWins` will result in remote revisions always\
+      \ being the winner in any conflict.\n\n\n- *custom* - Selecting `custom` specifies\
+      \ that you want to handle conflict resolution with your own application logic.\
+      \ You **must** provide this logic as a Javascript function by specifying it\
+      \ in using the custom-conflict-resolver parameter.\n\n**Example**\n```\n\"conflict_resolution_type\"\
+      :\"remoteWins\"\n```\n\n**Constraints**\n\n- Replications created prior to version\
+      \ 2.8 will default to `default`.\n"
+  continuous:
+    type: boolean
+    default: false
+    description: '**About**
+
+
+      The `continuous` property specifies whether this replication will run in continuous
+      mode.
+
+
+      **Behavior**
+
+
+      - `continuous=true`-- In continuous mode, changes are immediately synced in
+      accordance with the replication definition.
+
+      - `continuous=false`-- Detected changes are synced in accordance with the replication
+      definition. The replication ceases once all revisions are processed.
+
+
+      **Constraints**
+
+
+      - Optional for stops and removes
+
+      '
+  custom_conflict_resolver:
+    type: string
+    default: none
+    description: "**About**\n\nThe optional `custom_conflict_resolver` property specifies\
+      \ the Javascript function that will be used to resolve conflicts, if the custom\
+      \ conflict resolution type is specified in the `conflict_resolution_type`.\n\
+      \n**Options**\n\nThe property is *mandatory* when `conflict_resolution_type=custom`\
+      \ and will be ignored in all other cases.\n\n**Using**\n\nProvide the required\
+      \ logic in a Javascript function, as a string within backticks (see also the\
+      \ description for the `sync` function`.\n\nThe function takes one parameter\
+      \ `struct` representing the conflict and comprising\n- the document id\n- the\
+      \ local document\n- the remote document\n\nThe function returns a document `struct`\
+      \ representing the winning revision.\n\n**Example**\n```\n\"custom_conflict_resolver\"\
+      :`\n  function(conflict) {\n    console.log(\"full remoteDoc doc: \"+JSON.stringify(conflict.RemoteDocument));\n\
+      \  return conflict.RemoteDocument;\n}`\n```\n\n**Constraints**\n\nUsing complex\
+      \ `custom_conflict_resolver` functions can noticeably degrade performance. Use\
+      \ a built-in resolver whenever possible.\n"
+  direction:
+    type: string
+    description: '**About**
+
+
+      The mandatory `direction` property specifies whether the replication is *push*,
+      *pull* or *pushAndPull* relative to this node.
+
+
+      The property value is referenced by the [remote](rest-api-admin.html#database-this_db-replications-remote)
+      property.
+
+
+      **Behavior**
+
+
+      - `pull` - changes are pulled from the `remote` database
+
+      - `push` - changes are pushed to the `remote` database
+
+      - `pushAndPull` - changes are both pushed-to and pulled-from the `remote` database
+
+
+      **Constraints**
+
+
+      Replications created prior to version 2.8 derive their *direction* from the
+      source/target url of the replication.
+
+      '
+  enable_delta_sync:
+    type: boolean
+    default: false
+    description: '**About**
+
+
+      The optional `enable_delta_sync` parameter turns on delta sync for a replication.
+
+      It works in conjunction with the database level setting `delta_sync.enabled`.
+
+
+      **Options**
+
+
+      - `"enable_delta_sync": true`, the replication can use delta sync (depending
+      on `delta_sync.enabled` setting)
+
+      - `"enable_delta_sync": false`, the replication cannot use delta sync
+
+
+      **Behavior**
+
+
+      The optional `enable_delta_sync` parameter works in conjunction with the database
+      level `delta_sync.enabled` setting, to determine whether this replication uses
+      delta sync.
+
+
+      - **If** `"delta_sync.enabled": true` for both databases involved in the replication,
+      then this parameter enables or disables its use for this specific replication.
+
+      -  In all other cases it has no effect and the replication runs without delta-sync.
+
+
+      **Constraints**
+
+
+      - Applies **ONLY** to Enterprise Edition deployments.
+
+      - Depends upon the setting of the database level parameter `delta_sync.enabled`
+
+      - Replications created prior to version 2.8 must run with `"enable_delta_sync":
+      false`
+
+      - Push replications will not use Delta Sync when pushing to a pre-2.8 target
+
+      '
+  filter:
+    type: string
+    description: '**About**
+
+
+      Use the optional `filter`property to defines the function to be used to filter
+      documents.
+
+
+      **Options**
+
+
+      A common value used when replicating from Sync Gateway is `sync_gateway/bychannel`.
+
+      This option limits the pull replication to a specific set of channels.
+
+      You can specify the required channels using `query_params`.
+
+
+      **Behavior**
+
+
+      Works in conjunction with `query_params` to control the documents processed
+      by the replication.
+
+
+      **Example**
+
+
+      ```
+
+      "filter":"sync_gateway/bychannel"
+
+      ```
+
+
+      **Constraints**
+
+
+      OPTIONAL for stops and removes (even if defined during creation)
+
+      '
+  max_backoff_time:
+    type: integer
+    default: 5
+    description: 'The **max_backoff_time**property specifies the time-period (in minutes)
+      during which Sync Gateway will attempt to reconnect lost or unreachable *remote*
+      targets.
+
+
+      On disconnection, Sync Gateway will do an exponential backoff up to the specified
+      value, after which it will attempt to reconnect indefinitely every *max_backoff_time*
+      minutes.
+
+
+      If a zero value is specified, then Sync Gateway will do an exponential backoff
+      up to an interval of five minutes before stopping the replication.
+
+
+      NOTE - this value defaults to five minutes for replications created prior to
+      version 2.8.
+
+      '
+  password:
+    type: string
+    default: mandatory
+    description: "**About**\n\n  Use `password` to provide the login password value\
+      \ for the accredited user running this replication.\n\n**Behavior**\n\n  These\
+      \ details are used to authenticate credentials and approve access to data.\n\
+      \n  Once provided and recorded, the password data is redacted and will not be\
+      \ displayed in either the configuration file or Admin REST API. A string of\
+      \ `****` will be displayed in its place.\n"
+  purge_on_removal:
+    type: boolean
+    default: false
+    description: '**About**
+
+
+      The optional `purge_on_removal` property specifies, per replication, whether
+      the removal of a `channel` triggers a purge.
+
+
+      **Options**
+
+      - `true` or `false`
+
+      - Default = false - Document removals are ignored by receiving end
+
+
+      **Behavior**
+
+
+      If `purge_on_removal=false`, then the removal of channels is ignored (not purged)
+      by the receiving end.
+
+
+      **Constraints**
+
+
+      - Applies only to PULL replications, including the PULL portion of a PUSHANDPULL
+      replication.
+
+
+      - Replications created prior to version 2.8 *must* be run with `purge_on_removal=false`.
+
+      '
+  query_params:
+    type: array
+    description: "**About**\n\nThe `query_params` property defines a set of key/value\
+      \ pairs used in the query string of the replication.\n\n**Behavior**\n\nThis\
+      \ property works in conjunction with `filters` and `channels` to provide routing.\n\
+      \n**Using**\n\nYou can use `query_params`' *channels* function to *pull* from\
+      \ a specific set of `channels`.\nTo do so, you would also need to set the `filter`\
+      \ to  `sync_gateway/bychannels`.\n\n**Example**\n\n```json\n  \"filter\":\"\
+      sync_gateway/bychannel\",\n  \"query_params\": {\n    \"channels\":[\"channel.user1\"\
+      ]\n  },\n```\n\n**Constraints**\n\nOPTIONAL for stops and removes (even if defined\
+      \ during creation)\n"
+    items:
+      type: string
+  remote:
+    type: string
+    description: "**About**\n\nThe **remote** property represents the endpoint of\
+      \ a database for the remote Sync Gateway.\nThat is, it identifies the remote\
+      \ Sync Gateway database that is the subject of this replication's push, pull\
+      \ or pushAndPull action.\n\nTypically the endpoint will include URI, Port and\
+      \ Database name elements.\n\nYou can also include user credentials in the URL,\
+      \ in the form ```<username>:<password>```.\nThe credentials relate to an existing\
+      \ Sync Gateway user on the remote server.\n\n**Example**\n``` \"remote\": \"\
+      http://user:password@example.com:4985/db1-remote\"```\n\n\n**Format**\n\n- a\
+      \ string containing a valid URL for a (remote) Sync Gateway database.\n- an\
+      \ object whose url property contains the Sync Gateway database URL.\n\n**Behavior**\n\
+      \n  Dependent upon setting of **direction**.\n\n  If **direction** is :\n  -\
+      \ *pull*, 'remote' defines the remote cluster *from* which data is pulled\n\
+      \  - *push*, 'remote' defines the remote cluster *to* which data is pushed\n\
+      \  - *pushAndPull*, 'remote' defines the *push* configuration.\n\n**Example**\n\
+      \n```json\n\"remote\": \"http://www.example.com:4984/sample-database\",\n```\n"
+  replication_id:
+    type: string
+    description: '**About**
+
+
+      The *replication_id* property specifies either:
+
+
+      - For NEW replications, the ID to be assigned to the the replication.
+
+      If no *replication_id* is specified, Sync Gateway will assign a random UUID
+      to new replications.
+
+
+      - For existing replications, this is the ID of the required replication.
+
+
+      - If **cancel=true**, this is the id of the active replication task to be cancelled.
+
+
+      **Constraints**
+
+
+      If this is specified in the body of a POST or PUT request then it must be the
+      same value as specified in the request URL.
+
+      '
+  initial_state:
+    type: string
+    default: Running
+    description: '**About**
+
+
+      The optional `initial_state` property is used to specify that the replication
+      must be launched in ''Stopped'' mode
+
+
+      **Behavior**
+
+
+      All replications are configured to start on Sync Gateway launch. So, if omitted,
+      the state defaults to ''Running''.
+
+
+      **Constraints*
+
+
+      Replications created prior to version 2.8 will all default to a state of ''Running''.
+
+      '
+  username:
+    type: string
+    default: Mandatory
+    description: '**About**
+
+
+      Use `username` to provide the name of the accredited user running this replication.
+
+
+      **Behavior**
+
+
+      These details are used to authenticate credentials and approve access to data
+
+
+      Once provided and recorded, the username data is redacted and will not be displayed
+      in either the configuration file or Admin REST API. A string of `****` will
+      be displayed in its place.
+
+
+      '

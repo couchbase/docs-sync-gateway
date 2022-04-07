@@ -1,0 +1,1121 @@
+type: object
+title: Bootstrap Configuration Model
+description: 'Sync Gateway''s start-up configuration properties
+
+  '
+properties:
+  bootstrap_config:
+    type: object
+    title: Bootstrap configuration
+    description: Define fundamental bootstrap related configuration properties
+    properties:
+      group_id:
+        type: string
+        default: default
+        description: 'The ID of the configuration group to which this node belongs.
+
+
+          '
+      config_update_frequency:
+        type: string
+        default: 10s
+        description: 'Sets the interval between checks for new or updated configurations
+          made by other nodes in Couchbase Server
+
+
+          It is provided as string, which uses Go''s duration format (e.g: 1s = 1
+          second, 5m = 5 minutes , 1h32m15s = 1 hour, 32 mins, 15 seconds)
+
+          see: https://pkg.go.dev/time#ParseDuration
+
+
+          '
+      server:
+        type: string
+        default: none
+        description: 'Sets the endpoint for the Couchbase Server holding (database)
+          configuration details.
+
+
+          The value of the *server* property specifies the Hostname(s) to the Couchbase
+          Server node(s) in the cluster.
+
+
+          Sync Gateway supports the ability to specify multiple hosts in the configuration.
+
+          Sync Gateway supports both the `couchbase://` and `http://` schemes for
+          specifying connection endpoints.
+
+
+          Sync Gateway also supports *SSL* in the connection to Couchbase Server;
+          use the `couchbases://` scheme for this.
+
+          As with the Couchbase Server SDKs, the `https://` scheme is **not** supported.
+
+
+          Examples of valid `server` values for *IPv4* include:
+
+          - `couchbase://host1`
+
+          - `couchbases://host1`
+
+          - `couchbase://host1,host2`
+
+          - `couchbase://host1:11210,host2,`
+
+          - `couchbases://host1:11207,host2`
+
+          - `http://host1:8091`
+
+          - `http://host1,host2:8091`
+
+          - `http://foo:bar@host1:8091`
+
+
+          Examples of valid `server` values for *IPv6* include:
+
+          - `http://[2001:db8::8811]:8091` *// single node IPv6 - http scheme with
+          default server port*
+
+          - `couchbases://[2001:db8::8811]` *// single node SSL IPv6 - default port
+          (omitted)*
+
+          - `couchbase://[2001:db8::8811],[2001:db8::8822]:888` *// node1 default
+          port, node2 port 888*
+
+
+          As with the SDK, when using the `couchbase://` or `couchbases://` schemes,
+          the port is not required, but if specified should be the external/internal
+          bucket ports (defaults are 11210 or 11207 respectively). Attempting to use
+          the admin ports (8091/18091) will result in a startup error.
+
+
+          **Alternate Addresses**
+
+
+          On startup, Sync Gateway will try each hostname that is provided until it
+          is able to connect successfully.
+
+
+          By default, if a remote cluster has an external address set, then when SG
+          connects it will apply a heuristic to determine whether to choose between
+          external or default (internal) addresses.
+
+
+          The choice is based on the host names supplied in the connection string.
+
+          - SG uses external networking only when none of the supplied host names
+          match any of Couchbase Server''s internal node addresses, and an external
+          address is defined.
+
+          - In all other cases Sync Gateway uses the default (internal) networking.
+
+
+          However, it is possible to override this behavior by adding a `network`
+          parameter to the connection string.
+
+
+          The `network` parameter can be --
+
+          - auto - this is the default value if no parameter is provided. In this
+          case the heuristic described above is applied to determine the address used;
+          so effectively there is no override.
+
+          - external - to always force use of the external address
+
+          - default - to always force use of the internal address
+
+
+          For example:
+
+          ```"server": "couchbases://my-cbs-server?network=default"```
+
+
+          Will force the connection to ignore any alternative external addresses configured
+          on the Couchbase Server node.
+
+
+          **Lost Connections**
+
+
+          If the connection to Couchbase Server is lost during normal operations,
+          Sync Gateway will automatically re-connect to another node in the cluster.
+          During that re-connection period, the Sync Gateway will appear offline -
+          see [Taking Databases Offline](database-offline.html) - and documents will
+          not be replicated to mobile clients.
+
+
+          '
+      username:
+        type: string
+        default: none
+        description: 'The username to be used when authenticating to the server.
+
+
+          '
+      password:
+        type: string
+        default: none
+        description: 'The password to be used when authenticating to the server.
+
+
+
+          '
+      ca_cert_path:
+        type: string
+        title: Root CA cert path for TLS connection
+        description: 'Absolute or relative path on the filesystem to the root CA certificate
+          to verify the certificate chain and hostname of the Couchbase Server cluster.
+
+
+          Works in conjunction with `server_tls_skip_verify` to control whether system
+          root pool is used or not.
+
+          Set this empty and `server_tls_skip_verify` true to avoid using system root
+          pool
+
+
+          '
+      server_tls_skip_verify:
+        type: boolean
+        description: 'Defaults to `false`, which requires a valid CA Cert Path.
+
+          Works in conjunction with `ca_cert_path` to control whether system root
+          pool is used or not.
+
+          Set this true and `ca_cert_path` empty to allow, for example, self-signed
+          or un-trusted certificates. This will be the default of-of-the-box setting.'
+      x509_cert_path:
+        type: string
+        title: Cert path (public key) for X.509 bucket auth
+        description: 'Use x509_cert_path to define the absolute or relative path on
+          the filesystem to the x509 certificate.
+
+
+          Relative paths are relative to the directory containing the Sync Gateway
+          executable.
+
+
+          '
+      x509_key_path:
+        type: string
+        title: Key path (private key) for X.509 bucket auth
+        description: 'Absolute or relative path on the filesystem to the X509 key.
+
+
+          Relative paths are relative to the directory containing the Sync Gateway
+          executable.
+
+
+          '
+      use_tls_server:
+        type: boolean
+        default: true
+        description: 'Default to `true`, which forces the connection to Couchbase
+          Server to use TLS.
+
+
+          Use `use_tls_server` to enforce use of a secure scheme (for example, `couchbases://`)
+          to connect to Couchbase Server.
+
+
+          Set this `false` to use a non-secure scheme (for example with `couchbase://`).
+
+
+          If the scheme used does not match that indicated by the `use_tls_server`
+          value (for example, `couchbases://` with `use_tls_server` = `false`) then
+          Sync Gateway will error and refuse to start.
+
+
+          '
+      kv_tls_port:
+        type: integer
+        default: 11207
+        description: 'Optional value for the Memcached TLS port, if not using the  default
+          (11207)
+
+
+          '
+      max_concurrent_query_ops:
+        description: 'Sets the maximum number of concurrent query operations allowed
+
+          '
+        type: integer
+        default: 1000
+  api:
+    type: object
+    title: API configuration
+    description: Define API related configuration properties
+    properties:
+      admin_interface:
+        type: string
+        default: 127.0.0.1:4985
+        description: 'Port or TCP network address (IP address and the port) that the
+          Admin REST API listens on.
+
+
+          The loopback address prefix before the port (`127.0.0.1`) means the interface
+          will not be reachable from other hosts. To make it reachable, change it
+          to ":4985".
+
+
+          Change requires restart of Admin API
+
+          '
+      admin_interface_authentication:
+        type: boolean
+        default: true
+        description: 'Use the `admin_interface_authentication` property to disable
+          authentication for the metrics API.
+
+          This option should be used with discretion and only in test environments.
+
+
+          By default the Admin API requires Couchbase Server RBAC authentication.
+
+          The user must provide credentials to an existing user with an appropriate
+          Sync Gateway role.
+
+
+          '
+      metrics_interface:
+        type: string
+        default: 127.0.0.1:4986
+        description: 'This defines the Port or TCP network address (IP address and
+          the port) that the Metrics REST API will listen on.
+
+
+          Using the loopback address prefix before the port (`127.0.0.1`) means the
+          interface will not be reachable from other hosts.
+
+
+          For example
+
+          ```"metricsInterface": "127.0.0.1:4986"```
+
+          '
+      metrics_interface_authentication:
+        type: boolean
+        default: true
+        description: 'Use the `metrics_interface_authentication` property to disable
+          authentication for the metrics API.
+
+          This option should be used with discretion and only in test environments.
+
+
+          By default the Metrics API requires Couchbase Server RBAC authentication.
+
+          The user must provide credentials to an existing user with an appropriate
+          Sync Gateway role.
+
+
+          '
+      profile_interface:
+        type: string
+        description: 'TCP network address (IP address and the port) that the Go profile
+          API listens on.
+
+          You can obtain Go profiling information from the interface.
+
+          You can omit the IP address.
+
+
+          '
+      public_interface:
+        type: string
+        default: :4984
+        description: 'Public REST API port
+
+
+          Change requires restart of Public API
+
+
+          '
+      compress_responses:
+        description: 'Whether to compress HTTP responses. Set to false to disable
+          compression of HTTP responses.
+
+
+          '
+        type: boolean
+        default: true
+      cors:
+        type: object
+        description: 'Configuration object for allowing cross-origin resource sharing
+          (CORS).
+
+          This is useful to interact directly with Sync Gateway from HTML 5 applications
+          via XHR.
+
+
+          Change requires HTTP server restart
+
+          '
+        properties:
+          headers:
+            type: array
+            description: 'List of HTTP headers that can be used by domains specified
+              in the `origin` and `login_origin` properties.
+
+
+              A common value is `["Content-Type"]` as clients use the `Content-Type:
+              application/json` header when sending data as JSON in the body of POST/PUT
+              requests.
+
+
+              Change requires HTTP server restart
+
+              '
+            items:
+              type: string
+          login_origin:
+            type: array
+            description: 'List of allowed login origins.
+
+
+              Change requires HTTP server restart
+
+
+              '
+            items:
+              type: string
+          max_age:
+            type: integer
+            description: 'Value for the Access-Control-Max-Age header.
+
+              This is the period of time, in seconds, that the response to a CORS
+              preflight request is cached before sending another preflight request.
+
+
+              Change requires HTTP server restart
+
+
+              '
+          origin:
+            type: array
+            description: 'List of allowed origins; use a wildcard character (*) to
+              allow access from everywhere.
+
+
+              **Note** that the wildcard (*) cannot be used if you plan to authenticate
+              users as well (by using the `withCredentials` flag on the client side).
+
+              Instead specify the explicit domain(s) in the `origin` and `login_origin`
+              properties of the configuration file.
+
+
+              Change requires HTTP server restart
+
+              '
+            items:
+              type: string
+              description: An allowed origin array element
+      hide_product_version:
+        type: boolean
+        default: false
+        description: 'Determines whether product versions are removed from Server
+          headers and REST API responses.
+
+          This setting does not apply to the Admin REST API.
+
+
+          This customization of the Sync Gateway response avoids revealing the version
+          of the Sync Gateway to HTTP requests to the root path.
+
+
+          '
+      https:
+        type: object
+        description: Group in which to specify any API HTTPS configuration properties
+        properties:
+          tls_minimum_version:
+            type: string
+            default: tlsv1.2
+            title: The minimum allowable TLS version for the REST APIs
+            description: 'Enforce a minimum TLS version to be used in replications
+              with Couchbase Lite.
+
+
+              Possible values are:
+
+
+              - "tlsv1"
+
+
+              - "tlsv1.1"
+
+
+              - "tlsv1.2"
+
+
+              - "tlsv1.3"
+
+
+              Change requires HTTP server restart
+
+
+              '
+          tls_cert_path:
+            type: string
+            title: The TLS certificate file to use for the REST APIs
+            description: 'Absolute or relative path on the filesystem to the TLS certificate
+              file, if TLS is used to secure Sync Gateway connections
+
+
+              To use plaintext, omit both this property and the `tls_key_path` property.
+
+
+              A relative path is from the directory that contains the Sync Gateway
+              executable file.
+
+
+              Change requires HTTP server restart
+
+              '
+          tls_key_path:
+            type: string
+            title: The TLS key file to use for the REST APIs
+            description: 'Absolute or relative path on the filesystem to the TLS private
+              key files.
+
+
+              To use plaintext, omit both this property and the `tls_cert_path` property.
+
+
+              A relative path is from the directory that contains the Sync Gateway
+              executable file.
+
+
+              Change requires HTTP server restart
+
+              '
+      idle_timeout:
+        type: integer
+        default: 90
+        description: 'Maximum duration (in seconds) to wait for the next request when
+          keep-alives are enabled
+
+
+          Change requires HTTP server restart
+
+          '
+      max_connections:
+        type: integer
+        default: 0
+        description: 'Maximum number of incoming HTTP connections to accept.
+
+
+          Change requires HTTP server restart
+
+          '
+      pretty:
+        type: boolean
+        default: false
+        description: '(**Deprecated**) Whether to pretty-print JSON responses.
+
+
+          '
+      read_header_timeout:
+        type: integer
+        default: 5
+        description: 'Maximum duration (in seconds) allowed to read request headers
+
+
+          Change requires HTTP server restart
+
+          '
+      server_read_timeout:
+        type: integer
+        description: 'Maximum duration in seconds before timing out the read of an
+          HTTP(S) request.
+
+
+          This property only effects the HTTP connections on the Sync Gateway public
+          and admin ports.
+
+
+          Sync Gateway is written in the Go programming language, therefore the value
+          set in the configuration file is passed to Go''s server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
+
+
+          Change requires HTTP server restart
+
+          '
+      server_write_timeout:
+        type: integer
+        description: 'Maximum duration in seconds before timing out the write of an
+          HTTP(S) response.
+
+
+          This property only effects the HTTP connections on the Sync Gateway public
+          and admin ports.
+
+
+          Sync Gateway is written in the Go programming language, therefore the value
+          set in the configuration file is passed to Go''s server instance [https://golang.org/pkg/net/http/#Server](https://golang.org/pkg/net/http/#Server).
+
+
+          Change requires HTTP server restart
+
+
+          '
+  logging:
+    type: object
+    title: Logging Model
+    description: 'Holding object for all logging-related settings.
+
+
+      Note that in addition to setting these logging values in the bootstrap configuration
+      file, you can also use the ADMIN Rest API to set or change the values without
+      requiring a full reload.
+
+      See: [Rest Admin API](rest-api-admin.html)
+
+
+      A full logging initialization is required.
+
+
+      See the [Logging](logging.html) page for a fuller explanation on logging settings.
+
+
+      '
+    properties:
+      log_file_path:
+        type: string
+        description: 'Absolute or relative path on the filesystem to the log file.
+
+          A relative path is from the directory that contains the Sync Gateway executable
+          file.
+
+
+          Changes require full logging re-initialization
+
+          '
+      redaction_level:
+        type: string
+        default: none
+        description: "Optionally, log files can be redacted.\nThis means that user-data,\
+          \ considered to be private, is removed.\nSuch data includes:\n\n  - Key/value\
+          \ pairs in JSON documents\n\n  - Usernames\n\n  - Query-fields that reference\
+          \ key/value pairs and/or usernames\n\n  - Names and email addresses retrieved\
+          \ during product registration\n\n  - Extended attributes\n\nThis redaction\
+          \ of user-data is referred to as partial redaction.\n\nTo enable it, set\
+          \ this property to `\"redaction_level\" : \"partial\"` in the configuration\
+          \ file:\n\n"
+      console:
+        type: object
+        description: Settings for the console output logging.
+        properties:
+          enabled:
+            type: boolean
+            description: Indicates whether console logging is enabled
+          rotation:
+            type: object
+            description: 'The log file may be rotated by defining a "rotation" sub
+              document.
+
+              See details in [log rotation](logging.html#lbl-logrotate).
+
+              '
+            properties:
+              max_size:
+                type: integer
+                description: The maximum size in MB of the log file before it gets
+                  rotated.
+                default: 100
+              max_age:
+                type: integer
+                description: 'The maximum number of days to retain old log files.
+
+                  This can''t be set below the minimum allowed value for the given
+                  level.
+
+                  '
+              localtime:
+                type: boolean
+                description: 'If true, it uses the computer''s local time to format
+                  the backup timestamp.
+
+                  False uses UTC.
+
+                  '
+                default: false
+              rotated_logs_size_limit:
+                type: integer
+                default: 1024
+                description: 'Controls how much disk space the rotated (and compressed)
+                  log files for this level can take up.
+
+
+                  The value is expressed in megabytes.
+
+                  The minimum value is `10` and there is no maximum value.
+
+                  '
+          collation_buffer_size:
+            type: integer
+            description: 'Size of the collation buffer
+
+
+              '
+          log_level:
+            type: string
+            default: info
+            description: 'The level of logging.
+
+
+              Log levels are cumulative (that is, log entries at WARN will also be
+              included in the INFO and DEBUG logs).
+
+
+              See:
+
+              [Log Levels](logging.html#lbl-log-keys) page
+
+
+              '
+          log_keys:
+            description: 'List of log keys to enable for diagnostic logging.
+
+
+              Available log key values are described in the
+
+              [Log Keys](logging.html#lbl-log-keys) page
+
+
+              '
+            type: array
+            items:
+              type: string
+            default: '["HTTP"]'
+          color_enabled:
+            type: boolean
+            default: false
+            description: Use ANSI color codes in the console output (Linux/MacOS only).
+          file_output:
+            type: string
+            description: 'Changes require full logging re-initialization
+
+              '
+      error:
+        description: 'Activate the error logging level - see [Logging](logging.html)
+          page for more on log levels.
+
+          '
+        type: object
+        properties:
+          enabled:
+            description: 'Enable this *error* log level.
+
+
+              - The *error*, *warn* and *info* log levels are enabled by default.
+
+
+              - The *debug* log level is disabled by default.
+
+
+              **Note:** You are advised to keep this log level enabled to troubleshoot
+              issues.
+
+
+              Enabling this log level is a requirement to receive
+
+              [Enterprise Support](https://www.couchbase.com/support-policy).
+
+              '
+            type: boolean
+          rotation:
+            type: object
+            description: 'The log file may be rotated by defining a "rotation" sub
+              document.
+
+
+              See details in [log rotation](logging.html#lbl-logrotate).
+
+              '
+            properties:
+              max_size:
+                type: integer
+                description: The maximum size in MB of the log file before it gets
+                  rotated.
+                default: 100
+              max_age:
+                type: integer
+                description: The maximum number of days to retain old log files. This
+                  can't be set below the minimum allowed value for the given level.
+              localtime:
+                type: boolean
+                description: If true, it uses the computer's local time to format
+                  the backup timestamp. False uses UTC.
+                default: false
+              rotated_logs_size_limit:
+                type: integer
+                default: 1024
+                description: 'Controls how much disk space the rotated (and compressed)
+                  log files for this level can take up.
+
+
+                  The value is expressed in megabytes.
+
+                  The minimum value is `10` and there is no maximum value.
+
+                  '
+          collation_buffer_size:
+            type: integer
+            description: 'Size of the collation buffer
+
+
+              '
+      warn:
+        description: 'The warning logging-level is triggered when Sync Gateway detects
+          something is wrong but it can still service requests
+
+
+          - Minimum max_age is 90 days
+
+
+          - Log File Name is ```sg_warn.log```
+
+
+          '
+        type: object
+        properties:
+          enabled:
+            description: 'Whether to enable this log level.
+
+              The *error*, *warn* and *info* log levels are enabled by default.
+
+              The *debug* log level is disabled by default.
+
+
+              Note, however, that you are advised to keep this log level enabled to
+              troubleshoot issues. Enabling this log level is a requirement to receive
+              [Enterprise Support](https://www.couchbase.com/support-policy).
+
+              '
+            type: boolean
+          rotation:
+            type: object
+            description: 'The log file may be rotated by defining a "rotation" sub
+              document. See details in [log rotation](logging.html#lbl-logrotate).
+
+              '
+            properties:
+              max_size:
+                type: integer
+                description: The maximum size in MB of the log file before it gets
+                  rotated.
+                default: 100
+              max_age:
+                type: integer
+                description: The maximum number of days to retain old log files. This
+                  can't be set below the minimum allowed value for the given level.
+              localtime:
+                type: boolean
+                description: If true, it uses the computer's local time to format
+                  the backup timestamp. False uses UTC.
+                default: false
+              rotated_logs_size_limit:
+                type: integer
+                default: 1024
+                description: 'Controls how much disk space the rotated (and compressed)
+                  log files for this level can take up.
+
+
+                  The value is expressed in megabytes.
+
+                  The minimum value is `10` and there is no maximum value.
+
+                  '
+          collation_buffer_size:
+            type: integer
+            description: 'Size of the collation buffer
+
+
+              '
+      info:
+        type: object
+        description: 'The information logging-level provides important diagnostics
+          for support and customers
+
+          '
+        properties:
+          enabled:
+            type: boolean
+            default: true
+            description: 'Whether to enable this log level.
+
+
+              '
+          rotation:
+            type: object
+            description: 'The log file may be rotated by defining a "rotation" sub
+              document
+
+              '
+            properties:
+              max_size:
+                type: integer
+                description: The maximum size in MB of the log file before it gets
+                  rotated.
+                default: 100
+              max_age:
+                type: integer
+                description: The maximum number of days to retain old log files. This
+                  can't be set below the minimum allowed value for the given level.
+              localtime:
+                type: boolean
+                description: If true, it uses the computer's local time to format
+                  the backup timestamp. False uses UTC.
+                default: false
+              rotated_logs_size_limit:
+                type: integer
+                default: 1024
+                description: 'Controls how much disk space the rotated (and compressed)
+                  log files for this level can take up.
+
+
+                  The value is expressed in megabytes.
+
+                  The minimum value is `10` and there is no maximum value.
+
+                  '
+          collation_buffer_size:
+            type: integer
+            description: 'Size of the collation buffer
+
+
+              '
+      debug:
+        type: object
+        description: 'The debug logging-level provides lower level development analysis
+
+
+          - Minimum max_age is 1 day
+
+          _ Log File Name is ```sg_debug.log```
+
+          '
+        properties:
+          enabled:
+            type: boolean
+            default: false
+            description: 'Sets this logging-level on or off.
+
+
+              Note, you are advised to keep this log level enabled when troubleshooting
+              issues.
+
+              Enabling this log level is a requirement to receive [Enterprise Support](https://www.couchbase.com/support-policy).
+
+              '
+          rotation:
+            type: object
+            description: 'The log file may be rotated by defining a "rotation" sub
+              document. See details in [log rotation](logging.html#lbl-logrotate).
+
+              '
+            properties:
+              max_size:
+                type: integer
+                description: The maximum size in MB of the log file before it gets
+                  rotated.
+                default: 100
+              max_age:
+                type: integer
+                description: The maximum number of days to retain old log files. This
+                  can't be set below the minimum allowed value for the given level.
+              localtime:
+                type: boolean
+                description: If true, it uses the computer's local time to format
+                  the backup timestamp. False uses UTC.
+                default: false
+              rotated_logs_size_limit:
+                type: integer
+                default: 1024
+                description: 'Controls how much disk space the rotated (and compressed)
+                  log files for this level can take up.
+
+
+                  The value is expressed in megabytes.
+
+                  The minimum value is `10` and there is no maximum value.
+
+                  '
+          collation_buffer_size:
+            type: integer
+            description: 'Size of the collation buffer
+
+
+              '
+      trace:
+        type: object
+        description: 'The trace logging-level.
+
+          '
+        properties:
+          enabled:
+            type: boolean
+            default: null
+            description: 'Whether to enable this log level.
+
+
+              '
+          rotation:
+            type: object
+            description: 'The log file may be rotated by defining a "rotation" sub
+              document. See details in [log rotation](logging.html#lbl-logrotate).
+
+              '
+            properties:
+              max_size:
+                type: integer
+                description: The maximum size in MB of the log file before it gets
+                  rotated.
+                default: 100
+              max_age:
+                type: integer
+                description: The maximum number of days to retain old log files. This
+                  can't be set below the minimum allowed value for the given level.
+              localtime:
+                type: boolean
+                description: If true, it uses the computer's local time to format
+                  the backup timestamp. False uses UTC.
+                default: false
+              rotated_logs_size_limit:
+                type: integer
+                default: 1024
+                description: 'Controls how much disk space the rotated (and compressed)
+                  log files for this level can take up.
+
+
+                  The value is expressed in megabytes.
+
+                  The minimum value is `10` and there is no maximum value.
+
+                  '
+          collation_buffer_size:
+            type: integer
+            description: 'Size of the collation buffer
+
+
+              '
+      stats:
+        type: object
+        description: 'The stats logging level
+
+          '
+        properties:
+          enabled:
+            type: boolean
+            default: null
+            description: 'Whether to enable this log level.
+
+              '
+          rotation:
+            type: object
+            description: 'The log file may be rotated by defining a "rotation" sub
+              document. See details in [log rotation](logging.html#lbl-logrotate).
+
+              '
+            properties:
+              max_size:
+                type: integer
+                description: The maximum size in MB of the log file before it gets
+                  rotated.
+                default: 100
+              max_age:
+                type: integer
+                description: The maximum number of days to retain old log files. This
+                  can't be set below the minimum allowed value for the given level.
+              localtime:
+                type: boolean
+                description: If true, it uses the computer's local time to format
+                  the backup timestamp. False uses UTC.
+                default: false
+              rotated_logs_size_limit:
+                type: integer
+                default: 1024
+                description: 'Controls how much disk space the rotated (and compressed)
+                  log files for this level can take up.
+
+
+                  The value is expressed in megabytes.
+
+                  The minimum value is `10` and there is no maximum value.
+
+                  '
+          collation_buffer_size:
+            type: integer
+            description: 'Size of the collation buffer
+
+
+
+              '
+  replicator:
+    title: Replicator configuration
+    description: Define Replicator related configuration properties
+    properties:
+      blip_compression:
+        type: integer
+        default: 6
+        description: 'This sets the ''deflate'' compression level to use when compressing
+          messages sent via the WebSocket protocol, where:
+
+
+          - 0 means no compression,
+
+          - 1 means fastest (least) compression
+
+          - 9 means slowest (most) compression.
+
+          '
+      max_heartbeat:
+        type: integer
+        default: 0
+        description: 'This specifies the Maximum Heartbeat value for the ```_changes
+          feed``` requests; the time in second between heartbeats.
+
+          - The default value of ```maxHeartbeat``` is 0 (zero)
+
+          - The minimum value of ```maxHeartbeat``` is 25 (25,000 ms)
+
+
+          '
+  auth:
+    type: object
+    title: Auth configuration
+    description: Define Auth related configuration properties
+    properties:
+      bcrypt_cost:
+        type: integer
+        default: 10
+        description: Cost to use for bcrypt password hashes
+  unsupported:
+    type: object
+    title: Unsupported configuration
+    description: Collection of unsupported properties
+    properties:
+      stats_log_freq:
+        type: string
+        default: 1m
+        description: 'It is provided as string, which uses Go''s duration format (e.g:
+          1s = 1 second, 5m = 5 minutes , 1h32m15s = 1 hour, 32 mins, 15 seconds)
+
+          see: https://pkg.go.dev/time#ParseDuration
+
+
+          '
+      http2.enabled:
+        type: boolean
+        default: false
+      use_stdlib_json:
+        type: boolean
+        default: false
+  max_file_descriptors:
+    type: integer
+    default: 5000
+    description: 'Maximum number of open file descriptors.
+
+
+      '

@@ -2505,11 +2505,14 @@ responses:
 definitions:
 
   Bootstrap_model:
+    type: object
+    title: Bootstrap Configuration Model
     description: |+
       Sync Gateway's start-up configuration properties
     properties:
 
       bootstrap_config:
+        type: object
         title: Bootstrap configuration
         description: Define fundamental bootstrap related configuration properties
         properties:
@@ -2937,6 +2940,7 @@ definitions:
           Maximum number of open file descriptors.
 
   Logging_model:
+    type: object
     title: Logging Model
     description: |+
       Holding object for all logging-related settings.
@@ -4252,6 +4256,14 @@ definitions:
         items:
           type: string
 
+  Role_and_User_model:
+    type: object
+    properties:
+      Role:
+        $ref: "#/definitions/Role_model"
+      User:
+         $ref: "#/definitions/User_model"
+
   Sync_model:
     type: string
     description: |+
@@ -5013,11 +5025,14 @@ definitions:
 
   Replication_model:
     type: object
+    title: "Replication Model"
+    description: "Data schema for the replication model"
     properties:
       adhoc:
         type: boolean
         default: false
-        description: |+
+        description: |
+          "
           **About**
 
           Use the Admin REST API's `adhoc` parameter to specify that a replication is ad hoc rather than persistent.
@@ -5029,8 +5044,7 @@ definitions:
 
           **Constraints**
 
-          This parameter is **NOT** available to configured replications; only those initialized using the Admin REST API.
-
+          This parameter is **NOT** available to configured replications; only those initialized using the Admin REST API."
       batch_size:
         type: integer
         default: 200
@@ -5038,7 +5052,6 @@ definitions:
           **About**
 
           Use the optional `batch_size` property to specify the number of changes to be included in a single batch during replication.
-
       cancel:
         type: boolean
         default: false
@@ -5053,7 +5066,6 @@ definitions:
 
           - **NOTE** that the body of the request must be the same as the replication's replication definition for the cancellation request to be honoured.
           For example, if you requested continuous replication, the cancellation request must also contain the continuous field.
-
       conflict_resolution_type:
         type: string
         default: default
@@ -5090,8 +5102,6 @@ definitions:
           **Constraints**
 
           - Replications created prior to version 2.8 will default to `default`.
-
-
       continuous:
         type: boolean
         default: false
@@ -5108,7 +5118,6 @@ definitions:
           **Constraints**
 
           - Optional for stops and removes
-
       custom_conflict_resolver:
         type: string
         default: none
@@ -5144,7 +5153,6 @@ definitions:
           **Constraints**
 
           Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
-
       direction:
         type: string
         description: |+
@@ -5163,7 +5171,6 @@ definitions:
           **Constraints**
 
           Replications created prior to version 2.8 derive their *direction* from the source/target url of the replication.
-
       enable_delta_sync:
         type: boolean
         default: false
@@ -5217,8 +5224,6 @@ definitions:
           **Constraints**
 
           OPTIONAL for stops and removes (even if defined during creation)
-
-
       max_backoff_time:
         type: integer
         default: 5
@@ -5230,7 +5235,6 @@ definitions:
           If a zero value is specified, then Sync Gateway will do an exponential backoff up to an interval of five minutes before stopping the replication.
 
           NOTE - this value defaults to five minutes for replications created prior to version 2.8.
-
       password:
         type: string
         default: mandatory
@@ -5244,14 +5248,12 @@ definitions:
             These details are used to authenticate credentials and approve access to data.
 
             Once provided and recorded, the password data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
+      # perf_tuning_params:
+        # type: object
+        # description: |+
+        #   The perf_tuning_params are not available in this release.
 
-      perf_tuning_params:
-        type: object
-        description: |+
-          The perf_tuning_params are not available in this release.
-
-          NOTE - This property replaces the 'changes_feed_limit' at version 2.8
-
+        #   NOTE - This property replaces the 'changes_feed_limit' at version 2.8
       purge_on_removal:
         type: boolean
         default: false
@@ -5273,7 +5275,6 @@ definitions:
           - Applies only to PULL replications, including the PULL portion of a PUSHANDPULL replication.
 
           - Replications created prior to version 2.8 *must* be run with `purge_on_removal=false`.
-
       query_params:
         type: array
         description: |+
@@ -5304,7 +5305,6 @@ definitions:
           OPTIONAL for stops and removes (even if defined during creation)
         items:
           type: string
-
       remote:
         type: string
         description: |+
@@ -5358,8 +5358,6 @@ definitions:
           **Constraints**
 
           If this is specified in the body of a POST or PUT request then it must be the same value as specified in the request URL.
-
-
       initial_state:
         type: string
         default: Running
@@ -5375,7 +5373,6 @@ definitions:
           **Constraints*
 
           Replications created prior to version 2.8 will all default to a state of 'Running'.
-
       username:
         type: string
         default: Mandatory
@@ -5389,8 +5386,6 @@ definitions:
           These details are used to authenticate credentials and approve access to data
 
           Once provided and recorded, the username data is redacted and will not be displayed in either the configuration file or Admin REST API. A string of `****` will be displayed in its place.
-
-
 
   # REPLICATIONSTATUS new at 2.8
   ReplicationStatusResponseBody:
