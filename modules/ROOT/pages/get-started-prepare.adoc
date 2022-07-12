@@ -40,10 +40,8 @@ Here's what you need in order to install Sync Gateway:
 
 Once you have all that covered ... go {get-started-install--xref} {sgw-t}.
 
-
-
 [#lbl-req-minim, reftext=Minimum Requirements]
-== Couchbase Requirements
+== Couchbase Server Requirements
 
 To use Sync Gateway you need an operational Couchbase Server installation.
 Ensure that you use compatible versions of Couchbase Server and Sync Gateway -- see: <<lbl-req-compat>>.
@@ -53,7 +51,6 @@ TIP: You can get Couchbase Server from our {url-downloads}[Downloads, window=_bl
 You will then need to configure Couchbase Server by adding a Bucket and an RBAC User for Sync Gateway -- see: <<configure-server>>.
 
 include::partial$block-caveats.adoc[tags="cbs6.0ke-xattrs"]
-
 
 == Network Port Requirements
 
@@ -87,19 +84,42 @@ include::partial$sgw-supported-os.adoc[tags=sup-os-dev-test]
 
 include::partial$sgw-supported-os.adoc[tags=sup-os-cloud]
 
+== Cluster Configuration for Sync Gateway
+
+We will create a new cluster on a fresh Couchbase Server installation.
+
+. Access the Admin Console at `+http://localhost:8091+`
++
+image::couchbase-new-installation.png[, 300]
++
+. Click btn:[Setup New Cluster]
+. Fill in the details for the new cluster on the `New Cluster` screen:
++
+image::new-cluster-details.png[,400]
++
+. Then press btn:[Next: Accept Terms]
+. On the `Terms and Conditions` screen, accept the terms and conditions,
+then click on btn:[Configure Disk, Memory, Services] to configure the cluster.
++
+image::configure-cluster-for-sync-gateway.png[,400]
++
+. Ensure that you have selected `Data`, `Query`, and `Index` before clicking on btn:[Save {amp} Finish]
 
 [#configure-server]
 == Configure Server for Sync Gateway
 
-=== STEP 1 -- Create a Bucket
+
+=== Step {counter: step} -- Create a Bucket
 
 We will use this bucket to test the deployment of Sync Gateway, later in the Getting Started section.
 
 . Login to Couchbase Server's Admin Console
+[upperroman]
 .. Go to `+http://localhost:8091+`
-.. Enter your administrator credentials
+.. Enter your administrator credentials.
 
 . Within the Admin Console's toolbar,
+[upperroman]
 .. Select the *Buckets* tab
 .. btn:[Add Bucket] to continue
 +
@@ -113,7 +133,7 @@ include::partial$block-caveats.adoc[tags="ephemeral-buckets"]
 image::cb-create-bucket-popup.png[]
 
 
-=== STEP 2 -- Create RBAC User
+=== Step {counter: step} -- Create RBAC User
 
 // tag::create-rbac-user[]
 
@@ -142,7 +162,7 @@ image::create-user.png[]
 
 . Create the RBAC user with appropriate access roles, this will differ for each of the user types.
 +
-The steps to do this are shown in <<rbac-roles>>. Note that they differ, depending on your Couchbase Server version.
+The steps for this are shown in <<rbac-roles>>. Note that they differ, depending on your Couchbase Server version.
 +
 [#rbac-roles]
 .Select RBAC roles
@@ -206,7 +226,7 @@ image::user-settings.png[,450]
 
 
 [#lbl-set-netw-access]
-=== STEP 3 -- Set-up Network Access
+=== Step {counter: step} -- Set-up Network Access
 
 When installing Couchbase Server on the cloud, ensure that network permissions (or firewall settings) allow incoming connections to Couchbase Server ports.
 
