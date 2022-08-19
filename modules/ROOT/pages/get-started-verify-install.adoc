@@ -29,6 +29,10 @@ include::partial$_show_page_header_block.adoc[]
 .Preparatory Steps
 NOTE: Ensure you have read, and acted-upon, the information and steps in {get-started-prepare--xref} and {get-started-install--xref}
 
+These instructions are for local or server based deployments.
+If you are using a container such as Docker, look at this
+https://blog.couchbase.com/using-docker-with-couchbase-mobile/[blog post on using Docker with Couchbase Mobile] for additional details.
+
 
 :param-page: {page-relative-src-path}
 include::partial$topic-group-get-started.adoc[]
@@ -116,21 +120,35 @@ bin/sync_gateway -<options> sgwconfig.json // <.>
 
 We can now use the Admin REST API to add a database to our {sgw} cluster.
 
-The `curl` command shown in <<ex-add-sgw-db>> requires basic authentication using the `api_admin` {cbs} RBAC user's credentials we created in Step 2 of {get-started-prepare--xref--create-rbac-users}.
-It adds a `traveldb` database pointing to the {cbs}'s `travel-sample` bucket.
+[NOTE]
+====
+The `curl` commands on this page requires basic authentication using the `api_admin` {cbs} RBAC user's credentials we created in Step 2 of {get-started-prepare--xref--create-rbac-users}.
+You can create the digest by taking a Base64 of `username:password`. For example:
+
+[source,console]
+----
+DIGEST=`echo -n sync_gateway:password | base64`
+echo $DIGEST
+# c3luY19nYXRld2F5OnBhc3N3b3Jk
+
+curl --header "Authorization: Basic $DIGEST" ...
+----
+====
+
+The `curl` command shown in <<ex-add-sgw-db>> below a `traveldb` database pointing to the {cbs}'s `travel-sample` bucket.
 
 [#ex-add-sgw-db]
 .Add a Sync Gateway Database
 ====
 [source]
 ----
-curl --location --request PUT 'http://127.0.0.1:4985/traveldb/' \  // <.>
---header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "bucket": "travel-sample", // <.>
-    "num_index_replicas": 0 // <.>
-    }
+curl  --location --request PUT 'http://127.0.0.1:4985/traveldb/' \// <.>
+      --header "Authorization: Basic $DIGEST" \
+      --header 'Content-Type: application/json' \
+      --data-raw '{
+          "bucket": "travel-sample", // <.>
+          "num_index_replicas": 0 // <.>
+          }'
 ----
 <.> Here we specify the name of the {sgw} database -- `traveldb`
 <.> Now we point `traveldb` at the {cbs} bucket `travel-sample`, which we created in {get-started-prepare--config-server--xref}
@@ -154,14 +172,13 @@ It adds a role called `stdrole`.
 ====
 [source, bash]
 ----
-curl --location --request PUT 'http://127.0.0.1:4985/traveldb/_role/stdrole' \ // <.>
---header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "name": "stdrole",
-    "admin_channels": ["newrolechannel"] // <.>
-}'
-
+curl  --location --request PUT 'http://127.0.0.1:4985/traveldb/_role/stdrole' \// <.>
+      --header "Authorization: Basic $DIGEST" \
+      --header 'Content-Type: application/json' \
+      --data-raw '{
+          "name": "stdrole",
+          "admin_channels": ["newrolechannel"] // <.>
+      }'
 ----
 
 <.> Here we identify the name of the {sgw} database -- `traveldb` +
@@ -182,16 +199,15 @@ It adds a user called `sgwuser1`.
 ====
 [source, bash]
 ----
-curl --location -g --request POST 'http://localhost:4985/traveldb/_user/' \ // <.>
---header 'Content-Type: application/json' \
---header 'Authorization: Basic e3tkYmFkbWlufX06cGFzc3dvcmQ=' \ // <.>
---data-raw '{
-    "name": "sgwuser1", // <.>
-    "password": "passwordstring",
-    "roles": ["stdrole"], // <.>
-    "admin_channels": ["public"] // <.>
-}'
-
+curl  --location -g --request POST 'http://localhost:4985/traveldb/_user/' \// <.>
+      --header 'Content-Type: application/json' \
+      --header "Authorization: Basic $DIGEST" \// <.>
+      --data-raw '{
+          "name": "sgwuser1", // <.>
+          "password": "passwordstring",
+          "roles": ["stdrole"] // <.>
+          "admin_channels": ["public"] // <.>
+      }'
 ----
 <.> Here we identify the name of the {sgw} database -- `traveldb` and the required object, `_user`
 <.> The user/password credential represented in the _Authorization_ header relate to the Sync Gateway admin user
@@ -255,20 +271,22 @@ Remember to use the credentials of the {cbs} RBAC user for authentication.
 Within a terminal use CURL to issue the following POST request, which adds a new document to the {cbs} bucket `get-started-bucket` by way of the {sgw} database `get-started-bucket` we configured in <<lbl-config>>
 
 .Request
-[{snippet-header}]
+[source,console]
 ----
-curl --location --request PUT 'http://localhost:4985/traveldb/hotel_88801' \
---header 'Authorization: Basic c2d3dXNlcjE6cGFzc3dvcmQ=' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "_id": "hotel_88801",
-    "id": "88801",
-    "type": "hotel",
-    "name": "Verify-Install Topic",
-    "address": "The Shambles",
-    "city": "Manchester",
-    "country": "United Kingdom"
-}'
+DIGEST=`echo -n sgwuser1:password | base64`
+
+curl  --location --request PUT 'http://localhost:4985/traveldb/hotel_88801' \
+      --header "Authorization: Basic $DIGEST" \
+      --header 'Content-Type: application/json' \
+      --data-raw '{
+          "_id": "hotel_88801",
+          "id": "88801",
+          "type": "hotel",
+          "name": "Verify-Install Topic",
+          "address": "The Shambles",
+          "city": "Manchester",
+          "country": "United Kingdom"
+      }'
 ----
 
 [#lbl-crud-add-resp, reftext=Response to Add Document Request]
@@ -307,8 +325,8 @@ image::cbs-view-first-doc.png[]
 .Request
 [{snippet-header}]
 ----
-curl --location --request GET 'http://localhost:4985/traveldb/hotel_88801' \
---header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk'
+curl  --location --request GET 'http://localhost:4985/traveldb/hotel_88801' \
+      --header "Authorization: Basic $DIGEST"
 ----
 
 .Response
@@ -332,19 +350,20 @@ curl --location --request GET 'http://localhost:4985/traveldb/hotel_88801' \
 .Request
 [{snippet-header}]
 ----
-curl --location -g --request PUT 'http://localhost:4985/traveldb/hotel_88801?new_edits=true&rev=1-f28b5cc13a38892f4f85913d4e654270' \  // <.>
---header 'Accept: application/json' \
---header 'Content-Type: application/json' \
---data-raw '{
-  "_id": "hotel_88801",
-  "id": "88801",
-  "type": "hotel"
-  "name": "Verify-Install Topic Updated", // <.>
-  "address": "The Shambles",
-  "city": "Manchester",
-  "country": "United Kingdom",
-  "email": "enquiries@hotel_88801.internet" // <.>
-}'
+curl  --location -g \
+      --request PUT 'http://localhost:4985/traveldb/hotel_88801?new_edits=true&rev=1-f28b5cc13a38892f4f85913d4e654270' \// <.>
+      --header 'Accept: application/json' \
+      --header 'Content-Type: application/json' \
+      --data-raw '{
+        "_id": "hotel_88801",
+        "id": "88801",
+        "type": "hotel"
+        "name": "Verify-Install Topic Updated", // <.>
+        "address": "The Shambles",
+        "city": "Manchester",
+        "country": "United Kingdom",
+        "email": "enquiries@hotel_88801.internet" // <.>
+      }'
 ----
 <.> This revision is the one returned by the response to the initial POST request -- see: <<lbl-crud-add-resp>>
 <.> Here we change the text of the _name_ field.
