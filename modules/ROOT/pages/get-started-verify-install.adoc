@@ -305,7 +305,7 @@ View the document in {cbs} Admin Console to verify it syncs from {sgw} database.
 +
 .. Enter `travel-sample` as _Bucket_
 .. Leave _Scope_ and _Collection_ as `_default`
-.. Enter `id="88801"` as _M1QL WHERE_ query
+.. Enter `id="88801"` as _N1QL WHERE_ query
 .. kbd:[Enter]
 +
 You will see the response shown in <<img-cbs-view>>.
@@ -354,7 +354,7 @@ curl  --location -g \
       --data-raw '{
         "_id": "hotel_88801",
         "id": "88801",
-        "type": "hotel"
+        "type": "hotel",
         "name": "Verify-Install Topic Updated", // <.>
         "address": "The Shambles",
         "city": "Manchester",
@@ -406,7 +406,7 @@ You should see the change you made in {cbs} reflected in the response. For examp
 
 ----
 <.> Note that the revision sequence is now 3, up from the 2 returned in our <<lbl-crud-upd-resp>>
-<.> Note that the _email_ and _name_ fielda now contains both the change made in {sgw} and the amendment made in {cbs} ("reception")
+Note that the _email_ and _name_ fields now contains both the change made in {sgw} and the amendment made in {cbs} ("reception")
 
 
 [#lbl-crud-del]
@@ -415,7 +415,7 @@ You should see the change you made in {cbs} reflected in the response. For examp
 .Request
 [{snippet-header}]
 ----
-curl --location -g --request DELETE 'http://localhost:4985/traveldb/88801?rev=3-cc2e758ef63b0daf5b01b2baf98c72b6' // <.>
+curl --location -g --request DELETE 'http://localhost:4985/traveldb/hotel_88801?rev=3-cc2e758ef63b0daf5b01b2baf98c72b6' // <.>
 ----
 <.> Note that we provide here the revision ID of the latest revision (3), as returned in the response to the last GET request.
 
@@ -429,7 +429,7 @@ You should see the following response:
     "rev": "4-03f1ba127340e8c50c31a36279298e60" // <.>
 }
 ----
-<.> You can see here that the delete counts as the fourth change/revision. Again "ok":true indicates the delete was successful.
+<.> You can see here that the delete counts as the fourth change/revision. Again `"ok":true` indicates the delete was successful.
 
 .Check
 
