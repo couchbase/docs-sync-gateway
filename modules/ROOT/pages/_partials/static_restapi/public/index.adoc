@@ -1,0 +1,8457 @@
+= Sync Gateway
+
+// tag::doc[]
+
+
+== Endpoints
+
+
+[.Authentication]
+=== Authentication  / 
+
+
+[.dbFacebookPost]
+==== POST `/{db}/_facebook`
+
+Create a new Facebook-based session
+
+===== Description
+
+[markdown]
+--
+Creates a new session based on a Facebook user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
+
+If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_facebook/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| DbFacebookPostRequest 
+a| 
+[markdown]
+--
+
+--
+
+<<DbFacebookPostRequest>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Session created successfully
+|  
+
+
+| 400
+| Origin is not in the approved list of allowed origins
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 401
+| Received error from Facebook verifier
+| __db___facebook_post_401_response[<<__db___facebook_post_401_response>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 502
+| Received invalid response from the Facebook verifier
+| __db___facebook_post_401_response[<<__db___facebook_post_401_response>>] 
+
+
+| 504
+| Unable to send request to Facebook API
+| __db___facebook_post_401_response[<<__db___facebook_post_401_response>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_facebook/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbGooglePost]
+==== POST `/{db}/_google`
+
+Create a new Google-based session
+
+===== Description
+
+[markdown]
+--
+Creates a new session based on a Google user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
+
+If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_google/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| DbGooglePostRequest 
+a| 
+[markdown]
+--
+
+--
+
+<<DbGooglePostRequest>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Session created successfully
+|  
+
+
+| 400
+| Origin is not in the approved list of allowed origins
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 401
+| Received error from Google token verifier or invalid application ID in the config
+| __db___facebook_post_401_response[<<__db___facebook_post_401_response>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 502
+| Received invalid response from the Google token verifier
+| __db___facebook_post_401_response[<<__db___facebook_post_401_response>>] 
+
+
+| 504
+| Unable to send request to the Google token verifier
+|  
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_google/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbOidcCallbackGet]
+==== GET `/{db}/_oidc_callback`
+
+OpenID Connect authentication callback
+
+===== Description
+
+[markdown]
+--
+The callback URL that the client is redirected to after authenticating with the OpenID Connect provider.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_oidc_callback/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| error 
+a| 
+[markdown]
+--
+The OpenID Connect error, if any occurred.
+--
+
+
+
+| - 
+| null 
+|  
+
+| code 
+a| 
+[markdown]
+--
+The OpenID Connect authentication code.
+--
+
+
+
+| X 
+| null 
+|  
+
+| provider 
+a| 
+[markdown]
+--
+The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
+--
+
+
+
+| - 
+| null 
+|  
+
+| state 
+a| 
+[markdown]
+--
+The OpenID Connect state to verify against the state cookie. This is used to prevent cross-site request forgery (CSRF). This is not required if `disable_callback_state=true` for the provider config (NOT recommended).
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+<<OIDC-callback>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully authenticated with OpenID Connect.
+| OIDC-callback[<<OIDC-callback>>] 
+
+
+| 400
+| A problem occurred when reading the callback request body
+|  
+
+
+| 401
+| An error was received from the OpenID Connect provider. This means the error query parameter was filled.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 500
+| A problem occurred in regards to the token
+| __db___facebook_post_401_response[<<__db___facebook_post_401_response>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_oidc_callback/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbOidcChallengeGet]
+==== GET `/{db}/_oidc_challenge`
+
+OpenID Connect authentication initiation via WWW-Authenticate header
+
+===== Description
+
+[markdown]
+--
+Called by clients to initiate the OpenID Connect Authorization Code Flow. This will establish a connection with the provider, then put the redirect URL in the `WWW-Authenticate` header.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_oidc_challenge/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| provider 
+a| 
+[markdown]
+--
+The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
+--
+
+
+
+| - 
+| null 
+|  
+
+| offline 
+a| 
+[markdown]
+--
+If true, the OpenID Connect provider is requested to confirm with the user the permissions requested and refresh the OIDC token. To do this, access_type=offline and prompt=consent is set on the redirection link.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 400
+| The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. 
+|  
+
+
+| 401
+| Successfully connected with the OpenID Connect provider so now the client can login.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 500
+| Unable to connect and validate with the OpenID Connect provider requested
+|  
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_oidc_challenge/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbOidcGet]
+==== GET `/{db}/_oidc`
+
+OpenID Connect authentication initiation via Location header redirect
+
+===== Description
+
+[markdown]
+--
+Called by clients to initiate the OpenID Connect Authorization Code Flow. Redirects to the OpenID Connect provider if successful. 
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_oidc/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| provider 
+a| 
+[markdown]
+--
+The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
+--
+
+
+
+| - 
+| null 
+|  
+
+| offline 
+a| 
+[markdown]
+--
+If true, the OpenID Connect provider is requested to confirm with the user the permissions requested and refresh the OIDC token. To do this, access_type=offline and prompt=consent is set on the redirection link.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 302
+| Successfully connected with the OpenID Connect provider so now redirecting to the requested OIDC provider for authentication.
+|  
+
+
+| 400
+| The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. 
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 500
+| Unable to connect and validate with the OpenID Connect provider requested
+|  
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_oidc/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbOidcRefreshGet]
+==== GET `/{db}/_oidc_refresh`
+
+OpenID Connect token refresh
+
+===== Description
+
+[markdown]
+--
+Refresh the OpenID Connect token based on the provided refresh token.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_oidc_refresh/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| refresh_token 
+a| 
+[markdown]
+--
+The OpenID Connect refresh token.
+--
+
+
+
+| X 
+| null 
+|  
+
+| provider 
+a| 
+[markdown]
+--
+The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+<<OIDC-callback>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully authenticated with OpenID Connect.
+| OIDC-callback[<<OIDC-callback>>] 
+
+
+| 400
+| The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. 
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 500
+| Unable to connect and validate with the OpenID Connect provider requested
+|  
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_oidc_refresh/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbOidcTestingAuthenticateGet]
+==== GET `/{db}/_oidc_testing/authenticate`
+
+OpenID Connect mock login page handler
+
+===== Description
+
+[markdown]
+--
+Used to handle the login page displayed for the `GET /{db}/_oidc_testing/authorize` endpoint.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_oidc_testing/authenticate/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| redirect_uri 
+a| 
+[markdown]
+--
+The Sync Gateway OpenID Connect callback URL.
+--
+
+
+
+| - 
+| null 
+|  
+
+| scope 
+a| 
+[markdown]
+--
+The OpenID Connect authentication scope.
+--
+
+
+
+| X 
+| null 
+|  
+
+| username 
+a| 
+[markdown]
+--
+
+--
+
+
+
+| X 
+| null 
+|  
+
+| tokenttl 
+a| 
+[markdown]
+--
+
+--
+
+
+
+| X 
+| null 
+|  
+
+| identity-token-formats 
+a| 
+[markdown]
+--
+
+--
+
+
+
+| X 
+| null 
+|  
+
+| authenticated 
+a| 
+[markdown]
+--
+
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 302
+| Redirecting to Sync Gateway OpenID Connect callback URL
+|  
+
+
+| 403
+| The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_oidc_testing/authenticate/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbOidcTestingAuthenticatePost]
+==== POST `/{db}/_oidc_testing/authenticate`
+
+OpenID Connect mock login page handler
+
+===== Description
+
+[markdown]
+--
+Used to handle the login page displayed for the `GET /{db}/_oidc_testing/authorize` endpoint.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_oidc_testing/authenticate/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| OIDCLoginPageHandler 
+a| 
+[markdown]
+--
+Properties passed from the OpenID Connect mock login page to the handler
+--
+
+<<OIDCLoginPageHandler>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| redirect_uri 
+a| 
+[markdown]
+--
+The Sync Gateway OpenID Connect callback URL.
+--
+
+
+
+| - 
+| null 
+|  
+
+| scope 
+a| 
+[markdown]
+--
+The OpenID Connect authentication scope.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 302
+| Redirecting to Sync Gateway OpenID Connect callback URL
+|  
+
+
+| 403
+| The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_oidc_testing/authenticate/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbOidcTestingAuthorizeGet]
+==== GET `/{db}/_oidc_testing/authorize`
+
+OpenID Connect mock login page
+
+===== Description
+
+[markdown]
+--
+Show a mock OpenID Connect login page for the client to log in to.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_oidc_testing/authorize/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| scope 
+a| 
+[markdown]
+--
+The OpenID Connect authentication scope.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| OK
+|  
+
+
+| 400
+| A validation error occurred with the scope.
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 403
+| The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 500
+| An error occurred.
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_oidc_testing/authorize/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbOidcTestingAuthorizePost]
+==== POST `/{db}/_oidc_testing/authorize`
+
+OpenID Connect mock login page
+
+===== Description
+
+[markdown]
+--
+Show a mock OpenID Connect login page for the client to log in to.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_oidc_testing/authorize/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| scope 
+a| 
+[markdown]
+--
+The OpenID Connect authentication scope.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| OK
+|  
+
+
+| 400
+| A validation error occurred with the scope.
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 403
+| The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 500
+| An error occurred.
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_oidc_testing/authorize/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbOidcTestingCertsGet]
+==== GET `/{db}/_oidc_testing/certs`
+
+OpenID Connect public certificates for signing keys
+
+===== Description
+
+[markdown]
+--
+Return a mock OpenID Connect public key to be used as signing keys.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_oidc_testing/certs/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+<<__db___oidc_testing_certs_get_200_response>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Returned public key successfully
+| __db___oidc_testing_certs_get_200_response[<<__db___oidc_testing_certs_get_200_response>>] 
+
+
+| 403
+| The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 500
+| An error occurred while getting the private RSA key
+| __db___facebook_post_401_response[<<__db___facebook_post_401_response>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_oidc_testing/certs/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbOidcTestingTokenPost]
+==== POST `/{db}/_oidc_testing/token`
+
+OpenID Connect mock token
+
+===== Description
+
+[markdown]
+--
+Return a mock OpenID Connect token for the OIDC authentication flow.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_oidc_testing/token/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| DbOidcTestingTokenPostRequest 
+a| 
+[markdown]
+--
+
+--
+
+<<DbOidcTestingTokenPostRequest>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+
+
+===== Return Type
+
+<<OIDC-token>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Properties expected back from an OpenID Connect provider after successful authentication
+| OIDC-token[<<OIDC-token>>] 
+
+
+| 400
+| Invalid token provided
+|  
+
+
+| 403
+| The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_oidc_testing/token/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbOidcTestingWellKnownOpenidConfigurationGet]
+==== GET `/{db}/_oidc_testing/.well-known/openid-configuration`
+
+OpenID Connect mock provider
+
+===== Description
+
+[markdown]
+--
+Mock an OpenID Connect provider response for testing purposes. This returns a response that is the same structure as what Sync Gateway expects from an OIDC provider after initiating OIDC authentication.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_oidc_testing/.well-known/openid-configuration/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+<<__db___oidc_testing__well_known_openid_configuration_get_200_response>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully generated OpenID Connect provider mock response. 
+| __db___oidc_testing__well_known_openid_configuration_get_200_response[<<__db___oidc_testing__well_known_openid_configuration_get_200_response>>] 
+
+
+| 403
+| The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_oidc_testing/.well-known/openid-configuration/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.DatabaseManagement]
+=== DatabaseManagement  / 
+
+
+[.dbEnsureFullCommitPost]
+==== POST `/{db}/_ensure_full_commit`
+
+/{db}/_ensure_full_commit
+
+===== Description
+
+[markdown]
+--
+This endpoint is non-functional but is present for CouchDB compatibility.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_ensure_full_commit/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+<<__db___ensure_full_commit_post_201_response>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 201
+| OK
+| __db___ensure_full_commit_post_201_response[<<__db___ensure_full_commit_post_201_response>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_ensure_full_commit/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbGet]
+==== GET `/{db}/`
+
+Get database information
+
+===== Description
+
+[markdown]
+--
+Retrieve information about the database.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+<<__db___get_200_response>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully returned database information
+| __db___get_200_response[<<__db___get_200_response>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbHead]
+==== HEAD `/{db}/`
+
+Check if database exists
+
+===== Description
+
+[markdown]
+--
+Check if a database exists by using the response status code.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/HEAD/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Database exists
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/HEAD/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceChangesGet]
+==== GET `/{keyspace}/_changes`
+
+Get changes list
+
+===== Description
+
+[markdown]
+--
+This request retrieves a sorted list of changes made to documents in the database, in time order of application. Each document appears at most once, ordered by its most recent change, regardless of how many times it has been changed.
+
+This request can be used to listen for update and modifications to the database for post processing or synchronization. A continuously connected changes feed is a reasonable approach for generating a real-time log for most applications.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_changes/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| limit 
+a| 
+[markdown]
+--
+Maximum number of changes to return.
+--
+
+
+
+| - 
+| null 
+|  
+
+| since 
+a| 
+[markdown]
+--
+Starts the results from the change immediately after the given sequence ID. Sequence IDs should be considered opaque; they come from the last_seq property of a prior response.
+--
+
+
+
+| - 
+| null 
+|  
+
+| style 
+a| 
+[markdown]
+--
+Controls whether to return the current winning revision (`main_only`) or all the leaf revision including conflicts and deleted former conflicts (`all_docs`).
+--
+
+
+
+| - 
+| main_only 
+|  
+
+| active_only 
+a| 
+[markdown]
+--
+Set true to exclude deleted documents and notifications for documents the user no longer has access to from the changes feed.
+--
+
+
+
+| - 
+| false 
+|  
+
+| include_docs 
+a| 
+[markdown]
+--
+Include the body associated with each document.
+--
+
+
+
+| - 
+| null 
+|  
+
+| revocations 
+a| 
+[markdown]
+--
+If true, revocation messages will be sent on the changes feed.
+--
+
+
+
+| - 
+| null 
+|  
+
+| filter 
+a| 
+[markdown]
+--
+Set a filter to either filter by channels or document IDs.
+--
+
+
+
+| - 
+| null 
+|  
+
+| channels 
+a| 
+[markdown]
+--
+A comma-separated list of channel names to filter the response to only the channels specified. To use this option, the `filter` query option must be set to `sync_gateway/bychannels`.
+--
+
+
+
+| - 
+| null 
+|  
+
+| doc_ids 
+a| 
+[markdown]
+--
+A valid JSON array of document IDs to filter the documents in the response to only the documents specified. To use this option, the `filter` query option must be set to `_doc_ids` and the `feed` parameter must be `normal`. Also accepts a comma separated list of document IDs instead.
+--
+
+<<String>>
+
+| - 
+| null 
+|  
+
+| heartbeat 
+a| 
+[markdown]
+--
+The interval (in milliseconds) to send an empty line (CRLF) in the response. This is to help prevent gateways from deciding the socket is idle and therefore closing it. This is only applicable to `feed=longpoll` or `feed=continuous`. This will override any timeouts to keep the feed alive indefinitely. Setting to 0 results in no heartbeat. The maximum heartbeat can be set in the server replication configuration.
+--
+
+
+
+| - 
+| 0 
+|  
+
+| timeout 
+a| 
+[markdown]
+--
+This is the maximum period (in milliseconds) to wait for a change before the response is sent, even if there are no results. This is only applicable for `feed=longpoll` or `feed=continuous` changes feeds. Setting to 0 results in no timeout.
+--
+
+
+
+| - 
+| 300000 
+|  
+
+| feed 
+a| 
+[markdown]
+--
+The type of changes feed to use. 
+--
+
+
+
+| - 
+| normal 
+|  
+
+|===         
+
+
+===== Return Type
+
+<<Changes-feed>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully returned the changes feed
+| Changes-feed[<<Changes-feed>>] 
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_changes/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceChangesHead]
+==== HEAD `/{keyspace}/_changes`
+
+/{db}/_changes
+
+===== Description
+
+[markdown]
+--
+
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_changes/HEAD/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| OK
+|  
+
+
+| 400
+| Bad Request
+|  
+
+
+| 404
+| Not Found
+|  
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_changes/HEAD/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceChangesPost]
+==== POST `/{keyspace}/_changes`
+
+Get changes list
+
+===== Description
+
+[markdown]
+--
+This request retrieves a sorted list of changes made to documents in the database, in time order of application. Each document appears at most once, ordered by its most recent change, regardless of how many times it has been changed.
+
+This request can be used to listen for update and modifications to the database for post processing or synchronization. A continuously connected changes feed is a reasonable approach for generating a real-time log for most applications.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_changes/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| KeyspaceChangesPostRequest 
+a| 
+[markdown]
+--
+
+--
+
+<<KeyspaceChangesPostRequest>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+
+
+===== Return Type
+
+<<Changes-feed>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully returned the changes feed
+| Changes-feed[<<Changes-feed>>] 
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_changes/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceRevsDiffPost]
+==== POST `/{keyspace}/_revs_diff`
+
+Compare revisions to what is in the database
+
+===== Description
+
+[markdown]
+--
+Takes a set of document IDs, each with a set of revision IDs. For each document, an array of unknown revisions are returned with an array of known revisions that may be recent ancestors.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_revs_diff/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| KeyspaceRevsDiffPostRequest 
+a| 
+[markdown]
+--
+
+--
+
+<<KeyspaceRevsDiffPostRequest>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+
+
+===== Return Type
+
+<<__keyspace___revs_diff_post_200_response>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Comparisons successful
+| __keyspace___revs_diff_post_200_response[<<__keyspace___revs_diff_post_200_response>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_revs_diff/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.targetdbPut]
+==== PUT `/{targetdb}/`
+
+Create DB public API stub
+
+===== Description
+
+[markdown]
+--
+A stub that always returns an error on the Public API, for createTarget/CouchDB compatibility.
+--
+
+
+// markup not found, no include::{specDir}\{targetdb\}/PUT/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| targetdb 
+a| 
+[markdown]
+--
+The database name to target.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 403
+| Database does not exist and cannot be created over the public API
+|  
+
+
+| 412
+| Database exists
+|  
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{targetdb\}/PUT/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.Document]
+=== Document  / 
+
+
+[.keyspaceAllDocsGet]
+==== GET `/{keyspace}/_all_docs`
+
+Gets all the documents in the database with the given parameters
+
+===== Description
+
+[markdown]
+--
+Returns all documents in the databased based on the specified parameters.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_all_docs/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| include_docs 
+a| 
+[markdown]
+--
+Include the body associated with each document.
+--
+
+
+
+| - 
+| null 
+|  
+
+| channels 
+a| 
+[markdown]
+--
+Include the channels each document is part of that the calling user also has access too.
+--
+
+
+
+| - 
+| null 
+|  
+
+| access 
+a| 
+[markdown]
+--
+Include what user/roles that each document grants access too.
+--
+
+
+
+| - 
+| null 
+|  
+
+| revs 
+a| 
+[markdown]
+--
+Include all the revisions for each document under the `_revisions` property.
+--
+
+
+
+| - 
+| null 
+|  
+
+| update_seq 
+a| 
+[markdown]
+--
+Include the document sequence number `update_seq` property for each document.
+--
+
+
+
+| - 
+| null 
+|  
+
+| keys 
+a| 
+[markdown]
+--
+An array of document ID strings to filter by.
+--
+
+<<String>>
+
+| - 
+| null 
+|  
+
+| startkey 
+a| 
+[markdown]
+--
+Return records starting with the specified key.
+--
+
+
+
+| - 
+| null 
+|  
+
+| endkey 
+a| 
+[markdown]
+--
+Stop returning records when this key is reached.
+--
+
+
+
+| - 
+| null 
+|  
+
+| limit 
+a| 
+[markdown]
+--
+This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+<<__keyspace___all_docs_get_200_response>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Operation ran successfully
+| __keyspace___all_docs_get_200_response[<<__keyspace___all_docs_get_200_response>>] 
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_all_docs/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceAllDocsHead]
+==== HEAD `/{keyspace}/_all_docs`
+
+/{db}/_all_docs
+
+===== Description
+
+[markdown]
+--
+
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_all_docs/HEAD/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| include_docs 
+a| 
+[markdown]
+--
+Include the body associated with each document.
+--
+
+
+
+| - 
+| null 
+|  
+
+| channels 
+a| 
+[markdown]
+--
+Include the channels each document is part of that the calling user also has access too.
+--
+
+
+
+| - 
+| null 
+|  
+
+| access 
+a| 
+[markdown]
+--
+Include what user/roles that each document grants access too.
+--
+
+
+
+| - 
+| null 
+|  
+
+| revs 
+a| 
+[markdown]
+--
+Include all the revisions for each document under the `_revisions` property.
+--
+
+
+
+| - 
+| null 
+|  
+
+| update_seq 
+a| 
+[markdown]
+--
+Include the document sequence number `update_seq` property for each document.
+--
+
+
+
+| - 
+| null 
+|  
+
+| keys 
+a| 
+[markdown]
+--
+An array of document ID strings to filter by.
+--
+
+<<String>>
+
+| - 
+| null 
+|  
+
+| startkey 
+a| 
+[markdown]
+--
+Return records starting with the specified key.
+--
+
+
+
+| - 
+| null 
+|  
+
+| endkey 
+a| 
+[markdown]
+--
+Stop returning records when this key is reached.
+--
+
+
+
+| - 
+| null 
+|  
+
+| limit 
+a| 
+[markdown]
+--
+This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| OK
+|  
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_all_docs/HEAD/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceAllDocsPost]
+==== POST `/{keyspace}/_all_docs`
+
+Get all the documents in the database using a built-in view
+
+===== Description
+
+[markdown]
+--
+Get a built-in view of all the documents in the database.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_all_docs/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| KeyspaceAllDocsPostRequest 
+a| 
+[markdown]
+--
+
+--
+
+<<KeyspaceAllDocsPostRequest>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| include_docs 
+a| 
+[markdown]
+--
+Include the body associated with each document.
+--
+
+
+
+| - 
+| null 
+|  
+
+| channels 
+a| 
+[markdown]
+--
+Include the channels each document is part of that the calling user also has access too.
+--
+
+
+
+| - 
+| null 
+|  
+
+| access 
+a| 
+[markdown]
+--
+Include what user/roles that each document grants access too.
+--
+
+
+
+| - 
+| null 
+|  
+
+| revs 
+a| 
+[markdown]
+--
+Include all the revisions for each document under the `_revisions` property.
+--
+
+
+
+| - 
+| null 
+|  
+
+| update_seq 
+a| 
+[markdown]
+--
+Include the document sequence number `update_seq` property for each document.
+--
+
+
+
+| - 
+| null 
+|  
+
+| startkey 
+a| 
+[markdown]
+--
+Return records starting with the specified key.
+--
+
+
+
+| - 
+| null 
+|  
+
+| endkey 
+a| 
+[markdown]
+--
+Stop returning records when this key is reached.
+--
+
+
+
+| - 
+| null 
+|  
+
+| limit 
+a| 
+[markdown]
+--
+This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+<<__keyspace___all_docs_get_200_response>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Operation ran successfully
+| __keyspace___all_docs_get_200_response[<<__keyspace___all_docs_get_200_response>>] 
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_all_docs/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceBulkDocsPost]
+==== POST `/{keyspace}/_bulk_docs`
+
+Bulk document operations
+
+===== Description
+
+[markdown]
+--
+This will allow multiple documented to be created, updated or deleted in bulk.
+
+To create a new document, simply add the body in an object under `docs`. A doc ID will be generated by Sync Gateway unless `_id` is specified.
+
+To update an existing document, provide the document ID (`_id`) and revision ID (`_rev`) as well as the new body values.
+
+To delete an existing document, provide the document ID (`_id`), revision ID (`_rev`), and set the deletion flag (`_deleted`) to true.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_bulk_docs/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| KeyspaceBulkDocsPostRequest 
+a| 
+[markdown]
+--
+
+--
+
+<<KeyspaceBulkDocsPostRequest>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+
+
+===== Return Type
+
+set[<<__keyspace___bulk_docs_post_201_response_inner>>]
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 201
+| Executed all operations.  Each object in the returned array represents a document. Each document should be checked to make sure it was successfully added to the database.
+| Set[<<__keyspace___bulk_docs_post_201_response_inner>>] 
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_bulk_docs/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceBulkGetPost]
+==== POST `/{keyspace}/_bulk_get`
+
+Get multiple documents in a MIME multipart response
+
+===== Description
+
+[markdown]
+--
+This request returns any number of documents, as individual bodies in a MIME multipart response.
+
+Each enclosed body contains one requested document. The bodies appear in the same order as in the request, but can also be identified by their `X-Doc-ID` and `X-Rev-ID` headers (if the `attachments` query is `true`).
+
+A body for a document with no attachments will have content type `application/json` and contain the document itself.
+
+A body for a document that has attachments will be written as a nested `multipart/related` body.
+
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_bulk_get/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| KeyspaceBulkGetPostRequest 
+a| 
+[markdown]
+--
+
+--
+
+<<KeyspaceBulkGetPostRequest>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+====== Header Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| X-Accept-Part-Encoding 
+a| 
+[markdown]
+--
+If this header includes `gzip` then the part HTTP compression encoding will be done.
+--
+
+
+
+| - 
+| null 
+|  
+
+| Accept-Encoding 
+a| 
+[markdown]
+--
+If this header includes `gzip` then the the HTTP response will be compressed. This takes priority over `X-Accept-Part-Encoding`. Only part compression will be done if `X-Accept-Part-Encoding=gzip` and the `User-Agent` is below 1.2 due to clients not being able to handle full compression.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| attachments 
+a| 
+[markdown]
+--
+This is for whether to include attachments in each of the documents returned or not.
+--
+
+
+
+| - 
+| false 
+|  
+
+| revs 
+a| 
+[markdown]
+--
+Include all the revisions for each document under the `_revisions` property.
+--
+
+
+
+| - 
+| null 
+|  
+
+| revs_limit 
+a| 
+[markdown]
+--
+The number of revisions to include in the response from the document history. This parameter only makes a different if the `revs` query parameter is set to `true`. The full revision history will be returned if `revs` is set but this is not.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Returned the requested docs as `multipart/mixed` response type
+|  
+
+
+| 400
+| Bad Request
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_bulk_get/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceDocidDelete]
+==== DELETE `/{keyspace}/{docid}`
+
+Delete a document
+
+===== Description
+
+[markdown]
+--
+Delete a document from the database. A new revision is created so the database can track the deletion in synchronized copies.
+
+A revision ID either in the header or on the query parameters is required.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/\{docid\}/DELETE/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The document ID to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+====== Header Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| If-Match 
+a| 
+[markdown]
+--
+The revision ID to target.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| rev 
+a| 
+[markdown]
+--
+The document revision to target.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+<<New-revision>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| New revision created successfully
+| New-revision[<<New-revision>>] 
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/\{docid\}/DELETE/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceDocidGet]
+==== GET `/{keyspace}/{docid}`
+
+Get a document
+
+===== Description
+
+[markdown]
+--
+Retrieve a document from the database by its doc ID.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/\{docid\}/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The document ID to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| rev 
+a| 
+[markdown]
+--
+The document revision to target.
+--
+
+
+
+| - 
+| null 
+|  
+
+| open_revs 
+a| 
+[markdown]
+--
+Option to fetch specified revisions of the document. The value can be all to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=[\"rev1\", \"rev2\"]). Only leaf revision bodies that haven't been pruned are guaranteed to be returned. If this option is specified the response will be in multipart format. Use the `Accept: application/json` request header to get the result as a JSON object.
+--
+
+<<String>>
+
+| - 
+| null 
+|  
+
+| show_exp 
+a| 
+[markdown]
+--
+Whether to show the expiry property (`_exp`) in the response.
+--
+
+
+
+| - 
+| null 
+|  
+
+| revs_from 
+a| 
+[markdown]
+--
+Trim the revision history to stop at the first revision in the provided list. If no match is found, the revisions will be trimmed to the `revs_limit`.
+--
+
+<<String>>
+
+| - 
+| null 
+|  
+
+| atts_since 
+a| 
+[markdown]
+--
+Include attachments only since specified revisions. Excludes the attachments for the specified revisions. Only gets used if `attachments=true`.
+--
+
+<<String>>
+
+| - 
+| null 
+|  
+
+| revs_limit 
+a| 
+[markdown]
+--
+Maximum amount of revisions to return for each document.
+--
+
+
+
+| - 
+| null 
+|  
+
+| attachments 
+a| 
+[markdown]
+--
+Include attachment bodies in response.
+--
+
+
+
+| - 
+| null 
+|  
+
+| replicator2 
+a| 
+[markdown]
+--
+Returns the document with the required properties for replication. This is an enterprise-edition only feature.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+<<__keyspace___docid__get_200_response>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Document found and returned successfully
+| __keyspace___docid__get_200_response[<<__keyspace___docid__get_200_response>>] 
+
+
+| 400
+| Document ID is not in an allowed format therefore is invalid.  This could be because it is over 250 characters or is prefixed with an underscore (\"_\").
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 501
+| Not Implemented. It is likely this error was caused due to trying to use an enterprise-only feature on the community edition.
+| {keyspace}~{docid}[<<{keyspace}~{docid}>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/\{docid\}/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceDocidHead]
+==== HEAD `/{keyspace}/{docid}`
+
+Check if a document exists
+
+===== Description
+
+[markdown]
+--
+Return a status code based on if the document exists or not.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/\{docid\}/HEAD/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The document ID to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| rev 
+a| 
+[markdown]
+--
+The document revision to target.
+--
+
+
+
+| - 
+| null 
+|  
+
+| open_revs 
+a| 
+[markdown]
+--
+Option to fetch specified revisions of the document. The value can be all to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=[\"rev1\", \"rev2\"]). Only leaf revision bodies that haven't been pruned are guaranteed to be returned. If this option is specified the response will be in multipart format. Use the `Accept: application/json` request header to get the result as a JSON object.
+--
+
+<<String>>
+
+| - 
+| null 
+|  
+
+| show_exp 
+a| 
+[markdown]
+--
+Whether to show the expiry property (`_exp`) in the response.
+--
+
+
+
+| - 
+| null 
+|  
+
+| revs_from 
+a| 
+[markdown]
+--
+Trim the revision history to stop at the first revision in the provided list. If no match is found, the revisions will be trimmed to the `revs_limit`.
+--
+
+<<String>>
+
+| - 
+| null 
+|  
+
+| atts_since 
+a| 
+[markdown]
+--
+Include attachments only since specified revisions. Excludes the attachments for the specified revisions. Only gets used if `attachments=true`.
+--
+
+<<String>>
+
+| - 
+| null 
+|  
+
+| revs_limit 
+a| 
+[markdown]
+--
+Maximum amount of revisions to return for each document.
+--
+
+
+
+| - 
+| null 
+|  
+
+| attachments 
+a| 
+[markdown]
+--
+Include attachment bodies in response.
+--
+
+
+
+| - 
+| null 
+|  
+
+| replicator2 
+a| 
+[markdown]
+--
+Returns the document with the required properties for replication. This is an enterprise-edition only feature.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Document exists
+|  
+
+
+| 400
+| Document ID is not in an allowed format therefore is invalid.  This could be because it is over 250 characters or is prefixed with an underscore (\"_\").
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/\{docid\}/HEAD/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceDocidPut]
+==== PUT `/{keyspace}/{docid}`
+
+Upsert a document
+
+===== Description
+
+[markdown]
+--
+This will upsert a document meaning if it does not exist, then it will be created. Otherwise a new revision will be made for the existing document. A revision ID must be provided if targetting an existing document.
+
+A document ID must be specified for this endpoint. To let Sync Gateway generate the ID, use the `POST /{db}/` endpoint.
+
+If a document does exist, then replace the document content with the request body. This means unspecified fields will be removed in the new revision.
+
+The maximum size for a document is 20MB.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/\{docid\}/PUT/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The document ID to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| body 
+a| 
+[markdown]
+--
+
+--
+
+<<{keyspace}~{docid}>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+====== Header Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| If-Match 
+a| 
+[markdown]
+--
+The revision ID to target.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| roundtrip 
+a| 
+[markdown]
+--
+Block until document has been received by change cache
+--
+
+
+
+| - 
+| null 
+|  
+
+| replicator2 
+a| 
+[markdown]
+--
+Returns the document with the required properties for replication. This is an enterprise-edition only feature.
+--
+
+
+
+| - 
+| null 
+|  
+
+| new_edits 
+a| 
+[markdown]
+--
+Setting this to false indicates that the request body is an already-existing revision that should be directly inserted into the database, instead of a modification to apply to the current document. This mode is used for replication.  This option must be used in conjunction with the `_revisions` property in the request body.
+--
+
+
+
+| - 
+| true 
+|  
+
+| rev 
+a| 
+[markdown]
+--
+The document revision to target.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+<<{keyspace}~{docid}>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 201
+| Created
+| {keyspace}~{docid}[<<{keyspace}~{docid}>>] 
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 409
+| Resource already exists under that name
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 415
+| Invalid content type
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/\{docid\}/PUT/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceLocalDocidDelete]
+==== DELETE `/{keyspace}/_local/{docid}`
+
+Delete a local document
+
+===== Description
+
+[markdown]
+--
+This request deletes a local document.
+
+Local document IDs begin with `_local/`. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_local/\{docid\}/DELETE/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The name of the local document ID excluding the `_local/` prefix.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| rev 
+a| 
+[markdown]
+--
+The revision ID of the revision to delete.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully removed the local document.
+|  
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 409
+| A revision ID conflict would result from deleting this document revision.
+|  
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_local/\{docid\}/DELETE/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceLocalDocidGet]
+==== GET `/{keyspace}/_local/{docid}`
+
+Get local document
+
+===== Description
+
+[markdown]
+--
+This request retrieves a local document.
+
+Local document IDs begin with `_local/`. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_local/\{docid\}/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The name of the local document ID excluding the `_local/` prefix.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully found local document
+|  
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_local/\{docid\}/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceLocalDocidHead]
+==== HEAD `/{keyspace}/_local/{docid}`
+
+Check if local document exists
+
+===== Description
+
+[markdown]
+--
+This request checks if a local document exists.
+
+Local document IDs begin with `_local/`. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_local/\{docid\}/HEAD/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The name of the local document ID excluding the `_local/` prefix.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Document exists
+|  
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_local/\{docid\}/HEAD/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceLocalDocidPut]
+==== PUT `/{keyspace}/_local/{docid}`
+
+Upsert a local document
+
+===== Description
+
+[markdown]
+--
+This request creates or updates a local document. Updating a local document requires that the revision ID be put in the body under `_rev`.
+
+Local document IDs are given a `_local/` prefix. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by the client's replicator, as a place to store replication checkpoint data.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/_local/\{docid\}/PUT/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The name of the local document ID excluding the `_local/` prefix.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| KeyspaceLocalDocidPutRequest 
+a| 
+[markdown]
+--
+The body of the document
+--
+
+<<KeyspaceLocalDocidPutRequest>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+
+
+===== Return Type
+
+
+<<{keyspace}~_local~{docid}>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 201
+| Document successfully written. The document ID will be prefixed with `_local/`.
+| {keyspace}~_local~{docid}[<<{keyspace}~_local~{docid}>>] 
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 409
+| A revision ID conflict would result from updating this document revision.
+|  
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/_local/\{docid\}/PUT/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspacePost]
+==== POST `/{keyspace}/`
+
+Create a new document
+
+===== Description
+
+[markdown]
+--
+Create a new document in the keyspace.
+
+This will generate a random document ID unless specified in the body.
+
+A document can have a maximum size of 20MB.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| body 
+a| 
+[markdown]
+--
+
+--
+
+<<{keyspace}~>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| roundtrip 
+a| 
+[markdown]
+--
+Block until document has been received by change cache
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+<<{keyspace}~>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| New document revision created successfully.
+| {keyspace}~[<<{keyspace}~>>] 
+
+
+| 400
+| There was a problem with your request
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 409
+| Resource already exists under that name
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 415
+| Invalid content type
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.DocumentAttachment]
+=== DocumentAttachment  / 
+
+
+[.keyspaceDocidAttachDelete]
+==== DELETE `/{keyspace}/{docid}/{attach}`
+
+Delete an attachment on a document
+
+===== Description
+
+[markdown]
+--
+This request deletes an attachment associated with the document.
+
+If the attachment exists, the attachment will be removed from the document.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/\{docid\}/\{attach\}/DELETE/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The document ID to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+| attach 
+a| 
+[markdown]
+--
+The attachment name. This value must be URL encoded. For example, if the attachment name is `blob_/avatar`, the path component passed to the URL should be `blob_%2Favatar` (tested with [URLEncoder](https://www.urlencoder.org/)).
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+====== Header Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| If-Match 
+a| 
+[markdown]
+--
+An alternative way of specifying the document revision ID.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| rev 
+a| 
+[markdown]
+--
+The existing document revision ID to modify.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+<<{keyspace}~{docid}~{attach}>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Attachment removed from the document successfully
+| {keyspace}~{docid}~{attach}[<<{keyspace}~{docid}~{attach}>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 409
+| Resource already exists under that name
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/\{docid\}/\{attach\}/DELETE/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceDocidAttachGet]
+==== GET `/{keyspace}/{docid}/{attach}`
+
+Get an attachment from a document
+
+===== Description
+
+[markdown]
+--
+This request retrieves a file attachment associated with the document.
+
+The raw data of the associated attachment is returned (just as if you were accessing a static file). The `Content-Type` response header is the same content type set when the document attachment was added to the database. The `Content-Disposition` response header will be set if the content type is considered unsafe to display in a browser (unless overridden by by database config option `serve_insecure_attachment_types`) which will force the attachment to be downloaded.
+
+If the `meta` query parameter is set then the response will be in JSON with the additional metadata tags.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/\{docid\}/\{attach\}/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The document ID to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+| attach 
+a| 
+[markdown]
+--
+The attachment name. This value must be URL encoded. For example, if the attachment name is `blob_/avatar`, the path component passed to the URL should be `blob_%2Favatar` (tested with [URLEncoder](https://www.urlencoder.org/)).
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+====== Header Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| Range 
+a| 
+[markdown]
+--
+RFC-2616 bytes range header.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| rev 
+a| 
+[markdown]
+--
+The document revision to target.
+--
+
+
+
+| - 
+| null 
+|  
+
+| content_encoding 
+a| 
+[markdown]
+--
+Set to false to disable the `Content-Encoding` response header.
+--
+
+
+
+| - 
+| true 
+|  
+
+| meta 
+a| 
+[markdown]
+--
+Return only the metadata of the attachment in the response body.
+--
+
+
+
+| - 
+| false 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Found attachment successfully.
+|  
+
+
+| 206
+| Partial attachment content returned
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 416
+| Requested range exceeds content length
+|  
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/\{docid\}/\{attach\}/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceDocidAttachHead]
+==== HEAD `/{keyspace}/{docid}/{attach}`
+
+Check if attachment exists
+
+===== Description
+
+[markdown]
+--
+This request check if the attachment exists on the specified document.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/\{docid\}/\{attach\}/HEAD/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The document ID to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+| attach 
+a| 
+[markdown]
+--
+The attachment name. This value must be URL encoded. For example, if the attachment name is `blob_/avatar`, the path component passed to the URL should be `blob_%2Favatar` (tested with [URLEncoder](https://www.urlencoder.org/)).
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| rev 
+a| 
+[markdown]
+--
+The document revision to target.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| The document exists and the attachment exists on the document.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/\{docid\}/\{attach\}/HEAD/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.keyspaceDocidAttachPut]
+==== PUT `/{keyspace}/{docid}/{attach}`
+
+Create or update an attachment on a document
+
+===== Description
+
+[markdown]
+--
+This request adds or updates an attachment associated with the document. If the document does not exist, it will be created and the attachment will be added to it.
+
+If the attachment already exists, the data of the existing attachment will be replaced in the new revision.
+
+The maximum content size of an attachment is 20MB. The `Content-Type` header of the request specifies the content type of the attachment.
+--
+
+
+// markup not found, no include::{specDir}\{keyspace\}/\{docid\}/\{attach\}/PUT/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| keyspace 
+a| 
+[markdown]
+--
+The keyspace to run the operation against.  A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+
+
+| X 
+| null 
+|  
+
+| docid 
+a| 
+[markdown]
+--
+The document ID to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+| attach 
+a| 
+[markdown]
+--
+The attachment name. This value must be URL encoded. For example, if the attachment name is `blob_/avatar`, the path component passed to the URL should be `blob_%2Favatar` (tested with [URLEncoder](https://www.urlencoder.org/)).
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| body 
+a| 
+[markdown]
+--
+The attachment data
+--
+
+<<string>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+====== Header Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| Content-Type 
+a| 
+[markdown]
+--
+The content type of the attachment.
+--
+
+
+
+| - 
+| application/octet-stream 
+|  
+
+| If-Match 
+a| 
+[markdown]
+--
+An alternative way of specifying the document revision ID.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| rev 
+a| 
+[markdown]
+--
+The existing document revision ID to modify. Required only when modifying an existing document.
+--
+
+
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+<<{keyspace}~{docid}~{attach}>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 201
+| Attachment added to new or existing document successfully
+| {keyspace}~{docid}~{attach}[<<{keyspace}~{docid}~{attach}>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 409
+| Resource already exists under that name
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{keyspace\}/\{docid\}/\{attach\}/PUT/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.PublicOnlyEndpoints]
+=== PublicOnlyEndpoints  / 
+
+
+[.dbSessionDelete]
+==== DELETE `/{db}/_session`
+
+Log out
+
+===== Description
+
+[markdown]
+--
+Invalidates the session for the currently authenticated user and removes their session cookie.
+
+If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_session/DELETE/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully removed session (logged out)
+|  
+
+
+| 400
+| Bad Request
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_session/DELETE/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.targetdbPut]
+==== PUT `/{targetdb}/`
+
+Create DB public API stub
+
+===== Description
+
+[markdown]
+--
+A stub that always returns an error on the Public API, for createTarget/CouchDB compatibility.
+--
+
+
+// markup not found, no include::{specDir}\{targetdb\}/PUT/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| targetdb 
+a| 
+[markdown]
+--
+The database name to target.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 403
+| Database does not exist and cannot be created over the public API
+|  
+
+
+| 412
+| Database exists
+|  
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{targetdb\}/PUT/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.Replication]
+=== Replication  / 
+
+
+[.dbBlipsyncGet]
+==== GET `/{db}/_blipsync`
+
+Handle incoming BLIP Sync web socket request
+
+===== Description
+
+[markdown]
+--
+This handles incoming BLIP Sync requests from either Couchbase Lite or another Sync Gateway node. The connection has to be upgradable to a websocket connection or else the request will fail.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_blipsync/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| client 
+a| 
+[markdown]
+--
+This is the client type that is making the BLIP Sync request. Used to control client-type specific replication behaviour.
+--
+
+
+
+| - 
+| cbl2 
+|  
+
+|===         
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 101
+| Upgraded to a web socket connection
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 426
+| Cannot upgrade connection to a web socket connection
+| {db}~_blipsync[<<{db}~_blipsync>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_blipsync/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.Server]
+=== Server  / 
+
+
+[.rootGet]
+==== GET `/`
+
+Get server information
+
+===== Description
+
+[markdown]
+--
+Returns information about the Sync Gateway node.
+--
+
+
+// markup not found, no include::{specDir}GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+
+
+
+
+
+
+===== Return Type
+
+<<NodeInfo>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Returned server information
+| NodeInfo[<<NodeInfo>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.rootHead]
+==== HEAD `/`
+
+Check if server online
+
+===== Description
+
+[markdown]
+--
+Check if the server is online by checking the status code of response.
+--
+
+
+// markup not found, no include::{specDir}HEAD/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Server is online
+|  
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}HEAD/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.Session]
+=== Session  / 
+
+
+[.dbSessionDelete]
+==== DELETE `/{db}/_session`
+
+Log out
+
+===== Description
+
+[markdown]
+--
+Invalidates the session for the currently authenticated user and removes their session cookie.
+
+If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_session/DELETE/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully removed session (logged out)
+|  
+
+
+| 400
+| Bad Request
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_session/DELETE/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbSessionGet]
+==== GET `/{db}/_session`
+
+Get information about the current user
+
+===== Description
+
+[markdown]
+--
+This will get the information about the current user.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_session/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+<<User-session-information>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Properties associated with a user session
+| User-session-information[<<User-session-information>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_session/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbSessionHead]
+==== HEAD `/{db}/_session`
+
+/{db}/_session
+
+===== Description
+
+[markdown]
+--
+
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_session/HEAD/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| OK
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_session/HEAD/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbSessionPost]
+==== POST `/{db}/_session`
+
+Create a new user session
+
+===== Description
+
+[markdown]
+--
+Generates a login session for the user based on the credentials provided in the request body or if that fails (due to invalid credentials or none provided at all), generates the new session for the currently authenticated user instead. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
+
+If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_session/POST/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| DbSessionPostRequest 
+a| 
+[markdown]
+--
+The body can depend on if using the Public or Admin APIs.
+--
+
+<<DbSessionPostRequest>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+
+
+===== Return Type
+
+<<__db___session_post_200_response>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Session created successfully. Returned body is dependant on if using Public or Admin APIs
+| __db___session_post_200_response[<<__db___session_post_200_response>>] 
+
+
+| 400
+| Origin is not in the approved list of allowed origins
+| HTTP-Error[<<HTTP-Error>>] 
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_session/POST/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.Unsupported]
+=== Unsupported  / 
+
+
+[.dbDesignDdocDelete]
+==== DELETE `/{db}/_design/{ddoc}`
+
+Delete a design document | Unsupported
+
+===== Description
+
+[markdown]
+--
+**This is unsupported**
+
+Delete a design document.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_design/\{ddoc\}/DELETE/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+| ddoc 
+a| 
+[markdown]
+--
+The design document name.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Design document deleted successfully
+|  
+
+
+| 403
+| Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_design/\{ddoc\}/DELETE/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbDesignDdocGet]
+==== GET `/{db}/_design/{ddoc}`
+
+Get views of a design document | Unsupported
+
+===== Description
+
+[markdown]
+--
+**This is unsupported**
+
+Query a design document.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_design/\{ddoc\}/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+| ddoc 
+a| 
+[markdown]
+--
+The design document name.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+<<{db}~_design~{ddoc}>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully returned design document.
+| {db}~_design~{ddoc}[<<{db}~_design~{ddoc}>>] 
+
+
+| 403
+| Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_design/\{ddoc\}/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbDesignDdocHead]
+==== HEAD `/{db}/_design/{ddoc}`
+
+Check if view of design document exists | Unsupported
+
+===== Description
+
+[markdown]
+--
+**This is unsupported**
+
+Check if a design document can be queried.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_design/\{ddoc\}/HEAD/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+| ddoc 
+a| 
+[markdown]
+--
+The design document name.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Design document exists
+|  
+
+
+| 403
+| Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_design/\{ddoc\}/HEAD/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbDesignDdocPut]
+==== PUT `/{db}/_design/{ddoc}`
+
+Update views of a design document | Unsupported
+
+===== Description
+
+[markdown]
+--
+**This is unsupported**
+
+Update the views of a design document.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_design/\{ddoc\}/PUT/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+| ddoc 
+a| 
+[markdown]
+--
+The design document name.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| body 
+a| 
+[markdown]
+--
+
+--
+
+<<{db}~_design~{ddoc}>>
+
+| - 
+|  
+|  
+
+|===         
+
+
+
+
+
+===== Return Type
+
+
+
+-
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Design document changes successfully
+|  
+
+
+| 403
+| Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_design/\{ddoc\}/PUT/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[.dbDesignDdocViewViewGet]
+==== GET `/{db}/_design/{ddoc}/_view/{view}`
+
+Query a view on a design document | Unsupported
+
+===== Description
+
+[markdown]
+--
+**This is unsupported**
+
+Query a view on a design document.
+--
+
+
+// markup not found, no include::{specDir}\{db\}/_design/\{ddoc\}/_view/\{view\}/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+====== Path Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| db 
+a| 
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+
+
+| X 
+| null 
+|  
+
+| ddoc 
+a| 
+[markdown]
+--
+The design document name.
+--
+
+
+
+| X 
+| null 
+|  
+
+| view 
+a| 
+[markdown]
+--
+The view to target.
+--
+
+
+
+| X 
+| null 
+|  
+
+|===         
+
+
+
+
+====== Query Parameters
+
+[cols="2,3,1,1,1"]
+|===         
+|Name| Description| Required| Default| Pattern
+
+| inclusive_end 
+a| 
+[markdown]
+--
+Indicates whether the specified end key should be included in the result.
+--
+
+
+
+| - 
+| null 
+|  
+
+| descending 
+a| 
+[markdown]
+--
+Return documents in descending order.
+--
+
+
+
+| - 
+| null 
+|  
+
+| include_docs 
+a| 
+[markdown]
+--
+Only works when using Couchbase Server 3.0 and earlier. Indicates whether to include the full content of the documents in the response.
+--
+
+
+
+| - 
+| null 
+|  
+
+| reduce 
+a| 
+[markdown]
+--
+Whether to execute a reduce function on the response or not.
+--
+
+
+
+| - 
+| null 
+|  
+
+| group 
+a| 
+[markdown]
+--
+Group the results using the reduce function to a group or single row.
+--
+
+
+
+| - 
+| null 
+|  
+
+| skip 
+a| 
+[markdown]
+--
+Skip the specified number of documents before starting to return results.
+--
+
+
+
+| - 
+| null 
+|  
+
+| limit 
+a| 
+[markdown]
+--
+Return only the specified number of documents
+--
+
+
+
+| - 
+| null 
+|  
+
+| group_level 
+a| 
+[markdown]
+--
+Specify the group level to be used.
+--
+
+
+
+| - 
+| null 
+|  
+
+| startkey_docid 
+a| 
+[markdown]
+--
+Return documents starting with the specified document identifier.
+--
+
+
+
+| - 
+| null 
+|  
+
+| endkey_docid 
+a| 
+[markdown]
+--
+Stop returning records when the specified document identifier is reached.
+--
+
+
+
+| - 
+| null 
+|  
+
+| stale 
+a| 
+[markdown]
+--
+Allow the results from a stale view to be used, without triggering a rebuild of all views within the encompassing design document.
+--
+
+
+
+| - 
+| null 
+|  
+
+| startkey 
+a| 
+[markdown]
+--
+Return records starting with the specified key.
+--
+
+
+
+| - 
+| null 
+|  
+
+| endkey 
+a| 
+[markdown]
+--
+Stop returning records when this key is reached.
+--
+
+
+
+| - 
+| null 
+|  
+
+| key 
+a| 
+[markdown]
+--
+Return only the document that matches the specified key.
+--
+
+
+
+| - 
+| null 
+|  
+
+| keys 
+a| 
+[markdown]
+--
+An array of document ID strings to filter by.
+--
+
+<<String>>
+
+| - 
+| null 
+|  
+
+|===         
+
+
+===== Return Type
+
+<<__db___design__ddoc___view__view__get_200_response>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Returned view successfully
+| __db___design__ddoc___view__view__get_200_response[<<__db___design__ddoc___view__view__get_200_response>>] 
+
+
+| 403
+| Forbidden
+|  
+
+
+| 404
+| Resource could not be found
+| HTTP-Error[<<HTTP-Error>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}\{db\}/_design/\{ddoc\}/_view/\{view\}/GET/examples.adoc[opts=optional]
+
+END OF SAMPLES
+
+
+[#models]
+== Models
+
+
+[#Changes-feed]
+=== _ChangesFeed_ 
+
+
+[.fields-ChangesFeed]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| results
+| 
+| Set of <<Changes_feed_results_inner>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| last_seq
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The last change sequence number.
+--
+| 
+
+|===
+
+
+[#Changes_feed_results_inner]
+=== _ChangesFeedResultsInner_ 
+
+
+[.fields-ChangesFeedResultsInner]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| seq
+| 
+| <<BigDecimal>>
+a| 
+[markdown]
+--
+The change sequence number.
+--
+| 
+
+| id
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The document ID the change happened on.
+--
+| 
+
+| changes
+| 
+| Set of <<Changes_feed_results_inner_changes_inner>>
+a| 
+[markdown]
+--
+List of document leafs with each leaf containing only a `rev` field.
+--
+| 
+
+|===
+
+
+[#Changes_feed_results_inner_changes_inner]
+=== _ChangesFeedResultsInnerChangesInner_ 
+
+
+[.fields-ChangesFeedResultsInnerChangesInner]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| rev
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The new revision that was caused by that change.
+--
+| 
+
+|===
+
+
+[#__db___design__ddoc___view__view__get_200_response]
+=== _DbDesignDdocViewViewGet200Response_ 
+
+
+[.fields-DbDesignDdocViewViewGet200Response]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| total_rows
+| X
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| rows
+| X
+| List of <<__db___design__ddoc___view__view__get_200_response_rows_inner>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| errors
+| 
+| List of <<__db___design__ddoc___view__view__get_200_response_errors_inner>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__db___design__ddoc___view__view__get_200_response_errors_inner]
+=== _DbDesignDdocViewViewGet200ResponseErrorsInner_ 
+
+
+[.fields-DbDesignDdocViewViewGet200ResponseErrorsInner]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| From
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| Reason
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__db___design__ddoc___view__view__get_200_response_rows_inner]
+=== _DbDesignDdocViewViewGet200ResponseRowsInner_ 
+
+
+[.fields-DbDesignDdocViewViewGet200ResponseRowsInner]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| id
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| key
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| value
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| doc
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__db___ensure_full_commit_post_201_response]
+=== _DbEnsureFullCommitPost201Response_ 
+
+
+[.fields-DbEnsureFullCommitPost201Response]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| instance_start_time
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+Timestamp of when the database opened, in microseconds since the Unix epoch.
+--
+| 
+
+| ok
+| 
+| <<Boolean>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__db___facebook_post_401_response]
+=== _DbFacebookPost401Response_ 
+
+
+[.fields-DbFacebookPost401Response]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| error
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| reason
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__db___facebook_post_request]
+=== _DbFacebookPostRequest_ 
+
+
+[.fields-DbFacebookPostRequest]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| access_token
+| X
+| <<String>>
+a| 
+[markdown]
+--
+Facebook access token to base the new session on.
+--
+| 
+
+|===
+
+
+[#__db___get_200_response]
+=== _DbGet200Response_ 
+
+
+[.fields-DbGet200Response]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| db_name
+| 
+| <<String>>
+a| 
+[markdown]
+--
+Database name
+--
+| 
+
+| update_seq
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+The last sequence number that was committed to the database.
+
+Will return 0 if the database is offline.
+--
+| 
+
+| committed_update_seq
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+The last sequence number that was committed to the database.
+
+Will return 0 if the database is offline.
+--
+| 
+
+| instance_start_time
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+Timestamp of when the database opened, in microseconds since the Unix epoch.
+--
+| 
+
+| compact_running
+| 
+| <<Boolean>>
+a| 
+[markdown]
+--
+Indicates whether database compaction is currently taking place or not.
+--
+| 
+
+| purge_seq
+| 
+| <<BigDecimal>>
+a| 
+[markdown]
+--
+Unused field.
+--
+| 
+
+| disk_format_version
+| 
+| <<BigDecimal>>
+a| 
+[markdown]
+--
+Unused field.
+--
+| 
+
+| state
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The database state. Change using the `/{db}/_offline` and `/{db}/_online` endpoints.
+--
+| 
+
+| server_uuid
+| 
+| <<String>>
+a| 
+[markdown]
+--
+Unique server identifier.
+--
+| 
+
+|===
+
+
+[#__db___google_post_request]
+=== _DbGooglePostRequest_ 
+
+
+[.fields-DbGooglePostRequest]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| id_token
+| X
+| <<String>>
+a| 
+[markdown]
+--
+Google ID token to base the new session on.
+--
+| 
+
+|===
+
+
+[#__db___oidc_testing_certs_get_200_response]
+=== _DbOidcTestingCertsGet200Response_ 
+
+
+[.fields-DbOidcTestingCertsGet200Response]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| keys
+| X
+| List of <<__db___oidc_testing_certs_get_200_response_keys_inner>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__db___oidc_testing_certs_get_200_response_keys_inner]
+=== _DbOidcTestingCertsGet200ResponseKeysInner_ 
+
+
+[.fields-DbOidcTestingCertsGet200ResponseKeysInner]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| Key
+| X
+| <<Object>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| KeyID
+| X
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| Use
+| X
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| Certificates
+| 
+| List of <<object>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| Algorithm
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__db___oidc_testing_token_post_request]
+=== _DbOidcTestingTokenPostRequest_ 
+
+
+[.fields-DbOidcTestingTokenPostRequest]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| grant_type
+| X
+| <<String>>
+a| 
+[markdown]
+--
+The grant type of the token to request. Can either be an `authorization_code` or `refresh_token`.
+--
+| 
+
+| code
+| 
+| <<String>>
+a| 
+[markdown]
+--
+**`grant_type=authorization_code` only**: The OpenID Connect authentication token.
+--
+| 
+
+| refresh_token
+| 
+| <<String>>
+a| 
+[markdown]
+--
+**`grant_type=refresh_token` only**: The OpenID Connect refresh token.
+--
+| 
+
+|===
+
+
+[#__db___oidc_testing__well_known_openid_configuration_get_200_response]
+=== _DbOidcTestingWellKnownOpenidConfigurationGet200Response_ 
+
+
+[.fields-DbOidcTestingWellKnownOpenidConfigurationGet200Response]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| issuer
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| authorization_endpoint
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| token_endpoint
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| jwks_uri
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| userinfo_endpoint
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| id_token_signing_alg_values_supported
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| response_types_supported
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| subject_types_supported
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| scopes_supported
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| claims_supported
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| token_endpoint_auth_methods_supported
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__db___session_post_200_response]
+=== _DbSessionPost200Response_ 
+
+
+[.fields-DbSessionPost200Response]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| authentication_handlers
+| X
+| List of <<string>>
+a| 
+[markdown]
+--
+Used for CouchDB compatability. Always contains "default" and "cookie".
+--
+| 
+
+| ok
+| X
+| <<Boolean>>
+a| 
+[markdown]
+--
+Used for CouchDB compatability. Always true.
+--
+| 
+
+| userCtx
+| X
+| <<__db___session_post_200_response_userCtx>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__db___session_post_200_response_userCtx]
+=== _DbSessionPost200ResponseUserCtx_ 
+
+
+[.fields-DbSessionPost200ResponseUserCtx]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| channels
+| X
+| Map of <<__db___session_post_200_response_userCtx_channels_value>>
+a| 
+[markdown]
+--
+A map of the channels the user is in along with the sequence number the user was granted access.
+--
+| 
+
+| name
+| X
+| <<String>>
+a| 
+[markdown]
+--
+The name of the user.
+--
+| 
+
+|===
+
+
+[#__db___session_post_200_response_userCtx_channels_value]
+=== _DbSessionPost200ResponseUserCtxChannelsValue_ 
+
+
+[.fields-DbSessionPost200ResponseUserCtxChannelsValue]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+|===
+
+
+[#__db___session_post_request]
+=== _DbSessionPostRequest_ 
+
+
+[.fields-DbSessionPostRequest]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| name
+| 
+| <<String>>
+a| 
+[markdown]
+--
+User name to generate the session for.
+--
+| 
+
+| password
+| 
+| <<String>>
+a| 
+[markdown]
+--
+Password of the user to generate the session for.
+--
+| 
+
+|===
+
+
+[#HTTP-Error]
+=== _HTTPError_ HTTP-Error
+
+
+[.fields-HTTPError]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| error
+| X
+| <<String>>
+a| 
+[markdown]
+--
+The error name.
+--
+| 
+
+| reason
+| X
+| <<String>>
+a| 
+[markdown]
+--
+The error description.
+--
+| 
+
+|===
+
+
+[#__keyspace___all_docs_get_200_response]
+=== _KeyspaceAllDocsGet200Response_ 
+
+
+[.fields-KeyspaceAllDocsGet200Response]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| rows
+| X
+| Set of <<__keyspace___all_docs_get_200_response_rows_inner>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| total_rows
+| X
+| <<BigDecimal>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| update_seq
+| X
+| <<BigDecimal>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__keyspace___all_docs_get_200_response_rows_inner]
+=== _KeyspaceAllDocsGet200ResponseRowsInner_ 
+
+
+[.fields-KeyspaceAllDocsGet200ResponseRowsInner]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| key
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| id
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| value
+| 
+| <<__keyspace___all_docs_get_200_response_rows_inner_value>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__keyspace___all_docs_get_200_response_rows_inner_value]
+=== _KeyspaceAllDocsGet200ResponseRowsInnerValue_ 
+
+
+[.fields-KeyspaceAllDocsGet200ResponseRowsInnerValue]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| rev
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__keyspace___all_docs_post_request]
+=== _KeyspaceAllDocsPostRequest_ 
+
+
+[.fields-KeyspaceAllDocsPostRequest]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| keys
+| X
+| List of <<string>>
+a| 
+[markdown]
+--
+List of the documents to retrieve.
+--
+| 
+
+|===
+
+
+[#__keyspace___bulk_docs_post_201_response_inner]
+=== _KeyspaceBulkDocsPost201ResponseInner_ 
+
+
+[.fields-KeyspaceBulkDocsPost201ResponseInner]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| id
+| X
+| <<String>>
+a| 
+[markdown]
+--
+The ID of the document that the operation was performed on.
+--
+| 
+
+| rev
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The new revision of the document if the operation was a success.
+--
+| 
+
+| error
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The error type if the operation of the document failed.
+--
+| 
+
+| reason
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The reason the operation failed.
+--
+| 
+
+| status
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+The HTTP status code for why the operation failed.
+--
+| 
+
+|===
+
+
+[#__keyspace___bulk_docs_post_request]
+=== _KeyspaceBulkDocsPostRequest_ 
+
+
+[.fields-KeyspaceBulkDocsPostRequest]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| new_edits
+| 
+| <<Boolean>>
+a| 
+[markdown]
+--
+This controls whether to assign new revision identifiers to new edits (`true`) or use the existing ones (`false`).
+--
+| 
+
+| docs
+| X
+| List of <<{keyspace}~_bulk_docs>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__keyspace___bulk_get_post_request]
+=== _KeyspaceBulkGetPostRequest_ 
+
+
+[.fields-KeyspaceBulkGetPostRequest]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| docs
+| X
+| List of <<__keyspace___bulk_get_post_request_docs_inner>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__keyspace___bulk_get_post_request_docs_inner]
+=== _KeyspaceBulkGetPostRequestDocsInner_ 
+
+
+[.fields-KeyspaceBulkGetPostRequestDocsInner]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| id
+| X
+| <<String>>
+a| 
+[markdown]
+--
+ID of the document to retrieve.
+--
+| 
+
+|===
+
+
+[#__keyspace___changes_post_request]
+=== _KeyspaceChangesPostRequest_ 
+
+
+[.fields-KeyspaceChangesPostRequest]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| limit
+| 
+| <<String>>
+a| 
+[markdown]
+--
+Maximum number of changes to return.
+--
+| 
+
+| style
+| 
+| <<String>>
+a| 
+[markdown]
+--
+Controls whether to return the current winning revision (`main_only`) or all the leaf revision including conflicts and deleted former conflicts (`all_docs`).
+--
+| 
+
+| active_only
+| 
+| <<String>>
+a| 
+[markdown]
+--
+Set true to exclude deleted documents and notifications for documents the user no longer has access to from the changes feed.
+--
+| 
+
+| include_docs
+| 
+| <<String>>
+a| 
+[markdown]
+--
+Include the body associated with each document.
+--
+| 
+
+| revocations
+| 
+| <<String>>
+a| 
+[markdown]
+--
+If true, revocation messages will be sent on the changes feed.
+--
+| 
+
+| filter
+| 
+| <<String>>
+a| 
+[markdown]
+--
+Set a filter to either filter by channels or document IDs.
+--
+| 
+
+| channels
+| 
+| <<String>>
+a| 
+[markdown]
+--
+A comma-separated list of channel names to filter the response to only the channels specified. To use this option, the `filter` query option must be set to `sync_gateway/bychannels`.
+--
+| 
+
+| doc_ids
+| 
+| <<String>>
+a| 
+[markdown]
+--
+A valid JSON array of document IDs to filter the documents in the response to only the documents specified. To use this option, the `filter` query option must be set to `_doc_ids` and the `feed` parameter must be `normal`.
+--
+| 
+
+| heartbeat
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The interval (in milliseconds) to send an empty line (CRLF) in the response. This is to help prevent gateways from deciding the socket is idle and therefore closing it. This is only applicable to `feed=longpoll` or `feed=continuous`. This will override any timeouts to keep the feed alive indefinitely. Setting to 0 results in no heartbeat. The maximum heartbeat can be set in the server replication configuration.
+--
+| 
+
+| timeout
+| 
+| <<String>>
+a| 
+[markdown]
+--
+This is the maximum period (in milliseconds) to wait for a change before the response is sent, even if there are no results. This is only applicable for `feed=longpoll` or `feed=continuous` changes feeds. Setting to 0 results in no timeout.
+--
+| 
+
+| feed
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The type of changes feed to use. 
+--
+| 
+
+|===
+
+
+[#__keyspace___docid__get_200_response]
+=== _KeyspaceDocidGet200Response_ 
+
+
+[.fields-KeyspaceDocidGet200Response]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| _id
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The ID of the document.
+--
+| 
+
+| _rev
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The revision ID of the document.
+--
+| 
+
+|===
+
+
+[#__keyspace___local__docid__put_request]
+=== _KeyspaceLocalDocidPutRequest_ 
+
+
+[.fields-KeyspaceLocalDocidPutRequest]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| _rev
+| 
+| <<String>>
+a| 
+[markdown]
+--
+Revision to replace. Required if updating existing local document.
+--
+| 
+
+|===
+
+
+[#__keyspace___revs_diff_post_200_response]
+=== _KeyspaceRevsDiffPost200Response_ 
+
+
+[.fields-KeyspaceRevsDiffPost200Response]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| docid
+| 
+| <<__keyspace___revs_diff_post_200_response_docid>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#__keyspace___revs_diff_post_200_response_docid]
+=== _KeyspaceRevsDiffPost200ResponseDocid_ 
+
+
+[.fields-KeyspaceRevsDiffPost200ResponseDocid]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| missing
+| 
+| List of <<string>>
+a| 
+[markdown]
+--
+The revisions that are not in the database (and therefore `missing`).
+--
+| 
+
+| possible_ancestors
+| 
+| List of <<string>>
+a| 
+[markdown]
+--
+An array of known revisions that might be the recent ancestors.
+--
+| 
+
+|===
+
+
+[#__keyspace___revs_diff_post_request]
+=== _KeyspaceRevsDiffPostRequest_ 
+
+
+[.fields-KeyspaceRevsDiffPostRequest]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| docid
+| 
+| List of <<string>>
+a| 
+[markdown]
+--
+The document ID with an array of revisions to use for the comparison.
+--
+| 
+
+|===
+
+
+[#New-revision]
+=== _NewRevision_ New-revision
+
+
+[.fields-NewRevision]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| id
+| X
+| <<String>>
+a| 
+[markdown]
+--
+The ID of the document.
+--
+| 
+
+| ok
+| X
+| <<Boolean>>
+a| 
+[markdown]
+--
+Whether the request completed successfully.
+--
+| 
+
+| rev
+| X
+| <<String>>
+a| 
+[markdown]
+--
+The revision of the document.
+--
+| 
+
+|===
+
+
+[#NodeInfo]
+=== _NodeInfo_ 
+
+
+[.fields-NodeInfo]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| ADMIN
+| 
+| <<Boolean>>
+a| 
+[markdown]
+--
+`true` if the request is from the Admin API - otherwise omitted.
+--
+| 
+
+| couchdb
+| X
+| <<String>>
+a| 
+[markdown]
+--
+CouchDB welcome
+--
+| 
+
+| vendor
+| X
+| <<NodeInfo_vendor>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| version
+| 
+| <<String>>
+a| 
+[markdown]
+--
+Product version, including the build number and edition (i.e. `EE` or `CE`)
+Omitted if `api.hide_product_version=true`
+--
+| 
+
+| persistent_config
+| 
+| <<Boolean>>
+a| 
+[markdown]
+--
+Indication for whether sync gateway is running in persistent config mode or legacy config mode.
+`true` if the sync gateway node is running in persistent config mode.
+--
+| 
+
+|===
+
+
+[#NodeInfo_vendor]
+=== _NodeInfoVendor_ 
+
+
+[.fields-NodeInfoVendor]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| name
+| X
+| <<String>>
+a| 
+[markdown]
+--
+Product name
+--
+| 
+
+| version
+| 
+| <<String>>
+a| 
+[markdown]
+--
+API version.
+Omitted if `api.hide_product_version=true`
+--
+| 
+
+|===
+
+
+[#OIDC-callback]
+=== _OIDCCallback_ OpenID Connect callback properties
+
+
+[.fields-OIDCCallback]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| id_token
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The OpenID Connect ID token
+--
+| 
+
+| refresh_token
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The OpenID Connect ID refresh token
+--
+| 
+
+| session_id
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The Sync Gateway session token
+--
+| 
+
+| name
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The Sync Gateway user
+--
+| 
+
+| access_token
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The OpenID Connect access token
+--
+| 
+
+| token_type
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The OpenID Connect ID token type
+--
+| 
+
+| expires_in
+| 
+| <<BigDecimal>>
+a| 
+[markdown]
+--
+The time until the id_token expires (TTL).
+--
+| 
+
+|===
+
+
+[#OIDC-login-page-handler]
+=== _OIDCLoginPageHandler_ 
+
+
+[.fields-OIDCLoginPageHandler]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| username
+| X
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| tokenttl
+| X
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| identity-token-formats
+| X
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| authenticated
+| X
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#OIDC-token]
+=== _OIDCToken_ OIDC-token
+
+
+[.fields-OIDCToken]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| access_token
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| token_type
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| refresh_token
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| expires_in
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| id_token
+| 
+| <<String>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#User-session-information]
+=== _UserSessionInformation_ User Session Information
+
+
+[.fields-UserSessionInformation]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| authentication_handlers
+| 
+| List of <<string>>
+a| 
+[markdown]
+--
+The ways authentication can be established to authenticate as the user.
+--
+| 
+
+| ok
+| 
+| <<Boolean>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| userCtx
+| 
+| <<User_session_information_userCtx>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#User_session_information_userCtx]
+=== _UserSessionInformationUserCtx_ 
+
+
+[.fields-UserSessionInformationUserCtx]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| channels
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+A map of the channels the user has access to and the sequence number each channel was created at.
+
+The key is the channel name and the value is the sequence number.
+
+--
+| 
+
+| name
+| 
+| <<String>>
+a| 
+[markdown]
+--
+The name of the user.
+--
+| 
+
+|===
+
+
+
+
+END OF DOC
+// end::doc[]
