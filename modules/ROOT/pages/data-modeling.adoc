@@ -29,22 +29,12 @@ They do not necessarily align with constraints on the local storage and use of s
 == Property Naming
 
 What to avoid::
-You should avoid designing user property names prefixed with an underscore character (`+_+`, ASCII `&#095`) for the following reserved properties:
-+
-* _sync
-* _id
-* _rev
-* _deleted
-* _attachments
-* _revisions
-* _exp
-* _purged
-* _removed
+You should avoid designing user property names prefixed with an underscore character (`+_+`, ASCII `&#095`).
 
 Why it's an issue::
-The underscore character (`+_+`) is a *reserved prefix* for some  _Document_ system properties, for example: the document's identifier (`+_id+`) and revision property (`+_rev+`).
+The underscore character (`+_+`) is a *reserved prefix* for _Document_ system properties, for example: the document's identifier (`+_id+`) and revision property (`+_rev+`).
 +
-Any document which contains user properties with a leading underscore for the reserved properties will be rejected by Sync Gateway -- see <<error-code>> for the error details.
+Any document which does contain user properties with a leading underscore will be rejected by Sync Gateway -- see <<error-code>> for the error details.
 +
 [#error-code]
 .Property prefix error message
@@ -63,7 +53,7 @@ This rule applies to writes performed through:
 * Couchbase Server SDKs when {sgw--xref}{sync-with-couchbase-server--page}[shared bucket access] is enabled.
 
 When you might encounter the error::
-You may encounter the error in the following deployment situations:
+You are especially likely to encounter the error in the following deployment situations:
 
 * In Mobile-to-Web Data Sync with Field-level Encryption enabled, because the rule conflicts with the default {xref-sdk-java-encryption}
 * In Mobile-to-Web Data Sync with {xref-sdk-nodejs-pg-start} and http://ottomanjs.com/[Ottoman.js] (the Node.js ODM for Couchbase), where the rule conflicts with the `+_type+` property that is automatically added by _Ottoman.js_.
@@ -77,16 +67,11 @@ You should change any top-level user properties that have a key with a leading u
 * Wrapping them inside another object with a key that doesn't have a leading underscore.
 
 
-
-
-
-
 == Document Structure
 
 Couchbase's unit of data is a document, this is the NOSQL equivalent of a row or record.
 
 Documents are stored as a key-value pair, which comprises a unique and immutable key, the _Id_, and a value representing the users' data (a JSON-object or binary blob).
-
 
 
 === Key
@@ -105,50 +90,30 @@ The document value is either:
 
 * A JSON value, termed a _Document_.
 +
-This JSON object is a collection of key/value pairs. The values may be numbers, strings, arrays, or even nested objects.
-As a result, documents can represent complex data structures in a readily parsable and self-organizing manner.
+This JSON object is itself collection of key/value pairs, where the values may be numbers, strings, arrays or even nested objects themselves.
+As a result documents can represent highly-complex data structures in a readily parsable and self-organizing manner.
 * a binary object (also known as a _blob_ or _attachment_)
 +
 These attachments provide a means to store large media files or any other non-textual data.
-Couchbase Lite supports attachments of unlimited size, although the Sync Gateway imposes a 20MB limit for attachments synced to it.
+Couchbase Lite supports attachments of unlimited size, although the Sync Gateway currently imposes a 20MB limit for attachments synced to it.
 
 
 == Document Attributes
 Each _Document_ has the following attributes:
 
 * A document ID
-* A current revision ID (which changes when the document is updated)
+* A current revision ID (which changes every time the document is updated)
 * A history of past revision IDs (usually linear, but will form a branching tree if the document has or has had conflicts)
-* A body in the form of a JSON object (a set of key/value pairs)
+* A body in the form of a JSON object, i.e. a set of key/value pairs
 * Zero or more named binary attachments
 
 
 == Document Change History
 
 {cbl} tracks the change history of every document as a series of revisions, like version control systems such as Git or Subversion.
-Its main purpose is to enable the replicator to determine which data to sync and any conflicts arising.
+Its main purpose being to enable the replicator to determine the data to sync and any conflicts arising.
 
 Each document change is assigned a unique revision ID. The IDs of past revisions are available. The content of past revisions may be available if the revision was created locally and the database has not yet been compacted.
-
-
-== Scopes and Collections
-
-Scopes and collections allow you to organize your documents within a database.
-
-You can organize your documents in collections to logically group categories of content.
-
-You can organize your collections in scopes according to content-type or deployment-phase.
-
-xref:server:learn:data/scopes-and-collections.adoc[Couchbase Scopes and Collections for Server]
-
-xref:couchbase-lite:java:scopes-collections-manage.adoc[Couchbase Scopes and Collections for Couchbase Lite]
-
-
-
-== Channels
-
-Sync Gateway uses xref:channels.adoc[Channels] to share a database’s documents and retain security access control. 
-
 
 // BEGIN -- Page Footer
 include::partial$block-related-content-data.adoc[]
