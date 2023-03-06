@@ -1,0 +1,874 @@
+= Sync Gateway
+
+// tag::doc[]
+
+
+== Endpoints
+
+
+[.Default]
+=== Default
+
+
+[.expvarGet]
+==== GET `/_expvar`
+
+Get all Sync Gateway statistics
+
+===== Description
+
+[markdown]
+--
+This returns a snapshot of all metrics in Sync Gateway for debugging and monitoring purposes.
+
+This includes per database stats, replication stats, and server stats.
+
+Required Sync Gateway RBAC roles:
+* Sync Gateway Architect
+* Sync Gateway Dev Ops
+* External Stats Reader
+--
+
+
+// markup not found, no include::{specDir}_expvar/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+
+
+
+
+
+
+===== Return Type
+
+<<ExpVars>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Returned statistics
+| ExpVars[<<ExpVars>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}_expvar/GET/examples.adoc[opts=optional]
+
+
+
+[.Prometheus]
+=== Prometheus
+
+
+[.metricsGet]
+==== GET `/_metrics`
+
+Debugging/monitoring runtime stats in Prometheus Exposition format
+
+===== Description
+
+[markdown]
+--
+Returns Sync Gateway statistics and other runtime variables in Prometheus Exposition format.
+
+Required Sync Gateway RBAC roles:
+* Sync Gateway Architect
+* Sync Gateway Dev Ops
+* External Stats Reader
+--
+
+
+// markup not found, no include::{specDir}_metrics/GET/spec.adoc[opts=optional]
+
+
+===== Parameters
+
+
+
+
+
+
+
+===== Return Type
+
+
+<<String>>
+
+
+===== Responses
+
+[cols="1,3,2"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successfully returned stats
+| String[<<string>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}_metrics/GET/examples.adoc[opts=optional]
+
+
+
+[#models]
+== Models
+
+
+[#ExpVars]
+=== _ExpVars_ 
+
+
+[.fields-ExpVars]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| cmdline
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Built-in variables from the Go runtime, lists the command-line arguments
+--
+| 
+
+| memstats
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Dumps a large amount of information about the memory heap and garbage collector
+--
+| 
+
+| cb
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Variables reported by the Couchbase SDK (go_couchbase package)
+--
+| 
+
+| mc
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Variables reported by the low-level memcached API (gomemcached package)
+--
+| 
+
+| syncGateway_changeCache
+| 
+| <<ExpVars_syncGateway_changeCache>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| syncGateway_db
+| 
+| <<ExpVars_syncGateway_db>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| syncgateway
+| 
+| <<ExpVars_syncgateway>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#ExpVars_syncGateway_changeCache]
+=== _ExpVarsSyncGatewayChangeCache_ 
+
+
+[.fields-ExpVarsSyncGatewayChangeCache]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| maxPending
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Max number of sequences waiting on a missing earlier sequence number
+--
+| 
+
+| lag-tap-0000ms
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Histogram of delay from doc save till it shows up in Tap feed
+--
+| 
+
+| lag-queue-0000ms
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Histogram of delay from Tap feed till doc is posted to changes feed
+--
+| 
+
+| lag-total-0000ms
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Histogram of total delay from doc save till posted to changes feed
+--
+| 
+
+| outOfOrder
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of out-of-order sequences posted
+--
+| 
+
+| view_queries
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of queries to channels view
+--
+| 
+
+|===
+
+
+[#ExpVars_syncGateway_db]
+=== _ExpVarsSyncGatewayDb_ 
+
+
+[.fields-ExpVarsSyncGatewayDb]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| channelChangesFeeds
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of calls to db.changesFeed, i.e. generating a changes feed for a single channel.
+--
+| 
+
+| channelLogAdds
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of entries added to channel logs
+--
+| 
+
+| channelLogAppends
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of times entries were written to channel logs using an APPEND operation
+--
+| 
+
+| channelLogCacheHits
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of requests for channel-logs that were fulfilled from the in-memory cache
+--
+| 
+
+| channelLogRewrites
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of times entries were written to channel logs using a SET operation (rewriting the entire log)
+--
+| 
+
+| channelLogRewriteCollisions
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of collisions while attempting to rewrite channel logs using SET
+--
+| 
+
+| document_gets
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of times a document was read from the database
+--
+| 
+
+| revisionCache_adds
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of revisions added to the revision cache
+--
+| 
+
+| revisionCache_hits
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of times a revision-cache lookup succeeded
+--
+| 
+
+| revisionCache_misses
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of times a revision-cache lookup failed
+--
+| 
+
+| revs_added
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of revisions added to the database (including deletions)
+--
+| 
+
+| sequence_gets
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of times the database's lastSequence was read
+--
+| 
+
+| sequence_reserves
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+Number of times the database's lastSequence was incremented
+--
+| 
+
+|===
+
+
+[#ExpVars_syncgateway]
+=== _ExpVarsSyncgateway_ 
+
+
+[.fields-ExpVarsSyncgateway]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| global
+| 
+| <<ExpVars_syncgateway_global>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| per_db
+| 
+| List of <<ExpVars_syncgateway_per_db_inner>>
+a| 
+[markdown]
+--
+This array contains stats for all databases declared in the config file -- see the [Sync Gateway Statistics Schema](./../stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
+The statistics for each {$db_name} database are grouped into:
+- cache related statistics
+- collections statistics
+- cbl_replication_push
+- cbl_replication_pull
+- database_related_statistics
+- delta_sync
+- gsi_views
+- security_related_statistics
+- shared_bucket_import
+- per_replication statistics for each `replication_id`
+--
+| 
+
+| per_replication
+| 
+| List of <<ExpVars_syncgateway_per_replication_inner>>
+a| 
+[markdown]
+--
+An array of stats for each replication declared in the config file
+**Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+--
+| 
+
+|===
+
+
+[#ExpVars_syncgateway_global]
+=== _ExpVarsSyncgatewayGlobal_ 
+
+
+[.fields-ExpVarsSyncgatewayGlobal]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| resource_utilization
+| 
+| <<ExpVars_syncgateway_global_resource_utilization>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#ExpVars_syncgateway_global_resource_utilization]
+=== _ExpVarsSyncgatewayGlobalResourceUtilization_ 
+
+
+[.fields-ExpVarsSyncgatewayGlobalResourceUtilization]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| admin_net_bytes_recv
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| admin_net_bytes_sent
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| error_count
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| go_memstats_heapalloc
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| go_memstats_heapidle
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| go_memstats_heapinuse
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| go_memstats_heapreleased
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| go_memstats_pausetotalns
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| go_memstats_stackinuse
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| go_memstats_stacksys
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| go_memstats_sys
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| goroutines_high_watermark
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| num_goroutines
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| process_cpu_percent_utilization
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| process_memory_resident
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| pub_net_bytes_recv
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| pub_net_bytes_sent
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| system_memory_total
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| warn_count
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#ExpVars_syncgateway_per_db_inner]
+=== _ExpVarsSyncgatewayPerDbInner_ 
+
+
+[.fields-ExpVarsSyncgatewayPerDbInner]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| cache
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| database
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| per_replication
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| collections
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+| security
+| 
+| <<Object>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#ExpVars_syncgateway_per_replication_inner]
+=== _ExpVarsSyncgatewayPerReplicationInner_ 
+
+
+[.fields-ExpVarsSyncgatewayPerReplicationInner]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| $replication_id
+| 
+| <<ExpVars_syncgateway_per_replication_inner__replication_id>>
+a| 
+[markdown]
+--
+
+--
+| 
+
+|===
+
+
+[#ExpVars_syncgateway_per_replication_inner__replication_id]
+=== _ExpVarsSyncgatewayPerReplicationInnerReplicationId_ 
+
+
+[.fields-ExpVarsSyncgatewayPerReplicationInnerReplicationId]
+[cols="2,1,2,4,1"]
+|===         
+| Field Name| Required| Type| Description| Format
+
+| sgr_active
+| 
+| <<Boolean>>
+a| 
+[markdown]
+--
+Whether the replication is active at this time.
+**Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+--
+| 
+
+| sgr_docs_checked_sent
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+The total number of documents checked for changes since replication started.
+This represents the number of potential change notifications pushed by Sync Gateway.
+**Constraints**
+  This is not necessarily the number of documents pushed, as a given target might already have the change.
+  Used by versions 1 and 2.
+--
+| 
+
+| sgr_num_attachments_transferred
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+The total number of attachments transferred since replication started.
+**Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+--
+| 
+
+| sgr_num_attachment_bytes_transferred
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+The total number of attachment bytes transferred since replication started.
+**Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+--
+| 
+
+| sgr_num_docs_failed_to_push
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+The total number of documents that failed to be pushed since replication started.
+Used by versions 1 and 2.
+--
+| 
+
+| sgr_num_docs_pushed
+| 
+| <<Integer>>
+a| 
+[markdown]
+--
+The total number of documents that were pushed since replication started.
+Used by versions 1 and 2.
+--
+| 
+
+|===
+
+
+
+
+END OF DOC
+// end::doc[]
