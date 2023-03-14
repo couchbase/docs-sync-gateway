@@ -1,0 +1,24 @@
+{{! If this is not an array ... }}
+{{^isContainer}}
+{{! ... but is a named object, create a link to that object; }}
+{{#isModel}}
+xref:#++{{dataType}}++[]
+{{/isModel}}
+{{! ... otherwise, just output the data type and data format. }}
+{{^isModel}}
+{{dataType}}{{#dataFormat}} ({{{dataFormat}}}){{/dataFormat}}
+{{/isModel}}
+{{/isContainer}}
+{{! If this is an array ... }}
+{{#isContainer}}
+{{! ... and each item is a named object, create a link to that object; }}
+{{#items.isModel}}
+xref:#++{{items.dataType}}++[]
+{{/items.isModel}}
+{{! ... otherwise, just output each item's data type; }}
+{{^items.isModel}}
+{{items.dataType}}
+{{/items.isModel}}
+{{! ... and in both cases, output the array data type. }}
+{{dataType}}
+{{/isContainer}}

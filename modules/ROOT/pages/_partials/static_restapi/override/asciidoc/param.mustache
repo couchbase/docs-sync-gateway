@@ -1,16 +1,52 @@
-| {{baseName}} 
+a| 
+*{{#isBodyParam}}Body{{/isBodyParam}}{{^isBodyParam}}{{baseName}}{{/isBodyParam}}* +
+_{{#required}}required{{/required}}{{^required}}optional{{/required}}_
 a| 
 [markdown]
 --
-{{#unescapedDescription?}}
-{{{unescapedDescription}}}
-{{/unescapedDescription?}}
-{{^unescapedDescription?}}
-{{{description}}}
-{{/unescapedDescription?}}
+{{#unescapedDescription}}{{{unescapedDescription}}}{{/unescapedDescription}}
+{{^unescapedDescription}}{{{description}}}{{/unescapedDescription}}
 --
 
-{{#baseType}}<<{{baseType}}>>{{/baseType}}
+[%hardbreaks]
+{{! enumerated values}}
+{{#isEnum}}
+*Values:* {{#_enum}}{{^-last}}`{{this}}`, {{/-last}}{{#-last}}`{{this}}`{{/-last}}{{/_enum}}
+{{/isEnum}}
+{{! default value}}
+{{#defaultValue}}
+ifeval::["{{{defaultValue}}}" != "null"]
+*Default:* `{{{defaultValue}}}`
+endif::[]
+{{/defaultValue}}
+{{! pattern}}
+{{#pattern}}
+*Pattern:* `{{{pattern}}}`
+{{/pattern}}
+{{! minimum value}}
+{{#minimum}}
+*Minimum:* `{{{minimum}}}`
+{{/minimum}}
+{{! maximum value}}
+{{#maximum}}
+*Maximum:* `{{{maximum}}}`
+{{/maximum}}
+{{! exclusive minimum value}}
+{{#exclusiveMinimum}}
+*Exclusive minimum:* `{{{exclusiveMinimum}}}`
+{{/exclusiveMinimum}}
+{{! exclusive maximum value}}
+{{#exclusiveMaximum}}
+*Exclusive maximum:* `{{{exclusiveMaximum}}}`
+{{/exclusiveMaximum}}
+{{! example -- deprecated}}
+{{#isBodyParam}}
+{{#example}}
+ifeval::["{{{example}}}" != "null"]
+*Example:* `{{{example}}}`
+endif::[]
+{{/example}}
+{{/isBodyParam}}
+// end
 
-| {{^required}}-{{/required}}{{#required}}X{{/required}} 
-| {{defaultValue}} 
+| {{>schema}}
