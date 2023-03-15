@@ -7,19 +7,17 @@
 
 // tag::full[]
 // tag::summary[]
-Sync Gateway uses _Channels_ to make it easy to share a database's documents across a large user base whilst retaining effective access control.
+Sync Gateway uses _Channels_ defined at collection level to make it easy to share a database's documents across a large user base whilst retaining effective access control.
 They serve as a security conduit between the document and a user:
 
 // end::summary[]
 // tag::body[]
 == Overview
 
-Every document in the database is assigned a list of channels it is distributed to.
-Every user (or role) is granted access to a list of channels.
-This dual-purpose is reflected in the way you use channels:
+Channels are defined at the collection level, which means that specific channels can be associated with individual collections of documents. 
+This system allows users with access to a specific channel to access all documents assigned to that channel within that collection.
 
-* By granting a user access to a channel, you are imposing access control
-* By assigning a document to a channel you are imposing document routing
+By defining channels at the collection level, it's possible to implement detailed access control for different types of data within the database.
 
 You typically will use channels to:
 
@@ -33,20 +31,9 @@ Sync Gateway provides two special channels and a channel wildcard character.
 
 [#lbl-usecase]
 == Use Case
-Consider the case where two users require, and are allowed, access to a private set of documents  and one shared set of documents — see <<fig-channel-example>>.
-
-
-[#fig-channel-example]
-.Channels in Access Control
-
-image::channels-example-all.png["Access Control using Channels",400]
-
-In this case, each user is assigned to a private channel with a subset of documents that only the user can access and a shared channel that contains common documents.
-The users in this example could be replaced by roles.
-
-An example of this model could be a retail chain, where every store corresponds to a Sync Gateway User.
-Each store has a store specific channel that contains documents that are store specific like pricing, promotions, inventory etc.
-In addition, all the stores may need to have access to a common set of documents like retail locations, product catalog that are stored in a common shared channel.
+Imagine a database containing a collection of customer data. Within this collection, channels can be established to provide varying customer data access levels. 
+For example, one channel may provide access to general customer information, while another may allow access to sensitive customer information. 
+Users can then be granted access to one or both channels based on their need to access the associated data.
 
 [#lbl-config]
 == Configuration
