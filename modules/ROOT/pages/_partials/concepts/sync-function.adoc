@@ -39,52 +39,69 @@ Any validation checks will probably fail because of the missing properties, so b
 
 :note-for-prototype: [This prototype shows the default Sync Function -- see <<lbl-args>> for more on the arguments.]
 
-== Sync Function Prototype
+[#ex-sync-function]
+== Sync Function Examples
 
-[#ex-prototype]
-.Prototype Sync Function
+Couchbase Sync Gateway defines a Sync Function at the `collection` level. 
+Defining at this level helps simplify data management and improve data reliability. 
+Each collection in the system allows for only one Sync Function, which enables the specification of Access Control rules.
+
+.Default Sync Function
 ====
 
-[{tabs}]
 =====
-
-Version 3.x::
-+
 --
 
 [source, javascript]
 ----
-function (doc, oldDoc, meta) { // <.>
-   channel(doc.channels); // <.>
+Sync (doc, oldDoc, meta) { 
+   channel(CollectionName); 
 
 }
 ----
-
-<.> In version 3.x we can use XATTR contents to drive access control.
-To support this, an additional optional argument `meta` is exposed -- see <<lbl-args>>
-<.> {note-for-prototype}
-
---
-
-All Versions::
-+
---
-
-[source, javascript]
-----
-function (doc, oldDoc) {
-   channel(doc.channels); // <.>
-}
-----
-
-<.> {note-for-prototype}
-
---
+Here the function then calls the `channel` and passes in the name of the collection `(CollectionsName)` as an argument.
 
 =====
 
 ====
 
+.Specified Default Sync Function
+====
+
+=====
+--
+
+[source, javascript]
+----
+Sync (doc, oldDoc, meta) {
+channel(doc.channels);
+
+} 
+----
+Here is the default Sync Function when the default `scope` and default `collection` is clearly specified.
+
+=====
+
+====
+
+.Upgraded Default Sync Function
+====
+
+=====
+--
+
+[source, javascript]
+----
+Sync (doc, oldDoc, meta) {
+channel(doc.channels);
+
+} 
+----
+Here is the default Sync Function when you have upgraded; it remains the same as the previous version.
+
+=====
+
+====
 
 [#lbl-args]
 == Arguments
@@ -116,7 +133,8 @@ Your implementation of the sync function can omit the `oldDoc` parameter if you 
 
 This argument references the user defined XATTR that you can use to hold access grant data.
 
-The referenced object can include items such as channels or roles. So instead of embedding channel information directly within the document body, users can specify the user-defined XATTR associated with the document -- see {access-control-how-use-xattrs-for-access-grants--xref}.
+The referenced object can include items such as channels or roles. 
+So instead of embedding channel information directly within the document body, users can specify the user-defined XATTR associated with the document -- see {access-control-how-use-xattrs-for-access-grants--xref}.
 
 |===
 
