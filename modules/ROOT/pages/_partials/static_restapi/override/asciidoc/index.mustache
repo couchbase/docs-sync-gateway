@@ -1,0 +1,297 @@
+////
+= {{{appName}}}
+{{#headerAttributes}}
+{{infoEmail}}
+:keywords: openapi, rest, {{appName}}
+:specDir: {{specDir}}
+:snippetDir: {{snippetDir}}
+:generator-template: v1 2019-12-20 (+ SimonD + HakimC changes)
+:info-url: {{infoUrl}}
+:app-name: {{appName}}
+{{/headerAttributes}}
+
+{{#useIntroduction}}
+== Overview
+
+{{/useIntroduction}}
+{{^useIntroduction}}
+[abstract]
+.Abstract
+{{/useIntroduction}}
+{{{appDescription}}}
+
+{{#version}}
+=== Version information
+[%hardbreaks]
+__Version__ : {{{version}}}
+{{/version}}
+
+{{#host}}
+=== Host information
+[%hardbreaks]
+__Host__ : {{{host}}}
+{{/host}}
+////
+
+{{#specinclude}}intro.adoc{{/specinclude}}
+
+== Resources
+
+{{! Table of contents for endpoints }}
+This section describes the operations available with this REST API.
+The operations are grouped in the following categories.
+
+{{#apiInfo}}
+{{#apis}}
+{{#operations}}
+* <<{{baseName}}>>
+{{/operations}}
+{{/apis}}
+{{/apiInfo}}
+
+{{! Endpoint body }}
+{{#apiInfo}}
+{{#apis}}
+{{#operations}}
+
+{{! tag description }}
+[#{{baseName}}]
+{{#operation}}
+{{#-first}}
+{{#tags}}
+{{#-first}}
+=== {{#name}}{{name}}{{/name}}{{^name}}{{baseName}}{{/name}}
+
+{{#description}}{{description}}{{/description}}
+{{^description}}**{toc-title}**{{/description}}
+{{/-first}}
+{{/tags}}
+{{^tags}}
+=== Default
+{{/tags}}
+{{/-first}}
+{{/operation}}
+
+{{! Table of contents for operations }}
+
+////
+// Commenting out, as SGW Spec doesn't use operationID
+{{#operation}}
+* <<{{operationIdOriginal}}>>
+{{/operation}}
+////
+
+{{! Operation body }}
+
+{{#operation}}
+
+{{! include partial before operation }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-before.adoc{{/specinclude}}
+
+[#{{operationIdOriginal}}]
+{{#useMethodAndPath}}
+==== {{httpMethod}} {{path}}
+
+{{summary}}
+
+{{/useMethodAndPath}}
+{{^useMethodAndPath}}
+==== {{summary}}
+....
+{{httpMethod}} {{path}}
+....
+{{/useMethodAndPath}}
+
+{{! include partial before operation body }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-begin.adoc{{/specinclude}}
+
+{{! *** OPERATION DESCRIPTION *** }}
+{{! include partial before operation description }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-description-before.adoc{{/specinclude}}
+
+[#{{operationIdOriginal}}-description]]
+===== Description
+
+{{! include partial before operation description body }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-description-begin.adoc{{/specinclude}}
+
+[markdown]
+--
+{{{unescapedNotes}}}
+--
+
+{{! include partials after the operation description }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-description-end.adoc{{/specinclude}}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-description-after.adoc{{/specinclude}}
+
+{{! *** OPERATION PARAMETERS *** }}
+{{! include partial before operation parameters }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-parameters-before.adoc{{/specinclude}}
+
+{{> params}}
+
+{{! include partials after the operation parameters }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-parameters-after.adoc{{/specinclude}}
+
+{{! *** OPERATION PRODUCES *** }}
+{{#hasProduces}}
+[#{{operationIdOriginal}}-produces]]
+===== Produces
+
+{{#produces}}
+* {{{mediaType}}}
+{{/produces}}
+{{/hasProduces}}
+
+{{! *** OPERATION CONSUMES *** }}
+{{#hasConsumes}}
+[#{{operationIdOriginal}}-consumes]]
+===== Consumes
+
+{{#consumes}}
+* {{{mediaType}}}
+{{/consumes}}
+{{/hasConsumes}}
+
+{{! *** OPERATION RESPONSES *** }}
+{{! include partial before operation responses }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-responses-before.adoc{{/specinclude}}
+
+{{! If there are responses: anchor, title, and table header }}
+{{#responses}}
+{{#-first}}
+[#{{operationIdOriginal}}-responses]]
+===== Responses
+
+{{! include partial before operation responses body }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-responses-begin.adoc{{/specinclude}}
+
+[cols="1,3,1"]
+|===
+| HTTP Code | Description | Schema
+{{/-first}}
+{{/responses}}
+
+{{! Iterate through responses }}
+{{#responses}}
+| {{code}}
+a| {{{message}}}
+| {{>schema}}
+{{/responses}}
+
+{{! If there are responses: table footer }}
+{{#responses}}
+{{#-last}}
+|===
+
+{{! include partials after operation responses body }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-responses-end.adoc{{/specinclude}}
+{{/-last}}
+{{/responses}}
+
+{{! include partials after operation responses }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-responses-after.adoc{{/specinclude}}
+
+{{! *** OPERATION SECURITY *** }}
+{{! include partial before operation security }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-security-before.adoc{{/specinclude}}
+
+{{! If there is operation security: anchor, title, and table header }}
+{{#authMethods}}
+{{#-first}}
+[#{{operationIdOriginal}}-security]]
+===== Security
+
+{{! include partial before operation security body }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-security-begin.adoc{{/specinclude}}
+
+[cols="1,3"]
+|===
+| Type | Name
+{{/-first}}
+{{/authMethods}}
+
+{{! Iterate through operation security }}
+{{#authMethods}}
+| {{type}}{{#scheme}} ({{scheme}}){{/scheme}}
+| <<{{name}}>>
+{{/authMethods}}
+
+{{! If there is operation security: table footer }}
+{{#authMethods}}
+{{#-last}}
+|===
+
+{{! include partials after operation security body }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-security-end.adoc{{/specinclude}}
+{{/-last}}
+{{/authMethods}}
+
+{{! include partials after operation security }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-security-after.adoc{{/specinclude}}
+
+{{! *** OPERATION SAMPLES *** }}
+{{! Include partials for operation sample requests and responses }}
+{{! The partials should have a level 1 title; the level offset pushes the title down to the correct section level. }}
+{{^skipExamples}}
+:leveloffset: +4
+{{#snippetinclude}}{{operationIdOriginal}}/http-request.adoc{{/snippetinclude}}
+{{#snippetinclude}}{{operationIdOriginal}}/http-response.adoc{{/snippetinclude}}
+:leveloffset: -4
+
+{{! Wiremock data not currently used }}
+{{#snippetlink}}* wiremock data, {{path}}/{{httpMethod}}/{{httpMethod}}.json{{/snippetlink}}
+{{/skipExamples}}
+
+{{! Implementation not currently used }}
+ifdef::internal-generation[]
+===== Implementation
+{{#specinclude}}{{path}}/{{httpMethod}}/implementation.adoc{{/specinclude}}
+
+endif::internal-generation[]
+
+{{! include partials after the operation }}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-end.adoc{{/specinclude}}
+{{#specinclude}}/paths/{{operationIdOriginal}}/operation-after.adoc{{/specinclude}}
+
+{{/operation}}
+{{/operations}}
+{{/apis}}
+{{/apiInfo}}
+
+{{! *** MODELS *** }}
+{{> model}}
+
+{{! *** SECURITY *** }}
+{{#hasAuthMethods}}
+[[_securityscheme]]
+== Security
+
+{{#authMethods}}
+{{#isBasic}}
+[[{{name}}]]
+=== {{name}}
+
+{{! TODO: Security description }}
+{{#isBasicBasic}}
+
+Basic authentication.
+
+[%hardbreaks]
+__Type__ : {{type}}
+{{/isBasicBasic}}
+{{#isBasicBearer}}
+
+Bearer authentication.
+
+[%hardbreaks]
+__Type__ : {{type}}
+__Scheme__ : {{scheme}}
+{{#bearerFormat}}__Format__: {{bearerFormat}}{{/bearerFormat}}
+{{/isBasicBearer}}
+{{/isBasic}}
+{{#isOAuth}}* *OAuth*  AuthorizationUrl: _{{authorizationUrl}}_, TokenUrl:   _{{tokenUrl}}_ {{/isOAuth}}
+{{#isApiKey}}* *APIKey* KeyParamName:     _{{keyParamName}}_,     KeyInQuery: _{{isKeyInQuery}}_, KeyInHeader: _{{isKeyInHeader}}_{{/isApiKey}}
+{{/authMethods}}
+
+{{/hasAuthMethods}}

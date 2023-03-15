@@ -1,0 +1,133 @@
+{{! include partial before definitions }}
+{{#specinclude}}/definitions/document-before.adoc{{/specinclude}}
+
+[#models]
+== Definitions
+
+{{! Create attributes for each model description }}
+{{#models}}
+{{#model}}
+{{#description}}
+:desc-{{name}}: {{description}}
+{{/description}}
+{{/model}}
+{{/models}}
+
+{{! include partial before definitions body }}
+{{#specinclude}}/definitions/document-begin.adoc{{/specinclude}}
+
+{{! Table of contents }}
+This section describes the properties consumed and returned by this REST API.
+
+{{#models}}
+{{#model}}
+* xref:#++{{name}}++[]
+{{/model}}
+{{/models}}
+
+{{! *** DEFINITION *** }}
+{{#models}}
+{{#model}}
+
+{{! include partial before definition }}
+{{#specinclude}}/definitions/{{name}}/definition-before.adoc{{/specinclude}}
+
+[#{{name}}]
+=== {{#title}}{{title}}{{/title}}{{^title}}{{classname}}{{/title}}
+
+{{! include partial before definition body }}
+{{#specinclude}}/definitions/{{name}}/definition-begin.adoc{{/specinclude}}
+
+{{^composedSchemas}}
+[#fields-{{name}}]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+{{#vars}}
+{{! DEFINITION NAME }}
+a| *{{baseName}}* +
+_{{#required}}required{{/required}}{{^required}}optional{{/required}}_
+{{! DEFINITION DESCRIPTION }}
+a| {{#description}}{{{unescapedDescription}}}{{/description}}
+{{#isModel}}
+ifdef::desc-{{dataType}}[]
+{desc-{{dataType}}}
+endif::[]
+{{/isModel}}
+
+[%hardbreaks]
+{{! enumerated values}}
+{{#isEnum}}
+*Values:* {{#_enum}}{{^-last}}`{{this}}`, {{/-last}}{{#-last}}`{{this}}`{{/-last}}{{/_enum}}
+{{/isEnum}}
+{{! default value}}
+ifeval::["{{{defaultValue}}}" != "null"]
+*Default:* `{{{defaultValue}}}`
+endif::[]
+{{! pattern}}
+{{#pattern}}
+*Pattern:* `{{{pattern}}}`
+{{/pattern}}
+{{! minimum value}}
+{{#minimum}}
+*Minimum:* `{{{minimum}}}`
+{{/minimum}}
+{{! maximum value}}
+{{#maximum}}
+*Maximum:* `{{{maximum}}}`
+{{/maximum}}
+{{! exclusive minimum value}}
+{{#exclusiveMinimum}}
+*Exclusive minimum:* `{{{exclusiveMinimum}}}`
+{{/exclusiveMinimum}}
+{{! exclusive maximum value}}
+{{#exclusiveMaximum}}
+*Exclusive maximum:* `{{{exclusiveMaximum}}}`
+{{/exclusiveMaximum}}
+{{! example -- deprecated}}
+ifeval::["{{{example}}}" != "null"]
+*Example:* `{{{example}}}`
+endif::[]
+// end
+{{! DEFINITION SCHEMA }}
+| {{>schema}}
+
+{{/vars}}
+|===
+{{/composedSchemas}}
+{{#composedSchemas}}
+{{#oneOf}}
+{{#-first}}One of the following:
+
+{{/-first}}
+* {{>schema}}
+{{/oneOf}}
+{{#anyOf}}
+{{#-first}}Any of the following:
+
+{{/-first}}
+* {{>schema}}
+{{/anyOf}}
+{{#allOf}}
+{{#-first}}All of the following:
+
+{{/-first}}
+* {{>schema}}
+{{/allOf}}
+{{/composedSchemas}}
+
+{{! include partial after definition body }}
+{{#specinclude}}/definitions/{{name}}/definition-end.adoc{{/specinclude}}
+
+{{! include partial after definition }}
+{{#specinclude}}/definitions/{{name}}/definition-after.adoc{{/specinclude}}
+
+{{/model}}
+{{/models}}
+
+{{! include partial after definitions body }}
+{{#specinclude}}/definitions/document-end.adoc{{/specinclude}}
+
+{{! include partial after definitions }}
+{{#specinclude}}/definitions/document-after.adoc{{/specinclude}}
