@@ -54,12 +54,17 @@ Each collection in the system allows for only one Sync Function, which enables t
 
 [source, javascript]
 ----
-Sync (doc, oldDoc, meta) { 
+function (doc, oldDoc, meta) { 
    channel(CollectionName); 
 
 }
 ----
 Here the function then calls the `channel` and passes in the name of the collection `(CollectionsName)` as an argument.
+
+By default, every document in the collection is automatically assigned to a channel with the same name as the collection. This system automatically creates a channel with the collection's name. The assignment of all documents to the collection channel is functionally similar to assigning them to the xref:2.7@sync-gateway-channels.adoc#star-channel[Star Channel].
+
+To override this, use a custom sync function or a Specified Default Sync Function.
+
 
 =====
 
@@ -73,7 +78,7 @@ Here the function then calls the `channel` and passes in the name of the collect
 
 [source, javascript]
 ----
-Sync (doc, oldDoc, meta) {
+function (doc, oldDoc, meta) {
 channel(doc.channels);
 
 } 
@@ -92,7 +97,7 @@ Here is the default Sync Function when the default `scope` and default `collecti
 
 [source, javascript]
 ----
-Sync (doc, oldDoc, meta) {
+function (doc, oldDoc, meta) {
 channel(doc.channels);
 
 } 
