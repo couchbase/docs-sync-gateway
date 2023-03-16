@@ -28,6 +28,74 @@ You typically will use channels to:
 
 Sync Gateway provides two special channels and a channel wildcard character.
 
+[#ex-sync-function-examples]
+== Sync Function Examples
+
+Couchbase Sync Gateway defines a Sync Function at the `collection` level. 
+Defining at this level helps simplify data management and improve data reliability. 
+Each collection in the system allows for only one Sync Function, which enables the specification of Access Control rules.
+
+.Default Sync Function
+====
+
+=====
+--
+
+[source, javascript]
+----
+function (doc, oldDoc, meta) { 
+   channel(CollectionName); 
+
+}
+----
+Here the function then calls the `channel` and passes in the name of the collection `(CollectionsName)` as an argument.
+
+By default, every document in the collection is automatically assigned to a channel with the same name as the collection. This system automatically creates a channel with the collection's name. The assignment of all documents to the collection channel is functionally similar to assigning them to the xref:2.7@sync-gateway-channels.adoc#star-channel[Star Channel].
+
+To override this, use a custom sync function or a Specified Default Sync Function.
+
+
+=====
+
+====
+
+.Specified Default Sync Function
+====
+
+=====
+--
+
+[source, javascript]
+----
+function (doc, oldDoc, meta) {
+channel(doc.channels);
+
+} 
+----
+Here is the default Sync Function when the default `scope` and default `collection` is clearly specified.
+
+=====
+
+====
+
+.Upgraded Default Sync Function
+====
+
+=====
+--
+
+[source, javascript]
+----
+function (doc, oldDoc, meta) {
+channel(doc.channels);
+
+} 
+----
+Here is the default Sync Function when you have upgraded; it remains the same as the previous version.
+
+=====
+
+====
 
 [#lbl-usecase]
 == Use Case
