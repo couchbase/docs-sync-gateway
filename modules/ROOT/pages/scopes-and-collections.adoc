@@ -8,59 +8,62 @@ ifdef::prerelease[:page-status: {prerelease}]
 
 == New Features
 
-Introduced with Couchbase Mobile 3.1, Scopes and Collections provide enhanced functionality, delivering significant benefits over the traditional bucket-based method:
+Sync Gateway is designed to provide a secure and efficient method for synchronizing and accessing data over the web. This document outlines the recent enhancements to Sync Gateway, specifically the addition of Scopes and Collections support.
 
-=== Cloud-to-Edge support for Scopes and Collections
+1. Scopes and Collections Support: Adding Scopes and Collections support allows for an improved method of defining and enforcing data access control. This enhancement ensures that only authorized users can access the appropriate data.
 
-A Sync Gateway database is associated with a single Scope and can be related to one or more Collections within the Scope, including all Collections within the Scope. 
-The most significant benefit of this feature is enhanced data organization and management, leading to improved scalability, security, flexibility, and simplified development.
+2. Simplified Data Organization and Synchronization by streamlining the data organization and synchronization process, Sync Gateway enables users to build and scale applications more efficiently while maintaining a high level of security.
 
-=== Sync Gateway Metadata Isolation
+== Sync Gateway's support for Scopes and Collections
 
-Scopes and Collections isolate Sync Gateway metadata. 
-System data used by Sync Gateway is maintained in _default scope/collection, where it is logically isolated from application data in user-defined scopes/collections. 
-The most crucial benefit of this feature is the separation of system data from application data, which results in improved data organization, security, and maintainability.
+Sync Gateway's primary function in Scopes and Collections is facilitating data synchronization between Couchbase Lite clients and Couchbase Server. The Sync Gateway accomplishes this by managing and executing the following:
 
-=== Inter-Cluster Synchronization Gateway Replication
-This feature enables improved syncing of one or more data scopes across Sync Gateway clusters by employing a resilient replication protocol tailored explicitly for inter-Gateway communication. 
-This robust Inter-Gateway replication protocol ensures seamless data synchronization, enhancing system reliability and performance.
+=== High Application Density at the Edge
 
-== Sync Gateway’s Function
+* *Scopes and Collections at the Sync Gateway Level* +
+Scopes and Collections at the Sync Gateway level can effectively manage extensive cloud-to-edge deployments, encompassing a wide range of edge applications employing a microservices-based architecture.
 
-Sync Gateway's primary function in Scopes and Collections is facilitating data synchronization between Couchbase Lite clients and Couchbase Server. 
-The system accomplishes this by efficiently managing and executing the following tasks:
+* *Autonomous Development, Deployment, and Scaling* +
+This system facilitates the autonomous development, deployment, and scaling of loosely coupled microservices, each maintaining its dedicated and secure data repository.
 
-1. Segregation of Data
-2. Simplified Access Control
-3. Scalable Multi-tenant Applications
-4. High Application Density at the Edge 
-5. Sync Gateway Metadata Isolation
-6. Cloud-to-Edge Support for Scopes and Collections
+* *The InterSync Gateway* +
+The InterSync Gateway streamlines duplicating data between the local cluster and its cloud counterpart, maintaining uniformity.
 
-=== Segregation of Data
-
-Sync Gateway allows you to segregate data into different scopes within a single bucket and logically group documents of specific types into their collections. 
-This improves data organization and simplifies access control policies.
-
-=== Simplified Access Control
-
-Sync Gateway simplifies access control and replication configurations by setting sync functions at the collection level. 
-App users can be segregated by scope, ensuring they only access the authorized data.
-
-=== Scalable Multi-tenant Applications
-
-Sync Gateway supports multi-tenant applications that do not need strict resource isolation but still require independent data lifecycle management. 
-Each tenant can have its own scope, allowing for easy addition or removal of tenants without impacting others.
-
-=== High Application Density at the Edge 
-
-Sync Gateway enables large-scale cloud-to-edge deployments with numerous applications at the edge, each served using a microservices-based application architecture. 
-Scopes and collections allow for bucket consolidation, making the solution more scalable and cost-effective.
+* *Replication at the App Level* +
+Instead of copying data for every microservice separately, replication can be configured at the app level.
 
 === Sync Gateway Metadata Isolation
 
-Sync Gateway can isolate system metadata from application data by storing it in the _default scope/collection. This separation ensures that SDK-based applications do not inadvertently modify sync metadata and simplifies query implementations.
+* *Scopes and Collections for Isolation* +
+Scopes and collections are used to isolate Sync Gateway metadata.
 
-=== Cloud-to-Edge Support for Scopes and Collections
+* *Default Scope/Collection for System Data* +
+The `_default scope/collection` is used for system data maintained by Sync Gateway. In contrast, user-defined scopes/collections are used for application data.
 
-Sync Gateway provides end-to-end support for scopes and collections across the entire Couchbase Mobile stack, allowing for various configurations of replication and synchronization between Couchbase Server, Sync Gateway, and Couchbase Lite clients.
+* *Separating System Metadata and Application Data* +
+Using separate Scopes and collections for system metadata and application data helps to logically isolate them and avoid accidental modification or deletion of system metadata by the application.
+
+* *Implementing Role-Based Access Controls (RBAC)* +
+To further safeguard against such risks, an SDK-based application implements role-based access controls (RBAC) to restrict access to the `_default scope/collection`, which typically contains critical sync metadata.
+
+[Note]
+====
+Separating system metadata into its own Scope simplifies the implementation and management of the app data lifecycle.
+====
+
+=== Sync Gateway and Couchbase Lite Clients
+
+* *Direct Syncing of Scopes* +
+Sync Gateway enables Couchbase Lite clients to sync one or more Scopes directly to other Couchbase Lite clients over a local network via Couchbase Lite Peer-to-Peer protocol.
+
+* *Bypassing Cloud-Based Control Points* +
+This can be done without the need for a cloud-based control point.
+
+* *Setting Up Replications* +
+A Couchbase Lite client can set up one or more replications to one or more Sync Gateway database endpoints.
+
+* *Syncing Collections* +
+Each replication can sync one or all collections associated with that Scope.
+
+* *Local Persistence of Data* +
+The Couchbase Lite client can also locally persist data in a Scope not synced to remote Sync Gateway.
