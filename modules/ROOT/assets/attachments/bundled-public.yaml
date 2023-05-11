@@ -1,0 +1,3276 @@
+openapi: 3.0.3
+info:
+  title: Sync Gateway
+  description: Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server
+  version: 3.1.0
+  license:
+    name: Business Source License 1.1 (BSL)
+    url: https://github.com/couchbase/sync_gateway/blob/master/LICENSE
+servers:
+  - url: '{protocol}://{hostname}:4984'
+    description: Public API
+    variables:
+      protocol:
+        description: The protocol to use (HTTP or HTTPS)
+        default: http
+        enum:
+          - http
+          - https
+      hostname:
+        description: The hostname to use
+        default: localhost
+paths:
+  /{db}/_session:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: &ref_3
+          type: string
+        example: db1
+        description: The name of the database to run the operation against.
+    get:
+      summary: Get information about the current user
+      description: This will get the information about the current user.
+      responses:
+        '200':
+          description: Properties associated with a user session
+          content: &ref_70
+            application/json:
+              schema:
+                type: object
+                properties: &ref_62
+                  authentication_handlers:
+                    description: The ways authentication can be established to authenticate as the user.
+                    type: array
+                    items:
+                      type: string
+                  ok:
+                    type: boolean
+                  userCtx:
+                    type: object
+                    properties:
+                      channels:
+                        description: |
+                          A map of the channels the user has access to and the sequence number each channel was created at.
+
+                          The key is the channel name and the value is the sequence number.
+                        type: object
+                      name:
+                        description: The name of the user.
+                        type: string
+                        nullable: true
+                title: User Session Information
+        '404':
+          description: Resource could not be found
+          content: &ref_2
+            application/json:
+              schema:
+                type: object
+                properties: &ref_0
+                  error:
+                    description: The error name.
+                    type: string
+                  reason:
+                    description: The error description.
+                    type: string
+                required: &ref_1
+                  - error
+                  - reason
+                title: HTTP-Error
+              example:
+                error: not_found
+                reason: no such database "invalid-db"
+      tags:
+        - Session
+      operationId: get_db-_session
+    post:
+      summary: Create a new user session
+      description: |-
+        Generates a login session for the user based on the credentials provided in the request body or if that fails (due to invalid credentials or none provided at all), generates the new session for the currently authenticated user instead. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
+
+        If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+      requestBody:
+        description: The body can depend on if using the Public or Admin APIs.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  description: User name to generate the session for.
+                  type: string
+                password:
+                  description: Password of the user to generate the session for.
+                  type: string
+      responses:
+        '200':
+          description: Session created successfully. Returned body is dependant on if using Public or Admin APIs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authentication_handlers:
+                    description: Used for CouchDB compatability. Always contains "default" and "cookie".
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - default
+                        - cookie
+                  ok:
+                    description: Used for CouchDB compatability. Always true.
+                    type: boolean
+                    default: true
+                  userCtx:
+                    type: object
+                    properties:
+                      channels:
+                        description: A map of the channels the user is in along with the sequence number the user was granted access.
+                        type: object
+                        additionalProperties:
+                          oneOf:
+                            - type: number
+                            - type: string
+                          minimum: 1
+                          description: The channel name (as the key) and the channel sequence number the user was granted access to that channel.
+                      name:
+                        description: The name of the user.
+                        type: string
+                        minLength: 1
+                    required:
+                      - channels
+                      - name
+                required:
+                  - authentication_handlers
+                  - ok
+                  - userCtx
+              examples:
+                Example:
+                  value:
+                    authentication_handlers:
+                      - default
+                      - cookie
+                    ok: true
+                    userCtx:
+                      channels:
+                        '!': 1
+                      name: Bob
+        '400':
+          description: Origin is not in the approved list of allowed origins
+          content: &ref_37
+            application/json:
+              schema:
+                type: object
+                properties: *ref_0
+                required: *ref_1
+                title: HTTP-Error
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Session
+      operationId: post_db-_session
+    delete:
+      summary: Log out
+      description: |-
+        Invalidates the session for the currently authenticated user and removes their session cookie.
+
+        If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+      responses:
+        '200':
+          description: Successfully removed session (logged out)
+        '400':
+          description: Bad Request
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Session
+      operationId: delete_db-_session
+    head:
+      summary: /{db}/_session
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Session
+      operationId: head_db-_session
+  /{targetdb}/:
+    parameters:
+      - name: targetdb
+        in: path
+        description: The database name to target.
+        required: true
+        schema:
+          type: string
+    put:
+      summary: Create DB public API stub
+      description: A stub that always returns an error on the Public API, for createTarget/CouchDB compatibility.
+      responses:
+        '403':
+          description: Database does not exist and cannot be created over the public API
+        '412':
+          description: Database exists
+      tags:
+        - Database Management
+      operationId: put_targetdb-
+  /{db}/:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    get:
+      summary: Get database information
+      description: Retrieve information about the database.
+      responses:
+        '200':
+          description: Successfully returned database information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  db_name:
+                    description: Database name
+                    type: string
+                    example: db
+                  update_seq:
+                    description: |-
+                      The last sequence number that was committed to the database.
+
+                      Will return 0 if the database is offline.
+                    type: integer
+                    example: 123456
+                  committed_update_seq:
+                    description: |-
+                      The last sequence number that was committed to the database.
+
+                      Will return 0 if the database is offline.
+                    type: integer
+                    example: 123456
+                  instance_start_time:
+                    description: Timestamp of when the database opened, in microseconds since the Unix epoch.
+                    type: integer
+                    example: 1644600082279583
+                  compact_running:
+                    description: Indicates whether database compaction is currently taking place or not.
+                    type: boolean
+                  purge_seq:
+                    description: Unused field.
+                    type: number
+                    default: 0
+                  disk_format_version:
+                    description: Unused field.
+                    type: number
+                    default: 0
+                  state:
+                    description: The database state. Change using the `/{db}/_offline` and `/{db}/_online` endpoints.
+                    type: string
+                    enum:
+                      - Online
+                      - Offline
+                  server_uuid:
+                    description: Unique server identifier.
+                    type: string
+                    example: 995618a6a6cc9ac79731bd13240e19b5
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Database Management
+      operationId: get_db-
+    head:
+      summary: Check if database exists
+      description: Check if a database exists by using the response status code.
+      responses:
+        '200':
+          description: Database exists
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Database Management
+      operationId: head_db-
+  /:
+    get:
+      summary: Get server information
+      description: Returns information about the Sync Gateway node.
+      responses:
+        '200':
+          description: Returned server information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: &ref_63
+                  ADMIN:
+                    description: '`true` if the request is from the Admin API - otherwise omitted.'
+                    type: boolean
+                    example: true
+                  couchdb:
+                    description: CouchDB welcome
+                    type: string
+                    example: Welcome
+                  vendor:
+                    description: Product vendor
+                    type: object
+                    properties:
+                      name:
+                        description: Product name
+                        type: string
+                        example: Couchbase Sync Gateway
+                      version:
+                        description: |-
+                          API version.
+                          Omitted if `api.hide_product_version=true`
+                        type: string
+                        example: 3.1
+                    required:
+                      - name
+                  version:
+                    description: |-
+                      Product version, including the build number and edition (i.e. `EE` or `CE`)
+                      Omitted if `api.hide_product_version=true`
+                    type: string
+                    example: Couchbase Sync Gateway/3.1.0(1;a765231) EE
+                  persistent_config:
+                    description: |-
+                      Indication for whether sync gateway is running in persistent config mode or legacy config mode.
+                      `true` if the sync gateway node is running in persistent config mode.
+                    type: boolean
+                    example: true
+                required: &ref_64
+                  - couchdb
+                  - vendor
+      tags:
+        - Server
+      operationId: get_-
+    head:
+      responses:
+        '200':
+          description: Server is online
+      tags:
+        - Server
+      summary: Check if server online
+      description: Check if the server is online by checking the status code of response.
+      operationId: head_-
+  /{keyspace}/:
+    parameters:
+      - name: keyspace
+        in: path
+        required: true
+        schema: &ref_4
+          type: string
+        examples: &ref_5
+          Default scope and collection:
+            value: db1
+            description: Default scope and collection
+          Named collection within the default scope:
+            value: db1.collection1
+            description: Named collection within the default scope
+          Fully-qualified scope and collection:
+            value: db1.scope1.collection1
+            description: Fully-qualified scope and collection
+        description: |-
+          The keyspace to run the operation against.
+
+          A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+    post:
+      summary: Create a new document
+      description: |-
+        Create a new document in the keyspace.
+
+        This will generate a random document ID unless specified in the body.
+
+        A document can have a maximum size of 20MB.
+      parameters:
+        - name: roundtrip
+          in: query
+          required: false
+          schema: &ref_23
+            type: boolean
+          description: Block until document has been received by change cache
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: The configurable Sync Gateway properties of a document.
+              type: object
+              additionalProperties: true
+              properties: &ref_17
+                _id:
+                  description: The ID of the document.
+                  type: string
+                _rev:
+                  description: The revision of the document.
+                  type: string
+                _exp:
+                  description: |-
+                    Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
+
+                    As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.
+                  type: string
+                _deleted:
+                  description: Whether the document is a tombstone or not. If true, it is a tombstone.
+                  type: boolean
+                _revisions:
+                  type: object
+                  properties:
+                    start:
+                      description: Prefix number for the latest revision.
+                      type: number
+                    ids:
+                      description: Array of valid revision IDs, in reverse order (latest first).
+                      type: array
+                      items:
+                        type: string
+                _attachments:
+                  type: object
+                  additionalProperties:
+                    description: The name of the attachment.
+                    type: object
+                    properties:
+                      content_type:
+                        description: Content type of the attachment.
+                        type: string
+                      data:
+                        description: The data in the attachment in base64.
+                        type: string
+      responses:
+        '200':
+          description: New document revision created successfully.
+          headers:
+            Etag:
+              schema:
+                type: string
+              description: The revision ID of the newly created document.
+            Location:
+              schema:
+                type: string
+              description: The document ID of the newly created document.
+          content:
+            application/json:
+              schema:
+                description: Properties returned when a new document revision is created
+                type: object
+                properties: &ref_21
+                  id:
+                    description: The ID of the document.
+                    type: string
+                  ok:
+                    description: Whether the request completed successfully.
+                    type: boolean
+                  rev:
+                    description: The revision of the document.
+                    type: string
+                required: &ref_22
+                  - id
+                  - ok
+                  - rev
+                title: New-revision
+        '400':
+          description: There was a problem with your request
+          content: &ref_6
+            application/json:
+              schema:
+                type: object
+                properties: *ref_0
+                required: *ref_1
+                title: HTTP-Error
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '409':
+          description: Resource already exists under that name
+          content: &ref_26
+            application/json:
+              schema:
+                type: object
+                properties: *ref_0
+                required: *ref_1
+                title: HTTP-Error
+        '415':
+          description: Invalid content type
+          content: &ref_27
+            application/json:
+              schema:
+                type: object
+                properties: *ref_0
+                required: *ref_1
+                title: HTTP-Error
+      tags:
+        - Document
+      operationId: post_keyspace-
+  /{keyspace}/_all_docs:
+    parameters:
+      - name: keyspace
+        in: path
+        required: true
+        schema: *ref_4
+        examples: *ref_5
+        description: |-
+          The keyspace to run the operation against.
+
+          A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+    get:
+      summary: Gets all the documents in the database with the given parameters
+      description: Returns all documents in the databased based on the specified parameters.
+      parameters:
+        - name: include_docs
+          in: query
+          required: false
+          schema: &ref_7
+            type: string
+          description: Include the body associated with each document.
+        - name: channels
+          in: query
+          required: false
+          schema: &ref_8
+            type: string
+          description: Include the channels each document is part of that the calling user also has access too.
+        - name: access
+          in: query
+          required: false
+          schema: &ref_9
+            type: string
+          description: Include what user/roles that each document grants access too.
+        - name: revs
+          in: query
+          required: false
+          schema: &ref_10
+            type: string
+          description: Include all the revisions for each document under the `_revisions` property.
+        - name: update_seq
+          in: query
+          required: false
+          schema: &ref_11
+            type: string
+          description: Include the document sequence number `update_seq` property for each document.
+        - name: keys
+          in: query
+          required: false
+          schema: &ref_16
+            type: array
+            items:
+              type: string
+          description: An array of document ID strings to filter by.
+        - name: startkey
+          in: query
+          required: false
+          schema: &ref_12
+            type: string
+          description: Return records starting with the specified key.
+        - name: endkey
+          in: query
+          required: false
+          schema: &ref_13
+            type: string
+          description: Stop returning records when this key is reached.
+        - name: limit
+          in: query
+          required: false
+          schema: &ref_14
+            type: number
+          description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
+      responses:
+        '200':
+          description: Operation ran successfully
+          content: &ref_15
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rows:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        key:
+                          type: string
+                        id:
+                          type: string
+                        value:
+                          type: object
+                          properties:
+                            rev:
+                              type: string
+                    uniqueItems: true
+                  total_rows:
+                    type: number
+                  update_seq:
+                    type: number
+                required:
+                  - rows
+                  - total_rows
+                  - update_seq
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Document
+      operationId: get_keyspace-_all_docs
+    post:
+      summary: Get all the documents in the database using a built-in view
+      description: Get a built-in view of all the documents in the database.
+      parameters:
+        - name: include_docs
+          in: query
+          required: false
+          schema: *ref_7
+          description: Include the body associated with each document.
+        - name: channels
+          in: query
+          required: false
+          schema: *ref_8
+          description: Include the channels each document is part of that the calling user also has access too.
+        - name: access
+          in: query
+          required: false
+          schema: *ref_9
+          description: Include what user/roles that each document grants access too.
+        - name: revs
+          in: query
+          required: false
+          schema: *ref_10
+          description: Include all the revisions for each document under the `_revisions` property.
+        - name: update_seq
+          in: query
+          required: false
+          schema: *ref_11
+          description: Include the document sequence number `update_seq` property for each document.
+        - name: startkey
+          in: query
+          required: false
+          schema: *ref_12
+          description: Return records starting with the specified key.
+        - name: endkey
+          in: query
+          required: false
+          schema: *ref_13
+          description: Stop returning records when this key is reached.
+        - name: limit
+          in: query
+          required: false
+          schema: *ref_14
+          description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                keys:
+                  description: List of the documents to retrieve.
+                  type: array
+                  items:
+                    type: string
+              required:
+                - keys
+      responses:
+        '200':
+          description: Operation ran successfully
+          content: *ref_15
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Document
+      operationId: post_keyspace-_all_docs
+    head:
+      summary: /{db}/_all_docs
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Document
+      parameters:
+        - name: include_docs
+          in: query
+          required: false
+          schema: *ref_7
+          description: Include the body associated with each document.
+        - name: channels
+          in: query
+          required: false
+          schema: *ref_8
+          description: Include the channels each document is part of that the calling user also has access too.
+        - name: access
+          in: query
+          required: false
+          schema: *ref_9
+          description: Include what user/roles that each document grants access too.
+        - name: revs
+          in: query
+          required: false
+          schema: *ref_10
+          description: Include all the revisions for each document under the `_revisions` property.
+        - name: update_seq
+          in: query
+          required: false
+          schema: *ref_11
+          description: Include the document sequence number `update_seq` property for each document.
+        - name: keys
+          in: query
+          required: false
+          schema: *ref_16
+          description: An array of document ID strings to filter by.
+        - name: startkey
+          in: query
+          required: false
+          schema: *ref_12
+          description: Return records starting with the specified key.
+        - name: endkey
+          in: query
+          required: false
+          schema: *ref_13
+          description: Stop returning records when this key is reached.
+        - name: limit
+          in: query
+          required: false
+          schema: *ref_14
+          description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
+      description: ''
+      operationId: head_keyspace-_all_docs
+  /{keyspace}/_bulk_docs:
+    parameters:
+      - name: keyspace
+        in: path
+        required: true
+        schema: *ref_4
+        examples: *ref_5
+        description: |-
+          The keyspace to run the operation against.
+
+          A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+    post:
+      summary: Bulk document operations
+      description: |-
+        This will allow multiple documented to be created, updated or deleted in bulk.
+
+        To create a new document, simply add the body in an object under `docs`. A doc ID will be generated by Sync Gateway unless `_id` is specified.
+
+        To update an existing document, provide the document ID (`_id`) and revision ID (`_rev`) as well as the new body values.
+
+        To delete an existing document, provide the document ID (`_id`), revision ID (`_rev`), and set the deletion flag (`_deleted`) to true.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_edits:
+                  description: This controls whether to assign new revision identifiers to new edits (`true`) or use the existing ones (`false`).
+                  type: boolean
+                  default: true
+                docs:
+                  type: array
+                  items:
+                    description: The configurable Sync Gateway properties of a document.
+                    type: object
+                    additionalProperties: true
+                    properties: *ref_17
+              required:
+                - docs
+            example:
+              new_edits: true
+              docs:
+                - _id: FooBar
+                  foo: bar
+                - _id: AliceSettings
+                  _rev: 5-832a6db48ed130adadede928aee54576
+                  FailedLoginAttempts: 7
+                - _id: BobSettings
+                  _rev: 1-fa76ba41ee5fdfee1b91fc478ed09e59
+                  _deleted: true
+      responses:
+        '201':
+          description: |-
+            Executed all operations.
+
+            Each object in the returned array represents a document. Each document should be checked to make sure it was successfully added to the database.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      description: The ID of the document that the operation was performed on.
+                      type: string
+                    rev:
+                      description: The new revision of the document if the operation was a success.
+                      type: string
+                    error:
+                      description: The error type if the operation of the document failed.
+                      type: string
+                    reason:
+                      description: The reason the operation failed.
+                      type: string
+                    status:
+                      description: The HTTP status code for why the operation failed.
+                      type: integer
+                  required:
+                    - id
+                uniqueItems: true
+              examples:
+                Success:
+                  value:
+                    - id: FooBar
+                      rev: 1-cd809becc169215072fd567eebd8b8de
+                    - id: AliceSettings
+                      rev: 6-b3e8dcf825b71ccee112f3572ec4323c
+                    - id: BobSettings
+                      rev: 2-5145e1086bb8d1d71a531e9f6b543c58
+                Partial success:
+                  value:
+                    - error: conflict
+                      id: FooBar
+                      reason: Document exists
+                      status: 409
+                    - id: AliceSettings
+                      rev: 6-b3e8dcf825b71ccee112f3572ec4323c
+                    - error: conflict
+                      id: BobSettings
+                      reason: Document revision conflict
+                      status: 409
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Document
+      operationId: post_keyspace-_bulk_docs
+  /{keyspace}/_bulk_get:
+    parameters:
+      - name: keyspace
+        in: path
+        required: true
+        schema: *ref_4
+        examples: *ref_5
+        description: |-
+          The keyspace to run the operation against.
+
+          A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+    post:
+      summary: Get multiple documents in a MIME multipart response
+      description: |
+        This request returns any number of documents, as individual bodies in a MIME multipart response.
+
+        Each enclosed body contains one requested document. The bodies appear in the same order as in the request, but can also be identified by their `X-Doc-ID` and `X-Rev-ID` headers (if the `attachments` query is `true`).
+
+        A body for a document with no attachments will have content type `application/json` and contain the document itself.
+
+        A body for a document that has attachments will be written as a nested `multipart/related` body.
+      parameters:
+        - name: attachments
+          in: query
+          description: This is for whether to include attachments in each of the documents returned or not.
+          schema:
+            type: boolean
+            default: 'false'
+        - name: revs
+          in: query
+          required: false
+          schema: *ref_10
+          description: Include all the revisions for each document under the `_revisions` property.
+        - name: revs_limit
+          in: query
+          description: The number of revisions to include in the response from the document history. This parameter only makes a different if the `revs` query parameter is set to `true`. The full revision history will be returned if `revs` is set but this is not.
+          schema:
+            type: integer
+        - name: X-Accept-Part-Encoding
+          in: header
+          description: If this header includes `gzip` then the part HTTP compression encoding will be done.
+          schema:
+            type: string
+        - name: Accept-Encoding
+          in: header
+          description: If this header includes `gzip` then the the HTTP response will be compressed. This takes priority over `X-Accept-Part-Encoding`. Only part compression will be done if `X-Accept-Part-Encoding=gzip` and the `User-Agent` is below 1.2 due to clients not being able to handle full compression.
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                docs:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        description: ID of the document to retrieve.
+                        type: string
+                    required:
+                      - id
+              required:
+                - docs
+            example:
+              docs:
+                - id: FooBar
+                - id: attachment
+                - id: AliceSettings
+      responses:
+        '200':
+          description: Returned the requested docs as `multipart/mixed` response type
+        '400':
+          description: Bad Request
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Document
+      operationId: post_keyspace-_bulk_get
+  /{keyspace}/_changes:
+    parameters:
+      - name: keyspace
+        in: path
+        required: true
+        schema: *ref_4
+        examples: *ref_5
+        description: |-
+          The keyspace to run the operation against.
+
+          A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+    get:
+      summary: Get changes list
+      description: |-
+        This request retrieves a sorted list of changes made to documents in the database, in time order of application. Each document appears at most once, ordered by its most recent change, regardless of how many times it has been changed.
+
+        This request can be used to listen for update and modifications to the database for post processing or synchronization. A continuously connected changes feed is a reasonable approach for generating a real-time log for most applications.
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of changes to return.
+          schema:
+            type: integer
+        - name: since
+          in: query
+          description: Starts the results from the change immediately after the given sequence ID. Sequence IDs should be considered opaque; they come from the last_seq property of a prior response.
+          schema:
+            type: string
+        - name: style
+          in: query
+          description: Controls whether to return the current winning revision (`main_only`) or all the leaf revision including conflicts and deleted former conflicts (`all_docs`).
+          schema:
+            type: string
+            default: main_only
+            enum:
+              - main_only
+              - all_docs
+        - name: active_only
+          in: query
+          description: Set true to exclude deleted documents and notifications for documents the user no longer has access to from the changes feed.
+          schema:
+            type: boolean
+            default: 'false'
+        - name: include_docs
+          in: query
+          required: false
+          schema: *ref_7
+          description: Include the body associated with each document.
+        - name: revocations
+          in: query
+          description: If true, revocation messages will be sent on the changes feed.
+          schema:
+            type: boolean
+        - name: filter
+          in: query
+          description: Set a filter to either filter by channels or document IDs.
+          schema:
+            type: string
+            enum:
+              - sync_gateway/bychannel
+              - _doc_ids
+        - name: channels
+          in: query
+          description: A comma-separated list of channel names to filter the response to only the channels specified. To use this option, the `filter` query option must be set to `sync_gateway/bychannels`.
+          schema:
+            type: string
+        - name: doc_ids
+          in: query
+          description: A valid JSON array of document IDs to filter the documents in the response to only the documents specified. To use this option, the `filter` query option must be set to `_doc_ids` and the `feed` parameter must be `normal`. Also accepts a comma separated list of document IDs instead.
+          schema:
+            type: array
+            items:
+              type: string
+        - name: heartbeat
+          in: query
+          description: The interval (in milliseconds) to send an empty line (CRLF) in the response. This is to help prevent gateways from deciding the socket is idle and therefore closing it. This is only applicable to `feed=longpoll` or `feed=continuous`. This will override any timeouts to keep the feed alive indefinitely. Setting to 0 results in no heartbeat. The maximum heartbeat can be set in the server replication configuration.
+          schema:
+            type: integer
+            default: 0
+            minimum: 25000
+        - name: timeout
+          in: query
+          description: This is the maximum period (in milliseconds) to wait for a change before the response is sent, even if there are no results. This is only applicable for `feed=longpoll` or `feed=continuous` changes feeds. Setting to 0 results in no timeout.
+          schema:
+            type: integer
+            default: 300000
+            maximum: 900000
+            minimum: 0
+        - name: feed
+          in: query
+          description: 'The type of changes feed to use. '
+          schema:
+            type: string
+            default: normal
+            enum:
+              - normal
+              - longpoll
+              - continuous
+              - websocket
+      responses:
+        '200':
+          description: Successfully returned the changes feed
+          content: &ref_18
+            application/json:
+              schema:
+                description: Properties of a changes feed
+                type: object
+                properties: &ref_65
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        seq:
+                          description: The change sequence number.
+                          type: number
+                        id:
+                          description: The document ID the change happened on.
+                          type: string
+                        changes:
+                          description: List of document leafs with each leaf containing only a `rev` field.
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              rev:
+                                description: The new revision that was caused by that change.
+                                type: string
+                          uniqueItems: true
+                    uniqueItems: true
+                  last_seq:
+                    description: The last change sequence number.
+                    type: string
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Database Management
+      operationId: get_keyspace-_changes
+    post:
+      summary: Get changes list
+      description: |-
+        This request retrieves a sorted list of changes made to documents in the database, in time order of application. Each document appears at most once, ordered by its most recent change, regardless of how many times it has been changed.
+
+        This request can be used to listen for update and modifications to the database for post processing or synchronization. A continuously connected changes feed is a reasonable approach for generating a real-time log for most applications.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                limit:
+                  description: Maximum number of changes to return.
+                  type: string
+                style:
+                  description: Controls whether to return the current winning revision (`main_only`) or all the leaf revision including conflicts and deleted former conflicts (`all_docs`).
+                  type: string
+                active_only:
+                  description: Set true to exclude deleted documents and notifications for documents the user no longer has access to from the changes feed.
+                  type: string
+                include_docs:
+                  description: Include the body associated with each document.
+                  type: string
+                revocations:
+                  description: If true, revocation messages will be sent on the changes feed.
+                  type: string
+                filter:
+                  description: Set a filter to either filter by channels or document IDs.
+                  type: string
+                channels:
+                  description: A comma-separated list of channel names to filter the response to only the channels specified. To use this option, the `filter` query option must be set to `sync_gateway/bychannels`.
+                  type: string
+                doc_ids:
+                  description: A valid JSON array of document IDs to filter the documents in the response to only the documents specified. To use this option, the `filter` query option must be set to `_doc_ids` and the `feed` parameter must be `normal`.
+                  type: string
+                heartbeat:
+                  description: The interval (in milliseconds) to send an empty line (CRLF) in the response. This is to help prevent gateways from deciding the socket is idle and therefore closing it. This is only applicable to `feed=longpoll` or `feed=continuous`. This will override any timeouts to keep the feed alive indefinitely. Setting to 0 results in no heartbeat. The maximum heartbeat can be set in the server replication configuration.
+                  type: string
+                timeout:
+                  description: This is the maximum period (in milliseconds) to wait for a change before the response is sent, even if there are no results. This is only applicable for `feed=longpoll` or `feed=continuous` changes feeds. Setting to 0 results in no timeout.
+                  type: string
+                feed:
+                  description: 'The type of changes feed to use. '
+                  type: string
+      responses:
+        '200':
+          description: Successfully returned the changes feed
+          content: *ref_18
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Database Management
+      operationId: post_keyspace-_changes
+    head:
+      summary: /{db}/_changes
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+      tags:
+        - Database Management
+      description: ''
+      operationId: head_keyspace-_changes
+  /{db}/_design/{ddoc}:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+      - name: ddoc
+        in: path
+        required: true
+        schema: &ref_20
+          type: string
+        description: The design document name.
+    get:
+      summary: Get views of a design document | Unsupported
+      description: |-
+        **This is unsupported**
+
+        Query a design document.
+      responses:
+        '200':
+          description: Successfully returned design document.
+          content:
+            application/json:
+              schema:
+                description: Properties of a design document
+                type: object
+                properties: &ref_19
+                  language:
+                    type: string
+                  views:
+                    type: object
+                    additionalProperties:
+                      description: The name of the view.
+                      type: object
+                      properties:
+                        map:
+                          type: string
+                        reduce:
+                          type: string
+                  options:
+                    type: object
+                    properties:
+                      local_seq:
+                        type: string
+                      include_design:
+                        type: string
+                      raw:
+                        type: string
+                      index_xattr_on_deleted_docs:
+                        type: string
+        '403':
+          description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Unsupported
+      operationId: get_db-_design-ddoc
+    put:
+      summary: Update views of a design document | Unsupported
+      description: |-
+        **This is unsupported**
+
+        Update the views of a design document.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Properties of a design document
+              type: object
+              properties: *ref_19
+      responses:
+        '200':
+          description: Design document changes successfully
+        '403':
+          description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Unsupported
+      operationId: put_db-_design-ddoc
+    delete:
+      summary: Delete a design document | Unsupported
+      description: |-
+        **This is unsupported**
+
+        Delete a design document.
+      responses:
+        '200':
+          description: Design document deleted successfully
+        '403':
+          description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Unsupported
+      operationId: delete_db-_design-ddoc
+    head:
+      responses:
+        '200':
+          description: Design document exists
+        '403':
+          description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Unsupported
+      description: |-
+        **This is unsupported**
+
+        Check if a design document can be queried.
+      summary: Check if view of design document exists | Unsupported
+      operationId: head_db-_design-ddoc
+  /{db}/_design/{ddoc}/_view/{view}:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+      - name: ddoc
+        in: path
+        required: true
+        schema: *ref_20
+        description: The design document name.
+      - name: view
+        in: path
+        required: true
+        schema: &ref_46
+          type: string
+        description: The view to target.
+    get:
+      summary: Query a view on a design document | Unsupported
+      description: |-
+        **This is unsupported**
+
+        Query a view on a design document.
+      parameters:
+        - name: inclusive_end
+          in: query
+          required: false
+          description: Indicates whether the specified end key should be included in the result.
+          schema: &ref_47
+            type: boolean
+        - name: descending
+          in: query
+          required: false
+          description: Return documents in descending order.
+          schema: &ref_48
+            type: boolean
+        - name: include_docs
+          in: query
+          required: false
+          description: Only works when using Couchbase Server 3.0 and earlier. Indicates whether to include the full content of the documents in the response.
+          schema: &ref_49
+            type: boolean
+        - name: reduce
+          in: query
+          required: false
+          description: Whether to execute a reduce function on the response or not.
+          schema: &ref_50
+            type: boolean
+        - name: group
+          in: query
+          required: false
+          description: Group the results using the reduce function to a group or single row.
+          schema: &ref_51
+            type: boolean
+        - name: skip
+          in: query
+          required: false
+          description: Skip the specified number of documents before starting to return results.
+          schema: &ref_52
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          description: Return only the specified number of documents
+          schema: &ref_53
+            type: integer
+        - name: group_level
+          in: query
+          required: false
+          description: Specify the group level to be used.
+          schema: &ref_54
+            type: integer
+        - name: startkey_docid
+          in: query
+          required: false
+          description: Return documents starting with the specified document identifier.
+          schema: &ref_55
+            type: string
+        - name: endkey_docid
+          in: query
+          required: false
+          description: Stop returning records when the specified document identifier is reached.
+          schema: &ref_56
+            type: string
+        - name: stale
+          in: query
+          required: false
+          description: Allow the results from a stale view to be used, without triggering a rebuild of all views within the encompassing design document.
+          schema: &ref_57
+            type: string
+            enum:
+              - ok
+              - update_after
+        - name: startkey
+          in: query
+          required: false
+          schema: *ref_12
+          description: Return records starting with the specified key.
+        - name: endkey
+          in: query
+          required: false
+          schema: *ref_13
+          description: Stop returning records when this key is reached.
+        - name: key
+          in: query
+          required: false
+          description: Return only the document that matches the specified key.
+          schema: &ref_58
+            type: string
+        - name: keys
+          in: query
+          required: false
+          schema: *ref_16
+          description: An array of document ID strings to filter by.
+      responses:
+        '200':
+          description: Returned view successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_rows:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        key:
+                          type: object
+                        value:
+                          type: object
+                        doc:
+                          type: object
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        From:
+                          type: string
+                        Reason:
+                          type: string
+                required:
+                  - total_rows
+                  - rows
+        '403':
+          description: Forbidden
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Unsupported
+      operationId: get_db-_design-ddoc-_view-view
+  /{db}/_ensure_full_commit:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    post:
+      summary: /{db}/_ensure_full_commit
+      description: This endpoint is non-functional but is present for CouchDB compatibility.
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  instance_start_time:
+                    description: Timestamp of when the database opened, in microseconds since the Unix epoch.
+                    type: integer
+                    example: 1644600082279583
+                  ok:
+                    type: boolean
+                    example: true
+                    default: true
+      tags:
+        - Database Management
+      operationId: post_db-_ensure_full_commit
+  /{keyspace}/_revs_diff:
+    parameters:
+      - name: keyspace
+        in: path
+        required: true
+        schema: *ref_4
+        examples: *ref_5
+        description: |-
+          The keyspace to run the operation against.
+
+          A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+    post:
+      summary: Compare revisions to what is in the database
+      description: Takes a set of document IDs, each with a set of revision IDs. For each document, an array of unknown revisions are returned with an array of known revisions that may be recent ancestors.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                docid:
+                  description: The document ID with an array of revisions to use for the comparison.
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Comparisons successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  docid:
+                    description: The document ID.
+                    type: object
+                    properties:
+                      missing:
+                        description: The revisions that are not in the database (and therefore `missing`).
+                        type: array
+                        items:
+                          type: string
+                      possible_ancestors:
+                        description: An array of known revisions that might be the recent ancestors.
+                        type: array
+                        items:
+                          type: string
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Database Management
+      operationId: post_keyspace-_revs_diff
+  /{keyspace}/_local/{docid}:
+    parameters:
+      - name: keyspace
+        in: path
+        required: true
+        schema: *ref_4
+        examples: *ref_5
+        description: |-
+          The keyspace to run the operation against.
+
+          A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+      - name: docid
+        in: path
+        description: The name of the local document ID excluding the `_local/` prefix.
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get local document
+      description: |-
+        This request retrieves a local document.
+
+        Local document IDs begin with `_local/`. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
+      responses:
+        '200':
+          description: Successfully found local document
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Document
+      operationId: get_keyspace-_local-docid
+    put:
+      summary: Upsert a local document
+      description: |-
+        This request creates or updates a local document. Updating a local document requires that the revision ID be put in the body under `_rev`.
+
+        Local document IDs are given a `_local/` prefix. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by the client's replicator, as a place to store replication checkpoint data.
+      requestBody:
+        description: The body of the document
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                _rev:
+                  description: Revision to replace. Required if updating existing local document.
+                  type: string
+      responses:
+        '201':
+          description: Document successfully written. The document ID will be prefixed with `_local/`.
+          content:
+            application/json:
+              schema:
+                description: Properties returned when a new document revision is created
+                type: object
+                properties: *ref_21
+                required: *ref_22
+                title: New-revision
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '409':
+          description: A revision ID conflict would result from updating this document revision.
+      tags:
+        - Document
+      operationId: put_keyspace-_local-docid
+    delete:
+      summary: Delete a local document
+      description: |-
+        This request deletes a local document.
+
+        Local document IDs begin with `_local/`. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
+      parameters:
+        - name: rev
+          in: query
+          description: The revision ID of the revision to delete.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully removed the local document.
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '409':
+          description: A revision ID conflict would result from deleting this document revision.
+      tags:
+        - Document
+      operationId: delete_keyspace-_local-docid
+    head:
+      responses:
+        '200':
+          description: Document exists
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Document
+      summary: Check if local document exists
+      description: |-
+        This request checks if a local document exists.
+
+        Local document IDs begin with `_local/`. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by Couchbase Lite's replicator, as a place to store replication checkpoint data.
+      operationId: head_keyspace-_local-docid
+  /{keyspace}/{docid}:
+    parameters:
+      - name: keyspace
+        in: path
+        required: true
+        schema: *ref_4
+        examples: *ref_5
+        description: |-
+          The keyspace to run the operation against.
+
+          A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+      - name: docid
+        in: path
+        required: true
+        schema: &ref_36
+          type: string
+        example: doc1
+        description: The document ID to run the operation against.
+    get:
+      summary: Get a document
+      description: Retrieve a document from the database by its doc ID.
+      parameters:
+        - name: rev
+          in: query
+          required: false
+          schema: &ref_25
+            type: string
+          example: 2-5145e1086bb8d1d71a531e9f6b543c58
+          description: The document revision to target.
+        - name: open_revs
+          in: query
+          required: false
+          schema: &ref_30
+            type: array
+            items:
+              type: string
+          description: 'Option to fetch specified revisions of the document. The value can be all to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=["rev1", "rev2"]). Only leaf revision bodies that haven''t been pruned are guaranteed to be returned. If this option is specified the response will be in multipart format. Use the `Accept: application/json` request header to get the result as a JSON object.'
+        - name: show_exp
+          in: query
+          required: false
+          schema: &ref_31
+            type: boolean
+          description: Whether to show the expiry property (`_exp`) in the response.
+        - name: revs_from
+          in: query
+          required: false
+          schema: &ref_32
+            type: array
+            items:
+              type: string
+          description: Trim the revision history to stop at the first revision in the provided list. If no match is found, the revisions will be trimmed to the `revs_limit`.
+        - name: atts_since
+          in: query
+          required: false
+          schema: &ref_33
+            type: array
+            items:
+              type: string
+          description: Include attachments only since specified revisions. Excludes the attachments for the specified revisions. Only gets used if `attachments=true`.
+        - name: revs_limit
+          in: query
+          required: false
+          schema: &ref_34
+            type: integer
+          description: Maximum amount of revisions to return for each document.
+        - name: attachments
+          in: query
+          required: false
+          schema: &ref_35
+            type: boolean
+          description: Include attachment bodies in response.
+        - name: replicator2
+          in: query
+          required: false
+          schema: &ref_24
+            type: boolean
+          description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
+      responses:
+        '200':
+          description: Document found and returned successfully
+          headers:
+            Etag:
+              schema:
+                type: string
+              description: The document revision ID if only returning 1 revision.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    description: The ID of the document.
+                    type: string
+                  _rev:
+                    description: The revision ID of the document.
+                    type: string
+                additionalProperties: true
+              example:
+                FailedLoginAttempts: 5
+                Friends:
+                  - Bob
+                _id: AliceSettings
+                _rev: 1-64d4a1f179db5c1848fe52967b47c166
+        '400':
+          description: |-
+            Document ID is not in an allowed format therefore is invalid.
+
+            This could be because it is over 250 characters or is prefixed with an underscore ("_").
+          content: &ref_29
+            application/json:
+              schema:
+                type: object
+                properties: *ref_0
+                required: *ref_1
+                title: HTTP-Error
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '501':
+          description: Not Implemented. It is likely this error was caused due to trying to use an enterprise-only feature on the community edition.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: *ref_0
+                required: *ref_1
+                title: HTTP-Error
+      tags:
+        - Document
+      operationId: get_keyspace-docid
+    put:
+      summary: Upsert a document
+      description: |-
+        This will upsert a document meaning if it does not exist, then it will be created. Otherwise a new revision will be made for the existing document. A revision ID must be provided if targetting an existing document.
+
+        A document ID must be specified for this endpoint. To let Sync Gateway generate the ID, use the `POST /{db}/` endpoint.
+
+        If a document does exist, then replace the document content with the request body. This means unspecified fields will be removed in the new revision.
+
+        The maximum size for a document is 20MB.
+      parameters:
+        - name: roundtrip
+          in: query
+          required: false
+          schema: *ref_23
+          description: Block until document has been received by change cache
+        - name: replicator2
+          in: query
+          required: false
+          schema: *ref_24
+          description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
+        - name: new_edits
+          in: query
+          required: false
+          schema: &ref_59
+            type: boolean
+            default: 'true'
+          description: Setting this to false indicates that the request body is an already-existing revision that should be directly inserted into the database, instead of a modification to apply to the current document. This mode is used for replication.  This option must be used in conjunction with the `_revisions` property in the request body.
+        - name: rev
+          in: query
+          required: false
+          schema: *ref_25
+          example: 2-5145e1086bb8d1d71a531e9f6b543c58
+          description: The document revision to target.
+        - name: If-Match
+          in: header
+          required: false
+          schema: &ref_28
+            type: string
+          description: The revision ID to target.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: The configurable Sync Gateway properties of a document.
+              type: object
+              additionalProperties: true
+              properties: *ref_17
+      responses:
+        '201':
+          description: Created
+          headers:
+            Etag:
+              schema:
+                type: string
+              description: The revision of the written document. Not set if query option `new_edits` is true.
+          content:
+            application/json:
+              schema:
+                description: Properties returned when a new document revision is created
+                type: object
+                properties: *ref_21
+                required: *ref_22
+                title: New-revision
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '409':
+          description: Resource already exists under that name
+          content: *ref_26
+        '415':
+          description: Invalid content type
+          content: *ref_27
+      tags:
+        - Document
+      operationId: put_keyspace-docid
+    delete:
+      summary: Delete a document
+      description: |-
+        Delete a document from the database. A new revision is created so the database can track the deletion in synchronized copies.
+
+        A revision ID either in the header or on the query parameters is required.
+      parameters:
+        - name: rev
+          in: query
+          required: false
+          schema: *ref_25
+          example: 2-5145e1086bb8d1d71a531e9f6b543c58
+          description: The document revision to target.
+        - name: If-Match
+          in: header
+          required: false
+          schema: *ref_28
+          description: The revision ID to target.
+      responses:
+        '200':
+          description: New revision created successfully
+          content: &ref_71
+            application/json:
+              schema:
+                description: Properties returned when a new document revision is created
+                type: object
+                properties: *ref_21
+                required: *ref_22
+                title: New-revision
+        '400':
+          description: There was a problem with your request
+          content: *ref_6
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Document
+      operationId: delete_keyspace-docid
+    head:
+      responses:
+        '200':
+          description: Document exists
+        '400':
+          description: |-
+            Document ID is not in an allowed format therefore is invalid.
+
+            This could be because it is over 250 characters or is prefixed with an underscore ("_").
+          content: *ref_29
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Document
+      summary: Check if a document exists
+      parameters:
+        - name: rev
+          in: query
+          required: false
+          schema: *ref_25
+          example: 2-5145e1086bb8d1d71a531e9f6b543c58
+          description: The document revision to target.
+        - name: open_revs
+          in: query
+          required: false
+          schema: *ref_30
+          description: 'Option to fetch specified revisions of the document. The value can be all to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=["rev1", "rev2"]). Only leaf revision bodies that haven''t been pruned are guaranteed to be returned. If this option is specified the response will be in multipart format. Use the `Accept: application/json` request header to get the result as a JSON object.'
+        - name: show_exp
+          in: query
+          required: false
+          schema: *ref_31
+          description: Whether to show the expiry property (`_exp`) in the response.
+        - name: revs_from
+          in: query
+          required: false
+          schema: *ref_32
+          description: Trim the revision history to stop at the first revision in the provided list. If no match is found, the revisions will be trimmed to the `revs_limit`.
+        - name: atts_since
+          in: query
+          required: false
+          schema: *ref_33
+          description: Include attachments only since specified revisions. Excludes the attachments for the specified revisions. Only gets used if `attachments=true`.
+        - name: revs_limit
+          in: query
+          required: false
+          schema: *ref_34
+          description: Maximum amount of revisions to return for each document.
+        - name: attachments
+          in: query
+          required: false
+          schema: *ref_35
+          description: Include attachment bodies in response.
+        - name: replicator2
+          in: query
+          required: false
+          schema: *ref_24
+          description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
+      description: Return a status code based on if the document exists or not.
+      operationId: head_keyspace-docid
+  /{keyspace}/{docid}/{attach}:
+    parameters:
+      - name: keyspace
+        in: path
+        required: true
+        schema: *ref_4
+        examples: *ref_5
+        description: |-
+          The keyspace to run the operation against.
+
+          A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+      - name: docid
+        in: path
+        required: true
+        schema: *ref_36
+        example: doc1
+        description: The document ID to run the operation against.
+      - name: attach
+        in: path
+        description: The attachment name. This value must be URL encoded. For example, if the attachment name is `blob_/avatar`, the path component passed to the URL should be `blob_%2Favatar` (tested with [URLEncoder](https://www.urlencoder.org/)).
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get an attachment from a document
+      description: |-
+        This request retrieves a file attachment associated with the document.
+
+        The raw data of the associated attachment is returned (just as if you were accessing a static file). The `Content-Type` response header is the same content type set when the document attachment was added to the database. The `Content-Disposition` response header will be set if the content type is considered unsafe to display in a browser (unless overridden by by database config option `serve_insecure_attachment_types`) which will force the attachment to be downloaded.
+
+        If the `meta` query parameter is set then the response will be in JSON with the additional metadata tags.
+      parameters:
+        - name: rev
+          in: query
+          required: false
+          schema: *ref_25
+          example: 2-5145e1086bb8d1d71a531e9f6b543c58
+          description: The document revision to target.
+        - name: content_encoding
+          in: query
+          description: Set to false to disable the `Content-Encoding` response header.
+          schema:
+            type: boolean
+            default: 'true'
+        - name: Range
+          in: header
+          description: RFC-2616 bytes range header.
+          schema:
+            type: string
+          example: bytes=123-456
+        - name: meta
+          in: query
+          description: Return only the metadata of the attachment in the response body.
+          schema:
+            type: boolean
+            default: 'false'
+      responses:
+        '200':
+          description: Found attachment successfully.
+          headers:
+            Content-Length:
+              schema:
+                type: number
+              description: Length of the attachment in bytes
+            Etag:
+              schema:
+                type: string
+              description: 'The attachment digest. Does not get set when request `meta=true`. '
+        '206':
+          description: Partial attachment content returned
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '416':
+          description: Requested range exceeds content length
+      tags:
+        - Document Attachment
+      operationId: get_keyspace-docid-attach
+    put:
+      summary: Create or update an attachment on a document
+      description: |-
+        This request adds or updates an attachment associated with the document. If the document does not exist, it will be created and the attachment will be added to it.
+
+        If the attachment already exists, the data of the existing attachment will be replaced in the new revision.
+
+        The maximum content size of an attachment is 20MB. The `Content-Type` header of the request specifies the content type of the attachment.
+      parameters:
+        - name: Content-Type
+          in: header
+          description: The content type of the attachment.
+          schema:
+            type: string
+            default: application/octet-stream
+        - name: rev
+          in: query
+          description: The existing document revision ID to modify. Required only when modifying an existing document.
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          description: An alternative way of specifying the document revision ID.
+          schema:
+            type: string
+      requestBody:
+        description: The attachment data
+        content:
+          Attachment content type:
+            schema:
+              description: The content to store in the body
+              type: string
+      responses:
+        '201':
+          description: Attachment added to new or existing document successfully
+          headers:
+            Etag:
+              schema:
+                type: string
+              description: The ID of the new revision.
+          content:
+            application/json:
+              schema:
+                description: Properties returned when a new document revision is created
+                type: object
+                properties: *ref_21
+                required: *ref_22
+                title: New-revision
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '409':
+          description: Resource already exists under that name
+          content: *ref_26
+      tags:
+        - Document Attachment
+      operationId: put_keyspace-docid-attach
+    head:
+      responses:
+        '200':
+          description: The document exists and the attachment exists on the document.
+          headers:
+            Content-Length:
+              schema:
+                description: Length of the attachment in bytes
+                type: number
+            Etag:
+              schema:
+                type: string
+              description: The attachment digest.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Document Attachment
+      summary: Check if attachment exists
+      description: This request check if the attachment exists on the specified document.
+      parameters:
+        - name: rev
+          in: query
+          required: false
+          schema: *ref_25
+          example: 2-5145e1086bb8d1d71a531e9f6b543c58
+          description: The document revision to target.
+      operationId: head_keyspace-docid-attach
+    delete:
+      summary: Delete an attachment on a document
+      description: |-
+        This request deletes an attachment associated with the document.
+
+        If the attachment exists, the attachment will be removed from the document.
+      parameters:
+        - name: rev
+          in: query
+          description: The existing document revision ID to modify.
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          description: An alternative way of specifying the document revision ID.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Attachment removed from the document successfully
+          headers:
+            Etag:
+              schema:
+                type: string
+              description: The ID of the new revision.
+          content:
+            application/json:
+              schema:
+                description: Properties returned when a new document revision is created
+                type: object
+                properties: *ref_21
+                required: *ref_22
+                title: New-revision
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '409':
+          description: Resource already exists under that name
+          content: *ref_26
+      tags:
+        - Document Attachment
+      operationId: delete_keyspace-docid-attach
+  /{db}/_facebook:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    post:
+      summary: Create a new Facebook-based session
+      description: |-
+        Creates a new session based on a Facebook user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
+
+        If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                access_token:
+                  description: Facebook access token to base the new session on.
+                  type: string
+              required:
+                - access_token
+      responses:
+        '200':
+          description: Session created successfully
+        '400':
+          description: Origin is not in the approved list of allowed origins
+          content: *ref_37
+        '401':
+          description: Received error from Facebook verifier
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  reason:
+                    type: string
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '502':
+          description: Received invalid response from the Facebook verifier
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  reason:
+                    type: string
+        '504':
+          description: Unable to send request to Facebook API
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  reason:
+                    type: string
+      deprecated: true
+      tags:
+        - Authentication
+      operationId: post_db-_facebook
+  /{db}/_google:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    post:
+      summary: Create a new Google-based session
+      description: |-
+        Creates a new session based on a Google user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
+
+        If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_token:
+                  description: Google ID token to base the new session on.
+                  type: string
+              required:
+                - id_token
+      responses:
+        '200':
+          description: Session created successfully
+        '400':
+          description: Origin is not in the approved list of allowed origins
+          content: *ref_37
+        '401':
+          description: Received error from Google token verifier or invalid application ID in the config
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  reason:
+                    type: string
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '502':
+          description: Received invalid response from the Google token verifier
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  reason:
+                    type: string
+        '504':
+          description: Unable to send request to the Google token verifier
+      deprecated: true
+      tags:
+        - Authentication
+      operationId: post_db-_google
+  /{db}/_oidc:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    get:
+      summary: OpenID Connect authentication initiation via Location header redirect
+      description: 'Called by clients to initiate the OpenID Connect Authorization Code Flow. Redirects to the OpenID Connect provider if successful. '
+      parameters:
+        - name: provider
+          in: query
+          required: false
+          schema: &ref_38
+            type: string
+          description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
+        - name: offline
+          in: query
+          required: false
+          schema: &ref_39
+            type: string
+          description: If true, the OpenID Connect provider is requested to confirm with the user the permissions requested and refresh the OIDC token. To do this, access_type=offline and prompt=consent is set on the redirection link.
+      responses:
+        '302':
+          description: Successfully connected with the OpenID Connect provider so now redirecting to the requested OIDC provider for authentication.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: The link to redirect to so the client can authenticate.
+        '400':
+          description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '500':
+          description: Unable to connect and validate with the OpenID Connect provider requested
+      tags:
+        - Authentication
+      operationId: get_db-_oidc
+  /{db}/_oidc_challenge:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    get:
+      summary: OpenID Connect authentication initiation via WWW-Authenticate header
+      description: Called by clients to initiate the OpenID Connect Authorization Code Flow. This will establish a connection with the provider, then put the redirect URL in the `WWW-Authenticate` header.
+      parameters:
+        - name: provider
+          in: query
+          required: false
+          schema: *ref_38
+          description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
+        - name: offline
+          in: query
+          required: false
+          schema: *ref_39
+          description: If true, the OpenID Connect provider is requested to confirm with the user the permissions requested and refresh the OIDC token. To do this, access_type=offline and prompt=consent is set on the redirection link.
+      responses:
+        '400':
+          description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
+        '401':
+          description: Successfully connected with the OpenID Connect provider so now the client can login.
+          headers:
+            WWW-Authenticate:
+              schema:
+                type: string
+              description: The OpenID Connect authentication URL.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '500':
+          description: Unable to connect and validate with the OpenID Connect provider requested
+      tags:
+        - Authentication
+      operationId: get_db-_oidc_challenge
+  /{db}/_oidc_callback:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    get:
+      summary: OpenID Connect authentication callback
+      description: The callback URL that the client is redirected to after authenticating with the OpenID Connect provider.
+      parameters:
+        - name: error
+          in: query
+          description: The OpenID Connect error, if any occurred.
+          schema:
+            type: string
+        - name: code
+          in: query
+          required: true
+          schema: &ref_60
+            type: string
+          description: The OpenID Connect authentication code.
+        - name: provider
+          in: query
+          required: false
+          schema: *ref_38
+          description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
+        - name: state
+          in: query
+          required: false
+          schema: &ref_61
+            type: string
+          description: The OpenID Connect state to verify against the state cookie. This is used to prevent cross-site request forgery (CSRF). This is not required if `disable_callback_state=true` for the provider config (NOT recommended).
+      responses:
+        '200':
+          description: Successfully authenticated with OpenID Connect.
+          content: &ref_40
+            application/json:
+              schema:
+                type: object
+                properties: &ref_66
+                  id_token:
+                    description: The OpenID Connect ID token
+                    type: string
+                  refresh_token:
+                    description: The OpenID Connect ID refresh token
+                    type: string
+                  session_id:
+                    description: The Sync Gateway session token
+                    type: string
+                  name:
+                    description: The Sync Gateway user
+                    type: string
+                  access_token:
+                    description: The OpenID Connect access token
+                    type: string
+                  token_type:
+                    description: The OpenID Connect ID token type
+                    type: string
+                  expires_in:
+                    description: The time until the id_token expires (TTL).
+                    type: number
+                title: OpenID Connect callback properties
+        '400':
+          description: A problem occurred when reading the callback request body
+        '401':
+          description: An error was received from the OpenID Connect provider. This means the error query parameter was filled.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '500':
+          description: A problem occurred in regards to the token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  reason:
+                    type: string
+      tags:
+        - Authentication
+      operationId: get_db-_oidc_callback
+  /{db}/_oidc_refresh:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    get:
+      summary: OpenID Connect token refresh
+      description: Refresh the OpenID Connect token based on the provided refresh token.
+      parameters:
+        - name: refresh_token
+          in: query
+          description: The OpenID Connect refresh token.
+          required: true
+          schema:
+            type: string
+        - name: provider
+          in: query
+          required: false
+          schema: *ref_38
+          description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
+      responses:
+        '200':
+          description: Successfully authenticated with OpenID Connect.
+          content: *ref_40
+        '400':
+          description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '500':
+          description: Unable to connect and validate with the OpenID Connect provider requested
+      tags:
+        - Authentication
+      operationId: get_db-_oidc_refresh
+  /{db}/_oidc_testing/.well-known/openid-configuration:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    get:
+      summary: OpenID Connect mock provider
+      description: Mock an OpenID Connect provider response for testing purposes. This returns a response that is the same structure as what Sync Gateway expects from an OIDC provider after initiating OIDC authentication.
+      responses:
+        '200':
+          description: 'Successfully generated OpenID Connect provider mock response. '
+          headers:
+            Expiry:
+              schema:
+                type: string
+              description: the time until the response expires.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  issuer:
+                    type: string
+                  authorization_endpoint:
+                    type: string
+                  token_endpoint:
+                    type: string
+                  jwks_uri:
+                    type: string
+                  userinfo_endpoint:
+                    type: string
+                  id_token_signing_alg_values_supported:
+                    type: string
+                  response_types_supported:
+                    type: string
+                  subject_types_supported:
+                    type: string
+                  scopes_supported:
+                    type: string
+                  claims_supported:
+                    type: string
+                  token_endpoint_auth_methods_supported:
+                    type: string
+        '403':
+          description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Authentication
+      operationId: get_db-_oidc_testing-.well-known-openid-configuration
+  /{db}/_oidc_testing/authorize:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    get:
+      summary: OpenID Connect mock login page
+      description: Show a mock OpenID Connect login page for the client to log in to.
+      parameters:
+        - name: scope
+          in: query
+          required: true
+          schema: &ref_41
+            type: string
+          description: The OpenID Connect authentication scope.
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: A validation error occurred with the scope.
+          content: &ref_42
+            application/json:
+              schema:
+                type: object
+                properties: *ref_0
+                required: *ref_1
+                title: HTTP-Error
+        '403':
+          description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '500':
+          description: An error occurred.
+          content: &ref_43
+            application/json:
+              schema:
+                type: object
+                properties: *ref_0
+                required: *ref_1
+                title: HTTP-Error
+      tags:
+        - Authentication
+      operationId: get_db-_oidc_testing-authorize
+    post:
+      summary: OpenID Connect mock login page
+      description: Show a mock OpenID Connect login page for the client to log in to.
+      parameters:
+        - name: scope
+          in: query
+          required: true
+          schema: *ref_41
+          description: The OpenID Connect authentication scope.
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: A validation error occurred with the scope.
+          content: *ref_42
+        '403':
+          description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '500':
+          description: An error occurred.
+          content: *ref_43
+      tags:
+        - Authentication
+      operationId: post_db-_oidc_testing-authorize
+  /{db}/_oidc_testing/token:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    post:
+      summary: OpenID Connect mock token
+      description: Return a mock OpenID Connect token for the OIDC authentication flow.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  description: The grant type of the token to request. Can either be an `authorization_code` or `refresh_token`.
+                  type: string
+                code:
+                  description: '**`grant_type=authorization_code` only**: The OpenID Connect authentication token.'
+                  type: string
+                refresh_token:
+                  description: '**`grant_type=refresh_token` only**: The OpenID Connect refresh token.'
+                  type: string
+              required:
+                - grant_type
+      responses:
+        '200':
+          description: Properties expected back from an OpenID Connect provider after successful authentication
+          content: &ref_72
+            application/json:
+              schema:
+                description: Properties expected back from an OpenID Connect provider after successful authentication
+                type: object
+                properties: &ref_67
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                  refresh_token:
+                    type: string
+                  expires_in:
+                    type: string
+                  id_token:
+                    type: string
+                title: OIDC-token
+        '400':
+          description: Invalid token provided
+        '403':
+          description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Authentication
+      operationId: post_db-_oidc_testing-token
+  /{db}/_oidc_testing/certs:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    get:
+      summary: OpenID Connect public certificates for signing keys
+      description: Return a mock OpenID Connect public key to be used as signing keys.
+      responses:
+        '200':
+          description: Returned public key successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Key:
+                          type: object
+                        KeyID:
+                          type: string
+                        Use:
+                          type: string
+                        Certificates:
+                          type: array
+                          items:
+                            type: object
+                        Algorithm:
+                          type: string
+                      required:
+                        - Key
+                        - KeyID
+                        - Use
+                required:
+                  - keys
+        '403':
+          description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '500':
+          description: An error occurred while getting the private RSA key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  reason:
+                    type: string
+      tags:
+        - Authentication
+      operationId: get_db-_oidc_testing-certs
+  /{db}/_oidc_testing/authenticate:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    get:
+      summary: OpenID Connect mock login page handler
+      description: Used to handle the login page displayed for the `GET /{db}/_oidc_testing/authorize` endpoint.
+      parameters:
+        - name: redirect_uri
+          in: query
+          required: false
+          schema: &ref_44
+            type: string
+          description: The Sync Gateway OpenID Connect callback URL.
+        - name: scope
+          in: query
+          required: true
+          schema: *ref_41
+          description: The OpenID Connect authentication scope.
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: tokenttl
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: identity-token-formats
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: authenticated
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirecting to Sync Gateway OpenID Connect callback URL
+          headers: &ref_45
+            Location:
+              schema:
+                type: string
+              description: The location to the Sync Gateway OpenID Connect callback URL.
+        '403':
+          description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Authentication
+      operationId: get_db-_oidc_testing-authenticate
+    post:
+      summary: OpenID Connect mock login page handler
+      description: Used to handle the login page displayed for the `GET /{db}/_oidc_testing/authorize` endpoint.
+      parameters:
+        - name: redirect_uri
+          in: query
+          required: false
+          schema: *ref_44
+          description: The Sync Gateway OpenID Connect callback URL.
+        - name: scope
+          in: query
+          required: true
+          schema: *ref_41
+          description: The OpenID Connect authentication scope.
+      requestBody:
+        content: &ref_73
+          application/json:
+            schema:
+              description: Properties passed from the OpenID Connect mock login page to the handler
+              type: object
+              properties: &ref_68
+                username:
+                  type: string
+                tokenttl:
+                  type: string
+                identity-token-formats:
+                  type: string
+                authenticated:
+                  type: string
+              required: &ref_69
+                - username
+                - tokenttl
+                - identity-token-formats
+                - authenticated
+        description: Properties passed from the OpenID Connect mock login page to the handler
+      responses:
+        '302':
+          description: Redirecting to Sync Gateway OpenID Connect callback URL
+          headers: *ref_45
+        '403':
+          description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Authentication
+      operationId: post_db-_oidc_testing-authenticate
+  /{db}/_blipsync:
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+    get:
+      summary: Handle incoming BLIP Sync web socket request
+      description: This handles incoming BLIP Sync requests from either Couchbase Lite or another Sync Gateway node. The connection has to be upgradable to a websocket connection or else the request will fail.
+      parameters:
+        - name: client
+          in: query
+          description: This is the client type that is making the BLIP Sync request. Used to control client-type specific replication behaviour.
+          schema:
+            type: string
+            default: cbl2
+            enum:
+              - cbl2
+              - sgr2
+      responses:
+        '101':
+          description: Upgraded to a web socket connection
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+        '426':
+          description: Cannot upgrade connection to a web socket connection
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: *ref_0
+                required: *ref_1
+                title: HTTP-Error
+              example:
+                error: Upgrade Required
+                reason: Can't upgrade this request to websocket connection
+      tags:
+        - Replication
+      operationId: get_db-_blipsync
+tags:
+  - name: Server
+    description: Manage server activities
+  - name: Database Management
+    description: Create and manage Sync Gateway databases
+  - name: Session
+    description: Manage user sessions
+  - name: Authentication
+    description: Manage OpenID Connect Authentication
+  - name: Document
+    description: Create and manage documents
+  - name: Document Attachment
+    description: Create and manage document attachments
+  - name: Replication
+    description: Create and manage inter-Sync Gateway replications
+  - name: Unsupported
+    description: Endpoints that are not supported by Sync Gateway
+externalDocs:
+  description: Sync Gateway Quickstart | Couchbase Docs
+  url: https://docs.couchbase.com/sync-gateway/current/index.html
+components:
+  parameters:
+    db:
+      name: db
+      in: path
+      required: true
+      schema: *ref_3
+      example: db1
+      description: The name of the database to run the operation against.
+    keyspace:
+      name: keyspace
+      in: path
+      required: true
+      schema: *ref_4
+      examples: *ref_5
+      description: |-
+        The keyspace to run the operation against.
+
+        A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+    roundtrip:
+      name: roundtrip
+      in: query
+      required: false
+      schema: *ref_23
+      description: Block until document has been received by change cache
+    include_docs:
+      name: include_docs
+      in: query
+      required: false
+      schema: *ref_7
+      description: Include the body associated with each document.
+    Include-channels:
+      name: channels
+      in: query
+      required: false
+      schema: *ref_8
+      description: Include the channels each document is part of that the calling user also has access too.
+    include-access:
+      name: access
+      in: query
+      required: false
+      schema: *ref_9
+      description: Include what user/roles that each document grants access too.
+    include-revs:
+      name: revs
+      in: query
+      required: false
+      schema: *ref_10
+      description: Include all the revisions for each document under the `_revisions` property.
+    include-seqs:
+      name: update_seq
+      in: query
+      required: false
+      schema: *ref_11
+      description: Include the document sequence number `update_seq` property for each document.
+    keys:
+      name: keys
+      in: query
+      required: false
+      schema: *ref_16
+      description: An array of document ID strings to filter by.
+    startkey:
+      name: startkey
+      in: query
+      required: false
+      schema: *ref_12
+      description: Return records starting with the specified key.
+    endkey:
+      name: endkey
+      in: query
+      required: false
+      schema: *ref_13
+      description: Stop returning records when this key is reached.
+    limit-result-rows:
+      name: limit
+      in: query
+      required: false
+      schema: *ref_14
+      description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
+    ddoc:
+      name: ddoc
+      in: path
+      required: true
+      schema: *ref_20
+      description: The design document name.
+    view:
+      name: view
+      in: path
+      required: true
+      schema: *ref_46
+      description: The view to target.
+    inclusive_end:
+      name: inclusive_end
+      in: query
+      required: false
+      description: Indicates whether the specified end key should be included in the result.
+      schema: *ref_47
+    descending:
+      name: descending
+      in: query
+      required: false
+      description: Return documents in descending order.
+      schema: *ref_48
+    include_docs-cbs3:
+      name: include_docs
+      in: query
+      required: false
+      description: Only works when using Couchbase Server 3.0 and earlier. Indicates whether to include the full content of the documents in the response.
+      schema: *ref_49
+    reduce:
+      name: reduce
+      in: query
+      required: false
+      description: Whether to execute a reduce function on the response or not.
+      schema: *ref_50
+    group:
+      name: group
+      in: query
+      required: false
+      description: Group the results using the reduce function to a group or single row.
+      schema: *ref_51
+    skip:
+      name: skip
+      in: query
+      required: false
+      description: Skip the specified number of documents before starting to return results.
+      schema: *ref_52
+    limit:
+      name: limit
+      in: query
+      required: false
+      description: Return only the specified number of documents
+      schema: *ref_53
+    group_level:
+      name: group_level
+      in: query
+      required: false
+      description: Specify the group level to be used.
+      schema: *ref_54
+    startkey_docid:
+      name: startkey_docid
+      in: query
+      required: false
+      description: Return documents starting with the specified document identifier.
+      schema: *ref_55
+    endkey_docid:
+      name: endkey_docid
+      in: query
+      required: false
+      description: Stop returning records when the specified document identifier is reached.
+      schema: *ref_56
+    stale:
+      name: stale
+      in: query
+      required: false
+      description: Allow the results from a stale view to be used, without triggering a rebuild of all views within the encompassing design document.
+      schema: *ref_57
+    key:
+      name: key
+      in: query
+      required: false
+      description: Return only the document that matches the specified key.
+      schema: *ref_58
+    docid:
+      name: docid
+      in: path
+      required: true
+      schema: *ref_36
+      example: doc1
+      description: The document ID to run the operation against.
+    rev:
+      name: rev
+      in: query
+      required: false
+      schema: *ref_25
+      example: 2-5145e1086bb8d1d71a531e9f6b543c58
+      description: The document revision to target.
+    open_revs:
+      name: open_revs
+      in: query
+      required: false
+      schema: *ref_30
+      description: 'Option to fetch specified revisions of the document. The value can be all to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=["rev1", "rev2"]). Only leaf revision bodies that haven''t been pruned are guaranteed to be returned. If this option is specified the response will be in multipart format. Use the `Accept: application/json` request header to get the result as a JSON object.'
+    show_exp:
+      name: show_exp
+      in: query
+      required: false
+      schema: *ref_31
+      description: Whether to show the expiry property (`_exp`) in the response.
+    revs_from:
+      name: revs_from
+      in: query
+      required: false
+      schema: *ref_32
+      description: Trim the revision history to stop at the first revision in the provided list. If no match is found, the revisions will be trimmed to the `revs_limit`.
+    atts_since:
+      name: atts_since
+      in: query
+      required: false
+      schema: *ref_33
+      description: Include attachments only since specified revisions. Excludes the attachments for the specified revisions. Only gets used if `attachments=true`.
+    revs_limit:
+      name: revs_limit
+      in: query
+      required: false
+      schema: *ref_34
+      description: Maximum amount of revisions to return for each document.
+    includeAttachments:
+      name: attachments
+      in: query
+      required: false
+      schema: *ref_35
+      description: Include attachment bodies in response.
+    replicator2:
+      name: replicator2
+      in: query
+      required: false
+      schema: *ref_24
+      description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
+    new_edits:
+      name: new_edits
+      in: query
+      required: false
+      schema: *ref_59
+      description: Setting this to false indicates that the request body is an already-existing revision that should be directly inserted into the database, instead of a modification to apply to the current document. This mode is used for replication.  This option must be used in conjunction with the `_revisions` property in the request body.
+    If-Match:
+      name: If-Match
+      in: header
+      required: false
+      schema: *ref_28
+      description: The revision ID to target.
+    provider:
+      name: provider
+      in: query
+      required: false
+      schema: *ref_38
+      description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
+    offline:
+      name: offline
+      in: query
+      required: false
+      schema: *ref_39
+      description: If true, the OpenID Connect provider is requested to confirm with the user the permissions requested and refresh the OIDC token. To do this, access_type=offline and prompt=consent is set on the redirection link.
+    oidc-code:
+      name: code
+      in: query
+      required: true
+      schema: *ref_60
+      description: The OpenID Connect authentication code.
+    oidc-state:
+      name: state
+      in: query
+      required: false
+      schema: *ref_61
+      description: The OpenID Connect state to verify against the state cookie. This is used to prevent cross-site request forgery (CSRF). This is not required if `disable_callback_state=true` for the provider config (NOT recommended).
+    oidc-scope:
+      name: scope
+      in: query
+      required: true
+      schema: *ref_41
+      description: The OpenID Connect authentication scope.
+    oidc-redirect_uri:
+      name: redirect_uri
+      in: query
+      required: false
+      schema: *ref_44
+      description: The Sync Gateway OpenID Connect callback URL.
+  schemas:
+    User-session-information:
+      type: object
+      properties: *ref_62
+      title: User Session Information
+    HTTP-Error:
+      type: object
+      properties: *ref_0
+      required: *ref_1
+      title: HTTP-Error
+    NodeInfo:
+      type: object
+      properties: *ref_63
+      required: *ref_64
+    Document:
+      description: The configurable Sync Gateway properties of a document.
+      type: object
+      additionalProperties: true
+      properties: *ref_17
+    New-revision:
+      description: Properties returned when a new document revision is created
+      type: object
+      properties: *ref_21
+      required: *ref_22
+      title: New-revision
+    Changes-feed:
+      description: Properties of a changes feed
+      type: object
+      properties: *ref_65
+    Design-doc:
+      description: Properties of a design document
+      type: object
+      properties: *ref_19
+    OIDC-callback:
+      type: object
+      properties: *ref_66
+      title: OpenID Connect callback properties
+    OIDC-token:
+      description: Properties expected back from an OpenID Connect provider after successful authentication
+      type: object
+      properties: *ref_67
+      title: OIDC-token
+    OIDC-login-page-handler:
+      description: Properties passed from the OpenID Connect mock login page to the handler
+      type: object
+      properties: *ref_68
+      required: *ref_69
+  responses:
+    User-session-information:
+      description: Properties associated with a user session
+      content: *ref_70
+    Not-found:
+      description: Resource could not be found
+      content: *ref_2
+    Invalid-CORS:
+      description: Origin is not in the approved list of allowed origins
+      content: *ref_37
+    request-problem:
+      description: There was a problem with your request
+      content: *ref_6
+    Conflict:
+      description: Resource already exists under that name
+      content: *ref_26
+    Invalid-content-type:
+      description: Invalid content type
+      content: *ref_27
+    all-docs:
+      description: Operation ran successfully
+      content: *ref_15
+    changes-feed:
+      description: Successfully returned the changes feed
+      content: *ref_18
+    ddoc-forbidden:
+      description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
+    invalid-doc-id:
+      description: |-
+        Document ID is not in an allowed format therefore is invalid.
+
+        This could be because it is over 250 characters or is prefixed with an underscore ("_").
+      content: *ref_29
+    New-revision:
+      description: New revision created successfully
+      content: *ref_71
+    OIDC-invalid-provider:
+      description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
+    OIDC-connection:
+      description: Unable to connect and validate with the OpenID Connect provider requested
+    OIDC-callback:
+      description: Successfully authenticated with OpenID Connect.
+      content: *ref_40
+    OIDC-test-provider-disabled:
+      description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
+    OIDC-invalid-scope:
+      description: A validation error occurred with the scope.
+      content: *ref_42
+    OIDC-testing-internal-error:
+      description: An error occurred.
+      content: *ref_43
+    OIDC-token:
+      description: Properties expected back from an OpenID Connect provider after successful authentication
+      content: *ref_72
+    OIDC-testing-redirect:
+      description: Redirecting to Sync Gateway OpenID Connect callback URL
+      headers: *ref_45
+  requestBodies:
+    OIDC-login-page-handler:
+      content: *ref_73
+      description: Properties passed from the OpenID Connect mock login page to the handler

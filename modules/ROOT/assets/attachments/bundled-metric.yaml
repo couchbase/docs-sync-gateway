@@ -1,0 +1,275 @@
+openapi: 3.0.3
+info:
+  title: Sync Gateway
+  description: Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server
+  version: 3.1.0
+  license:
+    name: Business Source License 1.1 (BSL)
+    url: https://github.com/couchbase/sync_gateway/blob/master/LICENSE
+servers:
+  - url: '{protocol}://{hostname}:4986'
+    description: Metrics API
+    variables:
+      protocol:
+        description: The protocol to use (HTTP or HTTPS)
+        default: http
+        enum:
+          - http
+          - https
+      hostname:
+        description: The hostname to use
+        default: localhost
+paths:
+  /_metrics:
+    get:
+      summary: Debugging/monitoring runtime stats in Prometheus Exposition format
+      description: |-
+        Returns Sync Gateway statistics and other runtime variables in Prometheus Exposition format.
+
+        Required Sync Gateway RBAC roles:
+
+        * Sync Gateway Architect
+        * Sync Gateway Dev Ops
+        * External Stats Reader
+      responses:
+        '200':
+          description: Successfully returned stats
+          content:
+            text/plain:
+              schema:
+                type: string
+      tags:
+        - Prometheus
+      operationId: get__metrics
+  /_expvar:
+    get:
+      summary: Get all Sync Gateway statistics
+      description: |-
+        This returns a snapshot of all metrics in Sync Gateway for debugging and monitoring purposes.
+
+        This includes per database stats, replication stats, and server stats.
+
+        Required Sync Gateway RBAC roles:
+
+        * Sync Gateway Architect
+        * Sync Gateway Dev Ops
+        * External Stats Reader
+      responses:
+        '200':
+          description: Returned statistics
+          content:
+            application/javascript:
+              schema:
+                type: object
+                properties: &ref_0
+                  cmdline:
+                    description: Built-in variables from the Go runtime, lists the command-line arguments
+                    type: object
+                  memstats:
+                    description: Dumps a large amount of information about the memory heap and garbage collector
+                    type: object
+                  cb:
+                    description: Variables reported by the Couchbase SDK (go_couchbase package)
+                    type: object
+                  mc:
+                    description: Variables reported by the low-level memcached API (gomemcached package)
+                    type: object
+                  syncGateway_changeCache:
+                    type: object
+                    properties:
+                      maxPending:
+                        description: Max number of sequences waiting on a missing earlier sequence number
+                        type: object
+                      lag-tap-0000ms:
+                        description: Histogram of delay from doc save till it shows up in Tap feed
+                        type: object
+                      lag-queue-0000ms:
+                        description: Histogram of delay from Tap feed till doc is posted to changes feed
+                        type: object
+                      lag-total-0000ms:
+                        description: Histogram of total delay from doc save till posted to changes feed
+                        type: object
+                      outOfOrder:
+                        description: Number of out-of-order sequences posted
+                        type: object
+                      view_queries:
+                        description: Number of queries to channels view
+                        type: object
+                  syncGateway_db:
+                    type: object
+                    properties:
+                      channelChangesFeeds:
+                        description: Number of calls to db.changesFeed, i.e. generating a changes feed for a single channel.
+                        type: object
+                      channelLogAdds:
+                        description: Number of entries added to channel logs
+                        type: object
+                      channelLogAppends:
+                        description: Number of times entries were written to channel logs using an APPEND operation
+                        type: object
+                      channelLogCacheHits:
+                        description: Number of requests for channel-logs that were fulfilled from the in-memory cache
+                        type: object
+                      channelLogRewrites:
+                        description: Number of times entries were written to channel logs using a SET operation (rewriting the entire log)
+                        type: object
+                      channelLogRewriteCollisions:
+                        description: Number of collisions while attempting to rewrite channel logs using SET
+                        type: object
+                      document_gets:
+                        description: Number of times a document was read from the database
+                        type: object
+                      revisionCache_adds:
+                        description: Number of revisions added to the revision cache
+                        type: object
+                      revisionCache_hits:
+                        description: Number of times a revision-cache lookup succeeded
+                        type: object
+                      revisionCache_misses:
+                        description: Number of times a revision-cache lookup failed
+                        type: object
+                      revs_added:
+                        description: Number of revisions added to the database (including deletions)
+                        type: object
+                      sequence_gets:
+                        description: Number of times the database's lastSequence was read
+                        type: object
+                      sequence_reserves:
+                        description: Number of times the database's lastSequence was incremented
+                        type: object
+                  syncgateway:
+                    description: Monitoring stats
+                    type: object
+                    properties:
+                      global:
+                        description: Global Sync Gateway stats
+                        type: object
+                        properties:
+                          resource_utilization:
+                            description: Resource utilization stats
+                            type: object
+                            properties:
+                              admin_net_bytes_recv:
+                                type: integer
+                              admin_net_bytes_sent:
+                                type: integer
+                              error_count:
+                                type: integer
+                              go_memstats_heapalloc:
+                                type: integer
+                              go_memstats_heapidle:
+                                type: integer
+                              go_memstats_heapinuse:
+                                type: integer
+                              go_memstats_heapreleased:
+                                type: integer
+                              go_memstats_pausetotalns:
+                                type: integer
+                              go_memstats_stackinuse:
+                                type: integer
+                              go_memstats_stacksys:
+                                type: integer
+                              go_memstats_sys:
+                                type: integer
+                              goroutines_high_watermark:
+                                type: integer
+                              num_goroutines:
+                                type: integer
+                              process_cpu_percent_utilization:
+                                type: integer
+                              process_memory_resident:
+                                type: integer
+                              pub_net_bytes_recv:
+                                type: integer
+                              pub_net_bytes_sent:
+                                type: integer
+                              system_memory_total:
+                                type: integer
+                              warn_count:
+                                type: integer
+                      per_db:
+                        description: |-
+                          This array contains stats for all databases declared in the config file -- see the [Sync Gateway Statistics Schema](./../stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
+                          The statistics for each {$db_name} database are grouped into:
+                          - cache related statistics
+                          - collections statistics
+                          - cbl_replication_push
+                          - cbl_replication_pull
+                          - database_related_statistics
+                          - delta_sync
+                          - gsi_views
+                          - security_related_statistics
+                          - shared_bucket_import
+                          - per_replication statistics for each `replication_id`
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            cache:
+                              type: object
+                            database:
+                              type: object
+                            per_replication:
+                              type: object
+                            collections:
+                              type: object
+                            security:
+                              type: object
+                      per_replication:
+                        description: |-
+                          An array of stats for each replication declared in the config file
+                          **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+                        type: array
+                        items:
+                          type: object
+                          description: Stats for a given replication_id
+                          properties:
+                            $replication_id:
+                              type: object
+                              properties:
+                                sgr_active:
+                                  description: |-
+                                    Whether the replication is active at this time.
+                                    **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+                                  type: boolean
+                                sgr_docs_checked_sent:
+                                  description: |-
+                                    The total number of documents checked for changes since replication started.
+                                    This represents the number of potential change notifications pushed by Sync Gateway.
+                                    **Constraints**
+                                      This is not necessarily the number of documents pushed, as a given target might already have the change.
+                                      Used by versions 1 and 2.
+                                  type: integer
+                                sgr_num_attachments_transferred:
+                                  description: |-
+                                    The total number of attachments transferred since replication started.
+                                    **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+                                  type: integer
+                                sgr_num_attachment_bytes_transferred:
+                                  description: |-
+                                    The total number of attachment bytes transferred since replication started.
+                                    **Deprecated @ 2.8**: used only by inter-sync-gateway replications version 1.
+                                  type: integer
+                                sgr_num_docs_failed_to_push:
+                                  description: |-
+                                    The total number of documents that failed to be pushed since replication started.
+                                    Used by versions 1 and 2.
+                                  type: integer
+                                sgr_num_docs_pushed:
+                                  description: |-
+                                    The total number of documents that were pushed since replication started.
+                                    Used by versions 1 and 2.
+                                  type: integer
+                        deprecated: true
+      operationId: get__expvar
+tags:
+  - name: Prometheus
+    description: Endpoints for use with Prometheus
+externalDocs:
+  description: Sync Gateway Quickstart | Couchbase Docs
+  url: https://docs.couchbase.com/sync-gateway/current/index.html
+components:
+  schemas:
+    ExpVars:
+      type: object
+      properties: *ref_0

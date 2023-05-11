@@ -653,7 +653,7 @@ paths:
       responses:
         '200':
           description: Properties associated with a user
-          content: &ref_127
+          content: &ref_128
             application/json:
               schema:
                 description: Properties associated with a user
@@ -885,11 +885,9 @@ paths:
                   additionalProperties:
                     description: An object keyed by scope, containing a set of collections.
                     type: object
-                    x-additionalPropertiesName: scope
                     additionalProperties:
                       description: An object keyed by collection name, defines access for the collection.
                       type: object
-                      x-additionalPropertiesName: collection
                       properties: *ref_13
               title: Role
         description: Properties associated with a role
@@ -949,7 +947,7 @@ paths:
       responses:
         '200':
           description: Properties associated with a role
-          content: &ref_128
+          content: &ref_129
             application/json:
               schema:
                 description: Properties associated with a role
@@ -2217,7 +2215,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_36
+                properties: &ref_111
                   bootstrap:
                     description: Configuration settings for interacting with Couchbase Server.
                     type: object
@@ -2398,7 +2396,7 @@ paths:
                         readOnly: true
                       console:
                         type: object
-                        properties: &ref_110
+                        properties: &ref_36
                           log_level:
                             description: Log Level for the console output
                             type: string
@@ -2509,6 +2507,9 @@ paths:
                         type: integer
                         maximum: 9
                         minimum: 0
+                      max_concurrent_replications:
+                        description: Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
+                        type: integer
                     readOnly: true
                   unsupported:
                     description: Settings that are not officially supported. It is highly recommended these are **not** used.
@@ -2517,7 +2518,7 @@ paths:
                       serverless:
                         description: Configuration for when SG is running in serverless mode
                         type: object
-                        properties: &ref_111
+                        properties: &ref_110
                           enabled:
                             description: Run SG in to serverless mode
                             type: boolean
@@ -2613,8 +2614,58 @@ paths:
           application/json:
             schema:
               type: object
-              properties: *ref_36
-              title: Startup-config
+              properties: &ref_112
+                logging:
+                  description: The configuration settings for modifying Sync Gateway logging.
+                  type: object
+                  properties:
+                    log_file_path:
+                      description: Absolute or relative path on the filesystem to the log file directory. A relative path is from the directory that contains the Sync Gateway executable file.
+                      type: string
+                      readOnly: true
+                    redaction_level:
+                      description: Redaction level to apply to log output.
+                      type: string
+                      default: partial
+                      enum:
+                        - none
+                        - partial
+                        - full
+                        - unset
+                      readOnly: true
+                    console:
+                      type: object
+                      properties: *ref_36
+                      title: Console-logging-config
+                    error:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                    warn:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                    info:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                    debug:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                    trace:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                    stats:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                max_concurrent_replications:
+                  description: Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
+                  type: integer
+                  default: 0
+              title: Runtime-config
       responses:
         '200':
           description: Successfully set runtime options
@@ -2640,7 +2691,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_112
+                properties: &ref_113
                   databases:
                     description: Contains a map of all the databases in the node along with their status.
                     type: object
@@ -3425,34 +3476,39 @@ paths:
                     type: integer
                     default: 1000
                   scopes:
-                    description: Scope and collection specific config.
+                    description: An object keyed by scope name containing config for the specific collection.
                     type: object
-                    properties:
-                      additionalProperties:
-                        description: A map of all the collections with their corresponding configs for this scope
-                        type: object
-                        additionalProperties: &ref_114
-                          description: The configuration for the individual collection
+                    additionalProperties:
+                      description: Scope-specific configuration.
+                      type: object
+                      properties: &ref_115
+                        collections:
+                          description: An object keyed by collection name containing config for the specific collection.
                           type: object
-                          properties: &ref_113
-                            sync:
-                              description: The Javascript function that newly created documents in this collection are ran through.
-                              type: string
-                              example: function(doc){channel(doc.channels);}
-                            import_filter:
-                              description: |-
-                                This is the function that all imported documents in this collection are ran through in order to filter out what to import and what not to import. This allows you to control what is made available to Couchbase Mobile clients. If it is not set, then no documents are filtered when imported.
+                          additionalProperties:
+                            description: Collection-specific configuration.
+                            type: object
+                            properties: &ref_114
+                              sync:
+                                description: The Javascript function that newly created documents in this collection are ran through.
+                                type: string
+                                example: function(doc){channel("collection name");}
+                              import_filter:
+                                description: |-
+                                  This is the function that all imported documents in this collection are ran through in order to filter out what to import and what not to import. This allows you to control what is made available to Couchbase Mobile clients. If it is not set, then no documents are filtered when imported.
 
-                                `import_docs` in the database config must be true to make this field applicable.
-                              type: string
-                              example: function(doc) { if (doc.type != 'mobile') { return false; } return true; }
-                          title: Collection config
-                        title: Scopes
+                                  `import_docs` in the database config must be true to make this field applicable.
+                                type: string
+                                example: function(doc) { if (doc.type != 'mobile') { return false; } return true; }
+                            title: Collection config
+                      title: Scopes
                   name:
                     description: The name of the database.
                     type: string
                   sync:
-                    description: The Javascript function that newly created documents are ran through for the _default scope and collection.
+                    description: |-
+                      The Javascript function that newly created documents are ran through for the default scope and collection.
+                      If `scopes` parameter is set, this is ignored.
                     type: string
                     default: function(doc){channel(doc.channels);}
                   users:
@@ -3496,9 +3552,11 @@ paths:
                     default: 16
                   import_filter:
                     description: |-
-                      This is the function that all imported documents in the _default scope and collection are ran through in order to filter out what to import and what not to import. This allows you to control what is made available to Couchbase Mobile clients. If it is not set, then no documents are filtered when imported.
+                      This is the function that all imported documents in the default scope and collection are ran through in order to filter out what to import and what not to import. This allows you to control what is made available to Couchbase Mobile clients. If it is not set, then no documents are filtered when imported.
 
                       `import_docs` must be true to make this field applicable.
+
+                      If `scopes` parameter is set, this is ignored.
                     type: string
                     example: function(doc) { if (doc.type != 'mobile') { return false; } return true; }
                   import_backup_old_rev:
@@ -3535,9 +3593,8 @@ paths:
                           options:
                             description: The options for the event.
                             type: object
-                            properties:
-                              additionalProperties:
-                                description: The option key and value.
+                            additionalProperties:
+                              description: The option key and value.
                         title: Event-config
                       db_state_changed:
                         type: object
@@ -3611,7 +3668,7 @@ paths:
                           enable_star_channel:
                             description: Used to control whether Sync Gateway should use the all documents (*) channel.
                             type: boolean
-                            default: false
+                            default: true
                           max_length:
                             description: The maximum number of entries to maintain in the cache per channel.
                             type: integer
@@ -4078,6 +4135,25 @@ paths:
                       Defaults to true when running in serverless mode otherwise defaults to false.
                     type: boolean
                     default: false
+                  cors:
+                    description: CORS configuration for this database; if present, overrides server's config.
+                    type: object
+                    properties:
+                      origin:
+                        description: List of allowed origins, use ['*'] to allow access from everywhere
+                        type: array
+                        items:
+                          type: string
+                      login_origin:
+                        description: List of allowed login origins
+                        type: array
+                        items:
+                          type: string
+                      headers:
+                        description: List of allowed headers
+                        type: array
+                        items:
+                          type: string
                 title: Database-config
         '404':
           description: Resource could not be found
@@ -4554,10 +4630,10 @@ paths:
                 scopes:
                   description: This controls for which collections resync will run
                   type: object
-                  additionalProperties: &ref_116
+                  additionalProperties: &ref_117
                     description: List of collection names
                     type: array
-                    items: &ref_115
+                    items: &ref_116
                       type: string
                 regenerate_sequences:
                   description: This can be used as an alternative to query param `regenerate_sequences`. If either query param or this is set to true, then the request will regenerate the sequence numbers for each document processed.
@@ -5242,7 +5318,7 @@ paths:
               schema:
                 description: The status returned from a compaction.
                 type: object
-                properties: &ref_117
+                properties: &ref_118
                   status:
                     description: The status of the current operation.
                     type: string
@@ -5292,7 +5368,7 @@ paths:
                       - mark
                       - sweep
                       - cleanup
-                required: &ref_118
+                required: &ref_119
                   - status
                   - start_time
                   - last_error
@@ -5672,7 +5748,7 @@ paths:
             application/javascript:
               schema:
                 type: object
-                properties: &ref_119
+                properties: &ref_120
                   cmdline:
                     description: Built-in variables from the Go runtime, lists the command-line arguments
                     type: object
@@ -5886,7 +5962,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_120
+                properties: &ref_121
                   ADMIN:
                     description: '`true` if the request is from the Admin API - otherwise omitted.'
                     type: boolean
@@ -5923,7 +5999,7 @@ paths:
                       `true` if the sync gateway node is running in persistent config mode.
                     type: boolean
                     example: true
-                required: &ref_121
+                required: &ref_122
                   - couchdb
                   - vendor
       tags:
@@ -6506,7 +6582,7 @@ paths:
               schema:
                 description: Properties of a changes feed
                 type: object
-                properties: &ref_122
+                properties: &ref_123
                   results:
                     type: array
                     items:
@@ -6659,15 +6735,14 @@ paths:
                     type: string
                   views:
                     type: object
-                    properties:
-                      additionalProperties:
-                        description: The name of the view.
-                        type: object
-                        properties:
-                          map:
-                            type: string
-                          reduce:
-                            type: string
+                    additionalProperties:
+                      description: The name of the view.
+                      type: object
+                      properties:
+                        map:
+                          type: string
+                        reduce:
+                          type: string
                   options:
                     type: object
                     properties:
@@ -7379,7 +7454,7 @@ paths:
       responses:
         '200':
           description: New revision created successfully
-          content: &ref_129
+          content: &ref_130
             application/json:
               schema:
                 description: Properties returned when a new document revision is created
@@ -7938,7 +8013,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_123
+                properties: &ref_124
                   id_token:
                     description: The OpenID Connect ID token
                     type: string
@@ -8177,12 +8252,12 @@ paths:
       responses:
         '200':
           description: Properties expected back from an OpenID Connect provider after successful authentication
-          content: &ref_130
+          content: &ref_131
             application/json:
               schema:
                 description: Properties expected back from an OpenID Connect provider after successful authentication
                 type: object
-                properties: &ref_124
+                properties: &ref_125
                   access_token:
                     type: string
                   token_type:
@@ -8339,12 +8414,12 @@ paths:
           schema: *ref_95
           description: The OpenID Connect authentication scope.
       requestBody:
-        content: &ref_131
+        content: &ref_132
           application/json:
             schema:
               description: Properties passed from the OpenID Connect mock login page to the handler
               type: object
-              properties: &ref_125
+              properties: &ref_126
                 username:
                   type: string
                 tokenttl:
@@ -8353,7 +8428,7 @@ paths:
                   type: string
                 authenticated:
                   type: string
-              required: &ref_126
+              required: &ref_127
                 - username
                 - tokenttl
                 - identity-token-formats
@@ -8897,7 +8972,7 @@ components:
       title: Log-rotation-config
     Console-logging-config:
       type: object
-      properties: *ref_110
+      properties: *ref_36
       title: Console-logging-config
     File-logging-config:
       type: object
@@ -8906,7 +8981,7 @@ components:
     Serverless:
       description: Configuration for when SG is running in serverless mode
       type: object
-      properties: *ref_111
+      properties: *ref_110
     CredentialsConfig:
       description: The configuration for the credentials set.
       type: object
@@ -8914,21 +8989,25 @@ components:
       title: Credentials config
     Startup-config:
       type: object
-      properties: *ref_36
+      properties: *ref_111
       title: Startup-config
-    Status:
+    Runtime-config:
       type: object
       properties: *ref_112
-      title: Status
-    CollectionConfig:
-      description: The configuration for the individual collection
+      title: Runtime-config
+    Status:
       type: object
       properties: *ref_113
+      title: Status
+    CollectionConfig:
+      description: Collection-specific configuration.
+      type: object
+      properties: *ref_114
       title: Collection config
     Scopes:
-      description: A map of all the collections with their corresponding configs for this scope
+      description: Scope-specific configuration.
       type: object
-      additionalProperties: *ref_114
+      properties: *ref_115
       title: Scopes
     Event-config:
       type: object
@@ -8948,16 +9027,16 @@ components:
     CollectionNames:
       description: List of collection names
       type: array
-      items: *ref_115
+      items: *ref_116
     ResyncScopesMap:
       description: scope name with one or more collection names for which resync will be triggered
       type: object
-      additionalProperties: *ref_116
+      additionalProperties: *ref_117
     Compact-status:
       description: The status returned from a compaction.
       type: object
-      properties: *ref_117
-      required: *ref_118
+      properties: *ref_118
+      required: *ref_119
       title: Compact-status
     Document:
       description: The configurable Sync Gateway properties of a document.
@@ -8972,33 +9051,33 @@ components:
       title: New-revision
     ExpVars:
       type: object
-      properties: *ref_119
+      properties: *ref_120
     NodeInfo:
       type: object
-      properties: *ref_120
-      required: *ref_121
+      properties: *ref_121
+      required: *ref_122
     Changes-feed:
       description: Properties of a changes feed
       type: object
-      properties: *ref_122
+      properties: *ref_123
     Design-doc:
       description: Properties of a design document
       type: object
       properties: *ref_63
     OIDC-callback:
       type: object
-      properties: *ref_123
+      properties: *ref_124
       title: OpenID Connect callback properties
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
       type: object
-      properties: *ref_124
+      properties: *ref_125
       title: OIDC-token
     OIDC-login-page-handler:
       description: Properties passed from the OpenID Connect mock login page to the handler
       type: object
-      properties: *ref_125
-      required: *ref_126
+      properties: *ref_126
+      required: *ref_127
   responses:
     User-session-information:
       description: Properties associated with a user session
@@ -9017,10 +9096,10 @@ components:
       content: *ref_14
     User:
       description: Properties associated with a user
-      content: *ref_127
+      content: *ref_128
     Role:
       description: Properties associated with a role
-      content: *ref_128
+      content: *ref_129
     Replicator-updated:
       description: Updated existing configuration successfully
     Replicator-created:
@@ -9058,7 +9137,7 @@ components:
       content: *ref_84
     New-revision:
       description: New revision created successfully
-      content: *ref_129
+      content: *ref_130
     OIDC-invalid-provider:
       description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
     OIDC-connection:
@@ -9076,7 +9155,7 @@ components:
       content: *ref_97
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
-      content: *ref_130
+      content: *ref_131
     OIDC-testing-redirect:
       description: Redirecting to Sync Gateway OpenID Connect callback URL
       headers: *ref_99
@@ -9093,5 +9172,5 @@ components:
     Profile:
       content: *ref_32
     OIDC-login-page-handler:
-      content: *ref_131
+      content: *ref_132
       description: Properties passed from the OpenID Connect mock login page to the handler
