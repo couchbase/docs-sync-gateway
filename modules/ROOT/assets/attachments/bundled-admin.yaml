@@ -517,9 +517,11 @@ paths:
                   description: A set of access grants by scope and collection.
                   type: object
                   additionalProperties:
+                    x-additionalPropertiesName: scopename
                     description: An object keyed by scope, containing a set of collections.
                     type: object
                     additionalProperties:
+                      x-additionalPropertiesName: collectionname
                       description: An object keyed by collection name, defines access for the collection.
                       type: object
                       properties: &ref_13
@@ -883,9 +885,11 @@ paths:
                   description: A set of access grants by scope and collection.
                   type: object
                   additionalProperties:
+                    x-additionalPropertiesName: scopename
                     description: An object keyed by scope, containing a set of collections.
                     type: object
                     additionalProperties:
+                      x-additionalPropertiesName: collectionname
                       description: An object keyed by collection name, defines access for the collection.
                       type: object
                       properties: *ref_13
@@ -2554,6 +2558,7 @@ paths:
                     description: A map of database name to credentials, that can be used instead of the bootstrap ones.
                     type: object
                     additionalProperties:
+                      x-additionalPropertiesName: databasename
                       description: The configuration for the credentials set.
                       type: object
                       properties: &ref_35
@@ -2575,6 +2580,7 @@ paths:
                     description: A map of bucket names to credentials, that can be used instead of the bootstrap ones.
                     type: object
                     additionalProperties:
+                      x-additionalPropertiesName: bucketname
                       description: The configuration for the credentials set.
                       type: object
                       properties: *ref_35
@@ -3367,6 +3373,7 @@ paths:
                     description: A map of databases.
                     type: object
                     additionalProperties:
+                      x-additionalPropertiesName: db
                       description: The name of the database that was targetted.
                       type: object
                       properties:
@@ -3479,6 +3486,7 @@ paths:
                     description: An object keyed by scope name containing config for the specific collection.
                     type: object
                     additionalProperties:
+                      x-additionalPropertiesName: scopename
                       description: Scope-specific configuration.
                       type: object
                       properties: &ref_115
@@ -3486,6 +3494,7 @@ paths:
                           description: An object keyed by collection name containing config for the specific collection.
                           type: object
                           additionalProperties:
+                            x-additionalPropertiesName: collectionname
                             description: Collection-specific configuration.
                             type: object
                             properties: &ref_114
@@ -3513,12 +3522,14 @@ paths:
                     default: function(doc){channel(doc.channels);}
                   users:
                     additionalProperties:
+                      x-additionalPropertiesName: username
                       description: Properties associated with a user
                       type: object
                       properties: *ref_9
                       title: User
                   roles:
                     additionalProperties:
+                      x-additionalPropertiesName: rolename
                       description: Properties associated with a role
                       type: object
                       properties: *ref_15
@@ -3605,8 +3616,8 @@ paths:
                     type: string
                     default: DCP
                     enum:
-                      - TAP
                       - DCP
+                      - TAP
                     deprecated: true
                   allow_empty_password:
                     description: This controls whether users that are created can have an empty password or not.
@@ -3817,6 +3828,7 @@ paths:
                     description: Configuration for Local JWT authentication.
                     type: object
                     additionalProperties:
+                      x-additionalPropertiesName: providername
                       description: The providers name.
                       type: object
                       required:
@@ -3913,6 +3925,7 @@ paths:
                         description: List of OpenID Connect issuers.
                         type: object
                         additionalProperties:
+                          x-additionalPropertiesName: providername
                           description: The providers name.
                           type: object
                           properties:
@@ -5666,6 +5679,7 @@ paths:
                 _attachments:
                   type: object
                   additionalProperties:
+                    x-additionalPropertiesName: attachmentname
                     description: The name of the attachment.
                     type: object
                     properties:
@@ -6574,6 +6588,12 @@ paths:
               - longpoll
               - continuous
               - websocket
+        - name: request_plus
+          in: query
+          description: When true, ensures all valid documents written prior to the request being issued are included in the response.  This is only applicable for non-continuous feeds.
+          schema:
+            type: boolean
+            default: 'false'
       responses:
         '200':
           description: Successfully returned the changes feed
@@ -6667,6 +6687,9 @@ paths:
                 feed:
                   description: 'The type of changes feed to use. '
                   type: string
+                request_plus:
+                  description: When true, ensures all valid documents written prior to the request being issued are included in the response.  This is only applicable for non-continuous feeds.
+                  type: string
       responses:
         '200':
           description: Successfully returned the changes feed
@@ -6736,6 +6759,7 @@ paths:
                   views:
                     type: object
                     additionalProperties:
+                      x-additionalPropertiesName: viewname
                       description: The name of the view.
                       type: object
                       properties:
