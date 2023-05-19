@@ -1,0 +1,191 @@
+= Scopes and Collections Configuration for Sync Gateway
+:page-aliases: learn/scopes-and-collections-config.adoc
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:page-content: conceptual
+// :description: pass:q[About Sync Gateway _Roles_ and their part in secure cloud-to-edge enterprise data synchronization.]
+
+For a successful configuration of your Couchbase Sync Gateway Scopes and Collections, use this helpful example. 
+First, it's important to remember that buckets can hold multiple scopes, and each scope can contain multiple collections.
+
+When you create a bucket, a bucket._default._default element is inherently included, as per the documentation on xref:server/learn/data/scopes-and-collections.adoc#default-scope-and-collection[Default Scopes and Collections] in Couchbase Server
+
+The default is unique to the bucket creation process and predominantly serves the purpose of backward compatibility.
+
+Please be aware that only Couchbase Server (CBS) allows using the word 'default' in naming conventions. 
+This explains why you may see the term _default.default when creating a new bucket. 
+Couchbase encourage you to explore and experiment with this concept within your Couchbase instance for practical experience.
+
+== Configuration Options
+
+You have these options to configure Scopes and Collections Sync for Gateway:
+
+* *custom scope/custom collection (the option we cover here)* +
+Gain maximum flexibility in organizing and accessing your data by customizing it to suit your needs.
+
+[Note]
+====
+Scopes is not required for upgrading to Sync Gateway 3.1. 
+If it is not specified in the configuration, the previous versions are still compatible with the new version. Therefore, the provided examples are not necessary for upgrading to the latest version of Sync Gateway.
+====
+
+* *default scope/custom collection* +
+Create a custom collection with the default scope can lead to efficient data organization and quicker access control management.
+
+* *default scope/default collection* +
+Work within the default Scopes and Collections. This makes managing data easy and simple without creating extra scopes or collections.
+
+[Note]
+====
+Importing a dataset created in previous versions of Couchbase Server, the documents will now be saved automatically in the "_default" collection and scope.
+====
+
+== Configuration Example: _custom scope/_custom collection
+
+In this example, we cover a configuration with a custom Scope and 2 custom Collections:
+
+[source,javascript]
+----
+{
+  "name": "db",
+  "bucket": "bucket",
+  "scopes" : {
+    "scope1": {
+      "collections": {
+        "collection1" : {
+            "sync": `
+                function(doc, oldDoc, meta) {
+                    if (doc.type != "default") {
+                        throw({forbidden : "Rejected document"})
+                    }
+                    channel("legacy")
+                }
+            `,
+            "import_filter": `
+              function(doc) {
+                return doc.type == "mobile"
+              }
+            `
+        },
+        "collection2" : {
+          "sync": `
+            function(doc, oldDoc, meta) {
+              channel("collection1")
+            }
+          `,
+          "import_filter": `
+              function(doc) {
+                return doc.type == "mobile"
+              }
+          `
+        }
+      }
+    }
+  },
+  "num_index_replicas": 0
+}
+----
+
+== Collections Configuration Description
+
+Here is the description for the custom `Scope` with 2 custom `Collections` configuration. 
+The database's structure, collections, sync functions, import filters, and index replicas are crucial in accurately validating, filtering, and synchronizing documents within the database. 
+
+== Database Information
+
+=== db
+This sets the name of the database to "db".
+
+=== bucket
+This indicates the bucket's name where the data will be stored, in this case, "bucket".
+
+== Scopes
+A Scope can contain a set of Collections. 
+You have the option to use the default provided by Couchbase or customize it to fit your specific needs.
+
+=== scope1
+
+The "scopes" field is not required for upgrading to Sync Gateway 3.1. 
+Even if this field is not specified in the configuration, the previous versions of the config file are still compatible with the new version.
+Therefore, the provided examples are not essential for upgrading to Sync Gateway's latest version.
+
+== Collections
+A Collection can contain a set of documents. 
+You have the option to use the default provided by Couchbase or customize it to fit your specific needs.
+
+=== Collection1
+
+=== Sync Function:
+[source,javascript]
+----
+function(doc, oldDoc, meta) {
+    if (doc.type != "default") {
+        throw({forbidden : "Rejected document"});
+    }
+    channel("legacy");
+}
+----
+While the example sync function here has a specific purpose, it's crucial to understand that sync functions can perform various actions.
+
+Whenever a document is synced or updated in collection1, a function called `sync` is executed. 
+This function has three parameters: the new document (doc), the existing document (oldDoc), and document metadata (meta). 
+If the type field of the document is not `default`, the function will throw an error message saying "Rejected document" and call the `channel` function with the argument "legacy".
+
+=== Import Filter:
+[source,javascript]
+----
+function(doc) {
+    return doc.type == "mobile";
+}
+----
+When importing documents into collection1, there's an import filter that checks the `type` field value to determine if a document should be imported. 
+If the `type` field equals `mobile`, the filter returns true, and the document is imported.
+
+== Collections
+A Collection can contain a set of documents. 
+You have the option to use the default provided by Couchbase or customize it to fit your specific needs.
+
+=== Collection2
+
+=== Sync Function
+[source,javascript]
+----
+function(doc, oldDoc, meta) {
+    channel("collection1");
+}
+----
+
+Whenever a document is synced or updated in `collection2`, its sync function is triggered. 
+This function calls the `channel` function with `collection1` as an argument, which means it will communicate with the sync function of `collection1`.
+
+[Note]
+====
+While the example sync function here has a specific purpose, it's crucial to understand that xref:sync-function.adoc[Sync Functions] can perform various actions.
+====
+
+=== Import Filter
+[source,javascript]
+----
+function(doc) {
+    return doc.type == "mobile";
+}
+----
+
+When importing documents for `collection2`, the import filter applies the same criteria as `collection1`. 
+This filter is based on the value of the `type` field and is used to filter the documents.
+
+[Note]
+====
+While the example import filter here has a specific purpose, it's crucial to understand that xref:import-filter.adoc[Import Filters] can perform various actions.
+====
+
+=== Index Replicas
+[source,javascript]
+----
+{
+    "num_index_replicas": 0
+}
+----
+
+According to the configuration, this database shouldn't have any index replicas created.
