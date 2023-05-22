@@ -21,15 +21,14 @@ As a result, you may see the term _default.default when creating a new bucket.
 
 == Configuration Options
 
+You don't need to use collections to upgrade to Sync Gateway 3.1. 
+If you don't specify collections in the configuration, the dataset is still compatable.
+Upgrading means that the examples provided here are optional for upgrading to the latest version of Sync Gateway.
+
 You have these options to configure Scopes and Collections Sync for Gateway:
 
 * *custom scope/custom collection (the option we cover here)* +
 Gain maximum flexibility in organizing and accessing your data by customizing it to suit your needs.
-+
-
-You don't need to use collections to upgrade to Sync Gateway 3.1. 
-If you don't specify collections in the configuration, the dataset is still compatable.
-Upgrading means that the examples provided here are optional for upgrading to the latest version of Sync Gateway.
 
 * *default scope/custom collection* +
 Create a custom collection with the default scope can lead to efficient data organization and quicker access control management.
@@ -89,7 +88,7 @@ In this example, we cover a configuration with a custom Scope and 2 custom Colle
 == Collections Configuration Description
 
 Here is the description for the custom `Scope` with 2 custom `Collections` configuration. 
-The database's structure, collections, sync functions, import filters, and index replicas are crucial in accurately validating, filtering, and synchronizing documents within the database. 
+The database's structure, collections, sync functions, import filters, and index replicas are essential in accurately validating, filtering, and synchronizing documents within the database. 
 
 == Database Information
 
@@ -106,7 +105,7 @@ You have the option to use the default provided by Couchbase or customize it to 
 === scope1
 
 The "scopes" field is not required for upgrading to Sync Gateway 3.1. 
-Even if this field is not specified in the configuration, the previous versions of the config file are still compatible with the new version.
+Even if this field is not specified in the configuration, the previous versions of the configuration file are still compatible with the new version.
 Therefore, the provided examples are not essential for upgrading to Sync Gateway's latest version.
 
 == Collections
@@ -125,8 +124,6 @@ function(doc, oldDoc, meta) {
     channel("legacy");
 }
 ----
-While the example sync function here has a specific purpose, it's crucial to understand that sync functions can perform various actions. 
-(See: xref:sync-function.adoc[Sync Function]).
 
 Whenever a document is synced or updated in collection1, a function called `sync` is executed. 
 This function has three parameters:
@@ -137,6 +134,12 @@ This function has three parameters:
 
 If the type field of the document is not `default`, the function will throw an error message saying "Rejected document" and call the `channel` function with the argument "legacy".
 
+[NOTE]
+====
+This code example illustrates a specific use case for sync functions. 
+For more information about others, see xref:sync-function.adoc[Sync Functions].
+====
+
 === Import Filter:
 [source,javascript]
 ----
@@ -145,8 +148,13 @@ function(doc) {
 }
 ----
 When importing documents into collection1, there's an import filter that checks the `type` field value to determine if a document should be imported. 
-If the `type` field equals `mobile`, the filter returns true, and the document is imported. 
-(See: xref:import-filter.adoc[Import Filter]).
+If the `type` field equals `mobile`, the filter returns true, and the document is imported.
+
+[NOTE]
+====
+This code example illustrates a specific use case for import filters. 
+For more information about others, see xref:import-filter.adoc[Import Filters].
+====
 
 == Collections
 A Collection can contain a set of documents. 
@@ -164,7 +172,6 @@ function(doc, oldDoc, meta) {
 
 Whenever a document is synced or updated in `collection2`, its sync function is triggered. 
 This function calls the `channel` function with `collection1` as an argument, which means it will communicate with the sync function of `collection1`. 
-(See: xref:sync-function.adoc[Sync Function]).
 
 The sync function occurs every time a document is modified, regardless of whether or not it has any significance. 
 Here are the examples when it happens:
@@ -179,7 +186,8 @@ If it passes, the sync function will activate.
 
 [NOTE]
 ====
-While the example sync function here has a specific purpose, it's crucial to understand that xref:sync-function.adoc[Sync Functions] can perform various actions. 
+This code example illustrates a specific use case for sync functions. 
+For more information about others, see xref:sync-function.adoc[Sync Functions].
 ====
 
 === Import Filter
@@ -195,7 +203,8 @@ This filter is based on the value of the `type` field and is used to filter the 
 
 [NOTE]
 ====
-While the example import filter here has a specific purpose, it's crucial to understand that xref:import-filter.adoc[Import Filters] can perform various actions.
+This code example illustrates a specific use case for import filters. 
+For more information about others, see xref:import-filter.adoc[Import Filters].
 ====
 
 === Index Replicas
