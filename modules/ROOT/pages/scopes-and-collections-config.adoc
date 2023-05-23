@@ -21,9 +21,9 @@ As a result, you may see the term _default.default when creating a new bucket.
 
 == Configuration Options
 
-You don't need to use collections to upgrade to Sync Gateway 3.1. 
-If you don't specify collections in the configuration, the dataset is still compatable.
-Upgrading means that the examples provided here are optional for upgrading to the latest version of Sync Gateway.
+When upgrading to Sync Gateway 3.1, it's not necessary to include `scopes` and `collections` in the configuration. 
+If you choose not to specify them, your previous data set will still be compatible. 
+Keep in mind that the provided examples are optional.
 
 You have these options to configure Scopes and Collections Sync for Gateway:
 
@@ -34,7 +34,8 @@ Gain maximum flexibility in organizing and accessing your data by customizing it
 Create a custom collection with the default scope can lead to efficient data organization and quicker access control management.
 
 * *default scope/default collection* +
-Work within the default Scopes and Collections. This makes managing data easy and simple without creating extra scopes or collections. 
+Work within the default Scopes and Collections. 
+This makes managing data easy and simple without creating extra scopes or collections. 
 +
 
 When you import a dataset created in previous versions of Couchbase Server, the documents will automatically be saved in the `_default` scope and `_default` collection.
@@ -103,16 +104,16 @@ A Scope can contain a set of Collections.
 You have the option to use the default provided by Couchbase or customize it to fit your specific needs.
 
 === scope1
-
-The "scopes" field is not required for upgrading to Sync Gateway 3.1. 
-Even if this field is not specified in the configuration, the previous versions of the configuration file are still compatible with the new version.
-Therefore, the provided examples are not essential for upgrading to Sync Gateway's latest version.
+There are two collections within scope1; collection1 and collection2.
 
 == Collections
 A Collection can contain a set of documents. 
 You have the option to use the default provided by Couchbase or customize it to fit your specific needs.
 
 === Collection1
+Collection1 is storage for documents that are labelled as "default". 
+Its sync function guarantees that any changes made to documents in Collection1 are also reflected in a legacy system. 
+In addition, Collection1's import filter ensures that only documents labelled as "mobile" are imported.
 
 === Sync Function:
 [source,javascript]
@@ -161,6 +162,7 @@ A Collection can contain a set of documents.
 You have the option to use the default provided by Couchbase or customize it to fit your specific needs.
 
 === Collection2
+Collection2 is a mirror of collection1, and is storage for documents that are labelled as "default". Collectio2's import filter ensures that only documents labelled as "mobile" are imported. Any changes made to documents in collection2 are also made to collection1, and vice versa.
 
 === Sync Function
 [source,javascript]
@@ -215,4 +217,5 @@ For more information about others, see xref:import-filter.adoc[Import Filters].
 }
 ----
 
-According to this configuration example, the database shouldn't have any index replicas created.
+The num_index_replicas property specifies the number of replicas that should be created for each index in the database. 
+In this example, database will not have any index replicas created.
