@@ -9,6 +9,70 @@ include::partial$_set_page_context.adoc[]
 
 include::partial$block-caveats.adoc[tags="legacy-config-equivalents"]
 
+== Introduction
+
+Using an import filter will significantly improve efficiency if you're working with large datasets:
+
+* Import filters are defined at the collection level and allow you to retrieve only the relevant documents you need rather than the entire dataset. 
+The import filter helps determine which documents can be copied by Sync Gateway. 
+It looks at the application's needs and applies these criteria to all future changes.
+
+* By reducing the amount of data that needs to be processed, an import filter will improve the performance of your queries and analysis. 
+It's worth noting that Sync Gateway imports all documents by default, so it's generally a good idea to use an import filter unless you have a strong reason not to.
+
+
+== Function Provision
+
+Use the {rest-api-admin--xref--database-configuration} Admin Rest API endpoint xref:clusters:modules/Admin REST API[/{keyspace}/_config/import_filter] to provision an import filter for a database using the `application/javascript` mime type.
+
+If you are using legacy configuration then, you need to include it in your configuration file, see: {configuration-properties-legacy--xref--databases-import-filter}.
+
+
+== Configuration
+
+
+[#ex-config]
+.Using an Import Filter
+====
+
+[{tabs}]
+=====
+
+API::
++
+--
+
+[source,bash]
+----
+include::{example-cfg}[tag="import-filter-config"]
+----
+
+<.> You will need to provide authentication in the call; unless it is disabled (not recommended in production environment).
+
+--
+
++
+Legacy::
++
+--
+[source,json]
+----
+include::{example-cfg}[tag="import-filter-config-legacy"]
+----
+
+Configuration properties:
+
+<1> The user's username that you created on the Couchbase Server Admin Console.
+<2> The user's password that you created on the Couchbase Server Admin Console.
+<3> The {sync-with-couchbase-server--xref} feature allows Couchbase Server SDKs to also perform operations on this bucket.
+<4> `num_index_replicas` is the number of index replicas stored in Couchbase Server, introduced with GSI/N1QL indexing -- see {indexing--xref}.
+If you're running a single Couchbase Server node for development purposes the `num_index_replicas` must be set to `0`.
+<5> Only import documents which have a `type` property equal to `mobile`.
+
+--
+=====
+====
+
 == Upsert Import Filter Function
 
 ----
