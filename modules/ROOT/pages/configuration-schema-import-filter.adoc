@@ -9,6 +9,59 @@ include::partial$_set_page_context.adoc[]
 
 include::partial$block-caveats.adoc[tags="legacy-config-equivalents"]
 
+== Introduction
+
+Using an import filter will significantly improve efficiency if you're working with large datasets:
+
+* Import filters are defined at the collection level and allow you to retrieve only the relevant documents you need rather than the entire dataset. 
+The import filter helps determine which documents can be copied by Sync Gateway. 
+It looks at the application's needs and applies these criteria to all future changes.
+
+* By reducing the amount of data that needs to be processed, an import filter will improve the performance of your queries and analysis. 
+It's worth noting that Sync Gateway imports all documents by default, so it's generally a good idea to use an import filter unless you have a strong reason not to.
+
+
+== Function Provision
+
+Use the {rest-api-admin--xref--database-configuration} Admin Rest API endpoint xref:rest_api_admin_static.adoc#get_keyspace-_config-import_filter[/{keyspace}/_config/import_filter] to provision an import filter for a database using the `application/javascript` mime type.
+
+If you are using legacy configuration then, you need to include it in your configuration file, see: {configuration-properties-legacy--xref--databases-import-filter}.
+
+
+== Configuration
+
+
+[#ex-config]
+.Using an Import Filter
+====
+
+[{tabs}]
+=====
+
+API::
++
+--
+
+[source,bash]
+----
+include::{example-cfg}[tag="import-filter-config"]
+----
+
+--
+
++
+Legacy::
++
+--
+[source,json]
+----
+include::{example-cfg}[tag="import-filter-config-legacy"]
+----
+
+--
+=====
+====
+
 == Upsert Import Filter Function
 
 ----
@@ -35,7 +88,7 @@ include::partial$static_restapi/admin/index.adoc[tags=put_keyspace-_config-impor
 
 This section shows Sync Gateway's import control configuration settings in schema format for convenience in constructing JSON models for use in the Admin REST API.
 
-The configuration settings described here are provisioned through the {rest-api-admin--xref--access-control} endpoints.
+The configuration settings described here are provisioned through {rest-api-admin--xref--access-control} endpoints.
 
 include::partial$static_restapi/admin/definitions.adoc[tags=Import_filter_model]
 

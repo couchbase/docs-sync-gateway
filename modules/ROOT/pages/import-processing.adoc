@@ -1,0 +1,27 @@
+= Import Processing
+:page-aliases: import-filter.adoc
+
+== Overview
+
+The *import process* is a key part of mobile convergence.
+It is the means by which {sgw} becomes aware of non-{sgw} data changes and obtains the mobile metadata it requires to replicate changes.
+
+image::shared-bucket-access.png[]
+
+== Operation
+
+Any non-{sgw} change is eligible for import. For more information, refer to the xref:sync-function.adoc[Sync Function] documentation.
+
+The document is first run through the Sync Function to compute read security and routing, with the following differences:
+
+* The import is processed with an admin user context in the Sync Function, similar to writes made through the {sgw} Admin API.
+This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
+* During import, `oldDoc` is `nil` when the Sync Function is executed.
+
+You can specify a filter function dynamically using xref:rest_api_admin_static.adoc#get_keyspace-_config-import_filter[/{keyspace}/_config/import_filter], or you can define one when you set up a database.
+Refer to the xref:configuration-schema-import-filter.adoc[Import Filter Configuration] documentation for more information.
+
+TIP: Use the `logging-console-log-keys` in the xref:configuration-schema-bootstrap.adoc#lbl-schema[Bootstrap Schema] log key to troubleshoot import processing issues in the logs. 
+
+
+include::partial$block-related-content-api.adoc[]
