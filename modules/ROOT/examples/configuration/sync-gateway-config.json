@@ -52,37 +52,35 @@
 // end::icr-replication-config[]
 
 // tag::import-filter-config-legacy[]
-//
-//  ... Preceding configuration data as required by the user ...
-  {
-  "databases": {
-    "getting-started-db": {
-      "bucket": "getting-started-bucket",
-      "import_docs": true,
-      "num_index_replicas": 0, // <.>
-      // ... other config as required
-      "import_filter": `
-      function(doc) { // <.>
-        if (doc.type != "mobile") {
-          return false
-        }
-        return true
-        }`,
-      // ... other config as required
-  }
-  //  ... Further configuration data as required by the user ...
 
-//
+  {
+    "databases": {
+      "getting-started-db": {
+        "bucket": "getting-started-bucket",
+        "import_docs": true,
+        "num_index_replicas": 0,
+        // ... other config as required
+        "import_filter": `
+        function(doc) {
+          if (doc.type != "mobile") {
+            return false
+          }
+          return true
+          }`,  
+        }
+      }
+  }
+  
 // end::import-filter-config-legacy[]
 
 // tag::import-filter-config[]
-//
+
 curl -X PUT "http://localhost:4985/froglist/_config/import_filter" \
 -H "accept: application/json" \
 -H "Content-Type: application/javascript" \
--H "Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" \ // <.>
+-H "Authorization: Basic dXNlcm5hbWU6cGFzc3dvcmQ=" \
 -d "\"function(doc) {\ if (doc.type != 'mobile') {\ return false\ }\ return true\}\\\""
-//
+
 // end::import-filter-config[]
 
 // tag::sync-function-config[]
