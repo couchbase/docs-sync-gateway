@@ -15,64 +15,39 @@ include::ROOT:partial$_set_page_context.adoc[]
 
 :param-related: {xref-sgw-pg-release-notes}
 include::partial$_show_page_header_block.adoc[]
+// tag::scopes-and-collections[]
 
 CAUTION: {sgw-t} 3.0.x introduces some breaking changes.
 If you are upgrading from 2.x, please refer to the {upgrading--xref} page.
 Users should be able to upgrade to 3.1.x from 3.0.x without manual intervention.
 
+* *New support for Scopes and Collections* +
+Couchbase has introduced support for Scopes and Collections for self-managed cloud-to-edge deployments only in xref:couchbase-lite:ROOT:index.adoc[Couchbase Lite 3.1.0] and xref:introduction.adoc[Sync Gateway 3.1.0]. 
+This release won't cause any issues with existing apps, as it's compatible with older versions. 
+If you have an app that uses bucket-based APIs, you can still upgrade to 3.1, but please note that this API is now deprecated.
 
-== Overview of {sgw-t} 3.1.0
+* *Improved Data Organization and Access Control for Scopes and Collections* +
+Couchbase Mobile now offers Scopes and Collections, allowing more efficient and scalable data organisation within a bucket. 
+This also introduces an improved method of defining and enforcing data xref:access-control-concepts.adoc[Access Control] more granularly. 
+Multi-tenant apps will also experience better scalability and independent data lifecycle management.
 
-// tag::scopes-and-collections[]
-  
-In 3.1, Sync Gateway has significantly improved by incorporating *Scopes and Collections* support:
+* *Improved metadata isolation for Scopes and Collections* +
+Sync Gateway 3.1.0 has improved metadata isolation. 
+The system data maintained by Sync Gateway is now stored in the `_default` Scope/Collection, while both the `_default` and user-defined Scope/Collection can be used for application data. 
+For more information, examples and use cases, see https://www.couchbase.com/blog/scopes-collections-couchbase-mobile/[Scopes and Collections Support in Couchbase Mobile for Edge Applications].
 
-1. Scopes and Collections Support: Adding Scopes and Collections support allows for an improved method of defining and enforcing data access control. 
-This enhancement ensures that only authorized users can use the appropriate data.
+* *Collection-Level Sync Functions and Scoped User Associations* +
+The xref:sync-function.adoc[Sync Functions] now work on a Collection level, and additional optional fields have been added to the database configurations to support this update. 
+Each database is designed to support only one Scope. Users can be associated with that Scope and shared across multiple Collections.
 
-2. Simplified Data Organization and Synchronization: Streamlining the data organization and synchronization processes, enabling users to build and scale applications more efficiently while maintaining high security.
+* *Enhanced Collection Synchronization and Local Data Storage with Couchbase Lite Client* +
+With Couchbase Lite client replications, you can synchronize one or multiple Collections within a specific scope. 
+The Couchbase Lite client also will store data locally in a scope not synchronized with the remote Sync Gateway.
 
-Synchronization between Couchbase Lite clients and Couchbase Server is accomplished  by:
-
-=== Sync Gateway Metadata Isolation
-
-* *Scopes and Collections for Isolation* +
-Scopes and collections are used to isolate Sync Gateway metadata.
-
-* *Default Scope/Collection for System Data* +
-The `_default scope/collection` is used for system data maintained by Sync Gateway. 
-In contrast, user-defined scopes/collections are used for application data.
-
-* *Separating System Metadata and Application Data* +
-Using separate Scopes and collections for system metadata and application data helps to logically isolate them and avoid accidental modification or deletion of system metadata by the application.
-
-* *Implementing Role-Based Access Controls (RBAC)* +
-To further safeguard against such risks, an SDK-based application implements role-based access controls (RBAC) to restrict access to the `_default scope/collection`, which typically contains critical sync metadata.
-
-[Note]
-====
-Separating system metadata into its own Scope simplifies the implementation and management of the app data lifecycle.
-====
-
-=== Sync Gateway and Couchbase Lite Clients
-
-* *Direct Syncing of Scopes* +
-Sync Gateway enables Couchbase Lite clients to sync one or more Scopes directly to other Couchbase Lite clients over a local network via Couchbase Lite Peer-to-Peer protocol.
-
-* *Bypassing Cloud-Based Control Points* +
-This can be done without the need for a cloud-based control point.
-
-* *Setting Up Replications* +
-A Couchbase Lite client can set up one or more replications to one or more Sync Gateway database endpoints.
-
-* *Syncing Collections* +
-Each replication can sync one or all collections associated with that Scope.
-
-* *Local Persistence of Data* +
-The Couchbase Lite client can also locally persist data in a Scope not synced to remote Sync Gateway.
-// end::scopes-and-collections[]
 
 Read the full xref:3.1@release-notes.adoc[3.1 release notes].
+
+// end::scopes-and-collections[]
 
 See more details of xref:3.0@whatsnew.adoc[what's new in the previous 3.0 release.]
 
