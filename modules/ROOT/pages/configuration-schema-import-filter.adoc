@@ -23,16 +23,64 @@ It's worth noting that Sync Gateway imports all documents by default, so it's ge
 
 == Function Provision
 
-Use the {rest-api-admin--xref--database-configuration} Admin Rest API endpoint xref:rest_api_admin_static.adoc#get_keyspace-_config-import_filter[/{keyspace}/_config/import_filter] to provision an import filter for a database using the `application/javascript` mime type.
+Use the {rest-api-admin--xref--database-configuration} Admin Rest API endpoint xref:rest_api_admin_static.adoc#post_db-_config[POST /{db}/_config] to provision an import filter for a database using the `application/javascript` mime type.
 
 If you are using legacy configuration then, you need to include it in your configuration file, see: {configuration-properties-legacy--xref--databases-import-filter}.
 
 
 == Configuration
 
+[source,JSON]
+----
+{
+   "bucket": "bucket",
+   "name": "name",
+   "scopes": {
+       "tenant1": {
+           "Collections": {
+               "Collection1": {
+                   "import": "function(doc) {// customize}"
+               }
+           }
+       }
+   }
+   // other configuration
+}
+----
+
+[cols="3", options="header"]
+|===
+| Property | Value | Description
+
+| bucket 
+| bucket 
+| Name of bucket
+
+| name 
+| name 
+| Name of sync gateway database
+
+| scopes 
+| tenant1 
+| Name of scope is tenant1
+
+| Collections: 
+| Collection1: import: function(doc) {// customize} 
+| The default sync function assigns all documents to the "Collection1" channel. There is also a custom import filter that is defined specifically for this collection.
+|===
+
+
+[#delete_keyspace-_config-import_filter-responses]
+===== Responses
+
+// tag::delete_keyspace-_config-import_filter-responses[]
+
+// markup not found, no include::{specDir}paths/delete_keyspace-_config-import_filter/operation-responses-begin.adoc[opts=optional]
+
+
+
 
 [#ex-config]
-.Using an Import Filter
 ====
 
 [{tabs}]

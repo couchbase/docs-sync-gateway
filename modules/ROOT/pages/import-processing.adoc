@@ -24,5 +24,53 @@ Refer to the xref:configuration-schema-import-filter.adoc[Import Filter Configur
 
 TIP: Use the `logging-console-log-keys` in the xref:configuration-schema-bootstrap.adoc#lbl-schema[Bootstrap Schema] log key to troubleshoot import processing issues in the logs. 
 
+== Function Provision
+
+Use the {rest-api-admin--xref--database-configuration} Admin Rest API endpoint xref:rest_api_admin_static.adoc#post_db-_config[POST /{db}/_config] to provision an import filter for a database using the `application/javascript` mime type.
+
+If you are using legacy configuration then, you need to include it in your configuration file, see: {configuration-properties-legacy--xref--databases-import-filter}.
+
+
+== Configuration
+
+[source,JSON]
+----
+{
+   "bucket": "bucket",
+   "name": "name",
+   "scopes": {
+       "tenant1": {
+           "Collections": {
+               "Collection1": {
+                   "import": "function(doc) {// customize}"
+               }
+           }
+       }
+   }
+   // other configuration
+}
+----
+
+[cols="3", options="header"]
+|===
+| Property | Value | Description
+
+| bucket 
+| bucket 
+| Name of bucket
+
+| name 
+| name 
+| Name of sync gateway database
+
+| scopes 
+| tenant1 
+| Name of scope is tenant1
+
+| Collections: 
+| Collection1: import: function(doc) {// customize} 
+| The default sync function assigns all documents to the "Collection1" channel. There is also a custom import filter that is defined specifically for this collection.
+|===
+
 
 include::partial$block-related-content-api.adoc[]
