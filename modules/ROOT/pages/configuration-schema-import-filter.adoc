@@ -27,50 +27,15 @@ Use the {rest-api-admin--xref--database-configuration} Admin Rest API endpoint x
 
 If you are using legacy configuration then, you need to include it in your configuration file, see: {configuration-properties-legacy--xref--databases-import-filter}.
 
+[#ex-config]
+====
 
-== Configuration
+[{tabs}]
+=====
 
-NOTE: You need Couchbase Lite 3.1+ and Sync Gateway 3.1+ to use `custom` Scopes and Collections. +
-If you’re using Capella App Services or Sync Gateway releases that are older than version 3.1, you won’t be able to access `custom` Scopes and Collections. 
-To use Couchbase Lite 3.1+ with these older versions, you can use the `default` Collection as a backup option.
-
-The configuration settings described here are provisioned through the xref:rest-api-admin.adoc[Database Configuration] endpoints.
-
-[source,JSON]
-----
-{
-  scopes: {
-      {scopename...}: {
-         collections: {
-            {collectionname...}: {
-               import_filter: "function(doc) { if (doc.type != 'mobile') { return false; } return true; }",
-            }
-         }
-      }
-   },
-   // other configuration
-}
-----
-
-For more information, see xref:configuration-schema-database.adoc#_database[Sync Gateway Configuration Schema].
-
-[cols="2", options="header"]
-|===
-| Property | Description
-
-| scopename 
-| Represents the name of each scope
-
-| collections
-| Contains different collections within each scope
-
-| collectionname
-| Represents the name of each collection within a scope.
-
-|import_filter
-|Used to decide if a document should be imported. It checks the type property of the document. If it is not 'mobile', the function returns false, otherwise, it returns true.
-
-|===
+API::
++
+--
 
 [source,bash]
 ----
@@ -126,3 +91,4 @@ include::partial$static_restapi/admin/definitions.adoc[tags=Import_filter_model]
 include::partial$block-related-content-api.adoc[]
 
 // END -- DO NOT EDIT
+
