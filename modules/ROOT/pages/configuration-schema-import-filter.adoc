@@ -30,54 +30,45 @@ If you are using legacy configuration then, you need to include it in your confi
 
 == Configuration
 
+NOTE: You need Couchbase Lite 3.1+ and Sync Gateway 3.1+ to use `custom` Scopes and Collections. +
+If you’re using Capella App Services or Sync Gateway releases that are older than version 3.1, you won’t be able to access `custom` Scopes and Collections. 
+To use Couchbase Lite 3.1+ with these older versions, you can use the `default` Collection as a backup option.
+
 [source,JSON]
 ----
 {
-   "bucket": "bucket",
-   "name": "name",
-   "scopes": {
-       "Scope1": {
-           "collections": {
-               "Collection1": {
-                   "import": "function(doc) {// customize}"
-               }
-           }
-       }
-   }
+  scopes: {
+      {scopename...}: {
+         collections: {
+            {collectionname...}: {
+               import_filter: "function(doc) { if (doc.type != 'mobile') { return false; } return true; }",
+            }
+         }
+      }
+   },
    // other configuration
 }
 ----
 
-[cols="3", options="header"]
+For more information, see xref:configuration-schema-database.adoc#_database[Sync Gateway Configuration Schema].
+
+[cols="2", options="header"]
 |===
-| Property | Value | Description
+| Property | Description
 
-| bucket 
-| bucket 
-| Name of bucket
+| scopename 
+| Represents the name of each scope
 
-| name 
-| name 
-| Name of sync gateway database
+| collections
+| Contains different collections within each scope
 
-| scopes 
-| Scope1 
-| Name of scope is Scope1
+| collectionname
+| Represents the name of each collection within a scope.
 
-| Collections: 
-| function(doc) {// customize} 
-| The default sync function assigns all documents to the "Collection1" channel. There is also a custom import filter that is defined specifically for this collection.
+|import_filter
+|Used to decide if a document should be imported. It checks the type property of the document. If it is not 'mobile', the function returns false, otherwise, it returns true.
+
 |===
-
-[#ex-config]
-====
-
-[{tabs}]
-=====
-
-API::
-+
---
 
 [source,bash]
 ----
