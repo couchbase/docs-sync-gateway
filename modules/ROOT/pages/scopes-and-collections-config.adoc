@@ -10,14 +10,7 @@ This section explains how to configure Scopes and Collections for Sync Gateway.
 It describes configuration options and provides example configuration code.
 
 == Understanding Buckets, Scopes, and Collections
-Each database can contain multiple buckets. 
-Each bucket can hold multiple scopes, and each scope can contain multiple collections.
-
-When you create a bucket, a bucket._default._default element is inherently included (see the documentation on xref:server:learn:data/scopes-and-collections.adoc#default-scope-and-collection[Default Scopes and Collections] in Couchbase Server). 
-Couchbase creates the default bucket to ensure backward compatibility.
-
-Only Couchbase Server (CBS) allows using the word 'default' in naming conventions. 
-As a result, you may see the term _default.default when creating a new bucket.
+You can define 1 custom scope per database with up to 1000 custom collections. If you don’t specify a custom scope and collection, any documents you create will be saved in the default scope and collection. For more information, examples and use cases, see https://www.couchbase.com/blog/scopes-collections-couchbase-mobile/[Scopes and Collections Support in Couchbase Mobile for Edge Applications].
 
 == Configuration Options
 
@@ -91,138 +84,94 @@ This example covers a configuration with 1 custom Scope and 2 custom Collections
 }
 ----
 
-== Collections Configuration Description
+|===
+| Field                 | Description
 
-Here is the description for the custom `Scope` with 2 custom `Collections` configuration. 
-The database's structure, collections, sync functions, import filters, and index replicas are essential in accurately validating, filtering, and synchronizing documents within the database. 
+| name                  | The name of the database.
+| bucket                | The name of the bucket associated with the database.
+| scopes                | An object representing different scopes within the database. Each scope contains collections with their respective sync and import filter functions.
+|                       |
+| scope1                | The name of the first scope in the database.
+| collections           | An object representing collections within the `scope1` scope. Each collection has its sync and import filter functions.
+|                       |
+| collection1           | The name of the first collection within `scope1`.
+| sync                  | The sync function associated with `collection1`. This function is triggered when a document is created or updated in the collection. This code example illustrates a specific use case for sync functions. 
+For more information, see xref:sync-function.adoc[Sync Functions].
+|                       | The sync function checks if the `type` field of the document is not `default`. If it's not, it throws a `forbidden` error, rejecting the document.
+|                       | After the rejection, it sends a message to the `legacy` channel.
+| import_filter         | The import filter function associated with `collection1`. This function is used when importing documents into the collection. 
+For more information, see xref:import-filter.adoc[Import Filters].
+|                       | The import filter checks if the `type` field of the document is `mobile`. If it is, the document will be imported; otherwise, it will be skipped.
+|                       |
+| collection2           | The name of the second collection within `scope1`.
+| sync                  | The sync function associated with `collection2`. This function is triggered when a document is created or updated in the collection. 
+For more information, see xref:sync-function.adoc[Sync Functions].
+|                       | The sync function sends a message to the `collection1` channel.
+| import_filter         | The import filter function associated with `collection2`. This function is used when importing documents into the collection. 
+For more information, see xref:import-filter.adoc[Import Filters].
+|                       | The import filter checks if the `type` field of the document is `mobile`. If it is, the document will be imported; otherwise, it will be skipped.
+|                       |
+| num_index_replicas    | The number of index replicas. In this case, it is set to 0, meaning no replicas of indexes will be created for this database.
+|===
 
-== Database Information
+== Configuration Example: Dynamic Access Grant
 
-=== db
-This sets the name of the database to "db".
-
-=== bucket
-This indicates the bucket's name (where the data will be stored), in this case, "bucket".
-
-== Scopes
-A Scope can contain a set of Collections. 
-You have the option to use the default provided by Couchbase or customize it to fit your specific needs.
-
-=== scope1
-You can define 1 custom scope per database with up to 1000 custom collections.
-
-If you don't specify a custom scope and collection, any documents you create will be saved in the default scope and collection.
-
-== Collections
-A Collection can contain a set of documents. 
-You have the option to use the default provided by Couchbase or customize it to fit your specific needs.
-
-=== Collection1
-Collection1 is storage for documents that are labelled as "default". 
-Its sync function guarantees that any changes made to documents in Collection1 are also reflected in a legacy system. 
-In addition, Collection1's import filter ensures that only documents labelled as "mobile" are imported.
-
-=== Sync Function:
 [source,javascript]
 ----
 function(doc, oldDoc, meta) {
-    if (doc.type != "default") {
-        throw({forbidden : "Rejected document"});
-    }
-    channel("legacy");
+   if (doc.userId) {
+       channelId = "channel.profile:"+ doc.userId;
+       // Assign document to channel
+       channel(channelId);
+       // Grant user access to channel
+       access(doc.userId, channelId);
+   }
+   if (doc.providerId) {
+       // Grant provider user access to channel
+       access(doc.providerId, channelId);
+   }
 }
 ----
 
-Whenever a document is synced or updated in collection1, a function called `sync` is executed. 
-This function has three parameters:
+|===
+| Field           | Explanation
 
-* New document (doc)
-* Existing document (oldDoc)
-* Document metadata (meta)
+| doc             | The `doc` object contains the data for the current document being processed.
+| oldDoc          | The `oldDoc` object contains the previous version of the document (if available).
+| meta            | The `meta` object contains metadata about the document, such as its expiration time.
+| doc.userId      | Checks if the `doc` object contains a field called `userId`.
+| channelId       | The string that represents the channel where the document is assigned.
+| channel()       | A function used to assign the document to a channel represented by the `channelId`.
+| access()        | A function used to grant access to a user for a specific channel.
+| doc.providerId  | Checks if the `doc` object contains a field called `providerId`.
+|===
 
-If the type field of the document is not `default`, the function will throw an error message saying "Rejected document" and call the `channel` function with the argument "legacy".
 
-[NOTE]
-====
-This code example illustrates a specific use case for sync functions. 
-For more information about others, see xref:sync-function.adoc[Sync Functions].
-====
+== Configuration Example: Custom Sync Function
 
-=== Import Filter:
-[source,javascript]
-----
-function(doc) {
-    return doc.type == "mobile";
-}
-----
-When importing documents into collection1, there's an import filter that checks the `type` field value to determine if a document should be imported. 
-If the `type` field equals `mobile`, the filter returns true, and the document is imported.
-
-[NOTE]
-====
-This code example illustrates a specific use case for import filters. 
-For more information about others, see xref:import-filter.adoc[Import Filters].
-====
-
-== Collections
-A Collection can contain a set of documents. 
-You have the option to use the default provided by Couchbase or customize it to fit your specific needs.
-
-=== Collection2
-Collection2 is a mirror of collection1, and is storage for documents that are labelled as "default". Collectio2's import filter ensures that only documents labelled as "mobile" are imported. Any changes made to documents in collection2 are also made to collection1, and vice versa.
-
-=== Sync Function
 [source,javascript]
 ----
 function(doc, oldDoc, meta) {
-    channel("collection1");
+   // Only users with provider role can update document
+   requireRole("provider");
+   if (doc.userId) {
+       channelId = "channel.medication:"+ doc.userId;
+       // Assign document to channel
+       channel(channelId);
+       // Grant user access to channel
+       access(doc.userId, channelId);
+     }
 }
 ----
 
-Whenever a document is synced or updated in `collection2`, its sync function is triggered. 
-This function calls the `channel` function with `collection1` as an argument, which means it will communicate with the sync function of `collection1`. 
+|===
+| Field                                      | Explanation
 
-The sync function occurs every time a document is modified, regardless of whether or not it has any significance. 
-Here are the examples when it happens:
+| function                               | The function starts with `function(doc, oldDoc, meta)`. It takes three parameters: `doc`, `oldDoc`, and `meta`. These parameters represent the document being updated, the old version of the document, and metadata related to the update, respectively.
+| requireRole                                 | The `requireRole("provider")` function checks whether the user performing the update has the "provider" role. If not, the update will not be allowed.
+| if (doc.userId)                                 | A conditional check: `if (doc.userId)`. This checks whether the `doc` object has a property called `userId`. If this property exists, the following code will be executed.
+| channelId                             | If the `doc.userId` property exists, the `channelId` variable is assigned a value in the format `"channel.medication:" + doc.userId`. This creates a unique channel ID based on the `userId` of the document.
+| channel(channelId)                 | The `channel(channelId)` function is called, which associates the document with the channel specified by `channelId`. This is usually done in databases to organize and group documents based on certain criteria.
+| access(doc.userId, channelId)                   | The `access(doc.userId, channelId)` function is called, which grants the user with `doc.userId` access to the channel identified by `channelId`. This access control mechanism ensures that only authorized users can view or interact with the documents in the channel.
+|===
 
-* A document within a CBS bucket is updated by a process other than Sync Gateway. 
-If the auto_import feature is on, the import_filter will decide if the document is eligible for import. 
-If it passes, the sync function will activate.
-
-* A document has been copied from a Couchbase Lite client.
-
-* A document can be created or modified by using the Sync Gateway xref:rest-api-admin.adoc[REST API].
-
-[NOTE]
-====
-This code example illustrates a specific use case for sync functions. 
-For more information about others, see xref:sync-function.adoc[Sync Functions].
-====
-
-=== Import Filter
-[source,javascript]
-----
-function(doc) {
-    return doc.type == "mobile";
-}
-----
-
-When importing documents for `collection2`, the import filter applies the same criteria as `collection1`. 
-This filter is based on the value of the `type` field and is used to filter the documents.
-
-[NOTE]
-====
-This code example illustrates a specific use case for import filters. 
-For more information about others, see xref:import-filter.adoc[Import Filters].
-====
-
-=== Index Replicas
-[source,javascript]
-----
-{
-    "num_index_replicas": 0
-}
-----
-
-The num_index_replicas property specifies the number of replicas that should be created for each index in the database. 
-In this example, database will not have any index replicas created.
