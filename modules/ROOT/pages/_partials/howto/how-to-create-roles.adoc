@@ -53,6 +53,26 @@ $ curl -vX POST "http://localhost:4985/mydatabase/_roles/" -H
 
 --
 
+Creating a Collection-Scoped Role::
++
+--
+
+NOTE: This feature is available from 3.1 onwards.
+
+Create a new role using the {rest-api-admin-role-post--xref} endpoint.
+Assigning `admin_channels` is collection scoped.
+This means the top level field of `admin_channels` will be ignored for anything that isn't a `_default._default` collection, this ensures backwards compatibility.
+
+[source,bash]
+----
+$ curl -vX POST "http://localhost:4985/mydatabase/_roles/" -H
+"accept: application/json" -H "Content-Type: application/json" -d
+'{"name": "Edge1", "scopename": { "collectionname" : { "admin_channels": ["channel1", "channel3"]]} } } '  // <.>
+----
+<.> Here we add the Edge1 role.
+
+--
+
 File-based Configuration Properties::
 +
 --
