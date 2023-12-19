@@ -1,0 +1,45 @@
+= Prometheus Metrics
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:page-partial:
+:page-content: conceptual
+:description: This content covers the Prometheus statistics and metrics collected and made available by Sync Gateway
+
+:gotoIndex: <<Alphabetic Index, Back to Index Start>>
+
+include::partial$_set_page_context.adoc[]
+
+:topic-group: inter-syncgateway
+:param-related: {configuration-properties-legacy--xref} | {rest-api-metrics--xref}  | {xref-sgw-pg-stats-prometheus}
+:param-abstract:  Sync Gateway's statistics and metrics provide under-the-hood data on the performance, resource utilization and health of it nodes. This is increasingly important as deployments scale to support a large numbers of connected mobile and edge components.
+include::partial$_show_page_header_block.adoc[]
+
+// include name attributes for stats
+include::partial$_define_stats_item_names.adoc[]
+
+== Prometheus format
+
+Like other Couchbase services, Sync Gateway offers xref:stats-prometheus.adoc[Prometheus-compatible metrics] in a flat JSON format.
+
+Use the `_metrics` method to request these metrics:
+
+[#ex-metprom]
+.Metrics in Prometheus format
+====
+[source,console]
+----
+curl -X GET "http://localhost:4986/_metrics" -H "accept: application/json"
+----
+====
+
+This endpoint's data will be scraped at configurable interval, when the `metricsInterface` is activated and Sync Gateway integrated with Prometheus -- see: xref:stats-prometheus.adoc[] and our blog entry {url-blog-prometheus}.
+
+The response in Prometheus format is defined as follows:
+
+[template,attachment$metrics_metadata.json]
+--
+include::partial$metrics.hbs[]
+--
+
+

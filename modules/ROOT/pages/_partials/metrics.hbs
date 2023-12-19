@@ -1,0 +1,55 @@
+{{! Template to display Sync Metadata metrics (derived from Server one) }}
+
+++++
+<style>
+/* for doc.css */
+    .doc .admonitionblock.tip.key td.content::before {
+        content: "Key: ";
+    }
+
+    .doc .status.label-database {
+        color: var(--color-brand-red);
+        border-color: var(--color-brand-red);
+    }
+    .doc .status.label-collection {
+        color: var(--color-brand-blue);
+        border-color: var(--color-brand-blue);
+    }
+    .doc .status.label-replication {
+        color: var(--color-brand-black);
+        border-color: var(--color-brand-black);
+    }
+</style>
+++++
+
+[TIP.key]
+====
+* The [.edition]#x.y.z# badge shows the Sync Gateway version the metric was added in.
+* The [.status]#type / unit# badge shows shows the Prometheus
+https://prometheus.io/docs/tutorials/understanding_metric_types/[type] and 
+https://prometheus.io/docs/practices/naming/#base-units[unit] (if present).
+* The [.status.label-database]##Database## and  
+[.status.label-collection]##Collection## badges show the scope of the metric.
+If not scoped to Database or Collection, the metric applies to the Sync Gateway as a whole.
+====
+
+[cols="1",.json]
+|===
+
+{{#each this}}
+{{#if (ne stability "internal")}}
+|`{{@key}}`
+{nbsp}{nbsp}{nbsp}
+[.edition]##{{or added "3.0.0"}}##
+[.status]##{{or type "unknown"}}{{#if unit}} / {{unit}}{{/if}}##
+{{#each labels}}
+[.status.label-{{.}}]##{{.}}##
+{{/each}}
+
+{{help}}
+
+{{!notes}} {{! uncomment the `!` to add the notes field}}
+
+{{/if}}
+{{/each}}
+|===
