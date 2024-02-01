@@ -212,16 +212,16 @@ When executing a write operation with delta_sync enabled the revision body is ba
 As a result, new deltas can only be generated for read requests that come in within the {configuration-schema-database--xref--delta-sync-max-age} time window.
 
 Storing backed up revision bodies for delta sync incurs additional bucket storage, the size of which equates to: +
-`(doc_size * updates_per_day * 86400) / rev_max_age_seconds` -- see <<ex-deltastor>>.
+`(doc_size * updates_per_day * rev_max_age_seconds) / 86400` -- see <<ex-deltastor>>.
 
 [#ex-deltastor]
 .Calculating Additional Delta-Sync Storage
 ====
 Enabling delta sync would take up an additional 400 KB of storage on Couchbase Server, assuming:
 
-* The default {`rev_max_age_seconds`} value
 * An average document size of 4 KB
 * 100 writes/day
+* The default {`rev_max_age_seconds`} value
 
 Equating to: `(4 * 100 * 86400)/86400 = 400 KB`
 ====
