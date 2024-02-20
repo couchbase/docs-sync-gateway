@@ -14,12 +14,14 @@ PATH_TO_BUNDLE=${PATH_TO_BUNDLE:-${GIT_ROOT}/modules/ROOT/assets/attachments/}
 generate() {
     SPEC=$1
 
-    redocly bundle \
-        "${PATH_TO_SPECS}/${SPEC}.yaml" \
+    npx '@redocly/cli' bundle \
+        --config "${PATH_TO_SYNC_GATEWAY}/.redocly.yaml" \
+        "${PATH_TO_SYNC_GATEWAY}/docs/api/${SPEC}.yaml" \
         --dereferenced \
         --output "${PATH_TO_BUNDLE}/bundled-${SPEC}.yaml"
 
     openapi-generator generate \
+        --skip-validate-spec \
         --generator-name asciidoc  \
         --input-spec "${PATH_TO_BUNDLE}/bundled-${SPEC}.yaml" \
         --template-dir override/asciidoc \

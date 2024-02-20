@@ -14,7 +14,7 @@ Sync Gateway manages access and synchronization between Couchbase Lite and Couch
 
 === Version information
 [%hardbreaks]
-__Version__ : 3.1.0
+__Version__ : 3.2.0
 
 === Host information
 [%hardbreaks]
@@ -5158,7 +5158,6 @@ Create and manage Sync Gateway databases
 * xref:#+get_db-_compact+[Get the status of the most recent compact operation]
 * xref:#+get_db-_resync+[Get resync status]
 * xref:#+get_keyspace-_changes+[Get changes list]
-* xref:#+head__all_dbs+[/_all_dbs]
 * xref:#+head_db-+[Check if database exists]
 * xref:#+head_keyspace-_changes+[/{db}/_changes]
 * xref:#+post_db-_compact+[Manage a compact operation]
@@ -5386,7 +5385,7 @@ GET /_all_dbs
 
 [markdown]
 --
-This retrieves all the database's names that are in the current Sync Gateway node.
+This retrieves all the databases that are in the current Sync Gateway node. If verbose, returns bucket and state information for each database, otherwise returns names only.
 
 Required Sync Gateway RBAC roles:
 
@@ -5406,11 +5405,43 @@ Required Sync Gateway RBAC roles:
 // markup not found, no include::{specDir}paths/get__all_dbs/operation-parameters-before.adoc[opts=optional]
 
 
+===== Parameters
+// tag::get__all_dbs-parameters[]
+
+
+// markup not found, no include::{specDir}paths/get__all_dbs/operation-parameters-begin.adoc[opts=optional]
 
 
 
 
 
+
+====== Query Parameters
+
+[cols="2,3,1"]
+|===
+|Name| Description| Schema
+
+a| 
+*verbose* +
+_optional_
+a| 
+[markdown]
+--
+
+
+--
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+// end
+
+| Boolean
+
+
+|===
 
 
 // markup not found, no include::{specDir}paths/get__all_dbs/operation-parameters-end.adoc[opts=optional]
@@ -5446,7 +5477,7 @@ Required Sync Gateway RBAC roles:
 
 | 200
 a| Successfully retrieved all database names
-| List
+| xref:#++get__all_dbs_200_response++[+get__all_dbs_200_response+]
 
 
 |===
@@ -6516,143 +6547,6 @@ endif::internal-generation[]
 
 
 // markup not found, no include::{specDir}paths/get_keyspace-_changes/operation-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-before.adoc[opts=optional]
-
-
-[#head__all_dbs]
-==== /_all_dbs
-....
-HEAD /_all_dbs
-....
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-begin.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-description-before.adoc[opts=optional]
-
-
-[#head__all_dbs-description]
-===== Description
-
-// tag::head__all_dbs-description[]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-description-begin.adoc[opts=optional]
-
-
-[markdown]
---
-Required Sync Gateway RBAC roles:
-
-* Sync Gateway Dev Ops
---
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-description-end.adoc[opts=optional]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-description-after.adoc[opts=optional]
-
-
-// end::head__all_dbs-description[]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-parameters-before.adoc[opts=optional]
-
-
-
-
-
-
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-parameters-end.adoc[opts=optional]
-
-// end::head__all_dbs-parameters[]
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-parameters-after.adoc[opts=optional]
-
-
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-responses-before.adoc[opts=optional]
-
-
-[#head__all_dbs-responses]
-===== Responses
-
-// tag::head__all_dbs-responses[]
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-responses-begin.adoc[opts=optional]
-
-
-[cols="1,3,1"]
-|===
-| HTTP Code | Description | Schema
-
-| 200
-a| OK
-| 
-
-
-|===
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-responses-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-responses-after.adoc[opts=optional]
-
-// end::head__all_dbs-responses[]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-security-before.adoc[opts=optional]
-
-
-
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-security-after.adoc[opts=optional]
-
-
-:leveloffset: +4
-
-// markup not found, no include::{snippetDir}head__all_dbs/http-request.adoc[opts=optional]
-
-
-// markup not found, no include::{snippetDir}head__all_dbs/http-response.adoc[opts=optional]
-
-:leveloffset: -4
-
-
-// file not found, no * wiremock data link :_all_dbs/HEAD/HEAD.json[]
-
-
-ifdef::internal-generation[]
-===== Implementation
-
-// markup not found, no include::{specDir}_all_dbs/HEAD/implementation.adoc[opts=optional]
-
-
-endif::internal-generation[]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-end.adoc[opts=optional]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-after.adoc[opts=optional]
 
 
 
@@ -8053,6 +7947,25 @@ endif::[]
 | Boolean
 
 
+a| 
+*reset* +
+_optional_
+a| 
+[markdown]
+--
+This forces a fresh resync run instead of trying to resume the previous resync operation
+
+--
+
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+// end
+
+| Boolean
+
+
 |===
 
 
@@ -9355,7 +9268,6 @@ Indicates that roles marked as deleted should be included in the result.
 --
 
 [%hardbreaks]
-*Values:* `true`, `false`
 ifeval::["false" != "null"]
 *Default:* `false`
 endif::[]
@@ -15525,8 +15437,7 @@ a|
 [%hardbreaks]
 // end
 
-| oas_any_type_not_mapped
-Map
+| xref:#++PostKeyspaceRequest++[+PostKeyspaceRequest+]
 
 
 |===
@@ -16702,8 +16613,7 @@ ifeval::["{"doc_id":["*"]}" != "null"]
 endif::[]
 // end
 
-| List
-Map
+| xref:#++PostKeyspacePurgeRequest++[+PostKeyspacePurgeRequest+]
 
 
 |===
@@ -16940,8 +16850,7 @@ a|
 [%hardbreaks]
 // end
 
-| oas_any_type_not_mapped
-Map
+| xref:#++PostKeyspaceRequest++[+PostKeyspaceRequest+]
 
 
 |===
@@ -24843,9 +24752,11 @@ Manage server activities
 * xref:#+get_-+[Get server information]
 * xref:#+get__config+[Get server configuration]
 * xref:#+get__logging+[Get console logging settings]
+* xref:#+get__ping+[Check if API is available]
 * xref:#+get__sgcollect_info+[Get the status of the Sync Gateway Collect Info]
 * xref:#+get__status+[Get the server status]
 * xref:#+head_-+[Check if server online]
+* xref:#+head__ping+[Check if API is available]
 * xref:#+post__logging+[Update console logging settings]
 * xref:#+post__post_upgrade+[Run the post upgrade process on all databases]
 * xref:#+post__sgcollect_info+[Start Sync Gateway Collect Info]
@@ -25483,6 +25394,145 @@ endif::internal-generation[]
 
 
 
+// markup not found, no include::{specDir}paths/get__ping/operation-before.adoc[opts=optional]
+
+
+[#get__ping]
+==== Check if API is available
+....
+GET /_ping
+....
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-begin.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-description-before.adoc[opts=optional]
+
+
+[#get__ping-description]
+===== Description
+
+// tag::get__ping-description[]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+Returns OK status if API is available.
+--
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-description-end.adoc[opts=optional]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-description-after.adoc[opts=optional]
+
+
+// end::get__ping-description[]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-parameters-before.adoc[opts=optional]
+
+
+
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-parameters-end.adoc[opts=optional]
+
+// end::get__ping-parameters[]
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-parameters-after.adoc[opts=optional]
+
+
+[#get__ping-produces]
+===== Produces
+
+* text/plain
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-responses-before.adoc[opts=optional]
+
+
+[#get__ping-responses]
+===== Responses
+
+// tag::get__ping-responses[]
+
+// markup not found, no include::{specDir}paths/get__ping/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="1,3,1"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| Returned status
+| xref:#++String++[+String+]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-responses-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-responses-after.adoc[opts=optional]
+
+// end::get__ping-responses[]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-security-after.adoc[opts=optional]
+
+
+:leveloffset: +4
+
+// markup not found, no include::{snippetDir}get__ping/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}get__ping/http-response.adoc[opts=optional]
+
+:leveloffset: -4
+
+
+// file not found, no * wiremock data link :_ping/GET/GET.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}_ping/GET/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-end.adoc[opts=optional]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}paths/get__sgcollect_info/operation-before.adoc[opts=optional]
 
 
@@ -25904,6 +25954,141 @@ endif::internal-generation[]
 
 
 // markup not found, no include::{specDir}paths/head_-/operation-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-before.adoc[opts=optional]
+
+
+[#head__ping]
+==== Check if API is available
+....
+HEAD /_ping
+....
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-begin.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-description-before.adoc[opts=optional]
+
+
+[#head__ping-description]
+===== Description
+
+// tag::head__ping-description[]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+Returns OK status if API is available.
+--
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-description-end.adoc[opts=optional]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-description-after.adoc[opts=optional]
+
+
+// end::head__ping-description[]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-parameters-before.adoc[opts=optional]
+
+
+
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-parameters-end.adoc[opts=optional]
+
+// end::head__ping-parameters[]
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-parameters-after.adoc[opts=optional]
+
+
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-responses-before.adoc[opts=optional]
+
+
+[#head__ping-responses]
+===== Responses
+
+// tag::head__ping-responses[]
+
+// markup not found, no include::{specDir}paths/head__ping/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="1,3,1"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| Server is available
+| 
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-responses-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-responses-after.adoc[opts=optional]
+
+// end::head__ping-responses[]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-security-after.adoc[opts=optional]
+
+
+:leveloffset: +4
+
+// markup not found, no include::{snippetDir}head__ping/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}head__ping/http-response.adoc[opts=optional]
+
+:leveloffset: -4
+
+
+// file not found, no * wiremock data link :_ping/HEAD/HEAD.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}_ping/HEAD/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-end.adoc[opts=optional]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-after.adoc[opts=optional]
 
 
 
@@ -31218,6 +31403,8 @@ endif::internal-generation[]
 :desc-Database_config_delta_sync: Delta sync configuration settings.  **This is an enterprise-edition feature only**
 :desc-Database_config_event_handlers: These are the settings for webhooks.
 :desc-Database_config_local_jwt_value: The providers name.
+:desc-Database_config_logging: Per-database logging configuration.
+:desc-Database_config_logging_console: Console logging configuration.
 :desc-Database_config_oidc: Configuration for OpenID Connect authentication.
 :desc-Database_config_oidc_providers_value: The providers name.
 :desc-Database_config_roles_value: Properties associated with a role
@@ -31228,8 +31415,6 @@ endif::internal-generation[]
 :desc-Design-doc: Properties of a design document
 :desc-Document: The configurable Sync Gateway properties of a document.
 :desc-get___200_response_vendor: Product vendor
-:desc-get_db__200_response_scopes_value: The name of the scope.
-:desc-get_db__200_response_scopes_value_collections_value: The name of the collection.
 :desc-get_db__design_ddoc_200_response: Properties of a design document
 :desc-get_db__design_ddoc_200_response_views_value: The name of the view.
 :desc-get__expvar_200_response_syncgateway: Monitoring stats
@@ -31292,6 +31477,8 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+Database_config_event_handlers+[DatabaseConfigEventHandlers]
 * xref:#+Database_config_local_jwt_value+[DatabaseConfigLocalJwtValue]
 * xref:#+Database_config_local_jwt_value_keys_inner+[DatabaseConfigLocalJwtValueKeysInner]
+* xref:#+Database_config_logging+[DatabaseConfigLogging]
+* xref:#+Database_config_logging_console+[DatabaseConfigLoggingConsole]
 * xref:#+Database_config_oidc+[DatabaseConfigOidc]
 * xref:#+Database_config_oidc_providers_value+[DatabaseConfigOidcProvidersValue]
 * xref:#+Database_config_replications+[DatabaseConfigReplications]
@@ -31312,9 +31499,9 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+File_logging_config+[File-logging-config]
 * xref:#+get___200_response+[Get200Response]
 * xref:#+get___200_response_vendor+[Get200ResponseVendor]
+* xref:#+get__all_dbs_200_response+[GetAllDbs200Response]
+* xref:#+get__all_dbs_200_response_oneOf_inner+[GetAllDbs200ResponseOneOfInner]
 * xref:#+get_db__200_response+[GetDb200Response]
-* xref:#+get_db__200_response_scopes_value+[GetDb200ResponseScopesValue]
-* xref:#+get_db__200_response_scopes_value_collections_value+[GetDb200ResponseScopesValueCollectionsValue]
 * xref:#+get_db__design_ddoc_200_response+[GetDbDesignDdoc200Response]
 * xref:#+get_db__design_ddoc_200_response_options+[GetDbDesignDdoc200ResponseOptions]
 * xref:#+get_db__design_ddoc_200_response_views_value+[GetDbDesignDdoc200ResponseViewsValue]
@@ -31760,7 +31947,7 @@ a| *+marked_attachments+* +
 _optional_
 a| **Applicable to attachment compaction only**
 
-This is the number of references there are to legacy attachments. 
+This is the number of references there are to legacy attachments.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -32718,7 +32905,7 @@ endif::[]
 | Boolean
 
 
-a| *+send_www_authentice_header+* +
+a| *+send_www_authenticate_header+* +
 _optional_
 a| Controls whether to send a `WWW-Authenticate` header in `401 Unauthorized` HTTP responses.
 
@@ -32961,7 +33148,7 @@ endif::[]
 
 a| *+suspendable+* +
 _optional_
-a| Set to true to allow the database to be suspended. 
+a| Set to true to allow the database to be suspended.
 
 Defaults to true when running in serverless mode otherwise defaults to false.
 
@@ -32992,6 +33179,24 @@ ifeval::["null" != "null"]
 endif::[]
 // end
 | xref:#++Database_config_cors++[+Database_config_cors+]
+
+
+a| *+logging+* +
+_optional_
+a| 
+ifdef::desc-Database_config_logging[]
+{desc-Database_config_logging}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Database_config_logging++[+Database_config_logging+]
 
 
 |===
@@ -33645,7 +33850,7 @@ endif::[]
 | Boolean
 
 
-a| *+send_www_authentice_header+* +
+a| *+send_www_authenticate_header+* +
 _optional_
 a| Controls whether to send a `WWW-Authenticate` header in `401 Unauthorized` HTTP responses.
 
@@ -33888,7 +34093,7 @@ endif::[]
 
 a| *+suspendable+* +
 _optional_
-a| Set to true to allow the database to be suspended. 
+a| Set to true to allow the database to be suspended.
 
 Defaults to true when running in serverless mode otherwise defaults to false.
 
@@ -33919,6 +34124,24 @@ ifeval::["null" != "null"]
 endif::[]
 // end
 | xref:#++Database_config_cors++[+Database_config_cors+]
+
+
+a| *+logging+* +
+_optional_
+a| 
+ifdef::desc-Database_config_logging[]
+{desc-Database_config_logging}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Database_config_logging++[+Database_config_logging+]
 
 
 |===
@@ -34949,6 +35172,110 @@ endif::[]
 
 
 // markup not found, no include::{specDir}definitions/Database_config_local_jwt_value_keys_inner/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging/definition-before.adoc[opts=optional]
+
+
+[#Database_config_logging]
+=== DatabaseConfigLogging
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging/definition-begin.adoc[opts=optional]
+
+
+[#fields-Database_config_logging]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+a| *+console+* +
+_optional_
+a| 
+ifdef::desc-Database_config_logging_console[]
+{desc-Database_config_logging_console}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Database_config_logging_console++[+Database_config_logging_console+]
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging_console/definition-before.adoc[opts=optional]
+
+
+[#Database_config_logging_console]
+=== DatabaseConfigLoggingConsole
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging_console/definition-begin.adoc[opts=optional]
+
+
+[#fields-Database_config_logging_console]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+a| *+log_level+* +
+_optional_
+a| Log Level for the console output
+
+[%hardbreaks]
+*Values:* `none`, `error`, `warn`, `info`, `debug`, `trace`
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["debug" != "null"]
+*Example:* `debug`
+endif::[]
+// end
+| String
+
+
+a| *+log_keys+* +
+_optional_
+a| Log Keys for the console output
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["["CRUD","HTTP","Query"]" != "null"]
+*Example:* `["CRUD","HTTP","Query"]`
+endif::[]
+// end
+| String
+List
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging_console/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging_console/definition-after.adoc[opts=optional]
 
 
 
@@ -36411,7 +36738,7 @@ endif::[]
 
 a| *+_exp+* +
 _optional_
-a| Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
+a| Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiry values are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
 
 As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.
 
@@ -36972,6 +37299,108 @@ endif::[]
 
 
 
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response/definition-before.adoc[opts=optional]
+
+
+[#get__all_dbs_200_response]
+=== GetAllDbs200Response
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response/definition-begin.adoc[opts=optional]
+
+
+One of the following:
+
+* String
+List
+
+* xref:#++get__all_dbs_200_response_oneOf_inner++[+get__all_dbs_200_response_oneOf_inner+]
+List
+
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response_oneOf_inner/definition-before.adoc[opts=optional]
+
+
+[#get__all_dbs_200_response_oneOf_inner]
+=== GetAllDbs200ResponseOneOfInner
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response_oneOf_inner/definition-begin.adoc[opts=optional]
+
+
+[#fields-get__all_dbs_200_response_oneOf_inner]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+a| *+db_name+* +
+_optional_
+a| The name of the database.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+a| *+bucket+* +
+_optional_
+a| The Couchbase Server backing bucket for the database.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+a| *+state+* +
+_optional_
+a| The database state.
+
+[%hardbreaks]
+*Values:* `Online`, `Offline`, `Starting`, `Stopping`, `Resyncing`
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response_oneOf_inner/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response_oneOf_inner/definition-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}definitions/get_db__200_response/definition-before.adoc[opts=optional]
 
 
@@ -37127,22 +37556,6 @@ endif::[]
 | String
 
 
-a| *+scopes+* +
-_optional_
-a| Scopes that are used by the database.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["{"scope1":{"collections":{"collection1":{"update_seq":123456},"collection2":{"update_seq":654321}}}}" != "null"]
-*Example:* `{"scope1":{"collections":{"collection1":{"update_seq":123456},"collection2":{"update_seq":654321}}}}`
-endif::[]
-// end
-| xref:#++get_db__200_response_scopes_value++[+get_db__200_response_scopes_value+]
-Map
-
-
 |===
 
 
@@ -37151,91 +37564,6 @@ Map
 
 
 // markup not found, no include::{specDir}definitions/get_db__200_response/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value/definition-before.adoc[opts=optional]
-
-
-[#get_db__200_response_scopes_value]
-=== GetDb200ResponseScopesValue
-
-
-// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value/definition-begin.adoc[opts=optional]
-
-
-[#fields-get_db__200_response_scopes_value]
-[cols="1,4,1"]
-|===
-| Name| Description| Schema
-
-a| *+collections+* +
-_optional_
-a| The set of collections within the scope.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++get_db__200_response_scopes_value_collections_value++[+get_db__200_response_scopes_value_collections_value+]
-Map
-
-
-|===
-
-
-// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value_collections_value/definition-before.adoc[opts=optional]
-
-
-[#get_db__200_response_scopes_value_collections_value]
-=== GetDb200ResponseScopesValueCollectionsValue
-
-
-// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value_collections_value/definition-begin.adoc[opts=optional]
-
-
-[#fields-get_db__200_response_scopes_value_collections_value]
-[cols="1,4,1"]
-|===
-| Name| Description| Schema
-
-a| *+update_seq+* +
-_optional_
-a| The last sequence number that was committed to the collection.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["123456" != "null"]
-*Example:* `123456`
-endif::[]
-// end
-| Integer
-
-
-|===
-
-
-// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value_collections_value/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value_collections_value/definition-after.adoc[opts=optional]
 
 
 
@@ -38647,7 +38975,7 @@ endif::[]
 
 a| *+admin_net_bytes_recv+* +
 _optional_
-a| 
+a| The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway api.admin_interface is bound.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38662,7 +38990,7 @@ endif::[]
 
 a| *+admin_net_bytes_sent+* +
 _optional_
-a| 
+a| The total number of bytes sent (since node start-up) on the network interface to which the Sync Gateway api.admin_interface is bound.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38677,7 +39005,7 @@ endif::[]
 
 a| *+error_count+* +
 _optional_
-a| 
+a| The total number of errors logged.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38692,7 +39020,7 @@ endif::[]
 
 a| *+go_memstats_heapalloc+* +
 _optional_
-a| 
+a| HeapAlloc is bytes of allocated heap objects. Allocated heap objects include all reachable objects, as well as unreachable objects that the garbage collector has not yet freed. Specifically, HeapAlloc increases as heap objects are allocated and decreases as the heap is swept and unreachable objects are freed. Sweeping occurs incrementally between GC cycles, so these two processes occur simultaneously, and as a result HeapAlloc tends to change smoothly (in contrast with the sawtooth that is typical of stop-the-world garbage collectors).
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38707,7 +39035,7 @@ endif::[]
 
 a| *+go_memstats_heapidle+* +
 _optional_
-a| 
+a| HeapIdle is bytes in idle (unused) spans. Idle spans have no objects in them. These spans could be (and may already have been) returned to the OS, or they can be reused for heap allocations, or they can be reused as stack memory. HeapIdle minus HeapReleased estimates the amount of memory that could be returned to the OS, but is being retained by the runtime so it can grow the heap without requesting more memory from the OS. If this difference is significantly larger than the heap size, it indicates there was a recent transient spike in live heap size.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38722,7 +39050,7 @@ endif::[]
 
 a| *+go_memstats_heapinuse+* +
 _optional_
-a| 
+a| HeapInuse is bytes in in-use spans. In-use spans have at least one object in them. These spans an only be used for other objects of roughly the same size. HeapInuse minus HeapAlloc estimates the amount of memory that has been dedicated to particular size classes, but is not currently being used. This is an upper bound on fragmentation, but in general this memory can be reused efficiently.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38737,7 +39065,7 @@ endif::[]
 
 a| *+go_memstats_heapreleased+* +
 _optional_
-a| 
+a| HeapReleased is bytes of physical memory returned to the OS. This counts heap memory from idle spans that was returned to the OS and has not yet been reacquired for the heap.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38752,7 +39080,7 @@ endif::[]
 
 a| *+go_memstats_pausetotalns+* +
 _optional_
-a| 
+a| PauseTotalNs is the cumulative nanoseconds in GC stop-the-world pauses since the program started. During a stop-the-world pause, all goroutines are paused and only the garbage collector can run.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38767,7 +39095,7 @@ endif::[]
 
 a| *+go_memstats_stackinuse+* +
 _optional_
-a| 
+a| StackInuse is bytes in stack spans. In-use stack spans have at least one stack in them. These spans can only be used for other stacks of the same size. There is no StackIdle because unused stack spans are returned to the heap (and hence counted toward HeapIdle).
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38782,7 +39110,7 @@ endif::[]
 
 a| *+go_memstats_stacksys+* +
 _optional_
-a| 
+a| StackSys is bytes of stack memory obtained from the OS. StackSys is StackInuse, plus any memory obtained directly from the OS for OS thread stacks (which should be minimal).
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38797,7 +39125,7 @@ endif::[]
 
 a| *+go_memstats_sys+* +
 _optional_
-a| 
+a| Sys is the total bytes of memory obtained from the OS. Sys is the sum of the XSys fields below. Sys measures the virtual address space reserved by the Go runtime for the heap, stacks, and other internal data structures. It's likely that not all of the virtual address space is backed by physical memory at any given moment, though in general it all was at some point.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38812,7 +39140,7 @@ endif::[]
 
 a| *+goroutines_high_watermark+* +
 _optional_
-a| 
+a| Peak number of go routines since process start.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38827,7 +39155,22 @@ endif::[]
 
 a| *+num_goroutines+* +
 _optional_
-a| 
+a| The total number of goroutines.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+a| *+num_idle_kv_ops+* +
+_optional_
+a| The total number of idle kv operations.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38842,7 +39185,7 @@ endif::[]
 
 a| *+process_cpu_percent_utilization+* +
 _optional_
-a| 
+a| The CPU utilization as percentage value * 10. The extra 10 multiplier is a mistake left for backwards compatibility. Please consider using node_cpu_percent_utilization as of version 3.2. The CPU usage calculation is performed based on user and system CPU time, but it does not include components such as iowait. The derivation means that the values of process_cpu_percent_utilization and %Cpu, returned when running the top command, will differ.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38852,12 +39195,27 @@ ifeval::["null" != "null"]
 *Example:* `null`
 endif::[]
 // end
-| Integer
+| Float (float)
+
+
+a| *+node_cpu_percent_utilization+* +
+_optional_
+a| The node CPU utilization as percentage value, since the last time this stat was called. The CPU usage calculation is performed based on user and system CPU time, but it does not include components such as iowait.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Float (float)
 
 
 a| *+process_memory_resident+* +
 _optional_
-a| 
+a| The memory utilization (Resident Set Size) for the process, in bytes.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38872,7 +39230,7 @@ endif::[]
 
 a| *+pub_net_bytes_recv+* +
 _optional_
-a| 
+a| The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway api.public_interface is bound. By default, that is the number of bytes received on 127.0.0.1:4984 since node start-up
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38887,7 +39245,7 @@ endif::[]
 
 a| *+pub_net_bytes_sent+* +
 _optional_
-a| 
+a| The total number of bytes sent (since node start-up) on the network interface to which Sync Gateway api.public_interface is bound. By default, that is the number of bytes sent on 127.0.0.1:4984 since node start-up.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38902,7 +39260,7 @@ endif::[]
 
 a| *+system_memory_total+* +
 _optional_
-a| 
+a| The total memory available on the system in bytes.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38917,7 +39275,22 @@ endif::[]
 
 a| *+warn_count+* +
 _optional_
-a| 
+a| The total number of warnings logged.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+a| *+uptime+* +
+_optional_
+a| The total uptime.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -40230,8 +40603,8 @@ _optional_
 a| The maximum size in MB of the log file before it gets rotated.
 
 [%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
+ifeval::["100" != "null"]
+*Default:* `100`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -40242,7 +40615,7 @@ endif::[]
 
 a| *+max_age+* +
 _optional_
-a| The maximum number of days to retain old log files.
+a| The maximum number of days to retain old log files. The defaults for this value are 360 days for error, 180 days for warn, 6 days for info, 2 days for debug, and 2 days for trace logs.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -40260,8 +40633,8 @@ _optional_
 a| If true, it uses the computer's local time to format the backup timestamp.
 
 [%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
+ifeval::["false" != "null"]
+*Default:* `false`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -40270,13 +40643,13 @@ endif::[]
 | Boolean
 
 
-a| *+rotated_logs_size+* +
+a| *+rotated_logs_size_limit+* +
 _optional_
 a| Max Size (in mb) of log files before deletion
 
 [%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
+ifeval::["1024" != "null"]
+*Default:* `1024`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -40317,8 +40690,8 @@ _optional_
 a| The maximum size in MB of the log file before it gets rotated.
 
 [%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
+ifeval::["100" != "null"]
+*Default:* `100`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -40329,7 +40702,7 @@ endif::[]
 
 a| *+max_age+* +
 _optional_
-a| The maximum number of days to retain old log files.
+a| The maximum number of days to retain old log files. The defaults for this value are 360 days for error, 180 days for warn, 6 days for info, 2 days for debug, and 2 days for trace logs.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -40347,8 +40720,8 @@ _optional_
 a| If true, it uses the computer's local time to format the backup timestamp.
 
 [%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
+ifeval::["false" != "null"]
+*Default:* `false`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -40357,13 +40730,13 @@ endif::[]
 | Boolean
 
 
-a| *+rotated_logs_size+* +
+a| *+rotated_logs_size_limit+* +
 _optional_
 a| Max Size (in mb) of log files before deletion
 
 [%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
+ifeval::["1024" != "null"]
+*Default:* `1024`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -42234,7 +42607,7 @@ endif::[]
 
 a| *+_exp+* +
 _optional_
-a| Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
+a| Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiry values are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
 
 As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.
 
@@ -43130,7 +43503,7 @@ Changing this is an enterprise-edition only feature.
 
 **Behaviour**
 * *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
+  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
   - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
 * *localWins* - This will result in local revisions always being the winner in any conflict.
 * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
@@ -43606,7 +43979,7 @@ Changing this is an enterprise-edition only feature.
 
 **Behaviour**
 * *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
+  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
   - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
 * *localWins* - This will result in local revisions always being the winner in any conflict.
 * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
@@ -44517,7 +44890,7 @@ Changing this is an enterprise-edition only feature.
 
 **Behaviour**
 * *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
+  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
   - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
 * *localWins* - This will result in local revisions always being the winner in any conflict.
 * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
@@ -45184,7 +45557,7 @@ endif::[]
 
 a| *+min_config_fetch_interval+* +
 _optional_
-a| How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about. 
+a| How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about.
 
 This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
 
@@ -45456,7 +45829,7 @@ endif::[]
 | String
 
 
-a| *+metric_interface+* +
+a| *+metrics_interface+* +
 _optional_
 a| Network interface to bind metrics API to.
 
@@ -46714,7 +47087,7 @@ endif::[]
 
 a| *+min_config_fetch_interval+* +
 _optional_
-a| How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about. 
+a| How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about.
 
 This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
 
@@ -46912,7 +47285,7 @@ _optional_
 a| Whether the database is online or offline.
 
 [%hardbreaks]
-*Values:* `Online`, `Offline`
+*Values:* `Online`, `Offline`, `Starting`, `Stopping`, `Resyncing`
 ifeval::["null" != "null"]
 *Default:* `null`
 endif::[]
@@ -47908,7 +48281,7 @@ Changing this is an enterprise-edition only feature.
 
 **Behaviour**
 * *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
+  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
   - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
 * *localWins* - This will result in local revisions always being the winner in any conflict.
 * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
