@@ -14,10 +14,14 @@ PATH_TO_BUNDLE=${PATH_TO_BUNDLE:-${GIT_ROOT}/modules/ROOT/assets/attachments/}
 generate() {
     SPEC=$1
 
+    cd ${PATH_TO_SYNC_GATEWAY}
+
     redocly bundle \
-        "${PATH_TO_SPECS}/${SPEC}.yaml" \
+        ${SPEC} \
         --dereferenced \
         --output "${PATH_TO_BUNDLE}/bundled-${SPEC}.yaml"
+
+    cd $(dirname $0)
 
     openapi-generator generate \
         --generator-name asciidoc  \
