@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Sync Gateway
   description: Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server
-  version: 3.2.0
+  version: 3.1.0
   license:
     name: Business Source License 1.1 (BSL)
     url: https://github.com/couchbase/sync_gateway/blob/master/LICENSE
@@ -683,7 +683,7 @@ paths:
       responses:
         '200':
           description: Properties associated with a user
-          content: &ref_130
+          content: &ref_129
             application/json:
               schema:
                 description: Properties associated with a user
@@ -979,7 +979,7 @@ paths:
       responses:
         '200':
           description: Properties associated with a role
-          content: &ref_131
+          content: &ref_130
             application/json:
               schema:
                 description: Properties associated with a role
@@ -1159,7 +1159,7 @@ paths:
 
                           **Behaviour**
                           * *default* - In priority order, this will cause
-                            - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
+                            - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
                             - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
                           * *localWins* - This will result in local revisions always being the winner in any conflict.
                           * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
@@ -1413,7 +1413,7 @@ paths:
 
                     **Behaviour**
                     * *default* - In priority order, this will cause
-                      - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
+                      - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
                       - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
                     * *localWins* - This will result in local revisions always being the winner in any conflict.
                     * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
@@ -2247,7 +2247,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_111
+                properties: &ref_36
                   bootstrap:
                     description: Configuration settings for interacting with Couchbase Server.
                     type: object
@@ -2309,7 +2309,7 @@ paths:
                           By default, this will only be accessible to the localhost.
                         type: string
                         default: 127.0.0.1:4985
-                      metrics_interface:
+                      metric_interface:
                         description: |-
                           Network interface to bind metrics API to.
 
@@ -2428,7 +2428,7 @@ paths:
                         readOnly: true
                       console:
                         type: object
-                        properties: &ref_36
+                        properties: &ref_110
                           log_level:
                             description: Log Level for the console output
                             type: string
@@ -2463,18 +2463,15 @@ paths:
                               max_size:
                                 description: The maximum size in MB of the log file before it gets rotated.
                                 type: integer
-                                default: 100
                               max_age:
-                                description: The maximum number of days to retain old log files. The defaults for this value are 360 days for error, 180 days for warn, 6 days for info, 2 days for debug, and 2 days for trace logs.
+                                description: The maximum number of days to retain old log files.
                                 type: integer
                               localtime:
                                 description: If true, it uses the computer's local time to format the backup timestamp.
                                 type: boolean
-                                default: false
-                              rotated_logs_size_limit:
+                              rotated_logs_size:
                                 description: Max Size (in mb) of log files before deletion
                                 type: integer
-                                default: 1024
                             readOnly: true
                             title: Log-rotation-config
                           collation_buffer_size:
@@ -2542,9 +2539,6 @@ paths:
                         type: integer
                         maximum: 9
                         minimum: 0
-                      max_concurrent_replications:
-                        description: Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
-                        type: integer
                     readOnly: true
                   unsupported:
                     description: Settings that are not officially supported. It is highly recommended these are **not** used.
@@ -2553,14 +2547,14 @@ paths:
                       serverless:
                         description: Configuration for when SG is running in serverless mode
                         type: object
-                        properties: &ref_110
+                        properties: &ref_111
                           enabled:
                             description: Run SG in to serverless mode
                             type: boolean
                             readOnly: true
                           min_config_fetch_interval:
                             description: |-
-                              How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about.
+                              How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about. 
 
                               This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
                             type: string
@@ -2651,58 +2645,8 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_112
-                logging:
-                  description: The configuration settings for modifying Sync Gateway logging.
-                  type: object
-                  properties:
-                    log_file_path:
-                      description: Absolute or relative path on the filesystem to the log file directory. A relative path is from the directory that contains the Sync Gateway executable file.
-                      type: string
-                      readOnly: true
-                    redaction_level:
-                      description: Redaction level to apply to log output.
-                      type: string
-                      default: partial
-                      enum:
-                        - none
-                        - partial
-                        - full
-                        - unset
-                      readOnly: true
-                    console:
-                      type: object
-                      properties: *ref_36
-                      title: Console-logging-config
-                    error:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                    warn:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                    info:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                    debug:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                    trace:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                    stats:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                max_concurrent_replications:
-                  description: Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
-                  type: integer
-                  default: 0
-              title: Runtime-config
+              properties: *ref_36
+              title: Startup-config
       responses:
         '200':
           description: Successfully set runtime options
@@ -2728,7 +2672,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_113
+                properties: &ref_112
                   databases:
                     description: Contains a map of all the databases in the node along with their status.
                     type: object
@@ -3523,7 +3467,7 @@ paths:
                       x-additionalPropertiesName: scopename
                       description: Scope-specific configuration.
                       type: object
-                      properties: &ref_115
+                      properties: &ref_114
                         collections:
                           description: An object keyed by collection name containing config for the specific collection.
                           type: object
@@ -3531,7 +3475,7 @@ paths:
                             x-additionalPropertiesName: collectionname
                             description: Collection-specific configuration.
                             type: object
-                            properties: &ref_114
+                            properties: &ref_113
                               sync:
                                 description: The Javascript function that newly created documents in this collection are ran through.
                                 type: string
@@ -3713,7 +3657,7 @@ paths:
                           enable_star_channel:
                             description: Used to control whether Sync Gateway should use the all documents (*) channel.
                             type: boolean
-                            default: true
+                            default: false
                           max_length:
                             description: The maximum number of entries to maintain in the cache per channel.
                             type: integer
@@ -4085,7 +4029,7 @@ paths:
                     description: Force the use of views instead of GSI.
                     type: boolean
                     default: false
-                  send_www_authenticate_header:
+                  send_www_authentice_header:
                     description: Controls whether to send a `WWW-Authenticate` header in `401 Unauthorized` HTTP responses.
                     type: boolean
                     default: true
@@ -4177,7 +4121,7 @@ paths:
                     default: 60
                   suspendable:
                     description: |-
-                      Set to true to allow the database to be suspended.
+                      Set to true to allow the database to be suspended. 
 
                       Defaults to true when running in serverless mode otherwise defaults to false.
                     type: boolean
@@ -4711,10 +4655,10 @@ paths:
                 scopes:
                   description: This controls for which collections resync will run
                   type: object
-                  additionalProperties: &ref_117
+                  additionalProperties: &ref_116
                     description: List of collection names
                     type: array
-                    items: &ref_116
+                    items: &ref_115
                       type: string
                 regenerate_sequences:
                   description: This can be used as an alternative to query param `regenerate_sequences`. If either query param or this is set to true, then the request will regenerate the sequence numbers for each document processed.
@@ -5282,11 +5226,11 @@ paths:
                 oneOf:
                   - description: The names of all databases.
                     type: array
-                    items: &ref_118
+                    items: &ref_117
                       type: string
                   - description: Description of all databases.
                     type: array
-                    items: &ref_119
+                    items: &ref_118
                       type: object
                       properties:
                         db_name:
@@ -5414,7 +5358,7 @@ paths:
               schema:
                 description: The status returned from a compaction.
                 type: object
-                properties: &ref_120
+                properties: &ref_119
                   status:
                     description: The status of the current operation.
                     type: string
@@ -5434,7 +5378,7 @@ paths:
                     description: |-
                       **Applicable to attachment compaction only**
 
-                      This is the number of references there are to legacy attachments.
+                      This is the number of references there are to legacy attachments. 
                     type: string
                   purged_attachments:
                     description: |-
@@ -5464,7 +5408,7 @@ paths:
                       - mark
                       - sweep
                       - cleanup
-                required: &ref_121
+                required: &ref_120
                   - status
                   - start_time
                   - last_error
@@ -5545,6 +5489,30 @@ paths:
                     description: Unique server identifier.
                     type: string
                     example: 995618a6a6cc9ac79731bd13240e19b5
+                  scopes:
+                    description: Scopes that are used by the database.
+                    type: object
+                    example:
+                      scope1:
+                        collections:
+                          collection1:
+                            update_seq: 123456
+                          collection2:
+                            update_seq: 654321
+                    additionalProperties:
+                      description: The name of the scope.
+                      type: object
+                      properties:
+                        collections:
+                          description: The set of collections within the scope.
+                          additionalProperties:
+                            description: The name of the collection.
+                            type: object
+                            properties:
+                              update_seq:
+                                description: The last sequence number that was committed to the collection.
+                                type: integer
+                                example: 123456
         '404':
           description: Resource could not be found
           content: *ref_2
@@ -5717,7 +5685,7 @@ paths:
                   type: string
                 _exp:
                   description: |-
-                    Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiry values are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
+                    Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
 
                     As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.
                   type: string
@@ -5821,7 +5789,7 @@ paths:
             application/javascript:
               schema:
                 type: object
-                properties: &ref_122
+                properties: &ref_121
                   cmdline:
                     description: Built-in variables from the Go runtime, lists the command-line arguments
                     type: object
@@ -5911,72 +5879,42 @@ paths:
                             properties:
                               admin_net_bytes_recv:
                                 type: integer
-                                description: The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway api.admin_interface is bound.
                               admin_net_bytes_sent:
                                 type: integer
-                                description: The total number of bytes sent (since node start-up) on the network interface to which the Sync Gateway api.admin_interface is bound.
                               error_count:
                                 type: integer
-                                description: The total number of errors logged.
                               go_memstats_heapalloc:
                                 type: integer
-                                description: HeapAlloc is bytes of allocated heap objects. Allocated heap objects include all reachable objects, as well as unreachable objects that the garbage collector has not yet freed. Specifically, HeapAlloc increases as heap objects are allocated and decreases as the heap is swept and unreachable objects are freed. Sweeping occurs incrementally between GC cycles, so these two processes occur simultaneously, and as a result HeapAlloc tends to change smoothly (in contrast with the sawtooth that is typical of stop-the-world garbage collectors).
                               go_memstats_heapidle:
                                 type: integer
-                                description: HeapIdle is bytes in idle (unused) spans. Idle spans have no objects in them. These spans could be (and may already have been) returned to the OS, or they can be reused for heap allocations, or they can be reused as stack memory. HeapIdle minus HeapReleased estimates the amount of memory that could be returned to the OS, but is being retained by the runtime so it can grow the heap without requesting more memory from the OS. If this difference is significantly larger than the heap size, it indicates there was a recent transient spike in live heap size.
                               go_memstats_heapinuse:
                                 type: integer
-                                description: HeapInuse is bytes in in-use spans. In-use spans have at least one object in them. These spans an only be used for other objects of roughly the same size. HeapInuse minus HeapAlloc estimates the amount of memory that has been dedicated to particular size classes, but is not currently being used. This is an upper bound on fragmentation, but in general this memory can be reused efficiently.
                               go_memstats_heapreleased:
                                 type: integer
-                                description: HeapReleased is bytes of physical memory returned to the OS. This counts heap memory from idle spans that was returned to the OS and has not yet been reacquired for the heap.
                               go_memstats_pausetotalns:
                                 type: integer
-                                description: PauseTotalNs is the cumulative nanoseconds in GC stop-the-world pauses since the program started. During a stop-the-world pause, all goroutines are paused and only the garbage collector can run.
                               go_memstats_stackinuse:
                                 type: integer
-                                description: StackInuse is bytes in stack spans. In-use stack spans have at least one stack in them. These spans can only be used for other stacks of the same size. There is no StackIdle because unused stack spans are returned to the heap (and hence counted toward HeapIdle).
                               go_memstats_stacksys:
                                 type: integer
-                                description: StackSys is bytes of stack memory obtained from the OS. StackSys is StackInuse, plus any memory obtained directly from the OS for OS thread stacks (which should be minimal).
                               go_memstats_sys:
                                 type: integer
-                                description: Sys is the total bytes of memory obtained from the OS. Sys is the sum of the XSys fields below. Sys measures the virtual address space reserved by the Go runtime for the heap, stacks, and other internal data structures. It's likely that not all of the virtual address space is backed by physical memory at any given moment, though in general it all was at some point.
                               goroutines_high_watermark:
                                 type: integer
-                                description: Peak number of go routines since process start.
                               num_goroutines:
                                 type: integer
-                                description: The total number of goroutines.
-                              num_idle_kv_ops:
-                                type: integer
-                                description: The total number of idle kv operations.
                               process_cpu_percent_utilization:
-                                type: number
-                                format: float
-                                description: The CPU utilization as percentage value * 10. The extra 10 multiplier is a mistake left for backwards compatibility. Please consider using node_cpu_percent_utilization as of version 3.2. The CPU usage calculation is performed based on user and system CPU time, but it does not include components such as iowait. The derivation means that the values of process_cpu_percent_utilization and %Cpu, returned when running the top command, will differ.
-                              node_cpu_percent_utilization:
-                                type: number
-                                format: float
-                                description: The node CPU utilization as percentage value, since the last time this stat was called. The CPU usage calculation is performed based on user and system CPU time, but it does not include components such as iowait.
+                                type: integer
                               process_memory_resident:
                                 type: integer
-                                description: The memory utilization (Resident Set Size) for the process, in bytes.
                               pub_net_bytes_recv:
                                 type: integer
-                                description: The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway api.public_interface is bound. By default, that is the number of bytes received on 127.0.0.1:4984 since node start-up
                               pub_net_bytes_sent:
                                 type: integer
-                                description: The total number of bytes sent (since node start-up) on the network interface to which Sync Gateway api.public_interface is bound. By default, that is the number of bytes sent on 127.0.0.1:4984 since node start-up.
                               system_memory_total:
                                 type: integer
-                                description: The total memory available on the system in bytes.
                               warn_count:
                                 type: integer
-                                description: The total number of warnings logged.
-                              uptime:
-                                type: integer
-                                description: The total uptime.
                       per_db:
                         description: |-
                           This array contains stats for all databases declared in the config file -- see the [Sync Gateway Statistics Schema](./../stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
@@ -6065,7 +6003,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_123
+                properties: &ref_122
                   ADMIN:
                     description: '`true` if the request is from the Admin API - otherwise omitted.'
                     type: boolean
@@ -6102,7 +6040,7 @@ paths:
                       `true` if the sync gateway node is running in persistent config mode.
                     type: boolean
                     example: true
-                required: &ref_124
+                required: &ref_123
                   - couchdb
                   - vendor
       tags:
@@ -6715,7 +6653,7 @@ paths:
               schema:
                 description: Properties of a changes feed
                 type: object
-                properties: &ref_125
+                properties: &ref_124
                   results:
                     type: array
                     items:
@@ -7591,7 +7529,7 @@ paths:
       responses:
         '200':
           description: New revision created successfully
-          content: &ref_132
+          content: &ref_131
             application/json:
               schema:
                 description: Properties returned when a new document revision is created
@@ -8150,7 +8088,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_126
+                properties: &ref_125
                   id_token:
                     description: The OpenID Connect ID token
                     type: string
@@ -8389,12 +8327,12 @@ paths:
       responses:
         '200':
           description: Properties expected back from an OpenID Connect provider after successful authentication
-          content: &ref_133
+          content: &ref_132
             application/json:
               schema:
                 description: Properties expected back from an OpenID Connect provider after successful authentication
                 type: object
-                properties: &ref_127
+                properties: &ref_126
                   access_token:
                     type: string
                   token_type:
@@ -8551,12 +8489,12 @@ paths:
           schema: *ref_95
           description: The OpenID Connect authentication scope.
       requestBody:
-        content: &ref_134
+        content: &ref_133
           application/json:
             schema:
               description: Properties passed from the OpenID Connect mock login page to the handler
               type: object
-              properties: &ref_128
+              properties: &ref_127
                 username:
                   type: string
                 tokenttl:
@@ -8565,7 +8503,7 @@ paths:
                   type: string
                 authenticated:
                   type: string
-              required: &ref_129
+              required: &ref_128
                 - username
                 - tokenttl
                 - identity-token-formats
@@ -9081,7 +9019,7 @@ components:
       title: Log-rotation-config
     Console-logging-config:
       type: object
-      properties: *ref_36
+      properties: *ref_110
       title: Console-logging-config
     File-logging-config:
       type: object
@@ -9090,7 +9028,7 @@ components:
     Serverless:
       description: Configuration for when SG is running in serverless mode
       type: object
-      properties: *ref_110
+      properties: *ref_111
     CredentialsConfig:
       description: The configuration for the credentials set.
       type: object
@@ -9098,25 +9036,21 @@ components:
       title: Credentials config
     Startup-config:
       type: object
-      properties: *ref_111
+      properties: *ref_36
       title: Startup-config
-    Runtime-config:
-      type: object
-      properties: *ref_112
-      title: Runtime-config
     Status:
       type: object
-      properties: *ref_113
+      properties: *ref_112
       title: Status
     CollectionConfig:
       description: Collection-specific configuration.
       type: object
-      properties: *ref_114
+      properties: *ref_113
       title: Collection config
     Scopes:
       description: Scope-specific configuration.
       type: object
-      properties: *ref_115
+      properties: *ref_114
       title: Scopes
     Event-config:
       type: object
@@ -9136,24 +9070,24 @@ components:
     CollectionNames:
       description: List of collection names
       type: array
-      items: *ref_116
+      items: *ref_115
     ResyncScopesMap:
       description: scope name with one or more collection names for which resync will be triggered
       type: object
-      additionalProperties: *ref_117
+      additionalProperties: *ref_116
     All DBs:
       description: The names of all databases.
       type: array
-      items: *ref_118
+      items: *ref_117
     All DBs Verbose:
       description: Description of all databases.
       type: array
-      items: *ref_119
+      items: *ref_118
     Compact-status:
       description: The status returned from a compaction.
       type: object
-      properties: *ref_120
-      required: *ref_121
+      properties: *ref_119
+      required: *ref_120
       title: Compact-status
     Document:
       description: The configurable Sync Gateway properties of a document.
@@ -9168,33 +9102,33 @@ components:
       title: New-revision
     ExpVars:
       type: object
-      properties: *ref_122
+      properties: *ref_121
     NodeInfo:
       type: object
-      properties: *ref_123
-      required: *ref_124
+      properties: *ref_122
+      required: *ref_123
     Changes-feed:
       description: Properties of a changes feed
       type: object
-      properties: *ref_125
+      properties: *ref_124
     Design-doc:
       description: Properties of a design document
       type: object
       properties: *ref_63
     OIDC-callback:
       type: object
-      properties: *ref_126
+      properties: *ref_125
       title: OpenID Connect callback properties
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
       type: object
-      properties: *ref_127
+      properties: *ref_126
       title: OIDC-token
     OIDC-login-page-handler:
       description: Properties passed from the OpenID Connect mock login page to the handler
       type: object
-      properties: *ref_128
-      required: *ref_129
+      properties: *ref_127
+      required: *ref_128
   responses:
     User-session-information:
       description: Properties associated with a user session
@@ -9213,10 +9147,10 @@ components:
       content: *ref_14
     User:
       description: Properties associated with a user
-      content: *ref_130
+      content: *ref_129
     Role:
       description: Properties associated with a role
-      content: *ref_131
+      content: *ref_130
     Replicator-updated:
       description: Updated existing configuration successfully
     Replicator-created:
@@ -9254,7 +9188,7 @@ components:
       content: *ref_84
     New-revision:
       description: New revision created successfully
-      content: *ref_132
+      content: *ref_131
     OIDC-invalid-provider:
       description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
     OIDC-connection:
@@ -9272,7 +9206,7 @@ components:
       content: *ref_97
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
-      content: *ref_133
+      content: *ref_132
     OIDC-testing-redirect:
       description: Redirecting to Sync Gateway OpenID Connect callback URL
       headers: *ref_99
@@ -9289,5 +9223,5 @@ components:
     Profile:
       content: *ref_32
     OIDC-login-page-handler:
-      content: *ref_134
+      content: *ref_133
       description: Properties passed from the OpenID Connect mock login page to the handler

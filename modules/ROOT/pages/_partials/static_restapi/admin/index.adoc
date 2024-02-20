@@ -14,7 +14,7 @@ Sync Gateway manages access and synchronization between Couchbase Lite and Couch
 
 === Version information
 [%hardbreaks]
-__Version__ : 3.2.0
+__Version__ : 3.1.0
 
 === Host information
 [%hardbreaks]
@@ -26763,7 +26763,7 @@ a|
 [%hardbreaks]
 // end
 
-| xref:#++RuntimeConfig++[+RuntimeConfig+]
+| xref:#++StartupConfig++[+StartupConfig+]
 
 
 |===
@@ -31415,6 +31415,8 @@ endif::internal-generation[]
 :desc-Design-doc: Properties of a design document
 :desc-Document: The configurable Sync Gateway properties of a document.
 :desc-get___200_response_vendor: Product vendor
+:desc-get_db__200_response_scopes_value: The name of the scope.
+:desc-get_db__200_response_scopes_value_collections_value: The name of the collection.
 :desc-get_db__design_ddoc_200_response: Properties of a design document
 :desc-get_db__design_ddoc_200_response_views_value: The name of the view.
 :desc-get__expvar_200_response_syncgateway: Monitoring stats
@@ -31502,6 +31504,8 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+get__all_dbs_200_response+[GetAllDbs200Response]
 * xref:#+get__all_dbs_200_response_oneOf_inner+[GetAllDbs200ResponseOneOfInner]
 * xref:#+get_db__200_response+[GetDb200Response]
+* xref:#+get_db__200_response_scopes_value+[GetDb200ResponseScopesValue]
+* xref:#+get_db__200_response_scopes_value_collections_value+[GetDb200ResponseScopesValueCollectionsValue]
 * xref:#+get_db__design_ddoc_200_response+[GetDbDesignDdoc200Response]
 * xref:#+get_db__design_ddoc_200_response_options+[GetDbDesignDdoc200ResponseOptions]
 * xref:#+get_db__design_ddoc_200_response_views_value+[GetDbDesignDdoc200ResponseViewsValue]
@@ -31580,7 +31584,6 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+Retrieved-replication+[Replication]
 * xref:#+Role+[Role]
 * xref:#+Role_1+[Role]
-* xref:#+Runtime_config+[Runtime-config]
 * xref:#+Scopes+[Scopes]
 * xref:#+Serverless+[Serverless]
 * xref:#+Startup_config+[Startup-config]
@@ -31947,7 +31950,7 @@ a| *+marked_attachments+* +
 _optional_
 a| **Applicable to attachment compaction only**
 
-This is the number of references there are to legacy attachments.
+This is the number of references there are to legacy attachments. 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -32905,7 +32908,7 @@ endif::[]
 | Boolean
 
 
-a| *+send_www_authenticate_header+* +
+a| *+send_www_authentice_header+* +
 _optional_
 a| Controls whether to send a `WWW-Authenticate` header in `401 Unauthorized` HTTP responses.
 
@@ -33148,7 +33151,7 @@ endif::[]
 
 a| *+suspendable+* +
 _optional_
-a| Set to true to allow the database to be suspended.
+a| Set to true to allow the database to be suspended. 
 
 Defaults to true when running in serverless mode otherwise defaults to false.
 
@@ -33850,7 +33853,7 @@ endif::[]
 | Boolean
 
 
-a| *+send_www_authenticate_header+* +
+a| *+send_www_authentice_header+* +
 _optional_
 a| Controls whether to send a `WWW-Authenticate` header in `401 Unauthorized` HTTP responses.
 
@@ -34093,7 +34096,7 @@ endif::[]
 
 a| *+suspendable+* +
 _optional_
-a| Set to true to allow the database to be suspended.
+a| Set to true to allow the database to be suspended. 
 
 Defaults to true when running in serverless mode otherwise defaults to false.
 
@@ -34456,8 +34459,8 @@ _optional_
 a| Used to control whether Sync Gateway should use the all documents (*) channel.
 
 [%hardbreaks]
-ifeval::["true" != "null"]
-*Default:* `true`
+ifeval::["false" != "null"]
+*Default:* `false`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -36738,7 +36741,7 @@ endif::[]
 
 a| *+_exp+* +
 _optional_
-a| Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiry values are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
+a| Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
 
 As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.
 
@@ -37556,6 +37559,22 @@ endif::[]
 | String
 
 
+a| *+scopes+* +
+_optional_
+a| Scopes that are used by the database.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["{"scope1":{"collections":{"collection1":{"update_seq":123456},"collection2":{"update_seq":654321}}}}" != "null"]
+*Example:* `{"scope1":{"collections":{"collection1":{"update_seq":123456},"collection2":{"update_seq":654321}}}}`
+endif::[]
+// end
+| xref:#++get_db__200_response_scopes_value++[+get_db__200_response_scopes_value+]
+Map
+
+
 |===
 
 
@@ -37564,6 +37583,91 @@ endif::[]
 
 
 // markup not found, no include::{specDir}definitions/get_db__200_response/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value/definition-before.adoc[opts=optional]
+
+
+[#get_db__200_response_scopes_value]
+=== GetDb200ResponseScopesValue
+
+
+// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value/definition-begin.adoc[opts=optional]
+
+
+[#fields-get_db__200_response_scopes_value]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+a| *+collections+* +
+_optional_
+a| The set of collections within the scope.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++get_db__200_response_scopes_value_collections_value++[+get_db__200_response_scopes_value_collections_value+]
+Map
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value_collections_value/definition-before.adoc[opts=optional]
+
+
+[#get_db__200_response_scopes_value_collections_value]
+=== GetDb200ResponseScopesValueCollectionsValue
+
+
+// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value_collections_value/definition-begin.adoc[opts=optional]
+
+
+[#fields-get_db__200_response_scopes_value_collections_value]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+a| *+update_seq+* +
+_optional_
+a| The last sequence number that was committed to the collection.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["123456" != "null"]
+*Example:* `123456`
+endif::[]
+// end
+| Integer
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value_collections_value/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/get_db__200_response_scopes_value_collections_value/definition-after.adoc[opts=optional]
 
 
 
@@ -38975,7 +39079,7 @@ endif::[]
 
 a| *+admin_net_bytes_recv+* +
 _optional_
-a| The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway api.admin_interface is bound.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -38990,7 +39094,7 @@ endif::[]
 
 a| *+admin_net_bytes_sent+* +
 _optional_
-a| The total number of bytes sent (since node start-up) on the network interface to which the Sync Gateway api.admin_interface is bound.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39005,7 +39109,7 @@ endif::[]
 
 a| *+error_count+* +
 _optional_
-a| The total number of errors logged.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39020,7 +39124,7 @@ endif::[]
 
 a| *+go_memstats_heapalloc+* +
 _optional_
-a| HeapAlloc is bytes of allocated heap objects. Allocated heap objects include all reachable objects, as well as unreachable objects that the garbage collector has not yet freed. Specifically, HeapAlloc increases as heap objects are allocated and decreases as the heap is swept and unreachable objects are freed. Sweeping occurs incrementally between GC cycles, so these two processes occur simultaneously, and as a result HeapAlloc tends to change smoothly (in contrast with the sawtooth that is typical of stop-the-world garbage collectors).
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39035,7 +39139,7 @@ endif::[]
 
 a| *+go_memstats_heapidle+* +
 _optional_
-a| HeapIdle is bytes in idle (unused) spans. Idle spans have no objects in them. These spans could be (and may already have been) returned to the OS, or they can be reused for heap allocations, or they can be reused as stack memory. HeapIdle minus HeapReleased estimates the amount of memory that could be returned to the OS, but is being retained by the runtime so it can grow the heap without requesting more memory from the OS. If this difference is significantly larger than the heap size, it indicates there was a recent transient spike in live heap size.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39050,7 +39154,7 @@ endif::[]
 
 a| *+go_memstats_heapinuse+* +
 _optional_
-a| HeapInuse is bytes in in-use spans. In-use spans have at least one object in them. These spans an only be used for other objects of roughly the same size. HeapInuse minus HeapAlloc estimates the amount of memory that has been dedicated to particular size classes, but is not currently being used. This is an upper bound on fragmentation, but in general this memory can be reused efficiently.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39065,7 +39169,7 @@ endif::[]
 
 a| *+go_memstats_heapreleased+* +
 _optional_
-a| HeapReleased is bytes of physical memory returned to the OS. This counts heap memory from idle spans that was returned to the OS and has not yet been reacquired for the heap.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39080,7 +39184,7 @@ endif::[]
 
 a| *+go_memstats_pausetotalns+* +
 _optional_
-a| PauseTotalNs is the cumulative nanoseconds in GC stop-the-world pauses since the program started. During a stop-the-world pause, all goroutines are paused and only the garbage collector can run.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39095,7 +39199,7 @@ endif::[]
 
 a| *+go_memstats_stackinuse+* +
 _optional_
-a| StackInuse is bytes in stack spans. In-use stack spans have at least one stack in them. These spans can only be used for other stacks of the same size. There is no StackIdle because unused stack spans are returned to the heap (and hence counted toward HeapIdle).
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39110,7 +39214,7 @@ endif::[]
 
 a| *+go_memstats_stacksys+* +
 _optional_
-a| StackSys is bytes of stack memory obtained from the OS. StackSys is StackInuse, plus any memory obtained directly from the OS for OS thread stacks (which should be minimal).
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39125,7 +39229,7 @@ endif::[]
 
 a| *+go_memstats_sys+* +
 _optional_
-a| Sys is the total bytes of memory obtained from the OS. Sys is the sum of the XSys fields below. Sys measures the virtual address space reserved by the Go runtime for the heap, stacks, and other internal data structures. It's likely that not all of the virtual address space is backed by physical memory at any given moment, though in general it all was at some point.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39140,7 +39244,7 @@ endif::[]
 
 a| *+goroutines_high_watermark+* +
 _optional_
-a| Peak number of go routines since process start.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39155,22 +39259,7 @@ endif::[]
 
 a| *+num_goroutines+* +
 _optional_
-a| The total number of goroutines.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Integer
-
-
-a| *+num_idle_kv_ops+* +
-_optional_
-a| The total number of idle kv operations.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39185,7 +39274,7 @@ endif::[]
 
 a| *+process_cpu_percent_utilization+* +
 _optional_
-a| The CPU utilization as percentage value * 10. The extra 10 multiplier is a mistake left for backwards compatibility. Please consider using node_cpu_percent_utilization as of version 3.2. The CPU usage calculation is performed based on user and system CPU time, but it does not include components such as iowait. The derivation means that the values of process_cpu_percent_utilization and %Cpu, returned when running the top command, will differ.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39195,27 +39284,12 @@ ifeval::["null" != "null"]
 *Example:* `null`
 endif::[]
 // end
-| Float (float)
-
-
-a| *+node_cpu_percent_utilization+* +
-_optional_
-a| The node CPU utilization as percentage value, since the last time this stat was called. The CPU usage calculation is performed based on user and system CPU time, but it does not include components such as iowait.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Float (float)
+| Integer
 
 
 a| *+process_memory_resident+* +
 _optional_
-a| The memory utilization (Resident Set Size) for the process, in bytes.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39230,7 +39304,7 @@ endif::[]
 
 a| *+pub_net_bytes_recv+* +
 _optional_
-a| The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway api.public_interface is bound. By default, that is the number of bytes received on 127.0.0.1:4984 since node start-up
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39245,7 +39319,7 @@ endif::[]
 
 a| *+pub_net_bytes_sent+* +
 _optional_
-a| The total number of bytes sent (since node start-up) on the network interface to which Sync Gateway api.public_interface is bound. By default, that is the number of bytes sent on 127.0.0.1:4984 since node start-up.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39260,7 +39334,7 @@ endif::[]
 
 a| *+system_memory_total+* +
 _optional_
-a| The total memory available on the system in bytes.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -39275,22 +39349,7 @@ endif::[]
 
 a| *+warn_count+* +
 _optional_
-a| The total number of warnings logged.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Integer
-
-
-a| *+uptime+* +
-_optional_
-a| The total uptime.
+a| 
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -40603,8 +40662,8 @@ _optional_
 a| The maximum size in MB of the log file before it gets rotated.
 
 [%hardbreaks]
-ifeval::["100" != "null"]
-*Default:* `100`
+ifeval::["null" != "null"]
+*Default:* `null`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -40615,7 +40674,7 @@ endif::[]
 
 a| *+max_age+* +
 _optional_
-a| The maximum number of days to retain old log files. The defaults for this value are 360 days for error, 180 days for warn, 6 days for info, 2 days for debug, and 2 days for trace logs.
+a| The maximum number of days to retain old log files.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -40633,8 +40692,8 @@ _optional_
 a| If true, it uses the computer's local time to format the backup timestamp.
 
 [%hardbreaks]
-ifeval::["false" != "null"]
-*Default:* `false`
+ifeval::["null" != "null"]
+*Default:* `null`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -40643,13 +40702,13 @@ endif::[]
 | Boolean
 
 
-a| *+rotated_logs_size_limit+* +
+a| *+rotated_logs_size+* +
 _optional_
 a| Max Size (in mb) of log files before deletion
 
 [%hardbreaks]
-ifeval::["1024" != "null"]
-*Default:* `1024`
+ifeval::["null" != "null"]
+*Default:* `null`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -40690,8 +40749,8 @@ _optional_
 a| The maximum size in MB of the log file before it gets rotated.
 
 [%hardbreaks]
-ifeval::["100" != "null"]
-*Default:* `100`
+ifeval::["null" != "null"]
+*Default:* `null`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -40702,7 +40761,7 @@ endif::[]
 
 a| *+max_age+* +
 _optional_
-a| The maximum number of days to retain old log files. The defaults for this value are 360 days for error, 180 days for warn, 6 days for info, 2 days for debug, and 2 days for trace logs.
+a| The maximum number of days to retain old log files.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -40720,8 +40779,8 @@ _optional_
 a| If true, it uses the computer's local time to format the backup timestamp.
 
 [%hardbreaks]
-ifeval::["false" != "null"]
-*Default:* `false`
+ifeval::["null" != "null"]
+*Default:* `null`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -40730,13 +40789,13 @@ endif::[]
 | Boolean
 
 
-a| *+rotated_logs_size_limit+* +
+a| *+rotated_logs_size+* +
 _optional_
 a| Max Size (in mb) of log files before deletion
 
 [%hardbreaks]
-ifeval::["1024" != "null"]
-*Default:* `1024`
+ifeval::["null" != "null"]
+*Default:* `null`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -42607,7 +42666,7 @@ endif::[]
 
 a| *+_exp+* +
 _optional_
-a| Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiry values are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
+a| Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
 
 As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.
 
@@ -43503,7 +43562,7 @@ Changing this is an enterprise-edition only feature.
 
 **Behaviour**
 * *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
+  - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
   - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
 * *localWins* - This will result in local revisions always being the winner in any conflict.
 * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
@@ -43979,7 +44038,7 @@ Changing this is an enterprise-edition only feature.
 
 **Behaviour**
 * *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
+  - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
   - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
 * *localWins* - This will result in local revisions always being the winner in any conflict.
 * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
@@ -44890,7 +44949,7 @@ Changing this is an enterprise-edition only feature.
 
 **Behaviour**
 * *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
+  - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
   - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
 * *localWins* - This will result in local revisions always being the winner in any conflict.
 * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
@@ -45422,66 +45481,6 @@ Map
 
 
 
-// markup not found, no include::{specDir}definitions/Runtime_config/definition-before.adoc[opts=optional]
-
-
-[#Runtime_config]
-=== Runtime-config
-
-
-// markup not found, no include::{specDir}definitions/Runtime_config/definition-begin.adoc[opts=optional]
-
-
-[#fields-Runtime_config]
-[cols="1,4,1"]
-|===
-| Name| Description| Schema
-
-a| *+logging+* +
-_optional_
-a| 
-ifdef::desc-Startup_config_logging[]
-{desc-Startup_config_logging}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Startup_config_logging++[+Startup_config_logging+]
-
-
-a| *+max_concurrent_replications+* +
-_optional_
-a| Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
-
-[%hardbreaks]
-ifeval::["0" != "null"]
-*Default:* `0`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Integer
-
-
-|===
-
-
-// markup not found, no include::{specDir}definitions/Runtime_config/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Runtime_config/definition-after.adoc[opts=optional]
-
-
-
-
 // markup not found, no include::{specDir}definitions/Scopes/definition-before.adoc[opts=optional]
 
 
@@ -45557,7 +45556,7 @@ endif::[]
 
 a| *+min_config_fetch_interval+* +
 _optional_
-a| How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about.
+a| How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about. 
 
 This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
 
@@ -45829,7 +45828,7 @@ endif::[]
 | String
 
 
-a| *+metrics_interface+* +
+a| *+metric_interface+* +
 _optional_
 a| Network interface to bind metrics API to.
 
@@ -46876,21 +46875,6 @@ endif::[]
 | Integer
 
 
-a| *+max_concurrent_replications+* +
-_optional_
-a| Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Integer
-
-
 |===
 
 
@@ -47087,7 +47071,7 @@ endif::[]
 
 a| *+min_config_fetch_interval+* +
 _optional_
-a| How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about.
+a| How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about. 
 
 This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
 
@@ -48281,7 +48265,7 @@ Changing this is an enterprise-edition only feature.
 
 **Behaviour**
 * *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
+  - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
   - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
 * *localWins* - This will result in local revisions always being the winner in any conflict.
 * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
