@@ -19,9 +19,39 @@ servers:
       hostname:
         description: The hostname to use
         default: localhost
+tags:
+  - name: Prometheus
+    description: Endpoints for use with Prometheus
+externalDocs:
+  description: Sync Gateway Quickstart | Couchbase Docs
+  url: https://docs.couchbase.com/sync-gateway/current/index.html
 paths:
-  /_metrics:
+  /_ping:
     get:
+      summary: Check if API is available
+      description: Returns OK status if API is available.
+      responses:
+        '200':
+          description: Returned status
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: OK
+      tags:
+        - Server
+      operationId: get__ping
+    head:
+      responses:
+        '200':
+          description: Server is available
+      tags:
+        - Server
+      summary: Check if API is available
+      description: Returns OK status if API is available.
+      operationId: head__ping
+  /_metrics:
+    get: &ref_0
       summary: Debugging/monitoring runtime stats in Prometheus Exposition format
       description: |-
         Returns Sync Gateway statistics and other runtime variables in Prometheus Exposition format.
@@ -40,7 +70,9 @@ paths:
                 type: string
       tags:
         - Prometheus
-      operationId: get__metrics
+      operationId: get_metrics
+  /metrics:
+    get: *ref_0
   /_expvar:
     get:
       summary: Get all Sync Gateway statistics
@@ -61,7 +93,7 @@ paths:
             application/javascript:
               schema:
                 type: object
-                properties: &ref_0
+                properties: &ref_1
                   cmdline:
                     description: Built-in variables from the Go runtime, lists the command-line arguments
                     type: object
@@ -262,14 +294,8 @@ paths:
                                   type: integer
                         deprecated: true
       operationId: get__expvar
-tags:
-  - name: Prometheus
-    description: Endpoints for use with Prometheus
-externalDocs:
-  description: Sync Gateway Quickstart | Couchbase Docs
-  url: https://docs.couchbase.com/sync-gateway/current/index.html
 components:
   schemas:
     ExpVars:
       type: object
-      properties: *ref_0
+      properties: *ref_1

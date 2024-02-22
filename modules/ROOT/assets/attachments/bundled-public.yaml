@@ -19,6 +19,26 @@ servers:
       hostname:
         description: The hostname to use
         default: localhost
+tags:
+  - name: Server
+    description: Manage server activities
+  - name: Database Management
+    description: Create and manage Sync Gateway databases
+  - name: Session
+    description: Manage user sessions
+  - name: Authentication
+    description: Manage OpenID Connect Authentication
+  - name: Document
+    description: Create and manage documents
+  - name: Document Attachment
+    description: Create and manage document attachments
+  - name: Replication
+    description: Create and manage inter-Sync Gateway replications
+  - name: Unsupported
+    description: Endpoints that are not supported by Sync Gateway
+externalDocs:
+  description: Sync Gateway Quickstart | Couchbase Docs
+  url: https://docs.couchbase.com/sync-gateway/current/index.html
 paths:
   /{db}/_session:
     parameters:
@@ -362,6 +382,30 @@ paths:
       summary: Check if server online
       description: Check if the server is online by checking the status code of response.
       operationId: head_-
+  /_ping:
+    get:
+      summary: Check if API is available
+      description: Returns OK status if API is available.
+      responses:
+        '200':
+          description: Returned status
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: OK
+      tags:
+        - Server
+      operationId: get__ping
+    head:
+      responses:
+        '200':
+          description: Server is available
+      tags:
+        - Server
+      summary: Check if API is available
+      description: Returns OK status if API is available.
+      operationId: head__ping
   /{keyspace}/:
     parameters:
       - name: keyspace
@@ -2881,26 +2925,6 @@ paths:
       tags:
         - Replication
       operationId: get_db-_blipsync
-tags:
-  - name: Server
-    description: Manage server activities
-  - name: Database Management
-    description: Create and manage Sync Gateway databases
-  - name: Session
-    description: Manage user sessions
-  - name: Authentication
-    description: Manage OpenID Connect Authentication
-  - name: Document
-    description: Create and manage documents
-  - name: Document Attachment
-    description: Create and manage document attachments
-  - name: Replication
-    description: Create and manage inter-Sync Gateway replications
-  - name: Unsupported
-    description: Endpoints that are not supported by Sync Gateway
-externalDocs:
-  description: Sync Gateway Quickstart | Couchbase Docs
-  url: https://docs.couchbase.com/sync-gateway/current/index.html
 components:
   parameters:
     db:

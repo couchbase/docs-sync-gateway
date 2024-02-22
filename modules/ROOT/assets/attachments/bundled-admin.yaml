@@ -19,6 +19,34 @@ servers:
       hostname:
         description: The hostname to use
         default: localhost
+tags:
+  - name: Authentication
+    description: Manage authentication
+  - name: Server
+    description: Manage server activities
+  - name: Database Management
+    description: Create and manage Sync Gateway databases
+  - name: Database Configuration
+    description: Configure Sync Gateway databases
+  - name: Database Security
+    description: Create and manage database users and roles
+  - name: Session
+    description: Manage user sessions
+  - name: OpenID Connect
+    description: Manage OpenID Connect
+  - name: Document
+    description: Create and manage documents and attachments
+  - name: Replication
+    description: Create and manage inter-Sync Gateway replications
+  - name: Metrics
+    description: Get Sync Gateway statistics
+  - name: Profiling
+    description: Generate information to help debug and fine-tune Sync Gateway
+  - name: Unsupported
+    description: Endpoints that are not supported by Sync Gateway
+externalDocs:
+  description: Sync Gateway Quickstart | Couchbase Docs
+  url: https://docs.couchbase.com/sync-gateway/current/index.html
 paths:
   /{db}/_session:
     parameters:
@@ -655,7 +683,7 @@ paths:
       responses:
         '200':
           description: Properties associated with a user
-          content: &ref_128
+          content: &ref_129
             application/json:
               schema:
                 description: Properties associated with a user
@@ -951,7 +979,7 @@ paths:
       responses:
         '200':
           description: Properties associated with a role
-          content: &ref_129
+          content: &ref_130
             application/json:
               schema:
                 description: Properties associated with a role
@@ -2219,7 +2247,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_111
+                properties: &ref_36
                   bootstrap:
                     description: Configuration settings for interacting with Couchbase Server.
                     type: object
@@ -2400,7 +2428,7 @@ paths:
                         readOnly: true
                       console:
                         type: object
-                        properties: &ref_36
+                        properties: &ref_110
                           log_level:
                             description: Log Level for the console output
                             type: string
@@ -2511,9 +2539,6 @@ paths:
                         type: integer
                         maximum: 9
                         minimum: 0
-                      max_concurrent_replications:
-                        description: Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
-                        type: integer
                     readOnly: true
                   unsupported:
                     description: Settings that are not officially supported. It is highly recommended these are **not** used.
@@ -2522,7 +2547,7 @@ paths:
                       serverless:
                         description: Configuration for when SG is running in serverless mode
                         type: object
-                        properties: &ref_110
+                        properties: &ref_111
                           enabled:
                             description: Run SG in to serverless mode
                             type: boolean
@@ -2620,58 +2645,8 @@ paths:
           application/json:
             schema:
               type: object
-              properties: &ref_112
-                logging:
-                  description: The configuration settings for modifying Sync Gateway logging.
-                  type: object
-                  properties:
-                    log_file_path:
-                      description: Absolute or relative path on the filesystem to the log file directory. A relative path is from the directory that contains the Sync Gateway executable file.
-                      type: string
-                      readOnly: true
-                    redaction_level:
-                      description: Redaction level to apply to log output.
-                      type: string
-                      default: partial
-                      enum:
-                        - none
-                        - partial
-                        - full
-                        - unset
-                      readOnly: true
-                    console:
-                      type: object
-                      properties: *ref_36
-                      title: Console-logging-config
-                    error:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                    warn:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                    info:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                    debug:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                    trace:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                    stats:
-                      type: object
-                      properties: *ref_34
-                      title: File-logging-config
-                max_concurrent_replications:
-                  description: Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
-                  type: integer
-                  default: 0
-              title: Runtime-config
+              properties: *ref_36
+              title: Startup-config
       responses:
         '200':
           description: Successfully set runtime options
@@ -2697,7 +2672,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_113
+                properties: &ref_112
                   databases:
                     description: Contains a map of all the databases in the node along with their status.
                     type: object
@@ -2718,6 +2693,9 @@ paths:
                           enum:
                             - Online
                             - Offline
+                            - Starting
+                            - Stopping
+                            - Resyncing
                         replication_status:
                           type: array
                           items:
@@ -3489,7 +3467,7 @@ paths:
                       x-additionalPropertiesName: scopename
                       description: Scope-specific configuration.
                       type: object
-                      properties: &ref_115
+                      properties: &ref_114
                         collections:
                           description: An object keyed by collection name containing config for the specific collection.
                           type: object
@@ -3497,7 +3475,7 @@ paths:
                             x-additionalPropertiesName: collectionname
                             description: Collection-specific configuration.
                             type: object
-                            properties: &ref_114
+                            properties: &ref_113
                               sync:
                                 description: The Javascript function that newly created documents in this collection are ran through.
                                 type: string
@@ -3679,7 +3657,7 @@ paths:
                           enable_star_channel:
                             description: Used to control whether Sync Gateway should use the all documents (*) channel.
                             type: boolean
-                            default: true
+                            default: false
                           max_length:
                             description: The maximum number of entries to maintain in the cache per channel.
                             type: integer
@@ -4167,6 +4145,34 @@ paths:
                         type: array
                         items:
                           type: string
+                  logging:
+                    description: Per-database logging configuration.
+                    type: object
+                    properties:
+                      console:
+                        description: Console logging configuration.
+                        type: object
+                        properties:
+                          log_level:
+                            description: Log Level for the console output
+                            type: string
+                            enum:
+                              - none
+                              - error
+                              - warn
+                              - info
+                              - debug
+                              - trace
+                            example: debug
+                          log_keys:
+                            description: Log Keys for the console output
+                            type: array
+                            items:
+                              type: string
+                            example:
+                              - CRUD
+                              - HTTP
+                              - Query
                 title: Database-config
         '404':
           description: Resource could not be found
@@ -4634,6 +4640,12 @@ paths:
           description: '**Use this only when requested to do so by the Couchbase support team** This request will regenerate the sequence numbers for each document processed.'
           schema:
             type: boolean
+        - name: reset
+          in: query
+          description: This forces a fresh resync run instead of trying to resume the previous resync operation
+          schema:
+            type: boolean
+            default: false
       requestBody:
         content:
           application/json:
@@ -4643,10 +4655,10 @@ paths:
                 scopes:
                   description: This controls for which collections resync will run
                   type: object
-                  additionalProperties: &ref_117
+                  additionalProperties: &ref_116
                     description: List of collection names
                     type: array
-                    items: &ref_116
+                    items: &ref_115
                       type: string
                 regenerate_sequences:
                   description: This can be used as an alternative to query param `regenerate_sequences`. If either query param or this is set to true, then the request will regenerate the sequence numbers for each document processed.
@@ -5195,35 +5207,50 @@ paths:
     get:
       summary: Get a list of all the databases
       description: |-
-        This retrieves all the database's names that are in the current Sync Gateway node.
+        This retrieves all the databases that are in the current Sync Gateway node. If verbose, returns bucket and state information for each database, otherwise returns names only.
 
         Required Sync Gateway RBAC roles:
 
         * Sync Gateway Dev Ops
+      parameters:
+        - name: verbose
+          in: query
+          schema:
+            type: boolean
       responses:
         '200':
           description: Successfully retrieved all database names
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
+                oneOf:
+                  - description: The names of all databases.
+                    type: array
+                    items: &ref_117
+                      type: string
+                  - description: Description of all databases.
+                    type: array
+                    items: &ref_118
+                      type: object
+                      properties:
+                        db_name:
+                          type: string
+                          description: The name of the database.
+                        bucket:
+                          type: string
+                          description: The Couchbase Server backing bucket for the database.
+                        state:
+                          description: The database state.
+                          type: string
+                          enum:
+                            - Online
+                            - Offline
+                            - Starting
+                            - Stopping
+                            - Resyncing
       tags:
         - Database Management
       operationId: get__all_dbs
-    head:
-      summary: /_all_dbs
-      description: |-
-        Required Sync Gateway RBAC roles:
-
-        * Sync Gateway Dev Ops
-      responses:
-        '200':
-          description: OK
-      tags:
-        - Database Management
-      operationId: head__all_dbs
   /{db}/_compact:
     parameters:
       - name: db
@@ -5331,7 +5358,7 @@ paths:
               schema:
                 description: The status returned from a compaction.
                 type: object
-                properties: &ref_118
+                properties: &ref_119
                   status:
                     description: The status of the current operation.
                     type: string
@@ -5381,7 +5408,7 @@ paths:
                       - mark
                       - sweep
                       - cleanup
-                required: &ref_119
+                required: &ref_120
                   - status
                   - start_time
                   - last_error
@@ -5762,7 +5789,7 @@ paths:
             application/javascript:
               schema:
                 type: object
-                properties: &ref_120
+                properties: &ref_121
                   cmdline:
                     description: Built-in variables from the Go runtime, lists the command-line arguments
                     type: object
@@ -5976,7 +6003,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_121
+                properties: &ref_122
                   ADMIN:
                     description: '`true` if the request is from the Admin API - otherwise omitted.'
                     type: boolean
@@ -6013,7 +6040,7 @@ paths:
                       `true` if the sync gateway node is running in persistent config mode.
                     type: boolean
                     example: true
-                required: &ref_122
+                required: &ref_123
                   - couchdb
                   - vendor
       tags:
@@ -6028,6 +6055,30 @@ paths:
       summary: Check if server online
       description: Check if the server is online by checking the status code of response.
       operationId: head_-
+  /_ping:
+    get:
+      summary: Check if API is available
+      description: Returns OK status if API is available.
+      responses:
+        '200':
+          description: Returned status
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: OK
+      tags:
+        - Server
+      operationId: get__ping
+    head:
+      responses:
+        '200':
+          description: Server is available
+      tags:
+        - Server
+      summary: Check if API is available
+      description: Returns OK status if API is available.
+      operationId: head__ping
   /{keyspace}/_all_docs:
     parameters:
       - name: keyspace
@@ -6602,7 +6653,7 @@ paths:
               schema:
                 description: Properties of a changes feed
                 type: object
-                properties: &ref_123
+                properties: &ref_124
                   results:
                     type: array
                     items:
@@ -7478,7 +7529,7 @@ paths:
       responses:
         '200':
           description: New revision created successfully
-          content: &ref_130
+          content: &ref_131
             application/json:
               schema:
                 description: Properties returned when a new document revision is created
@@ -8037,7 +8088,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_124
+                properties: &ref_125
                   id_token:
                     description: The OpenID Connect ID token
                     type: string
@@ -8276,12 +8327,12 @@ paths:
       responses:
         '200':
           description: Properties expected back from an OpenID Connect provider after successful authentication
-          content: &ref_131
+          content: &ref_132
             application/json:
               schema:
                 description: Properties expected back from an OpenID Connect provider after successful authentication
                 type: object
-                properties: &ref_125
+                properties: &ref_126
                   access_token:
                     type: string
                   token_type:
@@ -8438,12 +8489,12 @@ paths:
           schema: *ref_95
           description: The OpenID Connect authentication scope.
       requestBody:
-        content: &ref_132
+        content: &ref_133
           application/json:
             schema:
               description: Properties passed from the OpenID Connect mock login page to the handler
               type: object
-              properties: &ref_126
+              properties: &ref_127
                 username:
                   type: string
                 tokenttl:
@@ -8452,7 +8503,7 @@ paths:
                   type: string
                 authenticated:
                   type: string
-              required: &ref_127
+              required: &ref_128
                 - username
                 - tokenttl
                 - identity-token-formats
@@ -8517,34 +8568,6 @@ paths:
       tags:
         - Replication
       operationId: get_db-_blipsync
-tags:
-  - name: Authentication
-    description: Manage authentication
-  - name: Server
-    description: Manage server activities
-  - name: Database Management
-    description: Create and manage Sync Gateway databases
-  - name: Database Configuration
-    description: Configure Sync Gateway databases
-  - name: Database Security
-    description: Create and manage database users and roles
-  - name: Session
-    description: Manage user sessions
-  - name: OpenID Connect
-    description: Manage OpenID Connect
-  - name: Document
-    description: Create and manage documents and attachments
-  - name: Replication
-    description: Create and manage inter-Sync Gateway replications
-  - name: Metrics
-    description: Get Sync Gateway statistics
-  - name: Profiling
-    description: Generate information to help debug and fine-tune Sync Gateway
-  - name: Unsupported
-    description: Endpoints that are not supported by Sync Gateway
-externalDocs:
-  description: Sync Gateway Quickstart | Couchbase Docs
-  url: https://docs.couchbase.com/sync-gateway/current/index.html
 components:
   parameters:
     db:
@@ -8996,7 +9019,7 @@ components:
       title: Log-rotation-config
     Console-logging-config:
       type: object
-      properties: *ref_36
+      properties: *ref_110
       title: Console-logging-config
     File-logging-config:
       type: object
@@ -9005,7 +9028,7 @@ components:
     Serverless:
       description: Configuration for when SG is running in serverless mode
       type: object
-      properties: *ref_110
+      properties: *ref_111
     CredentialsConfig:
       description: The configuration for the credentials set.
       type: object
@@ -9013,25 +9036,21 @@ components:
       title: Credentials config
     Startup-config:
       type: object
-      properties: *ref_111
+      properties: *ref_36
       title: Startup-config
-    Runtime-config:
-      type: object
-      properties: *ref_112
-      title: Runtime-config
     Status:
       type: object
-      properties: *ref_113
+      properties: *ref_112
       title: Status
     CollectionConfig:
       description: Collection-specific configuration.
       type: object
-      properties: *ref_114
+      properties: *ref_113
       title: Collection config
     Scopes:
       description: Scope-specific configuration.
       type: object
-      properties: *ref_115
+      properties: *ref_114
       title: Scopes
     Event-config:
       type: object
@@ -9051,16 +9070,24 @@ components:
     CollectionNames:
       description: List of collection names
       type: array
-      items: *ref_116
+      items: *ref_115
     ResyncScopesMap:
       description: scope name with one or more collection names for which resync will be triggered
       type: object
-      additionalProperties: *ref_117
+      additionalProperties: *ref_116
+    All DBs:
+      description: The names of all databases.
+      type: array
+      items: *ref_117
+    All DBs Verbose:
+      description: Description of all databases.
+      type: array
+      items: *ref_118
     Compact-status:
       description: The status returned from a compaction.
       type: object
-      properties: *ref_118
-      required: *ref_119
+      properties: *ref_119
+      required: *ref_120
       title: Compact-status
     Document:
       description: The configurable Sync Gateway properties of a document.
@@ -9075,33 +9102,33 @@ components:
       title: New-revision
     ExpVars:
       type: object
-      properties: *ref_120
+      properties: *ref_121
     NodeInfo:
       type: object
-      properties: *ref_121
-      required: *ref_122
+      properties: *ref_122
+      required: *ref_123
     Changes-feed:
       description: Properties of a changes feed
       type: object
-      properties: *ref_123
+      properties: *ref_124
     Design-doc:
       description: Properties of a design document
       type: object
       properties: *ref_63
     OIDC-callback:
       type: object
-      properties: *ref_124
+      properties: *ref_125
       title: OpenID Connect callback properties
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
       type: object
-      properties: *ref_125
+      properties: *ref_126
       title: OIDC-token
     OIDC-login-page-handler:
       description: Properties passed from the OpenID Connect mock login page to the handler
       type: object
-      properties: *ref_126
-      required: *ref_127
+      properties: *ref_127
+      required: *ref_128
   responses:
     User-session-information:
       description: Properties associated with a user session
@@ -9120,10 +9147,10 @@ components:
       content: *ref_14
     User:
       description: Properties associated with a user
-      content: *ref_128
+      content: *ref_129
     Role:
       description: Properties associated with a role
-      content: *ref_129
+      content: *ref_130
     Replicator-updated:
       description: Updated existing configuration successfully
     Replicator-created:
@@ -9161,7 +9188,7 @@ components:
       content: *ref_84
     New-revision:
       description: New revision created successfully
-      content: *ref_130
+      content: *ref_131
     OIDC-invalid-provider:
       description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
     OIDC-connection:
@@ -9179,7 +9206,7 @@ components:
       content: *ref_97
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
-      content: *ref_131
+      content: *ref_132
     OIDC-testing-redirect:
       description: Redirecting to Sync Gateway OpenID Connect callback URL
       headers: *ref_99
@@ -9196,5 +9223,5 @@ components:
     Profile:
       content: *ref_32
     OIDC-login-page-handler:
-      content: *ref_132
+      content: *ref_133
       description: Properties passed from the OpenID Connect mock login page to the handler

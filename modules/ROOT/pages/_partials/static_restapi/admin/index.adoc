@@ -5158,7 +5158,6 @@ Create and manage Sync Gateway databases
 * xref:#+get_db-_compact+[Get the status of the most recent compact operation]
 * xref:#+get_db-_resync+[Get resync status]
 * xref:#+get_keyspace-_changes+[Get changes list]
-* xref:#+head__all_dbs+[/_all_dbs]
 * xref:#+head_db-+[Check if database exists]
 * xref:#+head_keyspace-_changes+[/{db}/_changes]
 * xref:#+post_db-_compact+[Manage a compact operation]
@@ -5386,7 +5385,7 @@ GET /_all_dbs
 
 [markdown]
 --
-This retrieves all the database's names that are in the current Sync Gateway node.
+This retrieves all the databases that are in the current Sync Gateway node. If verbose, returns bucket and state information for each database, otherwise returns names only.
 
 Required Sync Gateway RBAC roles:
 
@@ -5406,11 +5405,43 @@ Required Sync Gateway RBAC roles:
 // markup not found, no include::{specDir}paths/get__all_dbs/operation-parameters-before.adoc[opts=optional]
 
 
+===== Parameters
+// tag::get__all_dbs-parameters[]
+
+
+// markup not found, no include::{specDir}paths/get__all_dbs/operation-parameters-begin.adoc[opts=optional]
 
 
 
 
 
+
+====== Query Parameters
+
+[cols="2,3,1"]
+|===
+|Name| Description| Schema
+
+a| 
+*verbose* +
+_optional_
+a| 
+[markdown]
+--
+
+
+--
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+// end
+
+| Boolean
+
+
+|===
 
 
 // markup not found, no include::{specDir}paths/get__all_dbs/operation-parameters-end.adoc[opts=optional]
@@ -5446,7 +5477,7 @@ Required Sync Gateway RBAC roles:
 
 | 200
 a| Successfully retrieved all database names
-| List
+| xref:#++get__all_dbs_200_response++[+get__all_dbs_200_response+]
 
 
 |===
@@ -6516,143 +6547,6 @@ endif::internal-generation[]
 
 
 // markup not found, no include::{specDir}paths/get_keyspace-_changes/operation-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-before.adoc[opts=optional]
-
-
-[#head__all_dbs]
-==== /_all_dbs
-....
-HEAD /_all_dbs
-....
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-begin.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-description-before.adoc[opts=optional]
-
-
-[#head__all_dbs-description]
-===== Description
-
-// tag::head__all_dbs-description[]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-description-begin.adoc[opts=optional]
-
-
-[markdown]
---
-Required Sync Gateway RBAC roles:
-
-* Sync Gateway Dev Ops
---
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-description-end.adoc[opts=optional]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-description-after.adoc[opts=optional]
-
-
-// end::head__all_dbs-description[]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-parameters-before.adoc[opts=optional]
-
-
-
-
-
-
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-parameters-end.adoc[opts=optional]
-
-// end::head__all_dbs-parameters[]
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-parameters-after.adoc[opts=optional]
-
-
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-responses-before.adoc[opts=optional]
-
-
-[#head__all_dbs-responses]
-===== Responses
-
-// tag::head__all_dbs-responses[]
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-responses-begin.adoc[opts=optional]
-
-
-[cols="1,3,1"]
-|===
-| HTTP Code | Description | Schema
-
-| 200
-a| OK
-| 
-
-
-|===
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-responses-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-responses-after.adoc[opts=optional]
-
-// end::head__all_dbs-responses[]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-security-before.adoc[opts=optional]
-
-
-
-
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-security-after.adoc[opts=optional]
-
-
-:leveloffset: +4
-
-// markup not found, no include::{snippetDir}head__all_dbs/http-request.adoc[opts=optional]
-
-
-// markup not found, no include::{snippetDir}head__all_dbs/http-response.adoc[opts=optional]
-
-:leveloffset: -4
-
-
-// file not found, no * wiremock data link :_all_dbs/HEAD/HEAD.json[]
-
-
-ifdef::internal-generation[]
-===== Implementation
-
-// markup not found, no include::{specDir}_all_dbs/HEAD/implementation.adoc[opts=optional]
-
-
-endif::internal-generation[]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-end.adoc[opts=optional]
-
-
-// markup not found, no include::{specDir}paths/head__all_dbs/operation-after.adoc[opts=optional]
 
 
 
@@ -8053,6 +7947,25 @@ endif::[]
 | Boolean
 
 
+a| 
+*reset* +
+_optional_
+a| 
+[markdown]
+--
+This forces a fresh resync run instead of trying to resume the previous resync operation
+
+--
+
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+// end
+
+| Boolean
+
+
 |===
 
 
@@ -9355,7 +9268,6 @@ Indicates that roles marked as deleted should be included in the result.
 --
 
 [%hardbreaks]
-*Values:* `true`, `false`
 ifeval::["false" != "null"]
 *Default:* `false`
 endif::[]
@@ -15525,8 +15437,7 @@ a|
 [%hardbreaks]
 // end
 
-| oas_any_type_not_mapped
-Map
+| xref:#++PostKeyspaceRequest++[+PostKeyspaceRequest+]
 
 
 |===
@@ -16702,8 +16613,7 @@ ifeval::["{"doc_id":["*"]}" != "null"]
 endif::[]
 // end
 
-| List
-Map
+| xref:#++PostKeyspacePurgeRequest++[+PostKeyspacePurgeRequest+]
 
 
 |===
@@ -16940,8 +16850,7 @@ a|
 [%hardbreaks]
 // end
 
-| oas_any_type_not_mapped
-Map
+| xref:#++PostKeyspaceRequest++[+PostKeyspaceRequest+]
 
 
 |===
@@ -24843,9 +24752,11 @@ Manage server activities
 * xref:#+get_-+[Get server information]
 * xref:#+get__config+[Get server configuration]
 * xref:#+get__logging+[Get console logging settings]
+* xref:#+get__ping+[Check if API is available]
 * xref:#+get__sgcollect_info+[Get the status of the Sync Gateway Collect Info]
 * xref:#+get__status+[Get the server status]
 * xref:#+head_-+[Check if server online]
+* xref:#+head__ping+[Check if API is available]
 * xref:#+post__logging+[Update console logging settings]
 * xref:#+post__post_upgrade+[Run the post upgrade process on all databases]
 * xref:#+post__sgcollect_info+[Start Sync Gateway Collect Info]
@@ -25483,6 +25394,145 @@ endif::internal-generation[]
 
 
 
+// markup not found, no include::{specDir}paths/get__ping/operation-before.adoc[opts=optional]
+
+
+[#get__ping]
+==== Check if API is available
+....
+GET /_ping
+....
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-begin.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-description-before.adoc[opts=optional]
+
+
+[#get__ping-description]
+===== Description
+
+// tag::get__ping-description[]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+Returns OK status if API is available.
+--
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-description-end.adoc[opts=optional]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-description-after.adoc[opts=optional]
+
+
+// end::get__ping-description[]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-parameters-before.adoc[opts=optional]
+
+
+
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-parameters-end.adoc[opts=optional]
+
+// end::get__ping-parameters[]
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-parameters-after.adoc[opts=optional]
+
+
+[#get__ping-produces]
+===== Produces
+
+* text/plain
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-responses-before.adoc[opts=optional]
+
+
+[#get__ping-responses]
+===== Responses
+
+// tag::get__ping-responses[]
+
+// markup not found, no include::{specDir}paths/get__ping/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="1,3,1"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| Returned status
+| xref:#++String++[+String+]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-responses-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-responses-after.adoc[opts=optional]
+
+// end::get__ping-responses[]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-security-after.adoc[opts=optional]
+
+
+:leveloffset: +4
+
+// markup not found, no include::{snippetDir}get__ping/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}get__ping/http-response.adoc[opts=optional]
+
+:leveloffset: -4
+
+
+// file not found, no * wiremock data link :_ping/GET/GET.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}_ping/GET/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-end.adoc[opts=optional]
+
+
+// markup not found, no include::{specDir}paths/get__ping/operation-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}paths/get__sgcollect_info/operation-before.adoc[opts=optional]
 
 
@@ -25904,6 +25954,141 @@ endif::internal-generation[]
 
 
 // markup not found, no include::{specDir}paths/head_-/operation-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-before.adoc[opts=optional]
+
+
+[#head__ping]
+==== Check if API is available
+....
+HEAD /_ping
+....
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-begin.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-description-before.adoc[opts=optional]
+
+
+[#head__ping-description]
+===== Description
+
+// tag::head__ping-description[]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+Returns OK status if API is available.
+--
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-description-end.adoc[opts=optional]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-description-after.adoc[opts=optional]
+
+
+// end::head__ping-description[]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-parameters-before.adoc[opts=optional]
+
+
+
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-parameters-end.adoc[opts=optional]
+
+// end::head__ping-parameters[]
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-parameters-after.adoc[opts=optional]
+
+
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-responses-before.adoc[opts=optional]
+
+
+[#head__ping-responses]
+===== Responses
+
+// tag::head__ping-responses[]
+
+// markup not found, no include::{specDir}paths/head__ping/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="1,3,1"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| Server is available
+| 
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-responses-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-responses-after.adoc[opts=optional]
+
+// end::head__ping-responses[]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-security-after.adoc[opts=optional]
+
+
+:leveloffset: +4
+
+// markup not found, no include::{snippetDir}head__ping/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}head__ping/http-response.adoc[opts=optional]
+
+:leveloffset: -4
+
+
+// file not found, no * wiremock data link :_ping/HEAD/HEAD.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}_ping/HEAD/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-end.adoc[opts=optional]
+
+
+// markup not found, no include::{specDir}paths/head__ping/operation-after.adoc[opts=optional]
 
 
 
@@ -26578,7 +26763,7 @@ a|
 [%hardbreaks]
 // end
 
-| xref:#++RuntimeConfig++[+RuntimeConfig+]
+| xref:#++StartupConfig++[+StartupConfig+]
 
 
 |===
@@ -31218,6 +31403,8 @@ endif::internal-generation[]
 :desc-Database_config_delta_sync: Delta sync configuration settings.  **This is an enterprise-edition feature only**
 :desc-Database_config_event_handlers: These are the settings for webhooks.
 :desc-Database_config_local_jwt_value: The providers name.
+:desc-Database_config_logging: Per-database logging configuration.
+:desc-Database_config_logging_console: Console logging configuration.
 :desc-Database_config_oidc: Configuration for OpenID Connect authentication.
 :desc-Database_config_oidc_providers_value: The providers name.
 :desc-Database_config_roles_value: Properties associated with a role
@@ -31292,6 +31479,8 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+Database_config_event_handlers+[DatabaseConfigEventHandlers]
 * xref:#+Database_config_local_jwt_value+[DatabaseConfigLocalJwtValue]
 * xref:#+Database_config_local_jwt_value_keys_inner+[DatabaseConfigLocalJwtValueKeysInner]
+* xref:#+Database_config_logging+[DatabaseConfigLogging]
+* xref:#+Database_config_logging_console+[DatabaseConfigLoggingConsole]
 * xref:#+Database_config_oidc+[DatabaseConfigOidc]
 * xref:#+Database_config_oidc_providers_value+[DatabaseConfigOidcProvidersValue]
 * xref:#+Database_config_replications+[DatabaseConfigReplications]
@@ -31312,6 +31501,8 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+File_logging_config+[File-logging-config]
 * xref:#+get___200_response+[Get200Response]
 * xref:#+get___200_response_vendor+[Get200ResponseVendor]
+* xref:#+get__all_dbs_200_response+[GetAllDbs200Response]
+* xref:#+get__all_dbs_200_response_oneOf_inner+[GetAllDbs200ResponseOneOfInner]
 * xref:#+get_db__200_response+[GetDb200Response]
 * xref:#+get_db__200_response_scopes_value+[GetDb200ResponseScopesValue]
 * xref:#+get_db__200_response_scopes_value_collections_value+[GetDb200ResponseScopesValueCollectionsValue]
@@ -31393,7 +31584,6 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+Retrieved-replication+[Replication]
 * xref:#+Role+[Role]
 * xref:#+Role_1+[Role]
-* xref:#+Runtime_config+[Runtime-config]
 * xref:#+Scopes+[Scopes]
 * xref:#+Serverless+[Serverless]
 * xref:#+Startup_config+[Startup-config]
@@ -32994,6 +33184,24 @@ endif::[]
 | xref:#++Database_config_cors++[+Database_config_cors+]
 
 
+a| *+logging+* +
+_optional_
+a| 
+ifdef::desc-Database_config_logging[]
+{desc-Database_config_logging}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Database_config_logging++[+Database_config_logging+]
+
+
 |===
 
 
@@ -33921,6 +34129,24 @@ endif::[]
 | xref:#++Database_config_cors++[+Database_config_cors+]
 
 
+a| *+logging+* +
+_optional_
+a| 
+ifdef::desc-Database_config_logging[]
+{desc-Database_config_logging}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Database_config_logging++[+Database_config_logging+]
+
+
 |===
 
 
@@ -34233,8 +34459,8 @@ _optional_
 a| Used to control whether Sync Gateway should use the all documents (*) channel.
 
 [%hardbreaks]
-ifeval::["true" != "null"]
-*Default:* `true`
+ifeval::["false" != "null"]
+*Default:* `false`
 endif::[]
 ifeval::["null" != "null"]
 *Example:* `null`
@@ -34949,6 +35175,110 @@ endif::[]
 
 
 // markup not found, no include::{specDir}definitions/Database_config_local_jwt_value_keys_inner/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging/definition-before.adoc[opts=optional]
+
+
+[#Database_config_logging]
+=== DatabaseConfigLogging
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging/definition-begin.adoc[opts=optional]
+
+
+[#fields-Database_config_logging]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+a| *+console+* +
+_optional_
+a| 
+ifdef::desc-Database_config_logging_console[]
+{desc-Database_config_logging_console}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Database_config_logging_console++[+Database_config_logging_console+]
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging_console/definition-before.adoc[opts=optional]
+
+
+[#Database_config_logging_console]
+=== DatabaseConfigLoggingConsole
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging_console/definition-begin.adoc[opts=optional]
+
+
+[#fields-Database_config_logging_console]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+a| *+log_level+* +
+_optional_
+a| Log Level for the console output
+
+[%hardbreaks]
+*Values:* `none`, `error`, `warn`, `info`, `debug`, `trace`
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["debug" != "null"]
+*Example:* `debug`
+endif::[]
+// end
+| String
+
+
+a| *+log_keys+* +
+_optional_
+a| Log Keys for the console output
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["["CRUD","HTTP","Query"]" != "null"]
+*Example:* `["CRUD","HTTP","Query"]`
+endif::[]
+// end
+| String
+List
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging_console/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_logging_console/definition-after.adoc[opts=optional]
 
 
 
@@ -36968,6 +37298,108 @@ endif::[]
 
 
 // markup not found, no include::{specDir}definitions/get___200_response_vendor/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response/definition-before.adoc[opts=optional]
+
+
+[#get__all_dbs_200_response]
+=== GetAllDbs200Response
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response/definition-begin.adoc[opts=optional]
+
+
+One of the following:
+
+* String
+List
+
+* xref:#++get__all_dbs_200_response_oneOf_inner++[+get__all_dbs_200_response_oneOf_inner+]
+List
+
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response_oneOf_inner/definition-before.adoc[opts=optional]
+
+
+[#get__all_dbs_200_response_oneOf_inner]
+=== GetAllDbs200ResponseOneOfInner
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response_oneOf_inner/definition-begin.adoc[opts=optional]
+
+
+[#fields-get__all_dbs_200_response_oneOf_inner]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+a| *+db_name+* +
+_optional_
+a| The name of the database.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+a| *+bucket+* +
+_optional_
+a| The Couchbase Server backing bucket for the database.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+a| *+state+* +
+_optional_
+a| The database state.
+
+[%hardbreaks]
+*Values:* `Online`, `Offline`, `Starting`, `Stopping`, `Resyncing`
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response_oneOf_inner/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/get__all_dbs_200_response_oneOf_inner/definition-after.adoc[opts=optional]
 
 
 
@@ -45049,66 +45481,6 @@ Map
 
 
 
-// markup not found, no include::{specDir}definitions/Runtime_config/definition-before.adoc[opts=optional]
-
-
-[#Runtime_config]
-=== Runtime-config
-
-
-// markup not found, no include::{specDir}definitions/Runtime_config/definition-begin.adoc[opts=optional]
-
-
-[#fields-Runtime_config]
-[cols="1,4,1"]
-|===
-| Name| Description| Schema
-
-a| *+logging+* +
-_optional_
-a| 
-ifdef::desc-Startup_config_logging[]
-{desc-Startup_config_logging}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Startup_config_logging++[+Startup_config_logging+]
-
-
-a| *+max_concurrent_replications+* +
-_optional_
-a| Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
-
-[%hardbreaks]
-ifeval::["0" != "null"]
-*Default:* `0`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Integer
-
-
-|===
-
-
-// markup not found, no include::{specDir}definitions/Runtime_config/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Runtime_config/definition-after.adoc[opts=optional]
-
-
-
-
 // markup not found, no include::{specDir}definitions/Scopes/definition-before.adoc[opts=optional]
 
 
@@ -46503,21 +46875,6 @@ endif::[]
 | Integer
 
 
-a| *+max_concurrent_replications+* +
-_optional_
-a| Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Integer
-
-
 |===
 
 
@@ -46912,7 +47269,7 @@ _optional_
 a| Whether the database is online or offline.
 
 [%hardbreaks]
-*Values:* `Online`, `Offline`
+*Values:* `Online`, `Offline`, `Starting`, `Stopping`, `Resyncing`
 ifeval::["null" != "null"]
 *Default:* `null`
 endif::[]
