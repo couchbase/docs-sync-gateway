@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Sync Gateway
   description: Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server
-  version: 3.1.0
+  version: 3.3.0
   license:
     name: Business Source License 1.1 (BSL)
     url: https://github.com/couchbase/sync_gateway/blob/master/LICENSE
@@ -414,13 +414,16 @@ paths:
         schema: &ref_4
           type: string
         examples: &ref_5
-          Default scope and collection:
+          default:
+            summary: Default scope and collection
             value: db1
             description: Default scope and collection
-          Named collection within the default scope:
+          namedInDefault:
+            summary: Named collection within the default scope
             value: db1.collection1
             description: Named collection within the default scope
-          Fully-qualified scope and collection:
+          fullyQualified:
+            summary: Fully-qualified scope and collection
             value: db1.scope1.collection1
             description: Fully-qualified scope and collection
         description: |-
@@ -458,7 +461,7 @@ paths:
                   type: string
                 _exp:
                   description: |-
-                    Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
+                    Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiry values are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
 
                     As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.
                   type: string
@@ -567,37 +570,37 @@ paths:
           A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
     get:
       summary: Gets all the documents in the database with the given parameters
-      description: Returns all documents in the databased based on the specified parameters.
+      description: Returns all documents in the database based on the specified parameters.
       parameters:
         - name: include_docs
           in: query
           required: false
           schema: &ref_7
-            type: string
+            type: boolean
           description: Include the body associated with each document.
         - name: channels
           in: query
           required: false
           schema: &ref_8
-            type: string
+            type: boolean
           description: Include the channels each document is part of that the calling user also has access too.
         - name: access
           in: query
           required: false
           schema: &ref_9
-            type: string
+            type: boolean
           description: Include what user/roles that each document grants access too.
         - name: revs
           in: query
           required: false
           schema: &ref_10
-            type: string
+            type: boolean
           description: Include all the revisions for each document under the `_revisions` property.
         - name: update_seq
           in: query
           required: false
           schema: &ref_11
-            type: string
+            type: boolean
           description: Include the document sequence number `update_seq` property for each document.
         - name: keys
           in: query
@@ -667,7 +670,7 @@ paths:
       operationId: get_keyspace-_all_docs
     post:
       summary: Get all the documents in the database using a built-in view
-      description: Get a built-in view of all the documents in the database.
+      description: Returns all documents in the database based on the specified parameters.
       parameters:
         - name: include_docs
           in: query
@@ -887,7 +890,8 @@ paths:
                       rev: 6-b3e8dcf825b71ccee112f3572ec4323c
                     - id: BobSettings
                       rev: 2-5145e1086bb8d1d71a531e9f6b543c58
-                Partial success:
+                PartialSuccess:
+                  summary: Partial success
                   value:
                     - error: conflict
                       id: FooBar
@@ -1155,7 +1159,7 @@ paths:
                   type: string
                 include_docs:
                   description: Include the body associated with each document.
-                  type: string
+                  type: boolean
                 revocations:
                   description: If true, revocation messages will be sent on the changes feed.
                   type: string
