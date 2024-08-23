@@ -7,12 +7,10 @@ ifdef::prerelease[:page-status: {prerelease}]
 
 include::partial$_set_page_context.adoc[]
 
-
 // BEGIN -- Page Attributes
 :xref-sdk-nodejs-pg-start: xref:nodejs-sdk:hello-world:start-using-sdk.adoc[Node.js Server SDK]
 :xref-sdk-java-encryption: xref:java-sdk:concept-docs:encryption.adoc#format[field encryption format]
 // END -- Page Attributes
-
 
 // BEGIN -- Page Heading
 :param-abstract!:
@@ -20,11 +18,10 @@ include::partial$_set_page_context.adoc[]
 include::partial$_show_page_header_block.adoc[]
 // END -- Page Heading
 
-
 == Introduction
+
 The guidance and constraints documented here relate to the design of data buckets and documents that you require, or may potentially require, to replicate using Sync Gateway functionality.
 They do not necessarily align with constraints on the local storage and use of such documents.
-
 
 == Property Naming
 
@@ -39,7 +36,6 @@ You can use an underscore prefix (`+_+`, ASCII `&#095`) for property naming, but
 * `_exp`
 * `_purged`
 * `_removed`
-
 
 Any document that matches the reserved property names listed will be rejected by Sync Gateway -- see <<error-code>> for the error details.
 
@@ -62,10 +58,16 @@ This rule applies to writes performed through:
 When you might encounter the error::
 You may encounter the error in the following deployment situations:
 
-* In Mobile-to-Web Data Sync with Field-level Encryption enabled, because the rule conflicts with the default {xref-sdk-java-encryption}
 * In Mobile-to-Web Data Sync with {xref-sdk-nodejs-pg-start} and http://ottomanjs.com/[Ottoman.js] (the Node.js ODM for Couchbase), where the rule conflicts with the `+_type+` property that is automatically added by _Ottoman.js_.
 +
 A suggested workaround in this scenario is to fork the _Ottoman.js_ library, perform a search-replace for the `+_type+` property and replace it without a leading underscore.
+
+[NOTE] 
+====
+For versions 2.x of Sync Gateway, you can encounter the following error:
+
+* In Mobile-to-Web Data Sync with Field-level Encryption enabled, because the rule conflicts with the default {xref-sdk-java-encryption}
+====
 
 How to avoid the error::
 You should change any top-level user properties that have a key with a leading underscore , by either:
@@ -89,7 +91,6 @@ The document key, the _Id_, is:
 * Automatically generated (as a UUID) or be set by the user or application when saved
 * Immutable; that is, once saved the _Id_ cannot be changed.
 
-
 === Value
 The document value is either:
 
@@ -102,7 +103,6 @@ As a result, documents can represent complex data structures in a readily parsab
 These attachments provide a means to store large media files or any other non-textual data.
 Couchbase Lite supports attachments of unlimited size, although the Sync Gateway imposes a 20MB limit for attachments synced to it.
 
-
 == Document Attributes
 Each _Document_ has the following attributes:
 
@@ -112,14 +112,12 @@ Each _Document_ has the following attributes:
 * A body in the form of a JSON object (a set of key/value pairs)
 * Zero or more named binary attachments
 
-
 == Document Change History
 
 {cbl} tracks the change history of every document as a series of revisions, like version control systems such as Git or Subversion.
 Its main purpose is to enable the replicator to determine which data to sync and any conflicts arising.
 
 Each document change is assigned a unique revision ID. The IDs of past revisions are available. The content of past revisions may be available if the revision was created locally and the database has not yet been compacted.
-
 
 // BEGIN -- Page Footer
 include::partial$block-related-content-data.adoc[]

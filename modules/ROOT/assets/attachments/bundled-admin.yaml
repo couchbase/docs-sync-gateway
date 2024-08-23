@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Sync Gateway
   description: Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server
-  version: 3.1.0
+  version: 3.3.0
   license:
     name: Business Source License 1.1 (BSL)
     url: https://github.com/couchbase/sync_gateway/blob/master/LICENSE
@@ -67,7 +67,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_108
+                properties: &ref_113
                   authentication_handlers:
                     description: The ways authentication can be established to authenticate as the user.
                     type: array
@@ -161,7 +161,7 @@ paths:
                     cookie_name: SyncGatewaySession
         '400':
           description: Origin is not in the approved list of allowed origins
-          content: &ref_91
+          content: &ref_96
             application/json:
               schema:
                 type: object
@@ -245,13 +245,16 @@ paths:
         schema: &ref_6
           type: string
         examples: &ref_7
-          Default scope and collection:
+          default:
+            summary: Default scope and collection
             value: db1
             description: Default scope and collection
-          Named collection within the default scope:
+          namedInDefault:
+            summary: Named collection within the default scope
             value: db1.collection1
             description: Named collection within the default scope
-          Fully-qualified scope and collection:
+          fullyQualified:
+            summary: Fully-qualified scope and collection
             value: db1.scope1.collection1
             description: Fully-qualified scope and collection
         description: |-
@@ -280,7 +283,7 @@ paths:
         - name: include_doc
           in: query
           required: false
-          schema: &ref_100
+          schema: &ref_105
             type: string
           description: Include the body associated with the document.
         - name: redact
@@ -470,14 +473,14 @@ paths:
         - name: name_only
           in: query
           required: false
-          schema: &ref_101
+          schema: &ref_106
             type: boolean
             default: true
           description: Whether to return user names only, or more detailed information for each user.
         - name: limit
           in: query
           required: false
-          schema: &ref_102
+          schema: &ref_107
             type: integer
           description: How many results to return. Using a value of `0` results in no limit.
       responses:
@@ -683,7 +686,7 @@ paths:
       responses:
         '200':
           description: Properties associated with a user
-          content: &ref_129
+          content: &ref_135
             application/json:
               schema:
                 description: Properties associated with a user
@@ -963,7 +966,7 @@ paths:
       - name: name
         in: path
         required: true
-        schema: &ref_103
+        schema: &ref_108
           type: string
         description: The name of the role.
     get:
@@ -979,7 +982,7 @@ paths:
       responses:
         '200':
           description: Properties associated with a role
-          content: &ref_130
+          content: &ref_136
             application/json:
               schema:
                 description: Properties associated with a role
@@ -1078,7 +1081,7 @@ paths:
               schema:
                 description: Contains all the replication IDs with their corresponding replication configurations
                 type: object
-                properties: &ref_109
+                properties: &ref_114
                   replication_id:
                     description: Properties of a replication
                     type: object
@@ -1159,7 +1162,7 @@ paths:
 
                           **Behaviour**
                           * *default* - In priority order, this will cause
-                            - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
+                            - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
                             - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
                           * *localWins* - This will result in local revisions always being the winner in any conflict.
                           * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
@@ -1413,7 +1416,7 @@ paths:
 
                     **Behaviour**
                     * *default* - In priority order, this will cause
-                      - Deletes to always win (the delete with the logest revision history wins if both revisions are deletes)
+                      - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
                       - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
                     * *localWins* - This will result in local revisions always being the winner in any conflict.
                     * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
@@ -2230,7 +2233,7 @@ paths:
           in: query
           deprecated: true
           required: false
-          schema: &ref_40
+          schema: &ref_41
             type: boolean
             default: 'true'
           description: No longer supported field.
@@ -2247,7 +2250,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_36
+                properties: &ref_116
                   bootstrap:
                     description: Configuration settings for interacting with Couchbase Server.
                     type: object
@@ -2309,7 +2312,7 @@ paths:
                           By default, this will only be accessible to the localhost.
                         type: string
                         default: 127.0.0.1:4985
-                      metric_interface:
+                      metrics_interface:
                         description: |-
                           Network interface to bind metrics API to.
 
@@ -2335,13 +2338,13 @@ paths:
                         type: boolean
                       server_read_timeout:
                         description: |-
-                          Maximum duration.Second before timing out read of the HTTP(S) request.
+                          Maximum duration before timing out read of the HTTP(S) request.
 
                           This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
                         type: string
                       server_write_timeout:
                         description: |-
-                          Maximum duration.Second before timing out write of the HTTP(S) response.
+                          Maximum duration before timing out write of the HTTP(S) response.
 
                           This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
                         type: string
@@ -2360,8 +2363,9 @@ paths:
                         type: string
                         default: 90s
                       pretty:
-                        description: Pretty-print JSON responses
+                        description: Pretty-print JSON responses. This property is deprecated.
                         type: boolean
+                        deprecated: true
                       max_connections:
                         description: Max of incoming HTTP connections to accept
                         type: number
@@ -2428,7 +2432,7 @@ paths:
                         readOnly: true
                       console:
                         type: object
-                        properties: &ref_110
+                        properties: &ref_36
                           log_level:
                             description: Log Level for the console output
                             type: string
@@ -2463,15 +2467,25 @@ paths:
                               max_size:
                                 description: The maximum size in MB of the log file before it gets rotated.
                                 type: integer
+                                default: 100
                               max_age:
-                                description: The maximum number of days to retain old log files.
+                                description: The maximum number of days to retain old log files. The defaults for this value are 360 days for error, 180 days for warn, 6 days for info, 2 days for debug, and 2 days for trace logs.
                                 type: integer
                               localtime:
                                 description: If true, it uses the computer's local time to format the backup timestamp.
                                 type: boolean
-                              rotated_logs_size:
+                                default: false
+                              rotated_logs_size_limit:
                                 description: Max Size (in mb) of log files before deletion
                                 type: integer
+                                default: 1024
+                              rotation_interval:
+                                description: |-
+                                  If set, the interval at which log files are rotated, even if max_size is not reached.
+
+                                  This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
+                                type: string
+                                default: 0
                             readOnly: true
                             title: Log-rotation-config
                           collation_buffer_size:
@@ -2515,6 +2529,35 @@ paths:
                         type: object
                         properties: *ref_34
                         title: File-logging-config
+                      audit:
+                        type: object
+                        properties: &ref_37
+                          enabled:
+                            description: Toggle for this log output
+                            type: boolean
+                          rotation:
+                            type: object
+                            properties: *ref_33
+                            readOnly: true
+                            title: Log-rotation-config
+                          audit_log_file_path:
+                            description: The path to write audit log files to
+                            type: string
+                            readOnly: true
+                          enabled_events:
+                            description: List of enabled global audit events.
+                            type: array
+                            items:
+                              type: number
+                            example:
+                              - 1234
+                              - 5678
+                            readOnly: true
+                          collation_buffer_size:
+                            description: The size of the log collation buffer
+                            type: integer
+                            readOnly: true
+                        title: Audit-logging-config
                   auth:
                     type: object
                     properties:
@@ -2539,6 +2582,21 @@ paths:
                         type: integer
                         maximum: 9
                         minimum: 0
+                      max_concurrent_replications:
+                        description: Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
+                        type: integer
+                      max_concurrent_changes_batches:
+                        description: Maximum number of changes batches to process concurrently per replication (1-5)"
+                        type: integer
+                        default: 2
+                        minimum: 1
+                        maximum: 5
+                      max_concurrent_revs:
+                        description: Maximum number of revs to process concurrently per replication (5-200)
+                        type: integer
+                        default: 5
+                        minimum: 5
+                        maximum: 200
                     readOnly: true
                   unsupported:
                     description: Settings that are not officially supported. It is highly recommended these are **not** used.
@@ -2547,14 +2605,14 @@ paths:
                       serverless:
                         description: Configuration for when SG is running in serverless mode
                         type: object
-                        properties: &ref_111
+                        properties: &ref_115
                           enabled:
                             description: Run SG in to serverless mode
                             type: boolean
                             readOnly: true
                           min_config_fetch_interval:
                             description: |-
-                              How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about. 
+                              How long database configs should be kept for in Sync Gateway before refreshing. Set to 0 to fetch configs everytime. This is used for requested databases that SG does not know about.
 
                               This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
                             type: string
@@ -2562,6 +2620,7 @@ paths:
                       use_xattr_config:
                         description: Store database configurations in system xattrs
                         type: boolean
+                        default: false
                       stats_log_frequency:
                         description: |-
                           How often should stats be written to stats logs.
@@ -2572,12 +2631,25 @@ paths:
                       use_stdlib_json:
                         description: Bypass the jsoniter package and use Go's stdlib instead
                         type: boolean
+                        default: false
                       http2:
                         type: object
                         properties:
                           enabled:
                             description: Whether HTTP2 support is enabled
                             type: boolean
+                            default: false
+                      allow_dbconfig_env_vars:
+                        description: Can be set to false to skip environment variable expansion in database configs
+                        type: boolean
+                        default: true
+                      diagnostic_interface:
+                        description: |-
+                          Network interface to bind diagnotic API to.
+
+                          By default, this API will not be run unless this string is specified.
+                        type: string
+                        default: ''
                     readOnly: true
                   database_credentials:
                     description: A map of database name to credentials, that can be used instead of the bootstrap ones.
@@ -2618,8 +2690,19 @@ paths:
                     minimum: 0
                     readOnly: true
                   couchbase_keepalive_interval:
-                    description: TCP keep-alive interval between SG and Couchbase server
+                    description: TCP keep-alive interval between SG and Couchbase server. This is unused.
                     type: integer
+                    deprecated: true
+                    readOnly: true
+                  heap_profile_collection_threshold:
+                    description: Threshold in bytes for automatic collection of heap profiles. If not specified, defaults to 85% of the lesser of cgroup or system memory.
+                    readOnly: true
+                    type: integer
+                    default: max memory
+                  heap_profile_disable_collection:
+                    description: Disables automatic heap profile collection.
+                    default: false
+                    type: boolean
                     readOnly: true
                 title: Startup-config
         '400':
@@ -2645,8 +2728,62 @@ paths:
           application/json:
             schema:
               type: object
-              properties: *ref_36
-              title: Startup-config
+              properties: &ref_117
+                logging:
+                  description: The configuration settings for modifying Sync Gateway logging.
+                  type: object
+                  properties:
+                    log_file_path:
+                      description: Absolute or relative path on the filesystem to the log file directory. A relative path is from the directory that contains the Sync Gateway executable file.
+                      type: string
+                      readOnly: true
+                    redaction_level:
+                      description: Redaction level to apply to log output.
+                      type: string
+                      default: partial
+                      enum:
+                        - none
+                        - partial
+                        - full
+                        - unset
+                      readOnly: true
+                    console:
+                      type: object
+                      properties: *ref_36
+                      title: Console-logging-config
+                    error:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                    warn:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                    info:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                    debug:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                    trace:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                    stats:
+                      type: object
+                      properties: *ref_34
+                      title: File-logging-config
+                    audit:
+                      type: object
+                      properties: *ref_37
+                      title: Audit-logging-config
+                max_concurrent_replications:
+                  description: Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
+                  type: integer
+                  default: 0
+              title: Runtime-config
       responses:
         '200':
           description: Successfully set runtime options
@@ -2672,7 +2809,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_112
+                properties: &ref_118
                   databases:
                     description: Contains a map of all the databases in the node along with their status.
                     type: object
@@ -2889,12 +3026,12 @@ paths:
         - name: seconds
           in: query
           description: If set, collect a delta profile for the given duration, instead of a snapshot.
-          schema: &ref_37
+          schema: &ref_38
             type: integer
       responses:
         '200':
           description: OK
-          content: &ref_38
+          content: &ref_39
             application/octet-stream:
               schema:
                 description: pprof binary data
@@ -2915,11 +3052,11 @@ paths:
         - name: seconds
           in: query
           description: If set, collect a delta profile for the given duration, instead of a snapshot.
-          schema: *ref_37
+          schema: *ref_38
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
       tags:
         - Profiling
       operationId: post__debug-pprof-goroutine
@@ -3004,11 +3141,11 @@ paths:
         - name: seconds
           in: query
           description: If set, collect a delta profile for the given duration, instead of a snapshot.
-          schema: *ref_37
+          schema: *ref_38
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
       tags:
         - Profiling
       operationId: get__debug-pprof-heap
@@ -3022,11 +3159,11 @@ paths:
         - name: seconds
           in: query
           description: If set, collect a delta profile for the given duration, instead of a snapshot.
-          schema: *ref_37
+          schema: *ref_38
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
       tags:
         - Profiling
       operationId: post__debug-pprof-heap
@@ -3041,11 +3178,11 @@ paths:
         - name: seconds
           in: query
           description: If set, collect a delta profile for the given duration, instead of a snapshot.
-          schema: *ref_37
+          schema: *ref_38
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
       tags:
         - Profiling
       operationId: get__debug-pprof-profile
@@ -3059,11 +3196,11 @@ paths:
         - name: seconds
           in: query
           description: If set, collect a delta profile for the given duration, instead of a snapshot.
-          schema: *ref_37
+          schema: *ref_38
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
       tags:
         - Profiling
       operationId: post__debug-pprof-profile
@@ -3080,7 +3217,7 @@ paths:
         - name: seconds
           in: query
           required: false
-          schema: &ref_39
+          schema: &ref_40
             type: integer
             default: 30
             minimum: 0
@@ -3088,7 +3225,7 @@ paths:
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
         '403':
           description: Forbidden
           content:
@@ -3116,12 +3253,12 @@ paths:
         - name: seconds
           in: query
           required: false
-          schema: *ref_39
+          schema: *ref_40
           description: The amount of seconds to run the profiler for.
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
         '403':
           description: Forbidden
           content:
@@ -3147,7 +3284,7 @@ paths:
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
       tags:
         - Profiling
       operationId: get__debug-pprof-threadcreate
@@ -3160,7 +3297,7 @@ paths:
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
       tags:
         - Profiling
       operationId: post__debug-pprof-threadcreate
@@ -3177,12 +3314,12 @@ paths:
         - name: seconds
           in: query
           required: false
-          schema: *ref_39
+          schema: *ref_40
           description: The amount of seconds to run the profiler for.
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
         '403':
           description: Forbidden
           content:
@@ -3210,12 +3347,12 @@ paths:
         - name: seconds
           in: query
           required: false
-          schema: *ref_39
+          schema: *ref_40
           description: The amount of seconds to run the profiler for.
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
         '403':
           description: Forbidden
           content:
@@ -3249,7 +3386,7 @@ paths:
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
       tags:
         - Profiling
       operationId: get__debug-pprof-trace
@@ -3270,7 +3407,7 @@ paths:
       responses:
         '200':
           description: OK
-          content: *ref_38
+          content: *ref_39
       tags:
         - Profiling
       operationId: post__debug-pprof-trace
@@ -3287,7 +3424,7 @@ paths:
         - name: seconds
           in: query
           required: false
-          schema: *ref_39
+          schema: *ref_40
           description: The amount of seconds to run the profiler for.
       responses:
         '200':
@@ -3311,7 +3448,7 @@ paths:
         - name: seconds
           in: query
           required: false
-          schema: *ref_39
+          schema: *ref_40
           description: The amount of seconds to run the profiler for.
       responses:
         '200':
@@ -3390,7 +3527,7 @@ paths:
           in: query
           deprecated: true
           required: false
-          schema: *ref_40
+          schema: *ref_41
           description: No longer supported field.
         - name: include_javascript
           in: query
@@ -3401,7 +3538,7 @@ paths:
         - name: include_runtime
           in: query
           required: false
-          schema: &ref_104
+          schema: &ref_109
             type: boolean
             default: false
           description: Whether to include the values set at runtime, and default values.
@@ -3424,7 +3561,7 @@ paths:
               schema:
                 description: The properties of a database configuration.
                 type: object
-                properties: &ref_42
+                properties: &ref_43
                   server:
                     description: 'This is the Couchbase Server address or addresses that the database connect to. '
                     type: string
@@ -3467,7 +3604,7 @@ paths:
                       x-additionalPropertiesName: scopename
                       description: Scope-specific configuration.
                       type: object
-                      properties: &ref_114
+                      properties: &ref_120
                         collections:
                           description: An object keyed by collection name containing config for the specific collection.
                           type: object
@@ -3475,7 +3612,7 @@ paths:
                             x-additionalPropertiesName: collectionname
                             description: Collection-specific configuration.
                             type: object
-                            properties: &ref_113
+                            properties: &ref_119
                               sync:
                                 description: The Javascript function that newly created documents in this collection are ran through.
                                 type: string
@@ -3489,6 +3626,16 @@ paths:
                                 example: function(doc) { if (doc.type != 'mobile') { return false; } return true; }
                             title: Collection config
                       title: Scopes
+                    maxProperties: 1
+                    example:
+                      scopename:
+                        collections:
+                          collectionname1:
+                            sync: function(doc){channel("collection name");}
+                            import_filter: function(doc) { if (doc.type != 'mobile') { return false; } return true; }
+                          collectionname2:
+                            sync: function(doc){channel("collection name");}
+                            import_filter: function(doc) { if (doc.type != 'mobile') { return false; } return true; }
                   name:
                     description: The name of the database.
                     type: string
@@ -3564,7 +3711,7 @@ paths:
                         type: string
                       document_changed:
                         type: object
-                        properties: &ref_41
+                        properties: &ref_42
                           handler:
                             description: The handler type.
                             type: string
@@ -3587,15 +3734,14 @@ paths:
                         title: Event-config
                       db_state_changed:
                         type: object
-                        properties: *ref_41
+                        properties: *ref_42
                         title: Event-config
                   feed_type:
-                    description: The type of feed to use to communicate with Couchbase Server.
+                    description: The type of feed to use to communicate with Couchbase Server. This will use DCP regardless of specification.
                     type: string
                     default: DCP
                     enum:
                       - DCP
-                      - TAP
                     deprecated: true
                   allow_empty_password:
                     description: This controls whether users that are created can have an empty password or not.
@@ -3657,7 +3803,7 @@ paths:
                           enable_star_channel:
                             description: Used to control whether Sync Gateway should use the all documents (*) channel.
                             type: boolean
-                            default: false
+                            default: true
                           max_length:
                             description: The maximum number of entries to maintain in the cache per channel.
                             type: integer
@@ -4029,7 +4175,7 @@ paths:
                     description: Force the use of views instead of GSI.
                     type: boolean
                     default: false
-                  send_www_authentice_header:
+                  send_www_authenticate_header:
                     description: Controls whether to send a `WWW-Authenticate` header in `401 Unauthorized` HTTP responses.
                     type: boolean
                     default: true
@@ -4121,7 +4267,7 @@ paths:
                     default: 60
                   suspendable:
                     description: |-
-                      Set to true to allow the database to be suspended. 
+                      Set to true to allow the database to be suspended.
 
                       Defaults to true when running in serverless mode otherwise defaults to false.
                     type: boolean
@@ -4173,6 +4319,46 @@ paths:
                               - CRUD
                               - HTTP
                               - Query
+                      audit:
+                        description: Audit logging configuration.
+                        type: object
+                        properties:
+                          enabled:
+                            description: Whether audit logging is enabled.
+                            type: boolean
+                            default: false
+                          enabled_events:
+                            description: List of enabled audit events for this database.
+                            type: array
+                            items:
+                              type: number
+                            example:
+                              - 1234
+                              - 5678
+                          disabled_users:
+                            description: List of users for which audit logging is disabled
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                domain:
+                                  description: The domain of the user for which audit logging is disabled.
+                                  type: string
+                                name:
+                                  description: The name of the user for which audit logging is disabled.
+                                  type: string
+                          disabled_roles:
+                            description: List of roles for which audit logging is disabled
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                domain:
+                                  description: The domain of the role for which audit logging is disabled.
+                                  type: string
+                                name:
+                                  description: The name of the role for which audit logging is disabled.
+                                  type: string
                 title: Database-config
         '404':
           description: Resource could not be found
@@ -4195,14 +4381,14 @@ paths:
         - name: If-Match
           in: header
           required: false
-          schema: &ref_43
+          schema: &ref_44
             type: string
           description: If set to a configuration's Etag value, enables optimistic concurrency control for the request. Returns HTTP 412 if another update happened underneath this one.
         - name: disable_oidc_validation
           in: query
           required: false
           description: If set, will not attempt to validate the configured OpenID Connect providers are reachable.
-          schema: &ref_46
+          schema: &ref_49
             type: boolean
             default: false
       requestBody:
@@ -4212,12 +4398,12 @@ paths:
             schema:
               description: The properties of a database configuration.
               type: object
-              properties: *ref_42
+              properties: *ref_43
               title: Database-config
       responses:
         '201':
           description: Database configuration successfully updated
-          headers: &ref_44
+          headers: &ref_45
             Etag:
               schema:
                 type: string
@@ -4235,7 +4421,7 @@ paths:
             The supplied If-Match header did not match the current version of the configuration.
 
             Returned when optimistic concurrency control is used, and there has been an update to the configuration in between this update.
-          content: &ref_45
+          content: &ref_46
             application/json:
               schema:
                 type: object
@@ -4263,7 +4449,7 @@ paths:
         - name: If-Match
           in: header
           required: false
-          schema: *ref_43
+          schema: *ref_44
           description: If set to a configuration's Etag value, enables optimistic concurrency control for the request. Returns HTTP 412 if another update happened underneath this one.
       requestBody:
         description: The database configuration fields to update
@@ -4272,12 +4458,12 @@ paths:
             schema:
               description: The properties of a database configuration.
               type: object
-              properties: *ref_42
+              properties: *ref_43
               title: Database-config
       responses:
         '201':
           description: Database configuration successfully updated
-          headers: *ref_44
+          headers: *ref_45
         '400':
           description: There was a problem with your request
           content: *ref_5
@@ -4290,10 +4476,171 @@ paths:
             The supplied If-Match header did not match the current version of the configuration.
 
             Returned when optimistic concurrency control is used, and there has been an update to the configuration in between this update.
-          content: *ref_45
+          content: *ref_46
       tags:
         - Database Configuration
       operationId: post_db-_config
+    parameters:
+      - name: db
+        in: path
+        required: true
+        schema: *ref_3
+        example: db1
+        description: The name of the database to run the operation against.
+  /{db}/_config/audit:
+    get:
+      summary: Get database audit configuration
+      description: |-
+        Retrieve the audit configuration for the database specified.
+
+        Required Sync Gateway RBAC roles:
+
+        * TODO
+      parameters:
+        - name: verbose
+          in: query
+          description: Whether to show name and description with each audit event.
+          schema:
+            type: boolean
+            default: false
+        - name: filterable
+          in: query
+          description: Whether to show only filterable audit events.
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Successfully retrieved database configuration
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - title: Database-audit
+                    description: A map of audit events and whether they are enabled or not.
+                    type: object
+                    properties: &ref_47
+                      enabled:
+                        type: boolean
+                      events:
+                        type: object
+                        additionalProperties:
+                          x-additionalPropertiesName: audit_id
+                          description: The audit event ID and whether it is enabled or not.
+                          type: boolean
+                  - title: Database-audit-verbose
+                    description: A map of detailed audit events.
+                    type: object
+                    properties: &ref_48
+                      enabled:
+                        type: boolean
+                      events:
+                        type: object
+                        additionalProperties:
+                          x-additionalPropertiesName: audit_id
+                          description: The audit event ID and whether it is enabled or not.
+                          title: audit-event-verbose
+                          type: object
+                          properties: &ref_121
+                            name:
+                              type: string
+                              description: The name of the audit event.
+                              readOnly: true
+                            description:
+                              type: string
+                              description: The description of the audit event.
+                              readOnly: true
+                            enabled:
+                              type: boolean
+                              description: Whether this audit event is currently enabled or not.
+                            filterable:
+                              type: boolean
+                              description: Whether this audit event can be disabled. Some audit events are always on.
+                              readOnly: true
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Database Configuration
+      operationId: get_db-_config-audit
+    put:
+      summary: Replace database audit configuration
+      description: |-
+        Replaces the database audit configuration with the one sent in the request.
+
+        Unspecified audit events will be reset to their default enabled value. Use POST if you want upsert-style semantics.
+
+        Required Sync Gateway RBAC roles:
+
+        * TODO
+      requestBody:
+        description: The new database audit configuration to use
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - title: Database-audit
+                  description: A map of audit events and whether they are enabled or not.
+                  type: object
+                  properties: *ref_47
+                - title: Database-audit-verbose
+                  description: A map of detailed audit events.
+                  type: object
+                  properties: *ref_48
+      responses:
+        '200':
+          description: Database audit configuration successfully updated
+        '400':
+          description: There was a problem with your request
+          content: *ref_5
+        '404':
+          description: Resource could not be found
+          content: *ref_2
+      tags:
+        - Database Configuration
+      operationId: put_db-_config-audit
+    post:
+      summary: Update database audit configuration
+      description: |-
+        This is used to update the database configuration fields specified. Only the fields specified in the request will have their values replaced.
+
+        Unspecified audit events will be unaffected. Use PUT if you want to reset events to their default state.
+
+        Required Sync Gateway RBAC roles:
+
+        * TODO
+      parameters:
+        - name: verbose
+          in: query
+          description: Whether to show name and description with each audit event.
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        description: The database configuration fields to update
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - title: Database-audit
+                  description: A map of audit events and whether they are enabled or not.
+                  type: object
+                  properties: *ref_47
+                - title: Database-audit-verbose
+                  description: A map of detailed audit events.
+                  type: object
+                  properties: *ref_48
+      responses:
+        '200':
+          description: Database audit configuration successfully updated
+        '400':
+          description: There was a problem with your request
+          content: *ref_5
+        '404':
+          description: Not Found
+      tags:
+        - Database Configuration
+      operationId: post_db-_config-audit
     parameters:
       - name: db
         in: path
@@ -4356,13 +4703,13 @@ paths:
         - name: If-Match
           in: header
           required: false
-          schema: *ref_43
+          schema: *ref_44
           description: If set to a configuration's Etag value, enables optimistic concurrency control for the request. Returns HTTP 412 if another update happened underneath this one.
         - name: disable_oidc_validation
           in: query
           required: false
           description: If set, will not attempt to validate the configured OpenID Connect providers are reachable.
-          schema: *ref_46
+          schema: *ref_49
       requestBody:
         description: The new sync function to use
         content:
@@ -4389,7 +4736,7 @@ paths:
             The supplied If-Match header did not match the current version of the configuration.
 
             Returned when optimistic concurrency control is used, and there has been an update to the configuration in between this update.
-          content: *ref_45
+          content: *ref_46
       tags:
         - Database Configuration
       operationId: put_keyspace-_config-sync
@@ -4412,7 +4759,7 @@ paths:
         - name: If-Match
           in: header
           required: false
-          schema: &ref_82
+          schema: &ref_87
             type: string
           description: The revision ID to target.
       responses:
@@ -4428,7 +4775,7 @@ paths:
             The supplied If-Match header did not match the current version of the configuration.
 
             Returned when optimistic concurrency control is used, and there has been an update to the configuration in between this update.
-          content: *ref_45
+          content: *ref_46
       tags:
         - Database Configuration
       operationId: delete_keyspace-_config-sync
@@ -4483,13 +4830,13 @@ paths:
         - name: If-Match
           in: header
           required: false
-          schema: *ref_43
+          schema: *ref_44
           description: If set to a configuration's Etag value, enables optimistic concurrency control for the request. Returns HTTP 412 if another update happened underneath this one.
         - name: disable_oidc_validation
           in: query
           required: false
           description: If set, will not attempt to validate the configured OpenID Connect providers are reachable.
-          schema: *ref_46
+          schema: *ref_49
       requestBody:
         description: The import filter to use
         content:
@@ -4512,7 +4859,7 @@ paths:
             The supplied If-Match header did not match the current version of the configuration.
 
             Returned when optimistic concurrency control is used, and there has been an update to the configuration in between this update.
-          content: *ref_45
+          content: *ref_46
       tags:
         - Database Configuration
       operationId: put_keyspace-_config-import_filter
@@ -4528,7 +4875,7 @@ paths:
         - name: If-Match
           in: header
           required: false
-          schema: *ref_43
+          schema: *ref_44
           description: If set to a configuration's Etag value, enables optimistic concurrency control for the request. Returns HTTP 412 if another update happened underneath this one.
       responses:
         '200':
@@ -4543,7 +4890,7 @@ paths:
             The supplied If-Match header did not match the current version of the configuration.
 
             Returned when optimistic concurrency control is used, and there has been an update to the configuration in between this update.
-          content: *ref_45
+          content: *ref_46
       tags:
         - Database Configuration
       operationId: delete_keyspace-_config-import_filter
@@ -4571,7 +4918,7 @@ paths:
               schema:
                 description: The status of a resync operation
                 type: object
-                properties: &ref_47
+                properties: &ref_52
                   status:
                     description: The status of the current operation.
                     type: string
@@ -4593,7 +4940,19 @@ paths:
                   docs_processed:
                     description: The amount of docs that have been processed so far in the resync operation.
                     type: integer
-                required: &ref_48
+                  collections_processing:
+                    description: The collections that the resync operation is running on.
+                    type: object
+                    additionalProperties: &ref_50
+                      description: List of collection names
+                      type: array
+                      items: &ref_122
+                        type: string
+                    example: &ref_51
+                      scopeName:
+                        collection1: null
+                        collection2: null
+                required: &ref_53
                   - status
                   - start_time
                   - last_error
@@ -4637,7 +4996,7 @@ paths:
               - stop
         - name: regenerate_sequences
           in: query
-          description: '**Use this only when requested to do so by the Couchbase support team** This request will regenerate the sequence numbers for each document processed.'
+          description: '**Use this only when requested to do so by the Couchbase support team** This request will regenerate the sequence numbers for each document processed. If scopes parameter is specified, the principal sequence documents will not have their sequences updated.'
           schema:
             type: boolean
         - name: reset
@@ -4655,11 +5014,8 @@ paths:
                 scopes:
                   description: This controls for which collections resync will run
                   type: object
-                  additionalProperties: &ref_116
-                    description: List of collection names
-                    type: array
-                    items: &ref_115
-                      type: string
+                  additionalProperties: *ref_50
+                  example: *ref_51
                 regenerate_sequences:
                   description: This can be used as an alternative to query param `regenerate_sequences`. If either query param or this is set to true, then the request will regenerate the sequence numbers for each document processed.
                   type: boolean
@@ -4672,8 +5028,8 @@ paths:
               schema:
                 description: The status of a resync operation
                 type: object
-                properties: *ref_47
-                required: *ref_48
+                properties: *ref_52
+                required: *ref_53
                 title: Resync-status
         '503':
           description: Service Unavailable
@@ -4732,11 +5088,13 @@ paths:
                   enum:
                     - '*'
             examples:
-              Example:
+              single:
+                summary: Single document
                 value:
                   doc_id:
                     - '*'
-              Multiple purges example:
+              multiple:
+                summary: Multiple documents
                 value:
                   doc_id_1:
                     - '*'
@@ -4761,12 +5119,14 @@ paths:
                 required:
                   - purged
               examples:
-                Example:
+                single:
+                  summary: Single document
                   value:
                     purged:
                       doc_id:
                         - '*'
-                Multiple purges example:
+                multiple:
+                  summary: Multiple documents
                   value:
                     purged:
                       doc_id_1:
@@ -4935,7 +5295,7 @@ paths:
       - name: view
         in: path
         required: true
-        schema: &ref_49
+        schema: &ref_54
           type: string
         description: The view to target.
     get:
@@ -4982,7 +5342,7 @@ paths:
       - name: view
         in: path
         required: true
-        schema: *ref_49
+        schema: *ref_54
         description: The view to target.
     get:
       summary: Query a view on the default design document | Unsupported
@@ -5000,67 +5360,67 @@ paths:
           in: query
           required: false
           description: Indicates whether the specified end key should be included in the result.
-          schema: &ref_65
+          schema: &ref_70
             type: boolean
         - name: descending
           in: query
           required: false
           description: Return documents in descending order.
-          schema: &ref_66
+          schema: &ref_71
             type: boolean
         - name: include_docs
           in: query
           required: false
           description: Only works when using Couchbase Server 3.0 and earlier. Indicates whether to include the full content of the documents in the response.
-          schema: &ref_67
+          schema: &ref_72
             type: boolean
         - name: reduce
           in: query
           required: false
           description: Whether to execute a reduce function on the response or not.
-          schema: &ref_68
+          schema: &ref_73
             type: boolean
         - name: group
           in: query
           required: false
           description: Group the results using the reduce function to a group or single row.
-          schema: &ref_69
+          schema: &ref_74
             type: boolean
         - name: skip
           in: query
           required: false
           description: Skip the specified number of documents before starting to return results.
-          schema: &ref_70
+          schema: &ref_75
             type: integer
         - name: limit
           in: query
           required: false
           description: Return only the specified number of documents
-          schema: &ref_71
+          schema: &ref_76
             type: integer
         - name: group_level
           in: query
           required: false
           description: Specify the group level to be used.
-          schema: &ref_72
+          schema: &ref_77
             type: integer
         - name: startkey_docid
           in: query
           required: false
           description: Return documents starting with the specified document identifier.
-          schema: &ref_73
+          schema: &ref_78
             type: string
         - name: endkey_docid
           in: query
           required: false
           description: Stop returning records when the specified document identifier is reached.
-          schema: &ref_74
+          schema: &ref_79
             type: string
         - name: stale
           in: query
           required: false
           description: Allow the results from a stale view to be used, without triggering a rebuild of all views within the encompassing design document.
-          schema: &ref_75
+          schema: &ref_80
             type: string
             enum:
               - ok
@@ -5068,25 +5428,25 @@ paths:
         - name: startkey
           in: query
           required: false
-          schema: &ref_52
+          schema: &ref_57
             type: string
           description: Return records starting with the specified key.
         - name: endkey
           in: query
           required: false
-          schema: &ref_53
+          schema: &ref_58
             type: string
           description: Stop returning records when this key is reached.
         - name: key
           in: query
           required: false
           description: Return only the document that matches the specified key.
-          schema: &ref_76
+          schema: &ref_81
             type: string
         - name: keys
           in: query
           required: false
-          schema: &ref_51
+          schema: &ref_56
             type: array
             items:
               type: string
@@ -5226,11 +5586,11 @@ paths:
                 oneOf:
                   - description: The names of all databases.
                     type: array
-                    items: &ref_117
+                    items: &ref_123
                       type: string
                   - description: Description of all databases.
                     type: array
-                    items: &ref_118
+                    items: &ref_124
                       type: object
                       properties:
                         db_name:
@@ -5248,6 +5608,14 @@ paths:
                             - Starting
                             - Stopping
                             - Resyncing
+                        require_resync:
+                          description: Indicates whether the database requires resync before it can be brought online.
+                          type: boolean
+                          example: true
+                        init_in_progress:
+                          description: Indicates whether database initialization is in progress.
+                          type: boolean
+                          example: true
       tags:
         - Database Management
       operationId: get__all_dbs
@@ -5277,7 +5645,7 @@ paths:
         - name: type
           in: query
           required: false
-          schema: &ref_50
+          schema: &ref_55
             type: string
             default: tombstone
             enum:
@@ -5345,7 +5713,7 @@ paths:
         - name: type
           in: query
           required: false
-          schema: *ref_50
+          schema: *ref_55
           description: |-
             This is the type of compaction to use. The type must be either:
             * `attachment` for cleaning up legacy (pre-3.0) attachments
@@ -5358,7 +5726,7 @@ paths:
               schema:
                 description: The status returned from a compaction.
                 type: object
-                properties: &ref_119
+                properties: &ref_125
                   status:
                     description: The status of the current operation.
                     type: string
@@ -5378,7 +5746,7 @@ paths:
                     description: |-
                       **Applicable to attachment compaction only**
 
-                      This is the number of references there are to legacy attachments. 
+                      This is the number of references there are to legacy attachments.
                     type: string
                   purged_attachments:
                     description: |-
@@ -5408,7 +5776,7 @@ paths:
                       - mark
                       - sweep
                       - cleanup
-                required: &ref_120
+                required: &ref_126
                   - status
                   - start_time
                   - last_error
@@ -5489,30 +5857,9 @@ paths:
                     description: Unique server identifier.
                     type: string
                     example: 995618a6a6cc9ac79731bd13240e19b5
-                  scopes:
-                    description: Scopes that are used by the database.
-                    type: object
-                    example:
-                      scope1:
-                        collections:
-                          collection1:
-                            update_seq: 123456
-                          collection2:
-                            update_seq: 654321
-                    additionalProperties:
-                      description: The name of the scope.
-                      type: object
-                      properties:
-                        collections:
-                          description: The set of collections within the scope.
-                          additionalProperties:
-                            description: The name of the collection.
-                            type: object
-                            properties:
-                              update_seq:
-                                description: The last sequence number that was committed to the collection.
-                                type: integer
-                                example: 123456
+                  init_in_progress:
+                    description: Indicates whether database initialization is in progress.
+                    type: boolean
         '404':
           description: Resource could not be found
           content: *ref_2
@@ -5588,7 +5935,7 @@ paths:
           in: query
           required: false
           description: If set, will not attempt to validate the configured OpenID Connect providers are reachable.
-          schema: *ref_46
+          schema: *ref_49
       requestBody:
         description: The configuration to use for the new database
         content:
@@ -5596,7 +5943,7 @@ paths:
             schema:
               description: The properties of a database configuration.
               type: object
-              properties: *ref_42
+              properties: *ref_43
               title: Database-config
       responses:
         '201':
@@ -5666,7 +6013,7 @@ paths:
         - name: roundtrip
           in: query
           required: false
-          schema: &ref_79
+          schema: &ref_84
             type: boolean
           description: Block until document has been received by change cache
       requestBody:
@@ -5676,7 +6023,7 @@ paths:
               description: The configurable Sync Gateway properties of a document.
               type: object
               additionalProperties: true
-              properties: &ref_61
+              properties: &ref_66
                 _id:
                   description: The ID of the document.
                   type: string
@@ -5685,7 +6032,7 @@ paths:
                   type: string
                 _exp:
                   description: |-
-                    Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiries are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
+                    Expiry time after which the document will be purged. The expiration time is set and managed on the Couchbase Server document. The value can be specified in two ways; in ISO-8601 format, for example the 6th of July 2022 at 17:00 in the BST timezone would be `2016-07-06T17:00:00+01:00`; it can also be specified as a numeric Couchbase Server expiry value. Couchbase Server expiry values are specified as Unix time, and if the desired TTL is below 30 days then it can also represent an interval in seconds from the current time (for example, a value of 5 will remove the document 5 seconds after it is written to Couchbase Server). The document expiration time is returned in the response of `GET /{db}/{doc} ` when `show_exp=true` is included in the query.
 
                     As with the existing explicit purge mechanism, this applies only to the local database; it has nothing to do with replication. This expiration time is not propagated when the document is replicated. The purge of the document does not cause it to be deleted on any other database.
                   type: string
@@ -5733,7 +6080,7 @@ paths:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: &ref_77
+                properties: &ref_82
                   id:
                     description: The ID of the document.
                     type: string
@@ -5743,7 +6090,7 @@ paths:
                   rev:
                     description: The revision of the document.
                     type: string
-                required: &ref_78
+                required: &ref_83
                   - id
                   - ok
                   - rev
@@ -5759,7 +6106,7 @@ paths:
           content: *ref_14
         '415':
           description: Invalid content type
-          content: &ref_83
+          content: &ref_88
             application/json:
               schema:
                 type: object
@@ -5789,7 +6136,7 @@ paths:
             application/javascript:
               schema:
                 type: object
-                properties: &ref_121
+                properties: &ref_127
                   cmdline:
                     description: Built-in variables from the Go runtime, lists the command-line arguments
                     type: object
@@ -5879,42 +6226,72 @@ paths:
                             properties:
                               admin_net_bytes_recv:
                                 type: integer
+                                description: The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway api.admin_interface is bound.
                               admin_net_bytes_sent:
                                 type: integer
+                                description: The total number of bytes sent (since node start-up) on the network interface to which the Sync Gateway api.admin_interface is bound.
                               error_count:
                                 type: integer
+                                description: The total number of errors logged.
                               go_memstats_heapalloc:
                                 type: integer
+                                description: HeapAlloc is bytes of allocated heap objects. Allocated heap objects include all reachable objects, as well as unreachable objects that the garbage collector has not yet freed. Specifically, HeapAlloc increases as heap objects are allocated and decreases as the heap is swept and unreachable objects are freed. Sweeping occurs incrementally between GC cycles, so these two processes occur simultaneously, and as a result HeapAlloc tends to change smoothly (in contrast with the sawtooth that is typical of stop-the-world garbage collectors).
                               go_memstats_heapidle:
                                 type: integer
+                                description: HeapIdle is bytes in idle (unused) spans. Idle spans have no objects in them. These spans could be (and may already have been) returned to the OS, or they can be reused for heap allocations, or they can be reused as stack memory. HeapIdle minus HeapReleased estimates the amount of memory that could be returned to the OS, but is being retained by the runtime so it can grow the heap without requesting more memory from the OS. If this difference is significantly larger than the heap size, it indicates there was a recent transient spike in live heap size.
                               go_memstats_heapinuse:
                                 type: integer
+                                description: HeapInuse is bytes in in-use spans. In-use spans have at least one object in them. These spans an only be used for other objects of roughly the same size. HeapInuse minus HeapAlloc estimates the amount of memory that has been dedicated to particular size classes, but is not currently being used. This is an upper bound on fragmentation, but in general this memory can be reused efficiently.
                               go_memstats_heapreleased:
                                 type: integer
+                                description: HeapReleased is bytes of physical memory returned to the OS. This counts heap memory from idle spans that was returned to the OS and has not yet been reacquired for the heap.
                               go_memstats_pausetotalns:
                                 type: integer
+                                description: PauseTotalNs is the cumulative nanoseconds in GC stop-the-world pauses since the program started. During a stop-the-world pause, all goroutines are paused and only the garbage collector can run.
                               go_memstats_stackinuse:
                                 type: integer
+                                description: StackInuse is bytes in stack spans. In-use stack spans have at least one stack in them. These spans can only be used for other stacks of the same size. There is no StackIdle because unused stack spans are returned to the heap (and hence counted toward HeapIdle).
                               go_memstats_stacksys:
                                 type: integer
+                                description: StackSys is bytes of stack memory obtained from the OS. StackSys is StackInuse, plus any memory obtained directly from the OS for OS thread stacks (which should be minimal).
                               go_memstats_sys:
                                 type: integer
+                                description: Sys is the total bytes of memory obtained from the OS. Sys is the sum of the XSys fields below. Sys measures the virtual address space reserved by the Go runtime for the heap, stacks, and other internal data structures. It's likely that not all of the virtual address space is backed by physical memory at any given moment, though in general it all was at some point.
                               goroutines_high_watermark:
                                 type: integer
+                                description: Peak number of go routines since process start.
                               num_goroutines:
                                 type: integer
-                              process_cpu_percent_utilization:
+                                description: The total number of goroutines.
+                              num_idle_kv_ops:
                                 type: integer
+                                description: The total number of idle kv operations.
+                              process_cpu_percent_utilization:
+                                type: number
+                                format: float
+                                description: The CPU utilization as percentage value * 10. The extra 10 multiplier is a mistake left for backwards compatibility. Please consider using node_cpu_percent_utilization as of version 3.2. The CPU usage calculation is performed based on user and system CPU time, but it does not include components such as iowait. The derivation means that the values of process_cpu_percent_utilization and %Cpu, returned when running the top command, will differ.
+                              node_cpu_percent_utilization:
+                                type: number
+                                format: float
+                                description: The node CPU utilization as percentage value, since the last time this stat was called. The CPU usage calculation is performed based on user and system CPU time, but it does not include components such as iowait.
                               process_memory_resident:
                                 type: integer
+                                description: The memory utilization (Resident Set Size) for the process, in bytes.
                               pub_net_bytes_recv:
                                 type: integer
+                                description: The total number of bytes received (since node start-up) on the network interface to which the Sync Gateway api.public_interface is bound. By default, that is the number of bytes received on 127.0.0.1:4984 since node start-up
                               pub_net_bytes_sent:
                                 type: integer
+                                description: The total number of bytes sent (since node start-up) on the network interface to which Sync Gateway api.public_interface is bound. By default, that is the number of bytes sent on 127.0.0.1:4984 since node start-up.
                               system_memory_total:
                                 type: integer
+                                description: The total memory available on the system in bytes.
                               warn_count:
                                 type: integer
+                                description: The total number of warnings logged.
+                              uptime:
+                                type: integer
+                                description: The total uptime.
                       per_db:
                         description: |-
                           This array contains stats for all databases declared in the config file -- see the [Sync Gateway Statistics Schema](./../stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
@@ -6003,7 +6380,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_122
+                properties: &ref_128
                   ADMIN:
                     description: '`true` if the request is from the Admin API - otherwise omitted.'
                     type: boolean
@@ -6040,7 +6417,7 @@ paths:
                       `true` if the sync gateway node is running in persistent config mode.
                     type: boolean
                     example: true
-                required: &ref_123
+                required: &ref_129
                   - couchdb
                   - vendor
       tags:
@@ -6093,7 +6470,7 @@ paths:
     get:
       summary: Gets all the documents in the database with the given parameters
       description: |-
-        Returns all documents in the databased based on the specified parameters.
+        Returns all documents in the database based on the specified parameters.
 
         Required Sync Gateway RBAC roles:
 
@@ -6103,58 +6480,58 @@ paths:
         - name: include_docs
           in: query
           required: false
-          schema: &ref_54
-            type: string
+          schema: &ref_59
+            type: boolean
           description: Include the body associated with each document.
         - name: channels
           in: query
           required: false
-          schema: &ref_55
-            type: string
+          schema: &ref_60
+            type: boolean
           description: Include the channels each document is part of that the calling user also has access too.
         - name: access
           in: query
           required: false
-          schema: &ref_56
-            type: string
+          schema: &ref_61
+            type: boolean
           description: Include what user/roles that each document grants access too.
         - name: revs
           in: query
           required: false
-          schema: &ref_57
-            type: string
+          schema: &ref_62
+            type: boolean
           description: Include all the revisions for each document under the `_revisions` property.
         - name: update_seq
           in: query
           required: false
-          schema: &ref_58
-            type: string
+          schema: &ref_63
+            type: boolean
           description: Include the document sequence number `update_seq` property for each document.
         - name: keys
           in: query
           required: false
-          schema: *ref_51
+          schema: *ref_56
           description: An array of document ID strings to filter by.
         - name: startkey
           in: query
           required: false
-          schema: *ref_52
+          schema: *ref_57
           description: Return records starting with the specified key.
         - name: endkey
           in: query
           required: false
-          schema: *ref_53
+          schema: *ref_58
           description: Stop returning records when this key is reached.
         - name: limit
           in: query
           required: false
-          schema: &ref_59
+          schema: &ref_64
             type: number
           description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
       responses:
         '200':
           description: Operation ran successfully
-          content: &ref_60
+          content: &ref_65
             application/json:
               schema:
                 type: object
@@ -6194,7 +6571,7 @@ paths:
     post:
       summary: Get all the documents in the database using a built-in view
       description: |-
-        Get a built-in view of all the documents in the database.
+        Returns all documents in the database based on the specified parameters.
 
         Required Sync Gateway RBAC roles:
 
@@ -6204,42 +6581,42 @@ paths:
         - name: include_docs
           in: query
           required: false
-          schema: *ref_54
+          schema: *ref_59
           description: Include the body associated with each document.
         - name: channels
           in: query
           required: false
-          schema: *ref_55
+          schema: *ref_60
           description: Include the channels each document is part of that the calling user also has access too.
         - name: access
           in: query
           required: false
-          schema: *ref_56
+          schema: *ref_61
           description: Include what user/roles that each document grants access too.
         - name: revs
           in: query
           required: false
-          schema: *ref_57
+          schema: *ref_62
           description: Include all the revisions for each document under the `_revisions` property.
         - name: update_seq
           in: query
           required: false
-          schema: *ref_58
+          schema: *ref_63
           description: Include the document sequence number `update_seq` property for each document.
         - name: startkey
           in: query
           required: false
-          schema: *ref_52
+          schema: *ref_57
           description: Return records starting with the specified key.
         - name: endkey
           in: query
           required: false
-          schema: *ref_53
+          schema: *ref_58
           description: Stop returning records when this key is reached.
         - name: limit
           in: query
           required: false
-          schema: *ref_59
+          schema: *ref_64
           description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
       requestBody:
         content:
@@ -6257,7 +6634,7 @@ paths:
       responses:
         '200':
           description: Operation ran successfully
-          content: *ref_60
+          content: *ref_65
         '400':
           description: There was a problem with your request
           content: *ref_5
@@ -6284,47 +6661,47 @@ paths:
         - name: include_docs
           in: query
           required: false
-          schema: *ref_54
+          schema: *ref_59
           description: Include the body associated with each document.
         - name: channels
           in: query
           required: false
-          schema: *ref_55
+          schema: *ref_60
           description: Include the channels each document is part of that the calling user also has access too.
         - name: access
           in: query
           required: false
-          schema: *ref_56
+          schema: *ref_61
           description: Include what user/roles that each document grants access too.
         - name: revs
           in: query
           required: false
-          schema: *ref_57
+          schema: *ref_62
           description: Include all the revisions for each document under the `_revisions` property.
         - name: update_seq
           in: query
           required: false
-          schema: *ref_58
+          schema: *ref_63
           description: Include the document sequence number `update_seq` property for each document.
         - name: keys
           in: query
           required: false
-          schema: *ref_51
+          schema: *ref_56
           description: An array of document ID strings to filter by.
         - name: startkey
           in: query
           required: false
-          schema: *ref_52
+          schema: *ref_57
           description: Return records starting with the specified key.
         - name: endkey
           in: query
           required: false
-          schema: *ref_53
+          schema: *ref_58
           description: Stop returning records when this key is reached.
         - name: limit
           in: query
           required: false
-          schema: *ref_59
+          schema: *ref_64
           description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
       description: |-
         Required Sync Gateway RBAC roles:
@@ -6373,7 +6750,7 @@ paths:
                     description: The configurable Sync Gateway properties of a document.
                     type: object
                     additionalProperties: true
-                    properties: *ref_61
+                    properties: *ref_66
               required:
                 - docs
             example:
@@ -6427,7 +6804,8 @@ paths:
                       rev: 6-b3e8dcf825b71ccee112f3572ec4323c
                     - id: BobSettings
                       rev: 2-5145e1086bb8d1d71a531e9f6b543c58
-                Partial success:
+                PartialSuccess:
+                  summary: PartialSuccess
                   value:
                     - error: conflict
                       id: FooBar
@@ -6484,7 +6862,7 @@ paths:
         - name: revs
           in: query
           required: false
-          schema: *ref_57
+          schema: *ref_62
           description: Include all the revisions for each document under the `_revisions` property.
         - name: revs_limit
           in: query
@@ -6586,7 +6964,7 @@ paths:
         - name: include_docs
           in: query
           required: false
-          schema: *ref_54
+          schema: *ref_59
           description: Include the body associated with each document.
         - name: revocations
           in: query
@@ -6648,12 +7026,12 @@ paths:
       responses:
         '200':
           description: Successfully returned the changes feed
-          content: &ref_62
+          content: &ref_67
             application/json:
               schema:
                 description: Properties of a changes feed
                 type: object
-                properties: &ref_124
+                properties: &ref_130
                   results:
                     type: array
                     items:
@@ -6744,7 +7122,7 @@ paths:
       responses:
         '200':
           description: Successfully returned the changes feed
-          content: *ref_62
+          content: *ref_67
         '400':
           description: There was a problem with your request
           content: *ref_5
@@ -6782,7 +7160,7 @@ paths:
       - name: ddoc
         in: path
         required: true
-        schema: &ref_64
+        schema: &ref_69
           type: string
         description: The design document name.
     get:
@@ -6804,7 +7182,7 @@ paths:
               schema:
                 description: Properties of a design document
                 type: object
-                properties: &ref_63
+                properties: &ref_68
                   language:
                     type: string
                   views:
@@ -6853,7 +7231,7 @@ paths:
             schema:
               description: Properties of a design document
               type: object
-              properties: *ref_63
+              properties: *ref_68
       responses:
         '200':
           description: Design document changes successfully
@@ -6919,12 +7297,12 @@ paths:
       - name: ddoc
         in: path
         required: true
-        schema: *ref_64
+        schema: *ref_69
         description: The design document name.
       - name: view
         in: path
         required: true
-        schema: *ref_49
+        schema: *ref_54
         description: The view to target.
     get:
       summary: Query a view on a design document | Unsupported
@@ -6942,76 +7320,76 @@ paths:
           in: query
           required: false
           description: Indicates whether the specified end key should be included in the result.
-          schema: *ref_65
+          schema: *ref_70
         - name: descending
           in: query
           required: false
           description: Return documents in descending order.
-          schema: *ref_66
+          schema: *ref_71
         - name: include_docs
           in: query
           required: false
           description: Only works when using Couchbase Server 3.0 and earlier. Indicates whether to include the full content of the documents in the response.
-          schema: *ref_67
+          schema: *ref_72
         - name: reduce
           in: query
           required: false
           description: Whether to execute a reduce function on the response or not.
-          schema: *ref_68
+          schema: *ref_73
         - name: group
           in: query
           required: false
           description: Group the results using the reduce function to a group or single row.
-          schema: *ref_69
+          schema: *ref_74
         - name: skip
           in: query
           required: false
           description: Skip the specified number of documents before starting to return results.
-          schema: *ref_70
+          schema: *ref_75
         - name: limit
           in: query
           required: false
           description: Return only the specified number of documents
-          schema: *ref_71
+          schema: *ref_76
         - name: group_level
           in: query
           required: false
           description: Specify the group level to be used.
-          schema: *ref_72
+          schema: *ref_77
         - name: startkey_docid
           in: query
           required: false
           description: Return documents starting with the specified document identifier.
-          schema: *ref_73
+          schema: *ref_78
         - name: endkey_docid
           in: query
           required: false
           description: Stop returning records when the specified document identifier is reached.
-          schema: *ref_74
+          schema: *ref_79
         - name: stale
           in: query
           required: false
           description: Allow the results from a stale view to be used, without triggering a rebuild of all views within the encompassing design document.
-          schema: *ref_75
+          schema: *ref_80
         - name: startkey
           in: query
           required: false
-          schema: *ref_52
+          schema: *ref_57
           description: Return records starting with the specified key.
         - name: endkey
           in: query
           required: false
-          schema: *ref_53
+          schema: *ref_58
           description: Stop returning records when this key is reached.
         - name: key
           in: query
           required: false
           description: Return only the document that matches the specified key.
-          schema: *ref_76
+          schema: *ref_81
         - name: keys
           in: query
           required: false
-          schema: *ref_51
+          schema: *ref_56
           description: An array of document ID strings to filter by.
       responses:
         '200':
@@ -7219,8 +7597,8 @@ paths:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: *ref_77
-                required: *ref_78
+                properties: *ref_82
+                required: *ref_83
                 title: New-revision
         '400':
           description: There was a problem with your request
@@ -7317,14 +7695,14 @@ paths:
         - name: rev
           in: query
           required: false
-          schema: &ref_81
+          schema: &ref_86
             type: string
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target.
         - name: open_revs
           in: query
           required: false
-          schema: &ref_85
+          schema: &ref_90
             type: array
             items:
               type: string
@@ -7332,13 +7710,13 @@ paths:
         - name: show_exp
           in: query
           required: false
-          schema: &ref_86
+          schema: &ref_91
             type: boolean
           description: Whether to show the expiry property (`_exp`) in the response.
         - name: revs_from
           in: query
           required: false
-          schema: &ref_87
+          schema: &ref_92
             type: array
             items:
               type: string
@@ -7346,7 +7724,7 @@ paths:
         - name: atts_since
           in: query
           required: false
-          schema: &ref_88
+          schema: &ref_93
             type: array
             items:
               type: string
@@ -7354,19 +7732,19 @@ paths:
         - name: revs_limit
           in: query
           required: false
-          schema: &ref_89
+          schema: &ref_94
             type: integer
           description: Maximum amount of revisions to return for each document.
         - name: attachments
           in: query
           required: false
-          schema: &ref_90
+          schema: &ref_95
             type: boolean
           description: Include attachment bodies in response.
         - name: replicator2
           in: query
           required: false
-          schema: &ref_80
+          schema: &ref_85
             type: boolean
           description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
       responses:
@@ -7400,7 +7778,7 @@ paths:
             Document ID is not in an allowed format therefore is invalid.
 
             This could be because it is over 250 characters or is prefixed with an underscore ("_").
-          content: &ref_84
+          content: &ref_89
             application/json:
               schema:
                 type: object
@@ -7440,30 +7818,30 @@ paths:
         - name: roundtrip
           in: query
           required: false
-          schema: *ref_79
+          schema: *ref_84
           description: Block until document has been received by change cache
         - name: replicator2
           in: query
           required: false
-          schema: *ref_80
+          schema: *ref_85
           description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
         - name: new_edits
           in: query
           required: false
-          schema: &ref_105
+          schema: &ref_110
             type: boolean
             default: 'true'
           description: Setting this to false indicates that the request body is an already-existing revision that should be directly inserted into the database, instead of a modification to apply to the current document. This mode is used for replication.  This option must be used in conjunction with the `_revisions` property in the request body.
         - name: rev
           in: query
           required: false
-          schema: *ref_81
+          schema: *ref_86
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target.
         - name: If-Match
           in: header
           required: false
-          schema: *ref_82
+          schema: *ref_87
           description: The revision ID to target.
       requestBody:
         content:
@@ -7472,7 +7850,7 @@ paths:
               description: The configurable Sync Gateway properties of a document.
               type: object
               additionalProperties: true
-              properties: *ref_61
+              properties: *ref_66
       responses:
         '201':
           description: Created
@@ -7486,8 +7864,8 @@ paths:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: *ref_77
-                required: *ref_78
+                properties: *ref_82
+                required: *ref_83
                 title: New-revision
         '400':
           description: There was a problem with your request
@@ -7500,7 +7878,7 @@ paths:
           content: *ref_14
         '415':
           description: Invalid content type
-          content: *ref_83
+          content: *ref_88
       tags:
         - Document
       operationId: put_keyspace-docid
@@ -7518,24 +7896,24 @@ paths:
         - name: rev
           in: query
           required: false
-          schema: *ref_81
+          schema: *ref_86
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target.
         - name: If-Match
           in: header
           required: false
-          schema: *ref_82
+          schema: *ref_87
           description: The revision ID to target.
       responses:
         '200':
           description: New revision created successfully
-          content: &ref_131
+          content: &ref_137
             application/json:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: *ref_77
-                required: *ref_78
+                properties: *ref_82
+                required: *ref_83
                 title: New-revision
         '400':
           description: There was a problem with your request
@@ -7555,7 +7933,7 @@ paths:
             Document ID is not in an allowed format therefore is invalid.
 
             This could be because it is over 250 characters or is prefixed with an underscore ("_").
-          content: *ref_84
+          content: *ref_89
         '404':
           description: Resource could not be found
           content: *ref_2
@@ -7566,43 +7944,43 @@ paths:
         - name: rev
           in: query
           required: false
-          schema: *ref_81
+          schema: *ref_86
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target.
         - name: open_revs
           in: query
           required: false
-          schema: *ref_85
+          schema: *ref_90
           description: 'Option to fetch specified revisions of the document. The value can be all to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=["rev1", "rev2"]). Only leaf revision bodies that haven''t been pruned are guaranteed to be returned. If this option is specified the response will be in multipart format. Use the `Accept: application/json` request header to get the result as a JSON object.'
         - name: show_exp
           in: query
           required: false
-          schema: *ref_86
+          schema: *ref_91
           description: Whether to show the expiry property (`_exp`) in the response.
         - name: revs_from
           in: query
           required: false
-          schema: *ref_87
+          schema: *ref_92
           description: Trim the revision history to stop at the first revision in the provided list. If no match is found, the revisions will be trimmed to the `revs_limit`.
         - name: atts_since
           in: query
           required: false
-          schema: *ref_88
+          schema: *ref_93
           description: Include attachments only since specified revisions. Excludes the attachments for the specified revisions. Only gets used if `attachments=true`.
         - name: revs_limit
           in: query
           required: false
-          schema: *ref_89
+          schema: *ref_94
           description: Maximum amount of revisions to return for each document.
         - name: attachments
           in: query
           required: false
-          schema: *ref_90
+          schema: *ref_95
           description: Include attachment bodies in response.
         - name: replicator2
           in: query
           required: false
-          schema: *ref_80
+          schema: *ref_85
           description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
       description: |-
         Return a status code based on if the document exists or not.
@@ -7652,7 +8030,7 @@ paths:
         - name: rev
           in: query
           required: false
-          schema: *ref_81
+          schema: *ref_86
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target.
         - name: content_encoding
@@ -7744,8 +8122,8 @@ paths:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: *ref_77
-                required: *ref_78
+                properties: *ref_82
+                required: *ref_83
                 title: New-revision
         '404':
           description: Resource could not be found
@@ -7786,7 +8164,7 @@ paths:
         - name: rev
           in: query
           required: false
-          schema: *ref_81
+          schema: *ref_86
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target.
       operationId: head_keyspace-docid-attach
@@ -7820,8 +8198,8 @@ paths:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: *ref_77
-                required: *ref_78
+                properties: *ref_82
+                required: *ref_83
                 title: New-revision
         '404':
           description: Resource could not be found
@@ -7862,7 +8240,7 @@ paths:
           description: Session created successfully
         '400':
           description: Origin is not in the approved list of allowed origins
-          content: *ref_91
+          content: *ref_96
         '401':
           description: Received error from Facebook verifier
           content:
@@ -7933,7 +8311,7 @@ paths:
           description: Session created successfully
         '400':
           description: Origin is not in the approved list of allowed origins
-          content: *ref_91
+          content: *ref_96
         '401':
           description: Received error from Google token verifier or invalid application ID in the config
           content:
@@ -7980,13 +8358,13 @@ paths:
         - name: provider
           in: query
           required: false
-          schema: &ref_92
+          schema: &ref_97
             type: string
           description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
         - name: offline
           in: query
           required: false
-          schema: &ref_93
+          schema: &ref_98
             type: string
           description: If true, the OpenID Connect provider is requested to confirm with the user the permissions requested and refresh the OIDC token. To do this, access_type=offline and prompt=consent is set on the redirection link.
       responses:
@@ -8022,12 +8400,12 @@ paths:
         - name: provider
           in: query
           required: false
-          schema: *ref_92
+          schema: *ref_97
           description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
         - name: offline
           in: query
           required: false
-          schema: *ref_93
+          schema: *ref_98
           description: If true, the OpenID Connect provider is requested to confirm with the user the permissions requested and refresh the OIDC token. To do this, access_type=offline and prompt=consent is set on the redirection link.
       responses:
         '400':
@@ -8067,28 +8445,28 @@ paths:
         - name: code
           in: query
           required: true
-          schema: &ref_106
+          schema: &ref_111
             type: string
           description: The OpenID Connect authentication code.
         - name: provider
           in: query
           required: false
-          schema: *ref_92
+          schema: *ref_97
           description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
         - name: state
           in: query
           required: false
-          schema: &ref_107
+          schema: &ref_112
             type: string
           description: The OpenID Connect state to verify against the state cookie. This is used to prevent cross-site request forgery (CSRF). This is not required if `disable_callback_state=true` for the provider config (NOT recommended).
       responses:
         '200':
           description: Successfully authenticated with OpenID Connect.
-          content: &ref_94
+          content: &ref_99
             application/json:
               schema:
                 type: object
-                properties: &ref_125
+                properties: &ref_131
                   id_token:
                     description: The OpenID Connect ID token
                     type: string
@@ -8153,12 +8531,12 @@ paths:
         - name: provider
           in: query
           required: false
-          schema: *ref_92
+          schema: *ref_97
           description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
       responses:
         '200':
           description: Successfully authenticated with OpenID Connect.
-          content: *ref_94
+          content: *ref_99
         '400':
           description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
         '404':
@@ -8238,7 +8616,7 @@ paths:
         - name: scope
           in: query
           required: true
-          schema: &ref_95
+          schema: &ref_100
             type: string
           description: The OpenID Connect authentication scope.
       responses:
@@ -8246,7 +8624,7 @@ paths:
           description: OK
         '400':
           description: A validation error occurred with the scope.
-          content: &ref_96
+          content: &ref_101
             application/json:
               schema:
                 type: object
@@ -8260,7 +8638,7 @@ paths:
           content: *ref_2
         '500':
           description: An error occurred.
-          content: &ref_97
+          content: &ref_102
             application/json:
               schema:
                 type: object
@@ -8277,14 +8655,14 @@ paths:
         - name: scope
           in: query
           required: true
-          schema: *ref_95
+          schema: *ref_100
           description: The OpenID Connect authentication scope.
       responses:
         '200':
           description: OK
         '400':
           description: A validation error occurred with the scope.
-          content: *ref_96
+          content: *ref_101
         '403':
           description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
         '404':
@@ -8292,7 +8670,7 @@ paths:
           content: *ref_2
         '500':
           description: An error occurred.
-          content: *ref_97
+          content: *ref_102
       tags:
         - Authentication
       operationId: post_db-_oidc_testing-authorize
@@ -8327,12 +8705,12 @@ paths:
       responses:
         '200':
           description: Properties expected back from an OpenID Connect provider after successful authentication
-          content: &ref_132
+          content: &ref_138
             application/json:
               schema:
                 description: Properties expected back from an OpenID Connect provider after successful authentication
                 type: object
-                properties: &ref_126
+                properties: &ref_132
                   access_token:
                     type: string
                   token_type:
@@ -8430,13 +8808,13 @@ paths:
         - name: redirect_uri
           in: query
           required: false
-          schema: &ref_98
+          schema: &ref_103
             type: string
           description: The Sync Gateway OpenID Connect callback URL.
         - name: scope
           in: query
           required: true
-          schema: *ref_95
+          schema: *ref_100
           description: The OpenID Connect authentication scope.
         - name: username
           in: query
@@ -8461,7 +8839,7 @@ paths:
       responses:
         '302':
           description: Redirecting to Sync Gateway OpenID Connect callback URL
-          headers: &ref_99
+          headers: &ref_104
             Location:
               schema:
                 type: string
@@ -8481,20 +8859,20 @@ paths:
         - name: redirect_uri
           in: query
           required: false
-          schema: *ref_98
+          schema: *ref_103
           description: The Sync Gateway OpenID Connect callback URL.
         - name: scope
           in: query
           required: true
-          schema: *ref_95
+          schema: *ref_100
           description: The OpenID Connect authentication scope.
       requestBody:
-        content: &ref_133
+        content: &ref_139
           application/json:
             schema:
               description: Properties passed from the OpenID Connect mock login page to the handler
               type: object
-              properties: &ref_127
+              properties: &ref_133
                 username:
                   type: string
                 tokenttl:
@@ -8503,7 +8881,7 @@ paths:
                   type: string
                 authenticated:
                   type: string
-              required: &ref_128
+              required: &ref_134
                 - username
                 - tokenttl
                 - identity-token-formats
@@ -8512,7 +8890,7 @@ paths:
       responses:
         '302':
           description: Redirecting to Sync Gateway OpenID Connect callback URL
-          headers: *ref_99
+          headers: *ref_104
         '403':
           description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
         '404':
@@ -8604,19 +8982,19 @@ components:
       name: include_doc
       in: query
       required: false
-      schema: *ref_100
+      schema: *ref_105
       description: Include the body associated with the document.
     usersNameOnly:
       name: name_only
       in: query
       required: false
-      schema: *ref_101
+      schema: *ref_106
       description: Whether to return user names only, or more detailed information for each user.
     usersLimit:
       name: limit
       in: query
       required: false
-      schema: *ref_102
+      schema: *ref_107
       description: How many results to return. Using a value of `0` results in no limit.
     user-name:
       name: name
@@ -8628,7 +9006,7 @@ components:
       name: name
       in: path
       required: true
-      schema: *ref_103
+      schema: *ref_108
       description: The name of the role.
     replicationid:
       name: replicationid
@@ -8681,144 +9059,144 @@ components:
       in: query
       deprecated: true
       required: false
-      schema: *ref_40
+      schema: *ref_41
       description: No longer supported field.
     pprof-seconds:
       name: seconds
       in: query
       description: If set, collect a delta profile for the given duration, instead of a snapshot.
-      schema: *ref_37
+      schema: *ref_38
     debug-profile-seconds:
       name: seconds
       in: query
       required: false
-      schema: *ref_39
+      schema: *ref_40
       description: The amount of seconds to run the profiler for.
     include_runtime:
       name: include_runtime
       in: query
       required: false
-      schema: *ref_104
+      schema: *ref_109
       description: Whether to include the values set at runtime, and default values.
     DB-config-If-Match:
       name: If-Match
       in: header
       required: false
-      schema: *ref_43
+      schema: *ref_44
       description: If set to a configuration's Etag value, enables optimistic concurrency control for the request. Returns HTTP 412 if another update happened underneath this one.
     disable_oidc_validation:
       name: disable_oidc_validation
       in: query
       required: false
       description: If set, will not attempt to validate the configured OpenID Connect providers are reachable.
-      schema: *ref_46
+      schema: *ref_49
     If-Match:
       name: If-Match
       in: header
       required: false
-      schema: *ref_82
+      schema: *ref_87
       description: The revision ID to target.
     view:
       name: view
       in: path
       required: true
-      schema: *ref_49
+      schema: *ref_54
       description: The view to target.
     inclusive_end:
       name: inclusive_end
       in: query
       required: false
       description: Indicates whether the specified end key should be included in the result.
-      schema: *ref_65
+      schema: *ref_70
     descending:
       name: descending
       in: query
       required: false
       description: Return documents in descending order.
-      schema: *ref_66
+      schema: *ref_71
     include_docs-cbs3:
       name: include_docs
       in: query
       required: false
       description: Only works when using Couchbase Server 3.0 and earlier. Indicates whether to include the full content of the documents in the response.
-      schema: *ref_67
+      schema: *ref_72
     reduce:
       name: reduce
       in: query
       required: false
       description: Whether to execute a reduce function on the response or not.
-      schema: *ref_68
+      schema: *ref_73
     group:
       name: group
       in: query
       required: false
       description: Group the results using the reduce function to a group or single row.
-      schema: *ref_69
+      schema: *ref_74
     skip:
       name: skip
       in: query
       required: false
       description: Skip the specified number of documents before starting to return results.
-      schema: *ref_70
+      schema: *ref_75
     limit:
       name: limit
       in: query
       required: false
       description: Return only the specified number of documents
-      schema: *ref_71
+      schema: *ref_76
     group_level:
       name: group_level
       in: query
       required: false
       description: Specify the group level to be used.
-      schema: *ref_72
+      schema: *ref_77
     startkey_docid:
       name: startkey_docid
       in: query
       required: false
       description: Return documents starting with the specified document identifier.
-      schema: *ref_73
+      schema: *ref_78
     endkey_docid:
       name: endkey_docid
       in: query
       required: false
       description: Stop returning records when the specified document identifier is reached.
-      schema: *ref_74
+      schema: *ref_79
     stale:
       name: stale
       in: query
       required: false
       description: Allow the results from a stale view to be used, without triggering a rebuild of all views within the encompassing design document.
-      schema: *ref_75
+      schema: *ref_80
     startkey:
       name: startkey
       in: query
       required: false
-      schema: *ref_52
+      schema: *ref_57
       description: Return records starting with the specified key.
     endkey:
       name: endkey
       in: query
       required: false
-      schema: *ref_53
+      schema: *ref_58
       description: Stop returning records when this key is reached.
     key:
       name: key
       in: query
       required: false
       description: Return only the document that matches the specified key.
-      schema: *ref_76
+      schema: *ref_81
     keys:
       name: keys
       in: query
       required: false
-      schema: *ref_51
+      schema: *ref_56
       description: An array of document ID strings to filter by.
     compact-type:
       name: type
       in: query
       required: false
-      schema: *ref_50
+      schema: *ref_55
       description: |-
         This is the type of compaction to use. The type must be either:
         * `attachment` for cleaning up legacy (pre-3.0) attachments
@@ -8827,145 +9205,145 @@ components:
       name: roundtrip
       in: query
       required: false
-      schema: *ref_79
+      schema: *ref_84
       description: Block until document has been received by change cache
     include_docs:
       name: include_docs
       in: query
       required: false
-      schema: *ref_54
+      schema: *ref_59
       description: Include the body associated with each document.
     Include-channels:
       name: channels
       in: query
       required: false
-      schema: *ref_55
+      schema: *ref_60
       description: Include the channels each document is part of that the calling user also has access too.
     include-access:
       name: access
       in: query
       required: false
-      schema: *ref_56
+      schema: *ref_61
       description: Include what user/roles that each document grants access too.
     include-revs:
       name: revs
       in: query
       required: false
-      schema: *ref_57
+      schema: *ref_62
       description: Include all the revisions for each document under the `_revisions` property.
     include-seqs:
       name: update_seq
       in: query
       required: false
-      schema: *ref_58
+      schema: *ref_63
       description: Include the document sequence number `update_seq` property for each document.
     limit-result-rows:
       name: limit
       in: query
       required: false
-      schema: *ref_59
+      schema: *ref_64
       description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
     ddoc:
       name: ddoc
       in: path
       required: true
-      schema: *ref_64
+      schema: *ref_69
       description: The design document name.
     rev:
       name: rev
       in: query
       required: false
-      schema: *ref_81
+      schema: *ref_86
       example: 2-5145e1086bb8d1d71a531e9f6b543c58
       description: The document revision to target.
     open_revs:
       name: open_revs
       in: query
       required: false
-      schema: *ref_85
+      schema: *ref_90
       description: 'Option to fetch specified revisions of the document. The value can be all to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=["rev1", "rev2"]). Only leaf revision bodies that haven''t been pruned are guaranteed to be returned. If this option is specified the response will be in multipart format. Use the `Accept: application/json` request header to get the result as a JSON object.'
     show_exp:
       name: show_exp
       in: query
       required: false
-      schema: *ref_86
+      schema: *ref_91
       description: Whether to show the expiry property (`_exp`) in the response.
     revs_from:
       name: revs_from
       in: query
       required: false
-      schema: *ref_87
+      schema: *ref_92
       description: Trim the revision history to stop at the first revision in the provided list. If no match is found, the revisions will be trimmed to the `revs_limit`.
     atts_since:
       name: atts_since
       in: query
       required: false
-      schema: *ref_88
+      schema: *ref_93
       description: Include attachments only since specified revisions. Excludes the attachments for the specified revisions. Only gets used if `attachments=true`.
     revs_limit:
       name: revs_limit
       in: query
       required: false
-      schema: *ref_89
+      schema: *ref_94
       description: Maximum amount of revisions to return for each document.
     includeAttachments:
       name: attachments
       in: query
       required: false
-      schema: *ref_90
+      schema: *ref_95
       description: Include attachment bodies in response.
     replicator2:
       name: replicator2
       in: query
       required: false
-      schema: *ref_80
+      schema: *ref_85
       description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
     new_edits:
       name: new_edits
       in: query
       required: false
-      schema: *ref_105
+      schema: *ref_110
       description: Setting this to false indicates that the request body is an already-existing revision that should be directly inserted into the database, instead of a modification to apply to the current document. This mode is used for replication.  This option must be used in conjunction with the `_revisions` property in the request body.
     provider:
       name: provider
       in: query
       required: false
-      schema: *ref_92
+      schema: *ref_97
       description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
     offline:
       name: offline
       in: query
       required: false
-      schema: *ref_93
+      schema: *ref_98
       description: If true, the OpenID Connect provider is requested to confirm with the user the permissions requested and refresh the OIDC token. To do this, access_type=offline and prompt=consent is set on the redirection link.
     oidc-code:
       name: code
       in: query
       required: true
-      schema: *ref_106
+      schema: *ref_111
       description: The OpenID Connect authentication code.
     oidc-state:
       name: state
       in: query
       required: false
-      schema: *ref_107
+      schema: *ref_112
       description: The OpenID Connect state to verify against the state cookie. This is used to prevent cross-site request forgery (CSRF). This is not required if `disable_callback_state=true` for the provider config (NOT recommended).
     oidc-scope:
       name: scope
       in: query
       required: true
-      schema: *ref_95
+      schema: *ref_100
       description: The OpenID Connect authentication scope.
     oidc-redirect_uri:
       name: redirect_uri
       in: query
       required: false
-      schema: *ref_98
+      schema: *ref_103
       description: The Sync Gateway OpenID Connect callback URL.
   schemas:
     User-session-information:
       type: object
-      properties: *ref_108
+      properties: *ref_113
       title: User Session Information
     HTTP-Error:
       type: object
@@ -8994,7 +9372,7 @@ components:
     All-replications:
       description: Contains all the replication IDs with their corresponding replication configurations
       type: object
-      properties: *ref_109
+      properties: *ref_114
       title: All replications
     Replication:
       description: Properties of a replication
@@ -9019,16 +9397,20 @@ components:
       title: Log-rotation-config
     Console-logging-config:
       type: object
-      properties: *ref_110
+      properties: *ref_36
       title: Console-logging-config
     File-logging-config:
       type: object
       properties: *ref_34
       title: File-logging-config
+    Audit-logging-config:
+      type: object
+      properties: *ref_37
+      title: Audit-logging-config
     Serverless:
       description: Configuration for when SG is running in serverless mode
       type: object
-      properties: *ref_111
+      properties: *ref_115
     CredentialsConfig:
       description: The configuration for the credentials set.
       type: object
@@ -9036,99 +9418,119 @@ components:
       title: Credentials config
     Startup-config:
       type: object
-      properties: *ref_36
+      properties: *ref_116
       title: Startup-config
+    Runtime-config:
+      type: object
+      properties: *ref_117
+      title: Runtime-config
     Status:
       type: object
-      properties: *ref_112
+      properties: *ref_118
       title: Status
     CollectionConfig:
       description: Collection-specific configuration.
       type: object
-      properties: *ref_113
+      properties: *ref_119
       title: Collection config
     Scopes:
       description: Scope-specific configuration.
       type: object
-      properties: *ref_114
+      properties: *ref_120
       title: Scopes
     Event-config:
       type: object
-      properties: *ref_41
+      properties: *ref_42
       title: Event-config
     Database:
       description: The properties of a database configuration.
       type: object
-      properties: *ref_42
+      properties: *ref_43
       title: Database-config
-    Resync-status:
-      description: The status of a resync operation
+    Database-audit:
+      title: Database-audit
+      description: A map of audit events and whether they are enabled or not.
       type: object
       properties: *ref_47
-      required: *ref_48
-      title: Resync-status
+    AuditEventVerbose:
+      title: audit-event-verbose
+      description: Detailed information about an audit event.
+      type: object
+      properties: *ref_121
+    Database-audit-verbose:
+      title: Database-audit-verbose
+      description: A map of detailed audit events.
+      type: object
+      properties: *ref_48
     CollectionNames:
       description: List of collection names
       type: array
-      items: *ref_115
+      items: *ref_122
     ResyncScopesMap:
       description: scope name with one or more collection names for which resync will be triggered
       type: object
-      additionalProperties: *ref_116
+      additionalProperties: *ref_50
+      example: *ref_51
+    Resync-status:
+      description: The status of a resync operation
+      type: object
+      properties: *ref_52
+      required: *ref_53
+      title: Resync-status
     All DBs:
       description: The names of all databases.
       type: array
-      items: *ref_117
+      items: *ref_123
     All DBs Verbose:
       description: Description of all databases.
       type: array
-      items: *ref_118
+      items: *ref_124
     Compact-status:
       description: The status returned from a compaction.
       type: object
-      properties: *ref_119
-      required: *ref_120
+      properties: *ref_125
+      required: *ref_126
       title: Compact-status
     Document:
       description: The configurable Sync Gateway properties of a document.
       type: object
       additionalProperties: true
-      properties: *ref_61
+      properties: *ref_66
     New-revision:
       description: Properties returned when a new document revision is created
       type: object
-      properties: *ref_77
-      required: *ref_78
+      properties: *ref_82
+      required: *ref_83
       title: New-revision
     ExpVars:
       type: object
-      properties: *ref_121
+      properties: *ref_127
     NodeInfo:
       type: object
-      properties: *ref_122
-      required: *ref_123
+      properties: *ref_128
+      required: *ref_129
     Changes-feed:
       description: Properties of a changes feed
       type: object
-      properties: *ref_124
+      properties: *ref_130
     Design-doc:
       description: Properties of a design document
       type: object
-      properties: *ref_63
+      properties: *ref_68
     OIDC-callback:
       type: object
-      properties: *ref_125
+      properties: *ref_131
       title: OpenID Connect callback properties
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
       type: object
-      properties: *ref_126
+      properties: *ref_132
       title: OIDC-token
     OIDC-login-page-handler:
       description: Properties passed from the OpenID Connect mock login page to the handler
       type: object
-      properties: *ref_127
-      required: *ref_128
+      properties: *ref_133
+      required: *ref_134
   responses:
     User-session-information:
       description: Properties associated with a user session
@@ -9138,7 +9540,7 @@ components:
       content: *ref_2
     Invalid-CORS:
       description: Origin is not in the approved list of allowed origins
-      content: *ref_91
+      content: *ref_96
     request-problem:
       description: There was a problem with your request
       content: *ref_5
@@ -9147,20 +9549,20 @@ components:
       content: *ref_14
     User:
       description: Properties associated with a user
-      content: *ref_129
+      content: *ref_135
     Role:
       description: Properties associated with a role
-      content: *ref_130
+      content: *ref_136
     Replicator-updated:
       description: Updated existing configuration successfully
     Replicator-created:
       description: Created new replication successfully
     pprof-binary:
       description: OK
-      content: *ref_38
+      content: *ref_39
     DB-config-updated:
       description: Database configuration successfully updated
-      headers: *ref_44
+      headers: *ref_45
     DB-config-precondition-failed:
       description: |-
         Precondition Failed
@@ -9168,16 +9570,16 @@ components:
         The supplied If-Match header did not match the current version of the configuration.
 
         Returned when optimistic concurrency control is used, and there has been an update to the configuration in between this update.
-      content: *ref_45
+      content: *ref_46
     Invalid-content-type:
       description: Invalid content type
-      content: *ref_83
+      content: *ref_88
     all-docs:
       description: Operation ran successfully
-      content: *ref_60
+      content: *ref_65
     changes-feed:
       description: Successfully returned the changes feed
-      content: *ref_62
+      content: *ref_67
     ddoc-forbidden:
       description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
     invalid-doc-id:
@@ -9185,31 +9587,31 @@ components:
         Document ID is not in an allowed format therefore is invalid.
 
         This could be because it is over 250 characters or is prefixed with an underscore ("_").
-      content: *ref_84
+      content: *ref_89
     New-revision:
       description: New revision created successfully
-      content: *ref_131
+      content: *ref_137
     OIDC-invalid-provider:
       description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
     OIDC-connection:
       description: Unable to connect and validate with the OpenID Connect provider requested
     OIDC-callback:
       description: Successfully authenticated with OpenID Connect.
-      content: *ref_94
+      content: *ref_99
     OIDC-test-provider-disabled:
       description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
     OIDC-invalid-scope:
       description: A validation error occurred with the scope.
-      content: *ref_96
+      content: *ref_101
     OIDC-testing-internal-error:
       description: An error occurred.
-      content: *ref_97
+      content: *ref_102
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
-      content: *ref_132
+      content: *ref_138
     OIDC-testing-redirect:
       description: Redirecting to Sync Gateway OpenID Connect callback URL
-      headers: *ref_99
+      headers: *ref_104
   requestBodies:
     User:
       content: *ref_10
@@ -9223,5 +9625,5 @@ components:
     Profile:
       content: *ref_32
     OIDC-login-page-handler:
-      content: *ref_133
+      content: *ref_139
       description: Properties passed from the OpenID Connect mock login page to the handler
