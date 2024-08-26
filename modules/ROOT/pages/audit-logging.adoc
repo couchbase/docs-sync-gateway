@@ -1,5 +1,5 @@
 = Audit Logging
-:page-edition: {enterprise}
+:page-edition: Enterprise
 :description: Audit Logging provides tools for administrators to track operational irregularities and to support regulatory and security compliance standards, such as link:https://www.hhs.gov/hipaa/index.html[HIPAA] and link:https://soc2.co.uk/soc2[SOC-2].
 
 [abstract]
@@ -10,29 +10,49 @@
 Key concepts, use cases and sign posting
 Explain audit log files, only one active at a time that they’re written etc
 
-IMPORTANT: Sg_collect does NOT collect audit log information
+Audit Logging provides tools for administrators to track operational irregularities and to support regulatory and security compliance standards, such as link:https://www.hhs.gov/hipaa/index.html[HIPAA] and link:https://soc2.co.uk/soc2[SOC-2].
 
-
-== Security Considerations
-
-Viewing and managing Audit Logs permissions are enforced through Capella RBAC controls. 
-Logs are encrypted both in transit to prevent unauthorized access or tampering, all communication supports TLS.
+There is only one audit log file active at a time, which is periodically rotated based on the user-configured `rotateInterval` or `rotateSize` properties.
 Logs are immutable and only accessible via read-only APIs, thus ensuring logs cannot be altered once recorded.
+Viewing and managing audit logs permissions are enforced through Sync Gateway RBAC controls. 
+Logs are encrypted both in transit to prevent unauthorized access or tampering, all communication supports TLS.
 
-== Audit Log Configuration
+IMPORTANT: Rotated audit logs are not automatically pruned, administrators must manually configure audit log pruning.
 
+== Audit Events
 
+Audit logging is an opt-in feature that allows you to track events associated with administrative, management, and end-user operations made in Sync Gateway.
+These logs are presented as a https://jsonlines.org/[JSON-lines formatted series of events].
 
-=== Activity Logging
+Audit events are tagged at a database level to distinguish between events coming from different databases.
+The fields the event was called with are also added if applicable to the optional context property of the event.
 
-Audit Logging activities such as enabling/disabling, export requests and streaming state changes are captured in the Capella Activity Logs.
-
-=== Audit Events
-
-Database level audit events are segregated into per SGW database specific audit logs
-Tagged at a database level to distinguish between events coming from different databases
-The fields the event was called with are also added if applicable to the optional context property of the event
 For more information, see xref:audit-log-events.adoc[audit events reference page].
+
+NOTE: Event auditing occurs per Sync Gateway node, capturing its own events only.
+If you require a cluster-wide record, the records must be manually consolidated by an adminstrator.
+
+=== Audit Event Types
+
+Audit Events can be one of the following types:
+
+* `Admin` - Events that track administrative and configuration changes.
+
+* `Data` - Events that track attempts to access and change data.
+
+* `User` - Events that track end-user operations.
+
+=== Audit Event Scopes
+
+Audit events have scope, this affects how they can be configured.
+The audit events scopes are:
+
+* `Database` - These events are specific to a database such as `AuditIDDocumentUpdate 55002`, and can only be enabled/disabled at the database configuration level. 
+Database level audit events are segregated into per Sync Gateway database specific audit logs.
+
+*  `Global` - These events are considered global such as `AuditIDSyncGatewayStartup 53260`, and have to be enabled/disabled in the bootstrap/startup config.
+
+IMPORTANT: Sg_collect does NOT collect audit log information as audit logs contain sensitive, unredacted data.
 
 == See Also
 
