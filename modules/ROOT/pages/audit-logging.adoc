@@ -7,17 +7,26 @@
 
 == About Audit Logging
 
-Key concepts, use cases and sign posting
-Explain audit log files, only one active at a time that they’re written etc
-
 Audit Logging provides tools for administrators to track operational irregularities and to support regulatory and security compliance standards, such as link:https://www.hhs.gov/hipaa/index.html[HIPAA] and link:https://soc2.co.uk/soc2[SOC-2].
 
-There is only one audit log file active at a time, which is periodically rotated based on the user-configured `rotateInterval` or `rotateSize` properties.
-Logs are immutable and only accessible via read-only APIs, thus ensuring logs cannot be altered once recorded.
-Viewing and managing audit logs permissions are enforced through Sync Gateway RBAC controls. 
-Logs are encrypted both in transit to prevent unauthorized access or tampering, all communication supports TLS.
+There is only one audit log file active at a time, which is periodically rotated based on the following properties:
 
-IMPORTANT: Rotated audit logs are not automatically pruned, administrators must manually configure audit log pruning.
+* `logging.audit.rotation.max_age` - The maximum number of days to retain old log files.
+
+* `logging.audit.rotation.max_size` - The maximum size in MB of the log file before it gets rotated.
+
+* `logging.audit.rotation.rotated_logs_size_limit` - The maximum size in MB of log files before deletion.
+
+* `logging.audit.rotation.rotation_interval` - If set, the interval at which log files are rotated, even if max_size is not reached.
+
+For more information about log file properties, see xref:rest-admin-api.adoc#api-explorer[the Admin REST API explorer].
+
+Logs are immutable and cannot be altered once recorded.
+Viewing and managing audit logs permissions are enforced through Sync Gateway RBAC controls. 
+Logs are written locally on each Sync Gateway node.
+
+IMPORTANT: Rotated audit logs are automatically pruned at a default value of six days.
+Administrators must ensure the rotated logs are picked up before they are deleted.
 
 == Audit Events
 
@@ -61,3 +70,7 @@ IMPORTANT: Sg_collect does NOT collect audit log information as audit logs conta
 * xref:audit-log-events.adoc[]
 
 * xref:sgcollect-info.adoc[]
+
+* xref:rest-api-admin.adoc[]
+
+* xref:rest-api-admin-static.adoc[]

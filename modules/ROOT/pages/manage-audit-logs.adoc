@@ -7,16 +7,140 @@
 
 == Enabling Audit Logging
 
-Enable/Disable via Admin REST API 
-Enable and disable are supported on a cluster and SGW database level.
+Audit Logging on Sync Gateway is opt-in functionality and is disabled by default.
+You can enable audit logging by setting the `enabled` property to true in your config file.
 
-=== Disabling Audit Logging
+== Audit Log Configuration
 
-Mention it’s disabled by default and is opt in functionality
+There are two main ways in which you can configure audit logs:
+
+* Via the bootstrap or startup config.
+This will affect the global configuration.
+
+* Via the database config.
+This will affect the configuration on a per database basis.
+
+=== Configuration with the Startup Config
+
+Below you can find the minimal configuration required in your `startup_config` file to enable audit logging.
+
+[source, json, indent=0]
+----
+
+"logging": {
+    "audit": {
+	  “audit_log_file_path”: “/path/to/file.log”,
+    “enabled”: true,
+    }
+}
+
+----
+
+NOTE: Configuration via the startup config will affect your configuration globally.
+
+To successfully configure audit logging, you must set a file path for your audit logs and set the `enabled` parameter to `true`.
+Enabling and disabling audit logging is handled by the Admin REST API at a cluster and Sync Gateway database level.
+
+=== Configuration with the Database Config
+
+You can alter the configuration per Sync Gateway database by changing the database config.
+
+Below is an example of a simple database configuration.
+
+[source, json, indent=2]
+----
+{
+    "bucket": "todo", 
+    "num_index_replicas": 0
+    “logging”: {
+		         “audit”: {
+ 		                    "enabled”: false,
+                        “enabled_events”: [],
+                        “disabled_users”: [
+                                            {
+		                                          “name”: “user1”,
+ 	                                            “domain”: “sgw”
+                                            }
+                                          ]
+                      },
+    “disabled_roles”: [
+                        {
+		                      “name”: “role1”,
+ 	                        “domain”: “sgw”
+                        }
+                      ]
+                }
+}  
+
+----
+
+IMPORTANT: If you enable audit logging in your startup config it is enabled globally.
+Conversely, it is important to note that if audit logging is enabled in your database config but *not* your startup config, no audit logging will occur.
+
+Couchbase recommends you only use configuration at the database level if you wish to alter your settings per database. 
+
+Disabled_users/disabled_roles fields
+
+These fields represent certain users for whom audit events will not occur. This might be something like an administrative user who is performing automated actions. There are two types of users:
+
+- Users/roles that are created by Sync Gateway, these have to have ”domain”: “sgw” attached. They are https://docs.couchbase.com/sync-gateway/current/access-control-concepts.html#lbl-sgw-users
+- Users that are are RBAC controlled https://docs.couchbase.com/sync-gateway/current/access-control-concepts.html#lbl-rbac-users - these would have ”domain”: “cbs” attached to them
+
 
 == Filtering Audit Logs
 
-== Audit Log Configuration
+Enabled Events
+
+Events can be enabled per database or globally .https://docs.google.com/spreadsheets/d/1WesvHjIn9hTkK8e-k6ke8RNYUv61HSaPwVE6WqH8khk/edit?gid=0#gid=0 These names only have internal meaning except where specified.
+
+Field names in this file:
+
+ID this is going to be the actual number passed into enabled_events: []
+Name is a short descriptive name, this is will be output as a field in the audit log
+Description is a longer name, this is will be output as a field in the audit log
+DefaultEnabled if true, this is enabled without explicitly listing in enabled_events: []
+Filterable : if true, this will always be enabled if audit logging is turned on. Any settings in enabled_events will be no-ops
+
+Example: You could have something in the global startup config that looks like which would enable Public HTTP API request and Public API user authenticated events only.
+
+
+  "logging": {
+    "audit": {
+	“audit_log_file_path”: “/path/to/file.log”,
+      “enabled”: true,
+      “enabled_events”: [53270, 53280]
+    }
+  }
+
+Enabling the events at runtime without modifying the entire database
+
+This is described in https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/couchbase/sync_gateway/cb97fc90623afda7527556a80cebe251edc63f56/docs/api/admin.yaml#tag/Database-Configuration/operation/put_db-_config-audit
+
+There is:
+
+- GET /{db}/_config/audit
+- PUT /{db}/_config/audit (replace)
+- POST /{db}/_config/audit (upsert)
+
+This modifies for just the database, and you can modify enabled parameter to disable all events for the database.
+
+In this case, there are actually two ways to specify audit events here - this would enable Public HTTP API request and Public API user authenticated events.
+
+{
+	“enabled”: true,
+      “enabled_events”: [{“53270”: true, “53280”: true]
+}
+
+If you wanted to enable one event and disable another:
+
+{
+	“enabled”: true,
+      “enabled_events”: [{“53270”: true, “53280”: false]
+}
+
+
+
+
 
 == See Also 
 
@@ -25,3 +149,7 @@ Mention it’s disabled by default and is opt in functionality
 * xref:audit-log-events.adoc[]
 
 * xref:sgcollect-info.adoc[]
+
+* xref:rest-api-admin.adoc[]
+
+* xref:rest-api-admin-static.adoc[]
