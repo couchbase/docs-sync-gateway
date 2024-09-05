@@ -1,13 +1,11 @@
 = Audit Logging
 :page-edition: Enterprise
-:description: Audit Logging provides tools for administrators to track operational irregularities and to support regulatory and security compliance standards, such as link:https://www.hhs.gov/hipaa/index.html[HIPAA] and link:https://soc2.co.uk/soc2[SOC-2].
+:description: Audit Logging provides tools for administrators to track operational irregularities and to support regulatory and security compliance standards.
 
 [abstract]
 {description}
 
 == About Audit Logging
-
-Audit Logging provides tools for administrators to track operational irregularities and to support regulatory and security compliance standards, such as link:https://www.hhs.gov/hipaa/index.html[HIPAA] and link:https://soc2.co.uk/soc2[SOC-2].
 
 There is only one audit log file active at a time, which is periodically rotated based on the following properties:
 
@@ -59,9 +57,34 @@ The audit events scopes are:
 * `Database` - These events are specific to a database such as `AuditIDDocumentUpdate 55002`, and can only be enabled/disabled at the database configuration level. 
 Database level audit events are segregated into per Sync Gateway database specific audit logs.
 
-*  `Global` - These events are considered global such as `AuditIDSyncGatewayStartup 53260`, and have to be enabled/disabled in the bootstrap/startup config.
+*  `Global` - These events are considered global such as `AuditIDSyncGatewayStartup 53260`, and have to be enabled/disabled in the bootstrap config.
 
 IMPORTANT: Sg_collect does NOT collect audit log information as audit logs contain sensitive, unredacted data.
+
+=== Sample Audit Event
+
+A sample audit event is presented below.
+
+[source, json]
+----
+{
+  "description": "Public HTTP API request was made",
+  "remote": { "ip": "127.0.0.1", "port": "52885" },
+  "timestamp": "2024-09-05T11:03:13-04:00",
+  "http_status": 200,
+  "name": "Public HTTP API request",
+  "cid": "#001",
+  "real_userid": { "domain": "sgw", "user": "user1" },
+  "http_method": "GET",
+  "http_path": "/db/doc",
+  "id": 53271,
+  "db": "db",
+  "ks": "db._default._default",
+  "local": { "ip": "127.0.0.1", "port": "4984" }
+}
+----
+
+Above is a successful login by `user1` to retrieve a document named `doc`.
 
 == See Also
 

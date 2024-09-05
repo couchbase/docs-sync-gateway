@@ -6,18 +6,51 @@
 [abstract]
 {description}
 
-== About Audit Events (TODO)
+== About Audit Events
 
-You can use audit events to track and provide context on user activity within your application. 
+You can use audit events to track and provide context on user activity within your application.
 
-ID this is going to be the actual number passed into enabled_events: []
-Name is a short descriptive name, this is will be output as a field in the audit log
-Description is a longer name, this is will be output as a field in the audit log
-DefaultEnabled if true, this is enabled without explicitly listing in enabled_events: []
-Filterable : if true, this will always be enabled if audit logging is turned on. Any settings in enabled_events will be no-ops
+.Events table field description
+[cols="2*"]
+|===
 
-[caption=]
-.Audit Events
+| Field Name | Description
+
+|`ID`
+|The actual number passed into `enabled_events: []`.
+
+|`Name` 
+|A short descriptive name, this will be outputted as a field in the audit log.
+
+|`Description`
+|A longer name, this is will be outputred as a field in the audit log.
+
+|`DefaultEnabled`
+|If `true`, this is enabled without explicitly listing in `enabled_events: []`.
+
+|`Filterable`
+|If `true`, this will always be enabled if audit logging is turned on. 
+Any of the events with `Filterable` set to `true` in the `enabled_events: []` object will be no-ops.
+
+|`Eventscope`
+|The scope of the event.
+This can be `Global` or `Database`.
+
+|`EventType`
+|The type of action performed by the event.
+This can be `user`, `admin`, or `data`.
+
+|`MandatoryFields`
+|Fields required to be set in a given Audit Event.
+If any fields are not set, a no-op will occur.
+
+|`OptionalFields`
+|Fields that are not required to be set in a given Audit Event.
+
+|===
+
+=== Auditing Events
+
 [cols="9*"]
 |===
 |ID |Name |Description |DefaultEnabled |Filterable |EventScope |EventType |MandatoryFields	|OptionalFields
@@ -51,6 +84,14 @@ Filterable : if true, this will always be enabled if audit logging is turned on.
 |admin	
 |audit_scope, cid, db, description, id, local, name, payload, real_userid, remote, timestamp
 |	
+
+|===
+
+=== Sync Gateway Events 
+
+[cols="9*"]
+|===
+|ID |Name |Description |DefaultEnabled |Filterable |EventScope |EventType |MandatoryFields	|OptionalFields
 
 |53260	
 |Sync Gateway startup	
@@ -232,6 +273,14 @@ Filterable : if true, this will always be enabled if audit logging is turned on.
 |description, id, name, timestamp
 |	
 
+|===
+
+=== Database Events
+
+[cols="9*"]
+|===
+|ID |Name |Description |DefaultEnabled |Filterable |EventScope |EventType |MandatoryFields	|OptionalFields
+
 |54000	
 |Create database	
 |A new database was created	
@@ -402,6 +451,15 @@ Filterable : if true, this will always be enabled if audit logging is turned on.
 |cid, db, description, id, local, name, real_userid, remote, timestamp
 |
 
+|===
+
+
+=== User and Role Administration Events
+
+[cols="9*"]
+|===
+|ID |Name |Description |DefaultEnabled |Filterable |EventScope |EventType |MandatoryFields	|OptionalFields
+
 |54100	
 |Create user	
 |A new user was created	
@@ -501,6 +559,14 @@ Filterable : if true, this will always be enabled if audit logging is turned on.
 |admin	
 |db, description, id, include_deleted, name, timestamp	
 |limit
+
+|===
+
+=== Repication Events
+
+[cols="9*"]
+|===
+|ID |Name |Description |DefaultEnabled |Filterable |EventScope |EventType |MandatoryFields	|OptionalFields
 
 |54200	
 |Changes feed started	
@@ -631,6 +697,14 @@ Filterable : if true, this will always be enabled if audit logging is turned on.
 |admin	
 |cid, db, description, id, local, name, real_userid, remote, timestamp
 |
+
+|===
+
+=== Document Related Events
+
+[cols="9*"]
+|===
+|ID |Name |Description |DefaultEnabled |Filterable |EventScope |EventType |MandatoryFields	|OptionalFields
 
 |55000	
 |Create document	

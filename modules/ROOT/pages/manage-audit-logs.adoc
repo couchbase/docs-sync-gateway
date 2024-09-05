@@ -5,24 +5,108 @@
 [abstract]
 {description}
 
-== Enabling Audit Logging
+== Audit Fields 
 
-Audit Logging on Sync Gateway is opt-in functionality and is disabled by default.
-You can enable audit logging by setting the `enabled` property to true in your config file.
+The table below lists mandatory audit fields with corresponding descriptions. 
+Different event-types generate different field-subsets.
+
+[cols="3*"]
+|===
+
+| Field | Type | Description
+
+|`"id"`
+|Integer
+|The unique identifier of the event.
+
+|`"cid"`
+|Integer
+|Context id for an individual request related events
+
+|`"description"`
+|String
+|The name of the event in an action-based language: e.g. “User was created”.
+
+|`"db"`
+|String
+|Name of database the event originated from.
+
+|`"real_userid"`
+|Object
+|Contains key-value pairs for "domain" and "user" (specifying the id). Can be user specified or Server roles.
+
+|`"local"`
+|Object
+|Contains key-value pairs for "ip" and incoming "port", for the node on which the event was processed.
+
+|`"remote"`
+|Object
+|Contains key-value pairs for "ip" and outgoing "port", for the node on which the event-request was dispatched.
+
+|`"timestamp"`
+|ISO-8601 timestamp
+|UTC timestamp for when the event was generated.
+
+|`"optional fields"`
+|Object
+|Additional non-action or user id specific event data: e.g: {replication_type: pull_only}
+
+|===
+
 
 == Audit Log Configuration
 
+IMPORTANT: Audit Logging on Sync Gateway is opt-in functionality and is disabled by default.
+
+Admin users can manage Audit logging via the xref:rest-api-admin.adocp[Admin REST API]. 
+Below is a table of possible configuration options.
+
+
+[cols="3*"]
+|===
+
+| Name | Values | Additional Description
+
+| `Destination`
+a|
+
+* Console - The default.
+Outputs the audit events to stdout in JSON format.
+
+* File - Outputs the audit events to the file specified file path in JSON format.
+Audit logs are written to a different location by default than console logs.
+
+| Both active and rotated log files are stored.
+
+| `Max file size`
+| Default - 1GB
+| The maximum size the active audit logging file is allowed to grow before being rotated.
+
+| `Rotation Interval`
+| The time interval in seconds from 900s (15 minutes) to 604800s (7 days) inclusive. 
+| The default is 86400s.
+
+| `Prune age`
+| The time after which Sync Gateway deletes audit rotates audit log files in minutes. 
+| The default is 30 days (43200)
+
+| `Max size`
+| A specified filesize outside of the `Max File Size` property.
+| This is disabled by default.
+
+|===
+
 There are two main ways in which you can configure audit logs:
 
-* Via the bootstrap or startup config.
+* Via the bootstrap config.
 This will affect the global configuration.
 
 * Via the database config.
 This will affect the configuration on a per database basis.
 
-=== Configuration with the Startup Config
+=== Configuration with the Bootstrap Config
 
-Below you can find the minimal configuration required in your `startup_config` file to enable audit logging.
+Below you can find the minimal configuration required in your bootstrap config file to enable audit logging.
 
 [source, json, indent=0]
 ----
@@ -36,10 +120,14 @@ Below you can find the minimal configuration required in your `startup_config` f
 
 ----
 
-NOTE: Configuration via the startup config will affect your configuration globally.
+For further bootstrap configuration options, see xref:configuration-schema-bootstrap.adoc[].
+
+NOTE: Configuration via the bootstrap config will affect your configuration globally.
 
 To successfully configure audit logging, you must set a file path for your audit logs and set the `enabled` parameter to `true`.
 Enabling and disabling audit logging is handled by the Admin REST API at a cluster and Sync Gateway database level.
+Setting enabled to true without any specified enabled events will only enable events with `DefaultEnabled` set to `true`. 
+To view the list of audit events, see xref:audit-log-events.adoc[]
 
 === Configuration with the Database Config
 
@@ -73,8 +161,10 @@ Below is an example of a simple database configuration.
 }  
 ----
 
-IMPORTANT: If you enable audit logging in your startup config it is enabled globally.
-Conversely, it is important to note that if audit logging is enabled in your database config but *not* your startup config, no audit logging will occur.
+For further database configuration options, see xref:configuration-schema-database.adoc[].
+
+IMPORTANT: If you enable audit logging in your bootstrap config it is enabled globally.
+Conversely, it is important to note that if audit logging is enabled in your database config but *not* your bootstrap config, no audit logging will occur.
 
 Couchbase recommends you only use configuration at the database level if you wish to alter your settings per database. 
 
@@ -96,7 +186,7 @@ See xref:audit-log-events.adoc[] for more information on specific audit events.
 
 Events can be enabled per database or globally.
 
-The example below shows a section of a global startup config which would enable Public HTTP API requests and Public API user authenticated events only.
+The example below shows a section of a global bootstrap config which would enable Public HTTP API requests and Public API user authenticated events only.
 
 [source, json]
 ----
@@ -142,12 +232,46 @@ If you wanted to enable one event and disable another:
 }
 ----
 
-=== Disabled_users/disabled_roles fields (TODO)
+=== Disabled Users and Roles
 
-These fields represent certain users for whom audit events will not occur. This might be something like an administrative user who is performing automated actions. There are two types of users:
+You can filter audit events by specifying roles or users to be disabled. 
+The example configuration below shows disabling audit events for `user1` and `role1`. 
 
-- Users/roles that are created by Sync Gateway, these have to have ”domain”: “sgw” attached. They are https://docs.couchbase.com/sync-gateway/current/access-control-concepts.html#lbl-sgw-users
-- Users that are are RBAC controlled https://docs.couchbase.com/sync-gateway/current/access-control-concepts.html#lbl-rbac-users - these would have ”domain”: “cbs” attached to them
+[source, json]
+----
+{
+  “logging”: {
+               “audit”: {
+                          "enabled”: true,
+                          “enabled_events”: [],
+                          “disabled_users”: [
+                                              {
+                                                “name”: “user1”,
+                                                “domain”: “sgw”
+                                              }
+                                            ],
+                        },
+  “disabled_roles”: [
+                      {
+                        “name”: “role1”,
+                        “domain”: “sgw”
+                      }
+                    ],
+               },
+}  
+----
+
+The `disabled_users` field will prevent all audit events generated by the specified users from being logged.
+The `disabled_roles` field will prevent all audit events generated by the specified roles from logged.
+A use case for these fields would be to exclude certain administrative users or roles that perform a large volume of automated processes to prevent bloat of trivial events causing early rotation of the log file.
+
+Users and roles are organised into the following domains:
+
+* `sgw` - Users and Roles that are created by and operate solely within Sync Gateway.
+For more information, see xref:access-control-concepts.adoc#lbl-sgw-users[Sync Gateway defined Users and Roles]. 
+* `cbs` - Users that are are RBAC controlled.
+These are created on Couchbase Server.
+For more information, see xref:access-control-concepts.adoc#lbl-rbac-users[RBAC Users]. 
 
 == See Also 
 
