@@ -34,8 +34,22 @@ Couchbase Server's {server-eventing--xref} feature provides a framework to opera
 
 Here we provide details on how {server-eventing--xref} relates to data changes in the Couchbase Mobile ecosystem.
 
+== Using Eventing - Server 7.6.3+
 
-== Using Eventing
+When using Server versions 7.6.3 and later, users should set `Sync Gateway Aware` to `true` on their eventing functions.
+This will avoid duplicated event hits for documents being imported by Sync Gateway.
+
+Eventing now skips all documents with IDs prefixed with `_sync`.
+
+For Sync Gateway versions that write import XATTRs:
+
+* Eventing now prevents infinite recursion.
+
+* Eventing now prevents duplicate mutations with the opt-in `import_mutation_aware` boolean flag.
+
+NOTE: If the `import_mutation_aware` flag is set to `true`, the performance of the Eventing function will drop because every mutation processed by Eventing will require a subdocument operation to maintain a cursor or progress for any Function that is sharing a Sync Gateway endpoint.  
+
+== Using Eventing (Pre-Server 7.6.3)
 
 You can use Eventing and Sync Gateway connected to the same bucket, when Eventing operates on server buckets in *read only* mode -- see {server-eventing-terminologies--xref-bindings} for how to do this.
 
