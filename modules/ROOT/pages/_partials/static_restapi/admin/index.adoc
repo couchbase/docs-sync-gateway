@@ -14,7 +14,7 @@ Sync Gateway manages access and synchronization between Couchbase Lite and Couch
 
 === Version information
 [%hardbreaks]
-__Version__ : 3.2
+__Version__ : 3.3
 
 === Host information
 [%hardbreaks]
@@ -3755,7 +3755,7 @@ Retrieve the audit configuration for the database specified.
 
 Required Sync Gateway RBAC roles:
 
-* TODO
+* Sync Gateway Architect
 --
 
 
@@ -4590,9 +4590,18 @@ This is used to update the database configuration fields specified. Only the fie
 
 Unspecified audit events will be unaffected. Use PUT if you want to reset events to their default state.
 
+The body can be either:
+
+`{"enabled": true, {"events": {"audit_id1": true, "audit_id2": false}}}`
+
+or
+
+`{"enabled": true, {"events": {"audit_id1": {"enabled": true}, {"audit_id2": "enabled": false}}}}`
+
+
 Required Sync Gateway RBAC roles:
 
-* TODO
+* Sync Gateway Architect
 --
 
 
@@ -4659,9 +4668,12 @@ The database configuration fields to update
 --
 
 [%hardbreaks]
+ifeval::["{"enabled":true,"events":{"audit_id1":true,"audit_id2":false}}" != "null"]
+*Example:* `{"enabled":true,"events":{"audit_id1":true,"audit_id2":false}}`
+endif::[]
 // end
 
-| xref:#++GetDbConfigAudit200Response++[+GetDbConfigAudit200Response+]
+| xref:#++PutDbConfigAuditRequest++[+PutDbConfigAuditRequest+]
 
 
 |===
@@ -5097,9 +5109,17 @@ Replaces the database audit configuration with the one sent in the request.
 
 Unspecified audit events will be reset to their default enabled value. Use POST if you want upsert-style semantics.
 
+The body can be either:
+
+`{"enabled": true, {"events": {"audit_id1": true, "audit_id2": false}}}`
+
+or
+
+`{"enabled": true, {"events": {"audit_id1": {"enabled": true}, {"audit_id2": "enabled": false}}}}`
+
 Required Sync Gateway RBAC roles:
 
-* TODO
+* Sync Gateway Architect
 --
 
 
@@ -5166,9 +5186,12 @@ The new database audit configuration to use
 --
 
 [%hardbreaks]
+ifeval::["{"enabled":true,"events":{"audit_id1":true,"audit_id2":false}}" != "null"]
+*Example:* `{"enabled":true,"events":{"audit_id1":true,"audit_id2":false}}`
+endif::[]
 // end
 
-| xref:#++GetDbConfigAudit200Response++[+GetDbConfigAudit200Response+]
+| xref:#++PutDbConfigAuditRequest++[+PutDbConfigAuditRequest+]
 
 
 |===
@@ -32074,9 +32097,8 @@ endif::internal-generation[]
 :desc-Compact_status: The status returned from a compaction.
 :desc-CredentialsConfig: The configuration for the credentials set.
 :desc-Database: The properties of a database configuration.
-:desc-Database_audit: A map of audit events and whether they are enabled or not.
-:desc-Database_audit_verbose: A map of detailed audit events.
-:desc-Database_audit_verbose_events_value: The audit event ID and whether it is enabled or not.
+:desc-Database-audit: A map of audit events and whether they are enabled or not.
+:desc-Database-audit-verbose: A map of detailed audit events.
 :desc-Database_config: The properties of a database configuration.
 :desc-Database_config_cache_channel_cache: The channel cache config settings.
 :desc-Database_config_cache_rev_cache: The revision cache config settings.
@@ -32120,12 +32142,12 @@ endif::internal-generation[]
 :desc-Role_1: Properties associated with a role
 :desc-Scopes: Scope-specific configuration.
 :desc-Serverless: Configuration for when SG is running in serverless mode
+:desc-Simple_1: A map of audit events and whether they are enabled or not.
 :desc-Startup_config_api: Configuration settings for modifying how the REST API is interacted with.
 :desc-Startup_config_bootstrap: Configuration settings for interacting with Couchbase Server.
 :desc-Startup_config_bucket_credentials_value: The configuration for the credentials set.
 :desc-Startup_config_database_credentials_value: The configuration for the credentials set.
 :desc-Startup_config_logging: The configuration settings for modifying Sync Gateway logging.
-:desc-Startup_config_logging_1: The configuration settings for modifying Sync Gateway logging.
 :desc-Startup_config_unsupported: Settings that are not officially supported. It is highly recommended these are **not** used.
 :desc-Startup_config_unsupported_serverless: Configuration for when SG is running in serverless mode
 :desc-Status_1_databases_value: The name of the database.
@@ -32136,6 +32158,8 @@ endif::internal-generation[]
 :desc-User_1: Properties associated with a user
 :desc-User_1_collection_access_value_value: An object keyed by collection name, defines access for the collection.
 :desc-User_configurable_replication_properties: Properties of a replication
+:desc-Verbose_1: A map of detailed audit events.
+:desc-Verbose_allOf_events_value: The audit event ID and whether it is enabled or not.
 
 
 // markup not found, no include::{specDir}definitions/document-begin.adoc[opts=optional]
@@ -32146,8 +32170,7 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+All_replications+[All replications]
 * xref:#+AuditEventVerbose+[audit-event-verbose]
 * xref:#+Audit_logging_config+[Audit-logging-config]
-* xref:#+Audit_logging_config_1+[Audit-logging-config]
-* xref:#+Audit_logging_config_allOf_rotation+[AuditLoggingConfigAllOfRotation]
+* xref:#+Audit-User-Roles+[AuditUserRoles]
 * xref:#+Changes-feed+[ChangesFeed]
 * xref:#+CollectionAccessConfig+[CollectionAccessConfig]
 * xref:#+CollectionConfig+[Collection config]
@@ -32156,9 +32179,8 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+Console_logging_config_rotation+[ConsoleLoggingConfigRotation]
 * xref:#+CredentialsConfig+[Credentials config]
 * xref:#+Database+[Database-config]
-* xref:#+Database_audit+[Database-audit]
-* xref:#+Database_audit_verbose+[Database-audit-verbose]
-* xref:#+Database_audit_verbose_events_value+[audit-event-verbose]
+* xref:#+Database-audit+[Simple]
+* xref:#+Database-audit-verbose+[Verbose]
 * xref:#+Database_config+[Database-config]
 * xref:#+Database_config_cache+[DatabaseConfigCache]
 * xref:#+Database_config_cache_channel_cache+[DatabaseConfigCacheChannelCache]
@@ -32185,12 +32207,13 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+Database_config_unsupported_user_views+[DatabaseConfigUnsupportedUserViews]
 * xref:#+Database_config_unsupported_warning_thresholds+[DatabaseConfigUnsupportedWarningThresholds]
 * xref:#+Database_config_users_value+[User]
+* xref:#+Database-Get-Audit+[Simple]
+* xref:#+Database-Get-Audit-Verbose+[Verbose]
 * xref:#+delete__sgcollect_info_200_response+[DeleteSgcollectInfo200Response]
 * xref:#+Design-doc+[DesignDoc]
 * xref:#+Document+[Document]
 * xref:#+Event_config+[Event-config]
 * xref:#+ExpVars+[ExpVars]
-* xref:#+File-logging-config-base+[File-logging-config]
 * xref:#+get___200_response+[Get200Response]
 * xref:#+get___200_response_vendor+[Get200ResponseVendor]
 * xref:#+get__all_dbs_200_response+[GetAllDbs200Response]
@@ -32230,10 +32253,7 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+get__sgcollect_info_200_response+[GetSgcollectInfo200Response]
 * xref:#+get__stats_200_response+[GetStats200Response]
 * xref:#+HTTP_Error+[HTTP-Error]
-* xref:#+Log-rotation-base+[Log-rotation-config]
 * xref:#+Logging-config+[LoggingConfig]
-* xref:#+Logging_config_info+[LoggingConfigInfo]
-* xref:#+Logging_config_stats+[LoggingConfigStats]
 * xref:#+New_revision+[New-revision]
 * xref:#+NodeInfo+[NodeInfo]
 * xref:#+OIDC-callback+[OpenID Connect callback properties]
@@ -32269,6 +32289,7 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+post__profile_profilename_request+[PostProfileProfilenameRequest]
 * xref:#+post__sgcollect_info_200_response+[PostSgcollectInfo200Response]
 * xref:#+post__sgcollect_info_request+[PostSgcollectInfoRequest]
+* xref:#+put_db__config_audit_request+[PutDbConfigAuditRequest]
 * xref:#+put_keyspace__local_docid_request+[PutKeyspaceLocalDocidRequest]
 * xref:#+Replication+[User configurable replication properties]
 * xref:#+Replication_1+[Replication]
@@ -32279,9 +32300,10 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+Role_1+[Role]
 * xref:#+Runtime_config+[Runtime-config]
 * xref:#+Runtime_config_logging+[RuntimeConfigLogging]
-* xref:#+Runtime_config_logging_1+[RuntimeConfigLogging1]
 * xref:#+Scopes+[Scopes]
 * xref:#+Serverless+[Serverless]
+* xref:#+Simple+[Simple]
+* xref:#+Simple_1+[Simple]
 * xref:#+Startup_config+[Startup-config]
 * xref:#+Startup_config_api+[StartupConfigApi]
 * xref:#+Startup_config_api_cors+[StartupConfigApiCors]
@@ -32291,16 +32313,15 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+Startup_config_bucket_credentials_value+[Credentials config]
 * xref:#+Startup_config_database_credentials_value+[Credentials config]
 * xref:#+Startup_config_logging+[StartupConfigLogging]
-* xref:#+Startup_config_logging_1+[StartupConfigLogging1]
 * xref:#+Startup_config_logging_debug+[StartupConfigLoggingDebug]
-* xref:#+Startup_config_logging_debug_allOf_rotation+[StartupConfigLoggingDebugAllOfRotation]
+* xref:#+Startup_config_logging_debug_rotation+[StartupConfigLoggingDebugRotation]
 * xref:#+Startup_config_logging_error+[StartupConfigLoggingError]
-* xref:#+Startup_config_logging_error_allOf_rotation+[StartupConfigLoggingErrorAllOfRotation]
+* xref:#+Startup_config_logging_error_rotation+[StartupConfigLoggingErrorRotation]
 * xref:#+Startup_config_logging_info+[StartupConfigLoggingInfo]
-* xref:#+Startup_config_logging_info_allOf_rotation+[StartupConfigLoggingInfoAllOfRotation]
+* xref:#+Startup_config_logging_info_rotation+[StartupConfigLoggingInfoRotation]
 * xref:#+Startup_config_logging_stats+[StartupConfigLoggingStats]
 * xref:#+Startup_config_logging_warn+[StartupConfigLoggingWarn]
-* xref:#+Startup_config_logging_warn_allOf_rotation+[StartupConfigLoggingWarnAllOfRotation]
+* xref:#+Startup_config_logging_warn_rotation+[StartupConfigLoggingWarnRotation]
 * xref:#+Startup_config_replicator+[StartupConfigReplicator]
 * xref:#+Startup_config_unsupported+[StartupConfigUnsupported]
 * xref:#+Startup_config_unsupported_http2+[StartupConfigUnsupportedHttp2]
@@ -32318,6 +32339,9 @@ This section describes the properties consumed and returned by this REST API.
 * xref:#+User_configurable_replication_properties+[User configurable replication properties]
 * xref:#+User_Session_Information+[User Session Information]
 * xref:#+User_Session_Information_userCtx+[UserSessionInformationUserCtx]
+* xref:#+Verbose+[Verbose]
+* xref:#+Verbose_1+[Verbose]
+* xref:#+Verbose_allOf_events_value+[audit-event-verbose]
 
 
 
@@ -32463,12 +32487,76 @@ endif::[]
 // markup not found, no include::{specDir}definitions/Audit_logging_config/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Audit_logging_config]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+audit_log_file_path+* +
+_optional_
+a| The path to write audit log files to
 
-* xref:#++Object++[+Object+]
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
 
+
+a| *+enabled_events+* +
+_optional_
+a| List of enabled global audit events.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["[1234,5678]" != "null"]
+*Example:* `[1234,5678]`
+endif::[]
+// end
+| BigDecimal
+List
+
+
+a| *+rotation+* +
+_optional_
+a| 
+ifdef::desc-Startup_config_logging_debug_rotation[]
+{desc-Startup_config_logging_debug_rotation}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Startup_config_logging_debug_rotation++[+Startup_config_logging_debug_rotation+]
+
+
+a| *+collation_buffer_size+* +
+_optional_
+a| The size of the log collation buffer
+
+[%hardbreaks]
+ifeval::["1000" != "null"]
+*Default:* `1000`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+|===
 
 
 // markup not found, no include::{specDir}definitions/Audit_logging_config/definition-end.adoc[opts=optional]
@@ -32480,56 +32568,61 @@ All of the following:
 
 
 
-// markup not found, no include::{specDir}definitions/Audit_logging_config_1/definition-before.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Audit-User-Roles/definition-before.adoc[opts=optional]
 
 
-[#Audit_logging_config_1]
-=== Audit-logging-config
+[#Audit-User-Roles]
+=== AuditUserRoles
 
 
-// markup not found, no include::{specDir}definitions/Audit_logging_config_1/definition-begin.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Audit-User-Roles/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Audit-User-Roles]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+disabled_users+* +
+_optional_
+a| List of users for which audit logging is disabled
 
-* xref:#++Object++[+Object+]
-
-
-
-// markup not found, no include::{specDir}definitions/Audit_logging_config_1/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Audit_logging_config_1/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/Audit_logging_config_allOf_rotation/definition-before.adoc[opts=optional]
-
-
-[#Audit_logging_config_allOf_rotation]
-=== AuditLoggingConfigAllOfRotation
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Database_config_logging_audit_disabled_users_inner++[+Database_config_logging_audit_disabled_users_inner+]
+List
 
 
-// markup not found, no include::{specDir}definitions/Audit_logging_config_allOf_rotation/definition-begin.adoc[opts=optional]
+a| *+disabled_roles+* +
+_optional_
+a| List of roles for which audit logging is disabled.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Database_config_logging_audit_disabled_roles_inner++[+Database_config_logging_audit_disabled_roles_inner+]
+List
 
 
-All of the following:
-
-* xref:#++Object++[+Object+]
-
-* xref:#++Object++[+Object+]
+|===
 
 
-
-// markup not found, no include::{specDir}definitions/Audit_logging_config_allOf_rotation/definition-end.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Audit-User-Roles/definition-end.adoc[opts=optional]
 
 
 
-// markup not found, no include::{specDir}definitions/Audit_logging_config_allOf_rotation/definition-after.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Audit-User-Roles/definition-after.adoc[opts=optional]
 
 
 
@@ -33066,12 +33159,89 @@ endif::[]
 // markup not found, no include::{specDir}definitions/Console_logging_config_rotation/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Console_logging_config_rotation]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+max_size+* +
+_optional_
+a| The maximum size in MB of the log file before it gets rotated.
 
-* xref:#++Object++[+Object+]
+[%hardbreaks]
+ifeval::["100" != "null"]
+*Default:* `100`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
 
+
+a| *+localtime+* +
+_optional_
+a| If true, it uses the computer's local time to format the backup timestamp.
+
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
+
+
+a| *+rotated_logs_size_limit+* +
+_optional_
+a| Max Size (in mb) of log files before deletion
+
+[%hardbreaks]
+ifeval::["1024" != "null"]
+*Default:* `1024`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+a| *+rotation_interval+* +
+_optional_
+a| If set, the interval at which log files are rotated, even if max_size is not reached.
+
+This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
+
+[%hardbreaks]
+ifeval::["0" != "null"]
+*Default:* `0`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+a| *+max_age+* +
+_optional_
+a| The maximum number of days to retain old log files. By default, there is no rotation, max_age=0.
+
+[%hardbreaks]
+ifeval::["0" != "null"]
+*Default:* `0`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+|===
 
 
 // markup not found, no include::{specDir}definitions/Console_logging_config_rotation/definition-end.adoc[opts=optional]
@@ -33343,8 +33513,8 @@ a| An object keyed by scope name containing config for the specific collection.
 ifeval::["null" != "null"]
 *Default:* `null`
 endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
+ifeval::["{"scopename":{"collections":{"collectionname1":{"sync":"function(doc){channel(\"collection name\");}","import_filter":"function(doc) { if (doc.type != 'mobile') { return false; } return true; }"},"collectionname2":{"sync":"function(doc){channel(\"collection name\");}","import_filter":"function(doc) { if (doc.type != 'mobile') { return false; } return true; }"}}}}" != "null"]
+*Example:* `{"scopename":{"collections":{"collectionname1":{"sync":"function(doc){channel(\"collection name\");}","import_filter":"function(doc) { if (doc.type != 'mobile') { return false; } return true; }"},"collectionname2":{"sync":"function(doc){channel(\"collection name\");}","import_filter":"function(doc) { if (doc.type != 'mobile') { return false; } return true; }"}}}}`
 endif::[]
 // end
 | xref:#++Database_config_scopes_value++[+Database_config_scopes_value+]
@@ -34115,17 +34285,17 @@ endif::[]
 
 
 
-// markup not found, no include::{specDir}definitions/Database_audit/definition-before.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Database-audit/definition-before.adoc[opts=optional]
 
 
-[#Database_audit]
-=== Database-audit
+[#Database-audit]
+=== Simple
 
 
-// markup not found, no include::{specDir}definitions/Database_audit/definition-begin.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Database-audit/definition-begin.adoc[opts=optional]
 
 
-[#fields-Database_audit]
+[#fields-Database-audit]
 [cols="1,4,1"]
 |===
 | Name| Description| Schema
@@ -34164,26 +34334,26 @@ Map
 |===
 
 
-// markup not found, no include::{specDir}definitions/Database_audit/definition-end.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Database-audit/definition-end.adoc[opts=optional]
 
 
 
-// markup not found, no include::{specDir}definitions/Database_audit/definition-after.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Database-audit/definition-after.adoc[opts=optional]
 
 
 
 
-// markup not found, no include::{specDir}definitions/Database_audit_verbose/definition-before.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Database-audit-verbose/definition-before.adoc[opts=optional]
 
 
-[#Database_audit_verbose]
-=== Database-audit-verbose
+[#Database-audit-verbose]
+=== Verbose
 
 
-// markup not found, no include::{specDir}definitions/Database_audit_verbose/definition-begin.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Database-audit-verbose/definition-begin.adoc[opts=optional]
 
 
-[#fields-Database_audit_verbose]
+[#fields-Database-audit-verbose]
 [cols="1,4,1"]
 |===
 | Name| Description| Schema
@@ -34215,105 +34385,18 @@ ifeval::["null" != "null"]
 *Example:* `null`
 endif::[]
 // end
-| xref:#++Database_audit_verbose_events_value++[+Database_audit_verbose_events_value+]
+| xref:#++Verbose_allOf_events_value++[+Verbose_allOf_events_value+]
 Map
 
 
 |===
 
 
-// markup not found, no include::{specDir}definitions/Database_audit_verbose/definition-end.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Database-audit-verbose/definition-end.adoc[opts=optional]
 
 
 
-// markup not found, no include::{specDir}definitions/Database_audit_verbose/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/Database_audit_verbose_events_value/definition-before.adoc[opts=optional]
-
-
-[#Database_audit_verbose_events_value]
-=== audit-event-verbose
-
-
-// markup not found, no include::{specDir}definitions/Database_audit_verbose_events_value/definition-begin.adoc[opts=optional]
-
-
-[#fields-Database_audit_verbose_events_value]
-[cols="1,4,1"]
-|===
-| Name| Description| Schema
-
-a| *+name+* +
-_optional_
-a| The name of the audit event.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| String
-
-
-a| *+description+* +
-_optional_
-a| The description of the audit event.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| String
-
-
-a| *+enabled+* +
-_optional_
-a| Whether this audit event is currently enabled or not.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Boolean
-
-
-a| *+filterable+* +
-_optional_
-a| Whether this audit event can be disabled. Some audit events are always on.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Boolean
-
-
-|===
-
-
-// markup not found, no include::{specDir}definitions/Database_audit_verbose_events_value/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Database_audit_verbose_events_value/definition-after.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Database-audit-verbose/definition-after.adoc[opts=optional]
 
 
 
@@ -34491,8 +34574,8 @@ a| An object keyed by scope name containing config for the specific collection.
 ifeval::["null" != "null"]
 *Default:* `null`
 endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
+ifeval::["{"scopename":{"collections":{"collectionname1":{"sync":"function(doc){channel(\"collection name\");}","import_filter":"function(doc) { if (doc.type != 'mobile') { return false; } return true; }"},"collectionname2":{"sync":"function(doc){channel(\"collection name\");}","import_filter":"function(doc) { if (doc.type != 'mobile') { return false; } return true; }"}}}}" != "null"]
+*Example:* `{"scopename":{"collections":{"collectionname1":{"sync":"function(doc){channel(\"collection name\");}","import_filter":"function(doc) { if (doc.type != 'mobile') { return false; } return true; }"},"collectionname2":{"sync":"function(doc){channel(\"collection name\");}","import_filter":"function(doc) { if (doc.type != 'mobile') { return false; } return true; }"}}}}`
 endif::[]
 // end
 | xref:#++Database_config_scopes_value++[+Database_config_scopes_value+]
@@ -36410,7 +36493,7 @@ List
 
 a| *+disabled_roles+* +
 _optional_
-a| List of roles for which audit logging is disabled
+a| List of roles for which audit logging is disabled.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -36453,7 +36536,7 @@ List
 
 a| *+domain+* +
 _optional_
-a| The domain of the role for which audit logging is disabled.
+a| The domain of the role for which audit logging is disabled. Either sgw or cbs.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -36510,7 +36593,7 @@ endif::[]
 
 a| *+domain+* +
 _optional_
-a| The domain of the user for which audit logging is disabled.
+a| The domain of the user for which audit logging is disabled. Either sgw or cbs.
 
 [%hardbreaks]
 ifeval::["null" != "null"]
@@ -37902,6 +37985,60 @@ endif::[]
 
 
 
+// markup not found, no include::{specDir}definitions/Database-Get-Audit/definition-before.adoc[opts=optional]
+
+
+[#Database-Get-Audit]
+=== Simple
+
+
+// markup not found, no include::{specDir}definitions/Database-Get-Audit/definition-begin.adoc[opts=optional]
+
+
+All of the following:
+
+* xref:#++Object++[+Object+]
+
+* xref:#++Object++[+Object+]
+
+
+
+// markup not found, no include::{specDir}definitions/Database-Get-Audit/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/Database-Get-Audit/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Database-Get-Audit-Verbose/definition-before.adoc[opts=optional]
+
+
+[#Database-Get-Audit-Verbose]
+=== Verbose
+
+
+// markup not found, no include::{specDir}definitions/Database-Get-Audit-Verbose/definition-begin.adoc[opts=optional]
+
+
+All of the following:
+
+* xref:#++Object++[+Object+]
+
+* xref:#++Object++[+Object+]
+
+
+
+// markup not found, no include::{specDir}definitions/Database-Get-Audit-Verbose/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/Database-Get-Audit-Verbose/definition-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}definitions/delete__sgcollect_info_200_response/definition-before.adoc[opts=optional]
 
 
@@ -38384,48 +38521,6 @@ endif::[]
 
 
 // markup not found, no include::{specDir}definitions/ExpVars/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/File-logging-config-base/definition-before.adoc[opts=optional]
-
-
-[#File-logging-config-base]
-=== File-logging-config
-
-
-// markup not found, no include::{specDir}definitions/File-logging-config-base/definition-begin.adoc[opts=optional]
-
-
-[#fields-File-logging-config-base]
-[cols="1,4,1"]
-|===
-| Name| Description| Schema
-
-a| *+enabled+* +
-_optional_
-a| Toggle for this log output
-
-[%hardbreaks]
-ifeval::["false" != "null"]
-*Default:* `false`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Boolean
-
-
-|===
-
-
-// markup not found, no include::{specDir}definitions/File-logging-config-base/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/File-logging-config-base/definition-after.adoc[opts=optional]
 
 
 
@@ -38921,9 +39016,9 @@ endif::[]
 
 One of the following:
 
-* xref:#++Database_audit++[+Database_audit+]
+* xref:#++Simple++[+Simple+]
 
-* xref:#++Database_audit_verbose++[+Database_audit_verbose+]
+* xref:#++Verbose++[+Verbose+]
 
 
 
@@ -41951,95 +42046,6 @@ endif::[]
 
 
 
-// markup not found, no include::{specDir}definitions/Log-rotation-base/definition-before.adoc[opts=optional]
-
-
-[#Log-rotation-base]
-=== Log-rotation-config
-
-
-// markup not found, no include::{specDir}definitions/Log-rotation-base/definition-begin.adoc[opts=optional]
-
-
-[#fields-Log-rotation-base]
-[cols="1,4,1"]
-|===
-| Name| Description| Schema
-
-a| *+max_size+* +
-_optional_
-a| The maximum size in MB of the log file before it gets rotated.
-
-[%hardbreaks]
-ifeval::["100" != "null"]
-*Default:* `100`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Integer
-
-
-a| *+localtime+* +
-_optional_
-a| If true, it uses the computer's local time to format the backup timestamp.
-
-[%hardbreaks]
-ifeval::["false" != "null"]
-*Default:* `false`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Boolean
-
-
-a| *+rotated_logs_size_limit+* +
-_optional_
-a| Max Size (in mb) of log files before deletion
-
-[%hardbreaks]
-ifeval::["1024" != "null"]
-*Default:* `1024`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| Integer
-
-
-a| *+rotation_interval+* +
-_optional_
-a| If set, the interval at which log files are rotated, even if max_size is not reached.
-
-This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
-
-[%hardbreaks]
-ifeval::["0" != "null"]
-*Default:* `0`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| String
-
-
-|===
-
-
-// markup not found, no include::{specDir}definitions/Log-rotation-base/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Log-rotation-base/definition-after.adoc[opts=optional]
-
-
-
-
 // markup not found, no include::{specDir}definitions/Logging-config/definition-before.adoc[opts=optional]
 
 
@@ -42143,8 +42149,8 @@ endif::[]
 a| *+info+* +
 _optional_
 a| 
-ifdef::desc-Logging_config_info[]
-{desc-Logging_config_info}
+ifdef::desc-Startup_config_logging_info[]
+{desc-Startup_config_logging_info}
 endif::[]
 
 [%hardbreaks]
@@ -42155,7 +42161,7 @@ ifeval::["null" != "null"]
 *Example:* `null`
 endif::[]
 // end
-| xref:#++Logging_config_info++[+Logging_config_info+]
+| xref:#++Startup_config_logging_info++[+Startup_config_logging_info+]
 
 
 a| *+debug+* +
@@ -42197,8 +42203,8 @@ endif::[]
 a| *+stats+* +
 _optional_
 a| 
-ifdef::desc-Logging_config_stats[]
-{desc-Logging_config_stats}
+ifdef::desc-Startup_config_logging_stats[]
+{desc-Startup_config_logging_stats}
 endif::[]
 
 [%hardbreaks]
@@ -42209,14 +42215,14 @@ ifeval::["null" != "null"]
 *Example:* `null`
 endif::[]
 // end
-| xref:#++Logging_config_stats++[+Logging_config_stats+]
+| xref:#++Startup_config_logging_stats++[+Startup_config_logging_stats+]
 
 
 a| *+audit+* +
 _optional_
 a| 
-ifdef::desc-Audit_logging_config_1[]
-{desc-Audit_logging_config_1}
+ifdef::desc-Audit_logging_config[]
+{desc-Audit_logging_config}
 endif::[]
 
 [%hardbreaks]
@@ -42227,7 +42233,7 @@ ifeval::["null" != "null"]
 *Example:* `null`
 endif::[]
 // end
-| xref:#++Audit_logging_config_1++[+Audit_logging_config_1+]
+| xref:#++Audit_logging_config++[+Audit_logging_config+]
 
 
 |===
@@ -42238,60 +42244,6 @@ endif::[]
 
 
 // markup not found, no include::{specDir}definitions/Logging-config/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/Logging_config_info/definition-before.adoc[opts=optional]
-
-
-[#Logging_config_info]
-=== LoggingConfigInfo
-
-
-// markup not found, no include::{specDir}definitions/Logging_config_info/definition-begin.adoc[opts=optional]
-
-
-All of the following:
-
-* xref:#++Object++[+Object+]
-
-* xref:#++Object++[+Object+]
-
-
-
-// markup not found, no include::{specDir}definitions/Logging_config_info/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Logging_config_info/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/Logging_config_stats/definition-before.adoc[opts=optional]
-
-
-[#Logging_config_stats]
-=== LoggingConfigStats
-
-
-// markup not found, no include::{specDir}definitions/Logging_config_stats/definition-begin.adoc[opts=optional]
-
-
-All of the following:
-
-* xref:#++Object++[+Object+]
-
-* xref:#++Object++[+Object+]
-
-
-
-// markup not found, no include::{specDir}definitions/Logging_config_stats/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Logging_config_stats/definition-after.adoc[opts=optional]
 
 
 
@@ -44837,6 +44789,33 @@ endif::[]
 
 
 
+// markup not found, no include::{specDir}definitions/put_db__config_audit_request/definition-before.adoc[opts=optional]
+
+
+[#put_db__config_audit_request]
+=== PutDbConfigAuditRequest
+
+
+// markup not found, no include::{specDir}definitions/put_db__config_audit_request/definition-begin.adoc[opts=optional]
+
+
+One of the following:
+
+* xref:#++Simple_1++[+Simple_1+]
+
+* xref:#++Verbose_1++[+Verbose_1+]
+
+
+
+// markup not found, no include::{specDir}definitions/put_db__config_audit_request/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/put_db__config_audit_request/definition-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}definitions/put_keyspace__local_docid_request/definition-before.adoc[opts=optional]
 
 
@@ -47239,208 +47218,6 @@ endif::[]
 
 
 
-// markup not found, no include::{specDir}definitions/Runtime_config_logging_1/definition-before.adoc[opts=optional]
-
-
-[#Runtime_config_logging_1]
-=== RuntimeConfigLogging1
-
-
-// markup not found, no include::{specDir}definitions/Runtime_config_logging_1/definition-begin.adoc[opts=optional]
-
-
-[#fields-Runtime_config_logging_1]
-[cols="1,4,1"]
-|===
-| Name| Description| Schema
-
-a| *+log_file_path+* +
-_optional_
-a| Absolute or relative path on the filesystem to the log file directory. A relative path is from the directory that contains the Sync Gateway executable file.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| String
-
-
-a| *+redaction_level+* +
-_optional_
-a| Redaction level to apply to log output.
-
-[%hardbreaks]
-*Values:* `none`, `partial`, `full`, `unset`
-ifeval::["partial" != "null"]
-*Default:* `partial`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| String
-
-
-a| *+console+* +
-_optional_
-a| 
-ifdef::desc-Console_logging_config[]
-{desc-Console_logging_config}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Console_logging_config++[+Console_logging_config+]
-
-
-a| *+error+* +
-_optional_
-a| 
-ifdef::desc-Startup_config_logging_error[]
-{desc-Startup_config_logging_error}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Startup_config_logging_error++[+Startup_config_logging_error+]
-
-
-a| *+warn+* +
-_optional_
-a| 
-ifdef::desc-Startup_config_logging_warn[]
-{desc-Startup_config_logging_warn}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Startup_config_logging_warn++[+Startup_config_logging_warn+]
-
-
-a| *+info+* +
-_optional_
-a| 
-ifdef::desc-Logging_config_info[]
-{desc-Logging_config_info}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Logging_config_info++[+Logging_config_info+]
-
-
-a| *+debug+* +
-_optional_
-a| 
-ifdef::desc-Startup_config_logging_debug[]
-{desc-Startup_config_logging_debug}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Startup_config_logging_debug++[+Startup_config_logging_debug+]
-
-
-a| *+trace+* +
-_optional_
-a| 
-ifdef::desc-Startup_config_logging_debug[]
-{desc-Startup_config_logging_debug}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Startup_config_logging_debug++[+Startup_config_logging_debug+]
-
-
-a| *+stats+* +
-_optional_
-a| 
-ifdef::desc-Logging_config_stats[]
-{desc-Logging_config_stats}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Logging_config_stats++[+Logging_config_stats+]
-
-
-a| *+audit+* +
-_optional_
-a| 
-ifdef::desc-Audit_logging_config_1[]
-{desc-Audit_logging_config_1}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Audit_logging_config_1++[+Audit_logging_config_1+]
-
-
-|===
-
-
-// markup not found, no include::{specDir}definitions/Runtime_config_logging_1/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Runtime_config_logging_1/definition-after.adoc[opts=optional]
-
-
-
-
 // markup not found, no include::{specDir}definitions/Scopes/definition-before.adoc[opts=optional]
 
 
@@ -47539,6 +47316,91 @@ endif::[]
 
 
 // markup not found, no include::{specDir}definitions/Serverless/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Simple/definition-before.adoc[opts=optional]
+
+
+[#Simple]
+=== Simple
+
+
+// markup not found, no include::{specDir}definitions/Simple/definition-begin.adoc[opts=optional]
+
+
+All of the following:
+
+* xref:#++Object++[+Object+]
+
+* xref:#++Object++[+Object+]
+
+
+
+// markup not found, no include::{specDir}definitions/Simple/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/Simple/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Simple_1/definition-before.adoc[opts=optional]
+
+
+[#Simple_1]
+=== Simple
+
+
+// markup not found, no include::{specDir}definitions/Simple_1/definition-begin.adoc[opts=optional]
+
+
+[#fields-Simple_1]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+a| *+enabled+* +
+_optional_
+a| 
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
+
+
+a| *+events+* +
+_optional_
+a| 
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
+Map
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/Simple_1/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/Simple_1/definition-after.adoc[opts=optional]
 
 
 
@@ -48834,208 +48696,6 @@ endif::[]
 
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_1/definition-before.adoc[opts=optional]
-
-
-[#Startup_config_logging_1]
-=== StartupConfigLogging1
-
-
-// markup not found, no include::{specDir}definitions/Startup_config_logging_1/definition-begin.adoc[opts=optional]
-
-
-[#fields-Startup_config_logging_1]
-[cols="1,4,1"]
-|===
-| Name| Description| Schema
-
-a| *+log_file_path+* +
-_optional_
-a| Absolute or relative path on the filesystem to the log file directory. A relative path is from the directory that contains the Sync Gateway executable file.
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| String
-
-
-a| *+redaction_level+* +
-_optional_
-a| Redaction level to apply to log output.
-
-[%hardbreaks]
-*Values:* `none`, `partial`, `full`, `unset`
-ifeval::["partial" != "null"]
-*Default:* `partial`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| String
-
-
-a| *+console+* +
-_optional_
-a| 
-ifdef::desc-Console_logging_config[]
-{desc-Console_logging_config}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Console_logging_config++[+Console_logging_config+]
-
-
-a| *+error+* +
-_optional_
-a| 
-ifdef::desc-Startup_config_logging_error[]
-{desc-Startup_config_logging_error}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Startup_config_logging_error++[+Startup_config_logging_error+]
-
-
-a| *+warn+* +
-_optional_
-a| 
-ifdef::desc-Startup_config_logging_warn[]
-{desc-Startup_config_logging_warn}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Startup_config_logging_warn++[+Startup_config_logging_warn+]
-
-
-a| *+info+* +
-_optional_
-a| 
-ifdef::desc-Logging_config_info[]
-{desc-Logging_config_info}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Logging_config_info++[+Logging_config_info+]
-
-
-a| *+debug+* +
-_optional_
-a| 
-ifdef::desc-Startup_config_logging_debug[]
-{desc-Startup_config_logging_debug}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Startup_config_logging_debug++[+Startup_config_logging_debug+]
-
-
-a| *+trace+* +
-_optional_
-a| 
-ifdef::desc-Startup_config_logging_debug[]
-{desc-Startup_config_logging_debug}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Startup_config_logging_debug++[+Startup_config_logging_debug+]
-
-
-a| *+stats+* +
-_optional_
-a| 
-ifdef::desc-Logging_config_stats[]
-{desc-Logging_config_stats}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Logging_config_stats++[+Logging_config_stats+]
-
-
-a| *+audit+* +
-_optional_
-a| 
-ifdef::desc-Audit_logging_config_1[]
-{desc-Audit_logging_config_1}
-endif::[]
-
-[%hardbreaks]
-ifeval::["null" != "null"]
-*Default:* `null`
-endif::[]
-ifeval::["null" != "null"]
-*Example:* `null`
-endif::[]
-// end
-| xref:#++Audit_logging_config_1++[+Audit_logging_config_1+]
-
-
-|===
-
-
-// markup not found, no include::{specDir}definitions/Startup_config_logging_1/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Startup_config_logging_1/definition-after.adoc[opts=optional]
-
-
-
-
 // markup not found, no include::{specDir}definitions/Startup_config_logging_debug/definition-before.adoc[opts=optional]
 
 
@@ -49046,12 +48706,60 @@ endif::[]
 // markup not found, no include::{specDir}definitions/Startup_config_logging_debug/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Startup_config_logging_debug]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+enabled+* +
+_optional_
+a| Toggle for this log output
 
-* xref:#++Object++[+Object+]
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
 
+
+a| *+rotation+* +
+_optional_
+a| 
+ifdef::desc-Startup_config_logging_debug_rotation[]
+{desc-Startup_config_logging_debug_rotation}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Startup_config_logging_debug_rotation++[+Startup_config_logging_debug_rotation+]
+
+
+a| *+collation_buffer_size+* +
+_optional_
+a| The size of the log collation buffer
+
+[%hardbreaks]
+ifeval::["0" != "null"]
+*Default:* `0`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+|===
 
 
 // markup not found, no include::{specDir}definitions/Startup_config_logging_debug/definition-end.adoc[opts=optional]
@@ -49063,29 +48771,106 @@ All of the following:
 
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_debug_allOf_rotation/definition-before.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_debug_rotation/definition-before.adoc[opts=optional]
 
 
-[#Startup_config_logging_debug_allOf_rotation]
-=== StartupConfigLoggingDebugAllOfRotation
+[#Startup_config_logging_debug_rotation]
+=== StartupConfigLoggingDebugRotation
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_debug_allOf_rotation/definition-begin.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_debug_rotation/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Startup_config_logging_debug_rotation]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+max_size+* +
+_optional_
+a| The maximum size in MB of the log file before it gets rotated.
 
-* xref:#++Object++[+Object+]
+[%hardbreaks]
+ifeval::["100" != "null"]
+*Default:* `100`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+a| *+localtime+* +
+_optional_
+a| If true, it uses the computer's local time to format the backup timestamp.
+
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
+
+
+a| *+rotated_logs_size_limit+* +
+_optional_
+a| Max Size (in mb) of log files before deletion
+
+[%hardbreaks]
+ifeval::["1024" != "null"]
+*Default:* `1024`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+a| *+rotation_interval+* +
+_optional_
+a| If set, the interval at which log files are rotated, even if max_size is not reached.
+
+This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
+
+[%hardbreaks]
+ifeval::["0" != "null"]
+*Default:* `0`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+a| *+max_age+* +
+_optional_
+a| The maximum number of days to retain old log files.
+
+[%hardbreaks]
+ifeval::["2" != "null"]
+*Default:* `2`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/Startup_config_logging_debug_rotation/definition-end.adoc[opts=optional]
 
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_debug_allOf_rotation/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Startup_config_logging_debug_allOf_rotation/definition-after.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_debug_rotation/definition-after.adoc[opts=optional]
 
 
 
@@ -49100,12 +48885,60 @@ All of the following:
 // markup not found, no include::{specDir}definitions/Startup_config_logging_error/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Startup_config_logging_error]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+enabled+* +
+_optional_
+a| Toggle for this log output
 
-* xref:#++Object++[+Object+]
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
 
+
+a| *+rotation+* +
+_optional_
+a| 
+ifdef::desc-Startup_config_logging_error_rotation[]
+{desc-Startup_config_logging_error_rotation}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Startup_config_logging_error_rotation++[+Startup_config_logging_error_rotation+]
+
+
+a| *+collation_buffer_size+* +
+_optional_
+a| The size of the log collation buffer.
+
+[%hardbreaks]
+ifeval::["1000" != "null"]
+*Default:* `1000`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+|===
 
 
 // markup not found, no include::{specDir}definitions/Startup_config_logging_error/definition-end.adoc[opts=optional]
@@ -49117,29 +48950,106 @@ All of the following:
 
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_error_allOf_rotation/definition-before.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_error_rotation/definition-before.adoc[opts=optional]
 
 
-[#Startup_config_logging_error_allOf_rotation]
-=== StartupConfigLoggingErrorAllOfRotation
+[#Startup_config_logging_error_rotation]
+=== StartupConfigLoggingErrorRotation
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_error_allOf_rotation/definition-begin.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_error_rotation/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Startup_config_logging_error_rotation]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+max_size+* +
+_optional_
+a| The maximum size in MB of the log file before it gets rotated.
 
-* xref:#++Object++[+Object+]
+[%hardbreaks]
+ifeval::["100" != "null"]
+*Default:* `100`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+a| *+localtime+* +
+_optional_
+a| If true, it uses the computer's local time to format the backup timestamp.
+
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
+
+
+a| *+rotated_logs_size_limit+* +
+_optional_
+a| Max Size (in mb) of log files before deletion
+
+[%hardbreaks]
+ifeval::["1024" != "null"]
+*Default:* `1024`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+a| *+rotation_interval+* +
+_optional_
+a| If set, the interval at which log files are rotated, even if max_size is not reached.
+
+This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
+
+[%hardbreaks]
+ifeval::["0" != "null"]
+*Default:* `0`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+a| *+max_age+* +
+_optional_
+a| The maximum number of days to retain old log files.
+
+[%hardbreaks]
+ifeval::["360" != "null"]
+*Default:* `360`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/Startup_config_logging_error_rotation/definition-end.adoc[opts=optional]
 
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_error_allOf_rotation/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Startup_config_logging_error_allOf_rotation/definition-after.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_error_rotation/definition-after.adoc[opts=optional]
 
 
 
@@ -49154,12 +49064,60 @@ All of the following:
 // markup not found, no include::{specDir}definitions/Startup_config_logging_info/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Startup_config_logging_info]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+enabled+* +
+_optional_
+a| Toggle for this log output
 
-* xref:#++Object++[+Object+]
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
 
+
+a| *+rotation+* +
+_optional_
+a| 
+ifdef::desc-Startup_config_logging_info_rotation[]
+{desc-Startup_config_logging_info_rotation}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Startup_config_logging_info_rotation++[+Startup_config_logging_info_rotation+]
+
+
+a| *+collation_buffer_size+* +
+_optional_
+a| The size of the log collation buffer
+
+[%hardbreaks]
+ifeval::["1000" != "null"]
+*Default:* `1000`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+|===
 
 
 // markup not found, no include::{specDir}definitions/Startup_config_logging_info/definition-end.adoc[opts=optional]
@@ -49171,29 +49129,106 @@ All of the following:
 
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_info_allOf_rotation/definition-before.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_info_rotation/definition-before.adoc[opts=optional]
 
 
-[#Startup_config_logging_info_allOf_rotation]
-=== StartupConfigLoggingInfoAllOfRotation
+[#Startup_config_logging_info_rotation]
+=== StartupConfigLoggingInfoRotation
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_info_allOf_rotation/definition-begin.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_info_rotation/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Startup_config_logging_info_rotation]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+max_size+* +
+_optional_
+a| The maximum size in MB of the log file before it gets rotated.
 
-* xref:#++Object++[+Object+]
+[%hardbreaks]
+ifeval::["100" != "null"]
+*Default:* `100`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+a| *+localtime+* +
+_optional_
+a| If true, it uses the computer's local time to format the backup timestamp.
+
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
+
+
+a| *+rotated_logs_size_limit+* +
+_optional_
+a| Max Size (in mb) of log files before deletion
+
+[%hardbreaks]
+ifeval::["1024" != "null"]
+*Default:* `1024`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+a| *+rotation_interval+* +
+_optional_
+a| If set, the interval at which log files are rotated, even if max_size is not reached.
+
+This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
+
+[%hardbreaks]
+ifeval::["0" != "null"]
+*Default:* `0`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+a| *+max_age+* +
+_optional_
+a| The maximum number of days to retain old log files.
+
+[%hardbreaks]
+ifeval::["6" != "null"]
+*Default:* `6`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/Startup_config_logging_info_rotation/definition-end.adoc[opts=optional]
 
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_info_allOf_rotation/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Startup_config_logging_info_allOf_rotation/definition-after.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_info_rotation/definition-after.adoc[opts=optional]
 
 
 
@@ -49208,12 +49243,60 @@ All of the following:
 // markup not found, no include::{specDir}definitions/Startup_config_logging_stats/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Startup_config_logging_stats]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+enabled+* +
+_optional_
+a| Toggle for this log output
 
-* xref:#++Object++[+Object+]
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
 
+
+a| *+rotation+* +
+_optional_
+a| 
+ifdef::desc-Startup_config_logging_info_rotation[]
+{desc-Startup_config_logging_info_rotation}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Startup_config_logging_info_rotation++[+Startup_config_logging_info_rotation+]
+
+
+a| *+collation_buffer_size+* +
+_optional_
+a| The size of the log collation buffer
+
+[%hardbreaks]
+ifeval::["0" != "null"]
+*Default:* `0`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+|===
 
 
 // markup not found, no include::{specDir}definitions/Startup_config_logging_stats/definition-end.adoc[opts=optional]
@@ -49235,12 +49318,60 @@ All of the following:
 // markup not found, no include::{specDir}definitions/Startup_config_logging_warn/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Startup_config_logging_warn]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+enabled+* +
+_optional_
+a| Toggle for this log output
 
-* xref:#++Object++[+Object+]
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
 
+
+a| *+rotation+* +
+_optional_
+a| 
+ifdef::desc-Startup_config_logging_warn_rotation[]
+{desc-Startup_config_logging_warn_rotation}
+endif::[]
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Startup_config_logging_warn_rotation++[+Startup_config_logging_warn_rotation+]
+
+
+a| *+collation_buffer_size+* +
+_optional_
+a| The size of the log collation buffer
+
+[%hardbreaks]
+ifeval::["1000" != "null"]
+*Default:* `1000`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+|===
 
 
 // markup not found, no include::{specDir}definitions/Startup_config_logging_warn/definition-end.adoc[opts=optional]
@@ -49252,29 +49383,106 @@ All of the following:
 
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_warn_allOf_rotation/definition-before.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_warn_rotation/definition-before.adoc[opts=optional]
 
 
-[#Startup_config_logging_warn_allOf_rotation]
-=== StartupConfigLoggingWarnAllOfRotation
+[#Startup_config_logging_warn_rotation]
+=== StartupConfigLoggingWarnRotation
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_warn_allOf_rotation/definition-begin.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_warn_rotation/definition-begin.adoc[opts=optional]
 
 
-All of the following:
+[#fields-Startup_config_logging_warn_rotation]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
 
-* xref:#++Object++[+Object+]
+a| *+max_size+* +
+_optional_
+a| The maximum size in MB of the log file before it gets rotated.
 
-* xref:#++Object++[+Object+]
+[%hardbreaks]
+ifeval::["100" != "null"]
+*Default:* `100`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+a| *+localtime+* +
+_optional_
+a| If true, it uses the computer's local time to format the backup timestamp.
+
+[%hardbreaks]
+ifeval::["false" != "null"]
+*Default:* `false`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
+
+
+a| *+rotated_logs_size_limit+* +
+_optional_
+a| Max Size (in mb) of log files before deletion
+
+[%hardbreaks]
+ifeval::["1024" != "null"]
+*Default:* `1024`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+a| *+rotation_interval+* +
+_optional_
+a| If set, the interval at which log files are rotated, even if max_size is not reached.
+
+This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
+
+[%hardbreaks]
+ifeval::["0" != "null"]
+*Default:* `0`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+a| *+max_age+* +
+_optional_
+a| The maximum number of days to retain old log files.
+
+[%hardbreaks]
+ifeval::["180" != "null"]
+*Default:* `180`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Integer
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/Startup_config_logging_warn_rotation/definition-end.adoc[opts=optional]
 
 
 
-// markup not found, no include::{specDir}definitions/Startup_config_logging_warn_allOf_rotation/definition-end.adoc[opts=optional]
-
-
-
-// markup not found, no include::{specDir}definitions/Startup_config_logging_warn_allOf_rotation/definition-after.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/Startup_config_logging_warn_rotation/definition-after.adoc[opts=optional]
 
 
 
@@ -51244,6 +51452,178 @@ endif::[]
 
 
 // markup not found, no include::{specDir}definitions/User_Session_Information_userCtx/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Verbose/definition-before.adoc[opts=optional]
+
+
+[#Verbose]
+=== Verbose
+
+
+// markup not found, no include::{specDir}definitions/Verbose/definition-begin.adoc[opts=optional]
+
+
+All of the following:
+
+* xref:#++Object++[+Object+]
+
+* xref:#++Object++[+Object+]
+
+
+
+// markup not found, no include::{specDir}definitions/Verbose/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/Verbose/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Verbose_1/definition-before.adoc[opts=optional]
+
+
+[#Verbose_1]
+=== Verbose
+
+
+// markup not found, no include::{specDir}definitions/Verbose_1/definition-begin.adoc[opts=optional]
+
+
+[#fields-Verbose_1]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+a| *+enabled+* +
+_optional_
+a| 
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
+
+
+a| *+events+* +
+_optional_
+a| 
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| xref:#++Verbose_allOf_events_value++[+Verbose_allOf_events_value+]
+Map
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/Verbose_1/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/Verbose_1/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Verbose_allOf_events_value/definition-before.adoc[opts=optional]
+
+
+[#Verbose_allOf_events_value]
+=== audit-event-verbose
+
+
+// markup not found, no include::{specDir}definitions/Verbose_allOf_events_value/definition-begin.adoc[opts=optional]
+
+
+[#fields-Verbose_allOf_events_value]
+[cols="1,4,1"]
+|===
+| Name| Description| Schema
+
+a| *+name+* +
+_optional_
+a| The name of the audit event.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+a| *+description+* +
+_optional_
+a| The description of the audit event.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| String
+
+
+a| *+enabled+* +
+_optional_
+a| Whether this audit event is currently enabled or not.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
+
+
+a| *+filterable+* +
+_optional_
+a| Whether this audit event can be disabled. Some audit events are always on.
+
+[%hardbreaks]
+ifeval::["null" != "null"]
+*Default:* `null`
+endif::[]
+ifeval::["null" != "null"]
+*Example:* `null`
+endif::[]
+// end
+| Boolean
+
+
+|===
+
+
+// markup not found, no include::{specDir}definitions/Verbose_allOf_events_value/definition-end.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}definitions/Verbose_allOf_events_value/definition-after.adoc[opts=optional]
 
 
 
