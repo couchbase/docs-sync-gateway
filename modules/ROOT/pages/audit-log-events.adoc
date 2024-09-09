@@ -17,22 +17,21 @@ You can use audit events to track and provide context on user activity within yo
 | Field Name | Description
 
 |`ID`
-|The actual number passed into `enabled_events: []`.
+|A unique number used to distinguish between Audit Events.
 
 |`Name` 
 |A short descriptive name, this will be outputted as a field in the audit log.
 
 |`Description`
-|A longer name, this is will be outputred as a field in the audit log.
+|A longer name, this is will be outputted as a field in the audit log.
 
 |`DefaultEnabled`
-|If `true`, this is enabled without explicitly listing in `enabled_events: []`.
+|If `true`, the given Audit Event is enabled by default.
 
 |`Filterable`
-|If `true`, this will always be enabled if audit logging is turned on. 
-Any of the events with `Filterable` set to `true` in the `enabled_events: []` object will be no-ops.
+|If `true`, the given audit event can be disabled.
 
-|`Eventscope`
+|`EventScope`
 |The scope of the event.
 This can be `Global` or `Database`.
 
@@ -41,13 +40,33 @@ This can be `Global` or `Database`.
 This can be `user`, `admin`, or `data`.
 
 |`MandatoryFields`
-|Fields required to be set in a given Audit Event.
-If any fields are not set, a no-op will occur.
+|Fields that are always present in a given Audit Event.
 
 |`OptionalFields`
-|Fields that are not required to be set in a given Audit Event.
+|May or may not be present in a given Audit Event.
 
 |===
+
+=== Audit Event Types
+
+Audit Events can be one of the following types:
+
+* `Admin` - Events that track administrative and configuration changes.
+
+* `Data` - Events that track attempts to access and change data.
+
+* `User` - Events that track end-user operations.
+
+=== Audit Event Scopes
+
+Audit events have scope, this affects how they can be configured.
+The audit events scopes are:
+
+* `Database` - These events are specific to a database such as `AuditIDDocumentUpdate 55002`, and can only be enabled/disabled at the database configuration level. 
+Database level audit events are segregated into per Sync Gateway database specific audit logs.
+
+*  `Global` - These events are considered global such as `AuditIDSyncGatewayStartup 53260`, and have to be enabled/disabled in the bootstrap config.
+
 
 === Auditing Events
 
