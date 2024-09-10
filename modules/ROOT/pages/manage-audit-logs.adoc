@@ -23,21 +23,6 @@ For more information, see:
 
 * xref:rest_api_admin.adoc[Admin REST API].
 
-=== Filtering Audit Logs
-
-You can filter audit logs to customize events that are stored in the log file. 
-You can alter the following to affect events stored in the log file:
-
-* Enabling and disabling users - This affects all events related to a specified user.
-If a given user is disabled, no audit events from the user will be logged.
-
-* Enabling and disabling events - This affects the specified events globally.
-If a given event is disabled, it will not be logged regardless of the user.
-Events can be enabled per database or globally.
-
-NOTE: If an audit event has `DefaultEnabled` set to `true`, it does not need to be explicitly enabled by the API.
-See xref:audit-log-events.adoc[] for more information on specific audit events.
-
 == Global Configuration with the Bootstrap Config
 
 Below you can find the minimal configuration required in your bootstrap config file to enable audit logging.
@@ -94,54 +79,6 @@ Audit logs are written to a different location by default than console logs.
 | `Max size`
 | A specified filesize outside of the `Max File Size` property.
 | This is disabled by default.
-
-|===
-
-=== Audit Fields 
-
-The table below lists mandatory audit fields with corresponding descriptions. 
-Different event-types generate different field-subsets.
-
-[cols="3*"]
-|===
-
-| Field | Type | Description
-
-|`"id"`
-|Integer
-|The unique identifier of the event.
-
-|`"cid"`
-|Integer
-|Context id for an individual request related events
-
-|`"description"`
-|String
-|The name of the event in an action-based language: e.g. “User was created”.
-
-|`"db"`
-|String
-|Name of database the event originated from.
-
-|`"real_userid"`
-|Object
-|Contains key-value pairs for "domain" and "user" (specifying the id). Can be user specified or Server roles.
-
-|`"local"`
-|Object
-|Contains key-value pairs for "ip" and incoming "port", for the node on which the event was processed.
-
-|`"remote"`
-|Object
-|Contains key-value pairs for "ip" and outgoing "port", for the node on which the event-request was dispatched.
-
-|`"timestamp"`
-|ISO-8601 timestamp
-|UTC timestamp for when the event was generated.
-
-|`"optional fields"`
-|Object
-|Additional non-action or user id specific event data: e.g: {replication_type: pull_only}
 
 |===
 
