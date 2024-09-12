@@ -58,32 +58,33 @@ To configure audit logs retention and rotation globally, you can use the followi
 
 | Name | Values | Additional Description
 
-| `Destination`
-a|
+| `enabled`
+|A boolean toggle for the audit logging format, if `true`, audit logging is enabled.
+|The default value is `false`.
 
-* Console - The default.
-Outputs the audit events to stdout in JSON format.
+| `rotation`
+a|`rotation` is an object that contains the following properties:
 
-* File - Outputs the audit events to the file specified file path in JSON format.
-Audit logs are written to a different location by default than console logs.
 
-| Both active and rotated log files are stored.
+* `logging.audit.rotation.localtime` - If set to `true`, your log files will use the computer's local time to format the backup timestamp.
 
-| `Max file size`
-| Default - 1GB
-| The maximum size the active audit logging file is allowed to grow before being rotated.
+* `logging.audit.rotation.max_age` - The maximum number of days to retain old log files.
 
-| `Rotation Interval`
-| The time interval in seconds from 900s (15 minutes) to 604800s (7 days) inclusive. 
-| The default is 86400s.
+* `logging.audit.rotation.max_size` - The maximum size in MB of the log file before it gets rotated.
 
-| `Prune age`
-| The time after which Sync Gateway deletes audit rotates audit log files in minutes. 
-| The default is 30 days (43200)
+* `logging.audit.rotation.rotated_logs_size_limit` - The maximum size in MB of log files before deletion.
 
-| `Max size`
-| A specified filesize outside of the `Max File Size` property.
-| This is disabled by default.
+* `logging.audit.rotation.rotation_interval` - If set, the interval at which log files are rotated, even if max_size is not reached.
+
+|
+
+| `audit_log_file_path`
+| The path to write audit log files to.
+| 
+
+| `enabled_events`
+| An object that contains the list of enabled global events.
+| 
 
 |===
 
