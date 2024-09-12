@@ -7,8 +7,6 @@
 
 == About Audit Logging
 
-IMPORTANT: Sg_collect does NOT collect audit log information as audit logs contain sensitive, unredacted data.
-
 Audit logging is an opt-in feature that allows you to track events associated with administrative, management, and end-user operations made in Sync Gateway.
 These logs are presented as a https://jsonlines.org/[JSON-lines formatted series of events].
 
@@ -22,6 +20,12 @@ Audit logs typically include:
 
 * The user or system component that initiated the event.
 
+Logs are immutable and cannot be altered once recorded.
+Viewing and managing audit logs permissions are enforced through Sync Gateway RBAC controls. 
+Logs are written locally on each Sync Gateway node.
+
+IMPORTANT: xref:sgcollect-info.adoc[SG Collect Info] does NOT collect audit log information as audit logs contain sensitive, unredacted data.
+
 There is only one audit log file active at a time, which is periodically rotated based on the following properties:
 
 * `logging.audit.rotation.localtime` - If set to `true`, your log files will use the computer's local time to format the backup timestamp.
@@ -34,14 +38,9 @@ There is only one audit log file active at a time, which is periodically rotated
 
 * `logging.audit.rotation.rotation_interval` - If set, the interval at which log files are rotated, even if max_size is not reached.
 
-For more information about audit logging bootstrap configuration, see xref:configuration-schema-bootstrap.adoc#logging-audit-audit_log_file_path[bootstrap configuration schema].
+Rotated audit logs are automatically pruned at a default value of six days.
 
-Logs are immutable and cannot be altered once recorded.
-Viewing and managing audit logs permissions are enforced through Sync Gateway RBAC controls. 
-Logs are written locally on each Sync Gateway node.
-
-IMPORTANT: Rotated audit logs are automatically pruned at a default value of six days.
-Administrators must ensure the rotated logs are picked up before they are deleted.
+NOTE: Administrators must ensure the rotated logs are picked up before they are deleted.
 
 == Audit Events
 
