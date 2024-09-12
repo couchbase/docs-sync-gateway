@@ -1,0 +1,153 @@
+= Audit Logging
+:page-edition: Enterprise
+:description: Audit Logging provides tools for administrators to track operational irregularities and to support regulatory and security compliance standards.
+
+[abstract]
+{description}
+
+== About Audit Logging
+
+Audit logging is an opt-in feature that allows you to track events associated with administrative, management, and end-user operations made in Sync Gateway.
+These logs are presented as a https://jsonlines.org/[JSON-lines formatted series of events].
+
+Audit logs typically include:
+
+* A timestamp for each event.
+
+* The nature of each event, such as a login attempt.
+
+* The outcome of each event, such as success or failure.
+
+* The user or system component that initiated the event.
+
+Logs are immutable and cannot be altered once recorded.
+Viewing and managing audit logs permissions are enforced through Sync Gateway RBAC controls. 
+Logs are written locally on each Sync Gateway node.
+
+IMPORTANT: xref:sgcollect-info.adoc[SG Collect Info] does NOT collect audit log information as audit logs contain sensitive, unredacted data.
+
+There is only one audit log file active at a time, which is periodically rotated based on the following properties:
+
+* `logging.audit.rotation.localtime` - If set to `true`, your log files will use the computer's local time to format the backup timestamp.
+
+* `logging.audit.rotation.max_age` - The maximum number of days to retain old log files.
+
+* `logging.audit.rotation.max_size` - The maximum size in MB of the log file before it gets rotated.
+
+* `logging.audit.rotation.rotated_logs_size_limit` - The maximum size in MB of log files before deletion.
+
+* `logging.audit.rotation.rotation_interval` - If set, the interval at which log files are rotated, even if max_size is not reached.
+
+Rotated audit logs are automatically pruned at a default value of six days.
+
+NOTE: Administrators must ensure the rotated logs are picked up before they are deleted.
+
+== Audit Events
+
+Audit events are tagged at a database level to distinguish between events coming from different databases.
+The fields the event was called with are also added if applicable to the optional context property of the event.
+
+For more information, see xref:audit-log-events.adoc[audit events reference page].
+
+NOTE: Event auditing occurs per Sync Gateway node, capturing its own events only.
+If you require a cluster-wide record, the records must be manually consolidated by an adminstrator.
+
+=== Filtering Audit Logs
+
+You can filter audit logs to customize events that are stored in the log file. 
+You can alter the following to affect events stored in the log file:
+
+* Enabling and disabling users - This affects all events related to a specified user.
+If a given user is disabled, no audit events from the user will be logged.
+
+* Enabling and disabling events - This affects the specified events globally.
+If a given event is disabled, it will not be logged regardless of the user.
+Events can be enabled per database or globally.
+
+NOTE: If an audit event has `DefaultEnabled` set to `true`, it does not need to be explicitly enabled by the API.
+See xref:audit-log-events.adoc[] for more information on specific audit events.
+
+=== Audit Fields 
+
+The table below lists common audit event properties with corresponding descriptions. 
+Different event-types generate different field-subsets.
+
+[cols="3*"]
+|===
+
+| Field | Type | Description
+
+|`"id"`
+|Integer
+|The unique identifier of the event.
+
+|`"cid"`
+|Integer
+|Context id for an individual request related events
+
+|`"description"`
+|String
+|The name of the event in an action-based language: e.g. “User was created”.
+
+|`"db"`
+|String
+|Name of database the event originated from.
+
+|`"real_userid"`
+|Object
+|Contains key-value pairs for "domain" and "user" (specifying the id). Can be user specified or Server roles.
+
+|`"local"`
+|Object
+|Contains key-value pairs for "ip" and incoming "port", for the node on which the event was processed.
+
+|`"remote"`
+|Object
+|Contains key-value pairs for "ip" and outgoing "port", for the node on which the event-request was dispatched.
+
+|`"timestamp"`
+|ISO-8601 timestamp
+|UTC timestamp for when the event was generated.
+
+|`"optional fields"`
+|Object
+|Additional non-action or user id specific event data: e.g: {replication_type: pull_only}
+
+|===
+
+=== Sample Audit Event
+
+A sample audit event is presented below.
+
+[source, json]
+----
+{
+  "description": "Public HTTP API request was made",
+  "remote": { "ip": "127.0.0.1", "port": "52885" },
+  "timestamp": "2024-09-05T11:03:13-04:00",
+  "http_status": 200,
+  "name": "Public HTTP API request",
+  "cid": "#001",
+  "real_userid": { "domain": "sgw", "user": "user1" },
+  "http_method": "GET",
+  "http_path": "/db/doc",
+  "id": 53271,
+  "db": "db",
+  "ks": "db._default._default",
+  "local": { "ip": "127.0.0.1", "port": "4984" }
+}
+----
+
+Above is a successful login by `user1` to retrieve a document named `doc`.
+
+== See Also
+
+* xref:manage-audit-logs.adoc[]
+
+* xref:audit-log-events.adoc[]
+
+* xref:sgcollect-info.adoc[]
+
+* xref:rest-api-admin.adoc[Admin REST API Reference]
+
+* xref:rest_api_admin_static.adoc[Admin REST API Reference]

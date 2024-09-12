@@ -15,43 +15,30 @@ include::ROOT:partial$_set_page_context.adoc[]
 
 :param-related: {xref-sgw-pg-release-notes}
 include::partial$_show_page_header_block.adoc[]
-// tag::scopes-and-collections[]
 
-CAUTION: {sgw-t} 3.0.x introduces some breaking changes.
-If you are upgrading from 2.x, please refer to the {upgrading--xref} page.
-Users should be able to upgrade to 3.1.x from 3.0.x without manual intervention.
+[WARNING]
+--
 
-* *New support for Scopes and Collections* +
-Couchbase has introduced support for Scopes and Collections for self-managed cloud-to-edge deployments only in xref:couchbase-lite:ROOT:index.adoc[Couchbase Lite 3.1.0] and xref:introduction.adoc[Sync Gateway 3.1.0]. 
-This release won't cause any issues with existing apps, as it's compatible with older versions. 
-If you have an app that uses bucket-based APIs, you can still upgrade to 3.1, but please note that this API is now deprecated. 
-For more information, see xref:scopes-and-collections-config.adoc[Scopes and Collections Configuration for Sync Gateway].
+Do not deploy Eventing/Sync Gateway until all SGW nodes are at version 3.2.
+For older Sync Gateway versions that do not write import XATTRs, Eventing functions may encounter infinite recursions and duplicate mutations if deployed in a mixed mode SGW environment.
+This can only happen during a mixed mode of SGW with a 3.2 version and an older version during an upgrade and a new Eventing/Sync Gateway function is deployed.
 
-* *Improved Data Organization and Access Control for Scopes and Collections* +
-Couchbase Mobile now offers Scopes and Collections, allowing more efficient and scalable data organisation within a bucket. 
-This also introduces an improved method of defining and enforcing data xref:access-control-concepts.adoc[Access Control] more granularly. 
-Multi-tenant apps will also experience better scalability and independent data lifecycle management.
+--
 
-* *Improved metadata isolation for Scopes and Collections* +
-Sync Gateway 3.1.0 has improved metadata isolation. 
-The system data maintained by Sync Gateway is now stored in the `_default` Scope/Collection, while both the `_default` and user-defined Scope/Collection can be used for application data. 
-For more information, examples and use cases, see https://www.couchbase.com/blog/scopes-collections-couchbase-mobile/[Scopes and Collections Support in Couchbase Mobile for Edge Applications].
+* *Eventing Support with Sync Gateway 3.2.0+ and Couchbase Server 7.6.3+*
 
-* *Collection-Level Sync Functions and Scoped User Associations* +
-The xref:sync-function.adoc[Sync Functions] now work on a Collection level, and additional optional fields have been added to the database configurations to support this update. 
-Each database is designed to support only one Scope. Users can be associated with that Scope and shared across multiple Collections.
+Sync Gateway 3.2.0 now supports improved interoperability with Eventing from Couchbase Server version 7.6.3+.
+You can use Eventing to handle data changes that happen when applications interact and to integrate with other Couchbase services such as Data, Query and Full Text Search.
 
-* *Enhanced Collection Synchronization and Local Data Storage with Couchbase Lite Client* +
-With Couchbase Lite client replications, you can synchronize one or multiple Collections within a specific scope. 
-The Couchbase Lite client also will store data locally in a scope not synchronized with the remote Sync Gateway.
+For more information, see xref:server-compatibility-eventing.adoc[]
 
-NOTE: You can define 1 custom scope per database with up to 1000 custom collections.
-If you don't specify a custom scope and collection, any documents you create will be saved in the default scope and collection.
+* *Audit Logging Support*
 
-Read the full xref:3.1@release-notes.adoc[3.1 release notes].
+Couchbase now provides Audit Logging support for Sync Gateway. Audit Logging provides tools for administrators to track operational irregularities and to support regulatory and security compliance standards, such as link:https://www.hhs.gov/hipaa/index.html[HIPAA] and link:https://soc2.co.uk/soc2[SOC-2].
+For more information, see xref:audit-logging.adoc[].
 
-// end::scopes-and-collections[]
+Read the full xref:3.2@release-notes.adoc[3.2 release notes].
 
-See more details of xref:3.0@whatsnew.adoc[what's new in the previous 3.0 release.]
+See more details of xref:3.1@whatsnew.adoc[what's new in the previous 3.1 release.]
 
 include::partial$block-related-content-data.adoc[]

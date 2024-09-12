@@ -1,0 +1,221 @@
+== 3.2.0 -- August 2024
+
+[WARNING]
+--
+
+Do not deploy Eventing/Sync Gateway until all SGW nodes are at version 3.2.
+For older Sync Gateway versions that do not write import XATTRs, Eventing functions may encounter infinite recursions and duplicate mutations if deployed in a mixed mode SGW environment.
+This can only happen during a mixed mode of SGW with a 3.2 version and an older version during an upgrade and a new Eventing/Sync Gateway function is deployed.
+
+--
+
+=== Audit Logging for Sync Gateway
+
+Couchbase now provides Audit Logging support for Sync Gateway. Audit Logging provides tools for administrators to track operational irregularities and to support regulatory and security compliance standards.
+
+For more information on new features and enhancements in this release, see xref:whatsnew.adoc[].
+
+Version 3.2.0 of Sync Gateway also delivers the following features and enhancements:
+
+[#maint-3-2-0]
+=== Fixed Issues
+
+* https://jira.issues.couchbase.com/browse/CBG-2905[CBG-2905 -  Fixed repeated attempts to connect to inexistent buckets are done after removing a database and bucket]
+
+* https://jira.issues.couchbase.com/browse/CBG-2909[CBG-2909 -  Fixed import still starts when an offline database is created]
+
+* https://jira.issues.couchbase.com/browse/CBG-2911[CBG-2911 -  Fixed /db/ routing does not work with default collection that coexists with named collection]
+
+* https://jira.issues.couchbase.com/browse/CBG-2944[CBG-2944 -  Fixed proveAttachment incompatibility between 3.0.x and 2.8.x]
+
+* https://jira.issues.couchbase.com/browse/CBG-2973[CBG-2973 -  Fixed Panic inside Mutable1xBody for nil shallow copy]
+
+* https://jira.issues.couchbase.com/browse/CBG-2983[CBG-2983 -  Fixed cbgt importlistener leaves open a connection to a bucket after database is deleted]
+
+* https://jira.issues.couchbase.com/browse/CBG-2998[CBG-2998 -  Fixed cbgt cluster connection fails with HTTP polling enabled and TLS disabled]
+
+* https://jira.issues.couchbase.com/browse/CBG-3022[CBG-3022 -  Fixed replicator will not reconnect when max_back_off != 0]
+
+* https://jira.issues.couchbase.com/browse/CBG-3024[CBG-3024 -  Fixed CE Import feed starting from vb highseqno instead of zero]
+
+* https://jira.issues.couchbase.com/browse/CBG-3043[CBG-3043 -  Fixed cbgt panics when setting up import feed for server versions < 7.0]
+
+* https://jira.issues.couchbase.com/browse/CBG-3102[CBG-3102 -  Fixed initial OIDC setup fails for keyspace request]
+
+* https://jira.issues.couchbase.com/browse/CBG-3195[CBG-3195 -  Fixed simultaneous role grant + subChanges will cause role grant to not be recognized]
+
+* https://jira.issues.couchbase.com/browse/CBG-3196[CBG-3196 -  Fixed cannot update db config from implicit `_default` scope to explicit `_default` scope]
+
+* https://jira.issues.couchbase.com/browse/CBG-3553[CBG-3553 -  Fixed increasing memory usage when failing to apply a database config from the bucket]
+
+* https://jira.issues.couchbase.com/browse/CBG-3688[CBG-3688 -  Fixed kv_pool_size on import feed can be non zero]
+
+* https://jira.issues.couchbase.com/browse/CBG-3817[CBG-3817 -  Fixed collection appears to be linked to 2 DBs after update error]
+
+* https://jira.issues.couchbase.com/browse/CBG-3820[CBG-3820 -  Drop logging volume for pending insertions and doc not found logging]
+
+* https://jira.issues.couchbase.com/browse/CBG-3835[CBG-3835 -  Tweak logging around import of JSON but not JSON object docs]
+
+* https://jira.issues.couchbase.com/browse/CBG-3844[CBG-3844 -  updateSeq must happen after DCP callback invocation]
+
+* https://jira.issues.couchbase.com/browse/CBG-3856[CBG-3856 -  Fixed GET /db RBAC permissions missing for Sync Gateway Architect]
+
+* https://jira.issues.couchbase.com/browse/CBG-3867[CBG-3867 - Prevent ISGR creation with empty ID]
+
+* https://jira.issues.couchbase.com/browse/CBG-3869[CBG-3869 -  Fixed UnmarshalDocumentSyncDataFromFeed doesn't return any present user xattrs if sync data doesn't exist on the doc]
+
+* https://jira.issues.couchbase.com/browse/CBG-3882[CBG-3882 -  Fixed sgcollect_info fails to upload to s3]
+
+* https://jira.issues.couchbase.com/browse/CBG-3883[CBG-3883 -  Fixed OIDC-auth causes admin_channels/admin_roles loss]
+
+* https://jira.issues.couchbase.com/browse/CBG-3888[CBG-3888 -  Fixed sgcollect_info TypeError when task execution timeout occurs]
+
+* https://jira.issues.couchbase.com/browse/CBG-3920[CBG-3920 -  Fixed not found handling for DCP purge]
+
+* https://jira.issues.couchbase.com/browse/CBG-3941[CBG-3941 -  Avoid timeout on creating indexes asynchronously]
+
+* https://jira.issues.couchbase.com/browse/CBG-3950[CBG-3950 -  Fixed database with default db can see users matching other databases in the bucket]
+
+* https://jira.issues.couchbase.com/browse/CBG-3968[CBG-3968 -  Include scope with collections in resync status]
+
+* https://jira.issues.couchbase.com/browse/CBG-3988[CBG-3988 -  Fixed documents may not be imported when collection added to an existing db]
+
+* https://jira.issues.couchbase.com/browse/CBG-3996[CBG-3996 -  Fixed sgcollect doesn't work on mac distributions]
+
+* https://jira.issues.couchbase.com/browse/CBG-4003[CBG-4003 -  Fixed DeleteRole doesnt trigger history calculation for named collections]
+
+* https://jira.issues.couchbase.com/browse/CBG-4015[CBG-4015 -  Fixed nextSequenceGreaterThan should update to current _sync:seq before releasing sequences]
+
+* https://jira.issues.couchbase.com/browse/CBG-4025[CBG-4025 -  Fixed users roles are not getting invalidated after a resync]
+
+* https://jira.issues.couchbase.com/browse/CBG-4055[CBG-4055 -  Fixed incorrect types listed in API docs for all_docs query parameters]
+
+* https://jira.issues.couchbase.com/browse/CBG-4070[CBG-4070 -  Fixed panic in CheckpointHash function for bucket UUID call]
+
+* https://jira.issues.couchbase.com/browse/CBG-4105[CBG-4105 -  Fixed corrupt DB config handling doesn't remove the config when longer present in the bucket]
+
+* https://jira.issues.couchbase.com/browse/CBG-4106[CBG-4106 -  Fixed if we error in removeCorruptConfigIfExists we don't unload/remove database]
+
+* https://jira.issues.couchbase.com/browse/CBG-4128[CBG-4128 - Decouple client request context from lazy-init OIDC discovery sync process]
+
+* https://jira.issues.couchbase.com/browse/CBG-4136[CBG-4136 - API Docs: Limit scopes configuration to only one entry]
+
+* https://jira.issues.couchbase.com/browse/CBG-4221[CBG-4221 - Pending unused sequences shouldn't update high cache sequence]
+
+* https://jira.issues.couchbase.com/browse/CBG-4218[CBG-4218 - Fixed duplicated sequences can cause SGW to be unresponsive]
+
+=== Enhancements
+
+* https://jira.issues.couchbase.com/browse/CBG-2807[CBG-2807 - Allow DB Scoped CORS config]
+
+* https://jira.issues.couchbase.com/browse/CBG-2837[CBG-2837 - Streamline database creation when using many collections]
+
+* https://jira.issues.couchbase.com/browse/CBG-2853[CBG-2853 - Allow one-shot replications to wait for DCP to catch up on changes feed]
+
+* https://jira.issues.couchbase.com/browse/CBG-2895[CBG-2895 - Add replication connection limit]
+
+* https://jira.issues.couchbase.com/browse/CBG-2898[CBG-2898 - Add num_replications_rejected_limit stat for replication connection limit]
+
+* https://jira.issues.couchbase.com/browse/CBG-2904[CBG-2904 - Retry to insert config when write fails]
+
+* https://jira.issues.couchbase.com/browse/CBG-2927[CBG-2927 - Add total_sync_time stat]
+
+* https://jira.issues.couchbase.com/browse/CBG-2929[CBG-2929 - Add public_rest_bytes_written stat]
+
+* https://jira.issues.couchbase.com/browse/CBG-2932[CBG-2932 - Add num_public_rest_requests stat]
+
+* https://jira.issues.couchbase.com/browse/CBG-2938[CBG-2938 - Suppress OnFeedError logging on database close]
+
+* https://jira.issues.couchbase.com/browse/CBG-2977[CBG-2977 - Improve handling for deleted collection]
+
+* https://jira.issues.couchbase.com/browse/CBG-3101[CBG-3101 - Use Scope().Query() for N1QL in cases where CB Server supports it]
+
+* https://jira.issues.couchbase.com/browse/CBG-3157[CBG-3157 - Improve handling for docs mutated during one-shot replication]
+
+* https://jira.issues.couchbase.com/browse/CBG-3163[CBG-3163 - Add public_rest_bytes_read stat]
+
+* https://jira.issues.couchbase.com/browse/CBG-3520[CBG-3520 - Updating import_filter and sync_filter to empty string does not work for named collection]
+
+* https://jira.issues.couchbase.com/browse/CBG-3537[CBG-3537 - Reduce EOF logging from go-blip]
+
+* https://jira.issues.couchbase.com/browse/CBG-3563[CBG-3563 - Automatic profile collection when exceeding memory thresholds]
+
+* https://jira.issues.couchbase.com/browse/CBG-3585[CBG-3585 - Log bucket and groupID during config search]
+
+* https://jira.issues.couchbase.com/browse/CBG-3613[CBG-3613 - docker: switch current working directory to a writeable directory]
+
+* https://jira.issues.couchbase.com/browse/CBG-3640[CBG-3640 - Change default SG config to use persistent config]
+
+* https://jira.issues.couchbase.com/browse/CBG-3696[CBG-3696 - Empty user_xattr_key doesnt clear db config field]
+
+* https://jira.issues.couchbase.com/browse/CBG-3768[CBG-3768 - Avoid writing back the document body during import unless required]
+
+* https://jira.issues.couchbase.com/browse/CBG-3780[CBG-3780 - Additional Platform Support]
+
+* https://jira.issues.couchbase.com/browse/CBG-3795[CBG-3795 - Deprecate enable_star_channel config option]
+
+* https://jira.issues.couchbase.com/browse/CBG-3813[CBG-3813 - sgcollect windows now collects stderr / stdout]
+
+* https://jira.issues.couchbase.com/browse/CBG-3819[CBG-3819 - Declare VOLUME in dockerfile]
+
+* https://jira.issues.couchbase.com/browse/CBG-3822[CBG-3822 - Audit Logging]
+
+* https://jira.issues.couchbase.com/browse/CBG-3823[CBG-3823 - Warn when releasing a large number of unused sequences]
+
+* https://jira.issues.couchbase.com/browse/CBG-3824[CBG-3824 - Optimize storage of skipped sequences]
+
+* https://jira.issues.couchbase.com/browse/CBG-3837[CBG-3837 - Don't perform per-document logging when processing an unused sequence range]
+
+* https://jira.issues.couchbase.com/browse/CBG-3839[CBG-3839 - Detect and handle _sync:seq rollback in sequence allocator]
+
+* https://jira.issues.couchbase.com/browse/CBG-3843[CBG-3843 - Include collection set in resync status]
+
+* https://jira.issues.couchbase.com/browse/CBG-3847[CBG-3847 - Log _sync:seq on database start]
+
+* https://jira.issues.couchbase.com/browse/CBG-3849[CBG-3849 - Recovery from cas mismatch on metadata documents when using xattrConfig]
+
+* https://jira.issues.couchbase.com/browse/CBG-3850[CBG-3850 - Optimise releaseUnusedSequenceRange]
+
+* https://jira.issues.couchbase.com/browse/CBG-3857[CBG-3857 - log DB starting in http status message 503]
+
+* https://jira.issues.couchbase.com/browse/CBG-3896[CBG-3896 - Compatibility enhancements for eventing source bucket mutations]
+
+* https://jira.issues.couchbase.com/browse/CBG-3905[CBG-3905 - Logging for GetDatabaseConfigs verbose and ambiguous]
+
+* https://jira.issues.couchbase.com/browse/CBG-3925[CBG-3925 - Add log rotation interval]
+
+* https://jira.issues.couchbase.com/browse/CBG-3938[CBG-3938 - sgcollect_info: Switch to runtime config endpoint to determine logFilePath]
+
+* https://jira.issues.couchbase.com/browse/CBG-3942[CBG-3942 - Provide bucket and collection when returning an error about inability to create collections]
+
+* https://jira.issues.couchbase.com/browse/CBG-3957[CBG-3957 - Add a reason for why a database is offline in /_all_dbs]
+
+* https://jira.issues.couchbase.com/browse/CBG-3960[CBG-3960 - Add stats for norev and replacement rev replication messages]
+
+* https://jira.issues.couchbase.com/browse/CBG-3962[CBG-3962 - Do not regenerate principal seqs unless resync is running on default collection]
+
+* https://jira.issues.couchbase.com/browse/CBG-3963[CBG-3963 - Check/wait for principal doc index readiness in resync w/ regenerate sequences]
+
+* https://jira.issues.couchbase.com/browse/CBG-4013[CBG-4013 - Removal of per collection rev cache]
+
+* https://jira.issues.couchbase.com/browse/CBG-4019[CBG-4019 - Add initialization active property to DbSummary]
+
+* https://jira.issues.couchbase.com/browse/CBG-4027[CBG-4027 - Failure to perform on-demand import should result in not found/noRev]
+
+* https://jira.issues.couchbase.com/browse/CBG-4072[CBG-4072 - Uptake gocb enhancement to lower config mismatch logging to debug]
+
+* https://jira.issues.couchbase.com/browse/CBG-4074[CBG-4074 - update to golang.org/x/crypto:v0.25.0]
+
+* https://jira.issues.couchbase.com/browse/CBG-4163[CBG-4163 - Log the origin of setting metadata ID when updating a dbconfig]
+
+* https://jira.issues.couchbase.com/browse/CBG-4172[CBG-4172 - Improve "could not verify JWT" error logging]
+
+=== Known Issues
+
+None for this release.
+
+=== Deprecations
+
+* https://jira.issues.couchbase.com/browse/CBG-3795[CBG-3795 - Deprecate enable_star_channel config option]
+
+NOTE: For an overview of the latest features offered in Sync Gateway 3.2, see xref:whatsnew.adoc[New in 3.2].
