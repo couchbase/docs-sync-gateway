@@ -1,4 +1,22 @@
 {
+  "sgw_audit_num_audits_filtered_by_role": {
+    "added": "3.2.1",
+    "help": "The total number of audit events filtered by role.",
+    "stability": "committed",
+    "type": "counter"
+  },
+  "sgw_audit_num_audits_filtered_by_user": {
+    "added": "3.2.1",
+    "help": "The total number of audit events filtered by user.",
+    "stability": "committed",
+    "type": "counter"
+  },
+  "sgw_audit_num_audits_logged": {
+    "added": "3.2.1",
+    "help": "The total number of audit events logged.",
+    "stability": "committed",
+    "type": "counter"
+  },
   "sgw_cache_abandoned_seqs": {
     "added": "3.0.0",
     "help": "The total number of skipped sequences abandoned, based on cache.channel_cache.max_wait_skipped.",
@@ -135,6 +153,15 @@
     "stability": "committed",
     "type": "gauge"
   },
+  "sgw_cache_current_skipped_seq_count": {
+    "added": "3.2.0",
+    "help": "The number of sequences currently in the skipped sequence slice.",
+    "labels": [
+      "database"
+    ],
+    "stability": "committed",
+    "type": "counter"
+  },
   "sgw_cache_high_seq_cached": {
     "added": "3.0.0",
     "help": "The highest sequence number cached. Note: There may be skipped sequences lower than high_seq_cached.",
@@ -173,7 +200,7 @@
   },
   "sgw_cache_num_skipped_seqs": {
     "added": "3.0.0",
-    "help": "The total number of skipped sequences.",
+    "help": "The total number of skipped sequences. This is a cumulative value",
     "labels": [
       "database"
     ],
@@ -216,9 +243,36 @@
     "stability": "committed",
     "type": "counter"
   },
+  "sgw_cache_revision_cache_num_items": {
+    "added": "3.2.1",
+    "help": "The total number of items in the revision cache.",
+    "labels": [
+      "database"
+    ],
+    "stability": "committed",
+    "type": "gauge"
+  },
+  "sgw_cache_revision_cache_total_memory": {
+    "added": "3.2.1",
+    "help": "The approximation of total memory taken up by rev cache for documents. This is measured by the raw document body, the channels allocated to a document and its revision history.",
+    "labels": [
+      "database"
+    ],
+    "stability": "committed",
+    "type": "gauge"
+  },
+  "sgw_cache_skipped_seq_cap": {
+    "added": "3.2.0",
+    "help": "The current capacity of the skipped sequence slice.",
+    "labels": [
+      "database"
+    ],
+    "stability": "committed",
+    "type": "gauge"
+  },
   "sgw_cache_skipped_seq_len": {
     "added": "3.0.0",
-    "help": "The current length of the pending skipped sequence queue.",
+    "help": "The current length of the pending skipped sequence slice.",
     "labels": [
       "database"
     ],
@@ -340,6 +394,13 @@
   "sgw_config_database_config_bucket_mismatches": {
     "added": "3.1.2",
     "help": "The total number of times a database config is polled from a bucket that doesn't match the bucket specified in the database config.",
+    "stability": "committed",
+    "type": "counter",
+    "unit": "bytes"
+  },
+  "sgw_config_database_config_collection_conflicts": {
+    "added": "3.1.4",
+    "help": "The total number of times a database config is rolled back to an invalid state (collection conflicts).",
     "stability": "committed",
     "type": "counter",
     "unit": "bytes"
@@ -479,15 +540,6 @@
     "type": "counter",
     "unit": "bytes"
   },
-  "sgw_database_import_process_compute": {
-    "added": "3.2.0",
-    "help": "Represents the compute unit for import processes on the database.",
-    "labels": [
-      "database"
-    ],
-    "stability": "volatile",
-    "type": "counter"
-  },
   "sgw_database_num_attachments_compacted": {
     "added": "3.0.0",
     "help": "The number of attachments compacted import_feed",
@@ -524,6 +576,12 @@
     "stability": "committed",
     "type": "counter"
   },
+  "sgw_database_num_idle_kv_ops": {
+    "added": "3.1.3.1",
+    "help": "The total number of idle kv operations.",
+    "stability": "committed",
+    "type": "counter"
+  },
   "sgw_database_num_public_rest_requests": {
     "added": "3.2.0",
     "help": "The total number of requests sent over the public REST api.",
@@ -535,7 +593,7 @@
   },
   "sgw_database_num_replications_active": {
     "added": "3.0.0",
-    "help": "The total number of active replications. This metric only counts continuous pull replications.",
+    "help": "The total number of active replications.",
     "labels": [
       "database"
     ],
@@ -671,15 +729,6 @@
     "stability": "committed",
     "type": "counter",
     "unit": "nanoseconds"
-  },
-  "sgw_database_sync_process_compute": {
-    "added": "3.2.0",
-    "help": "The compute unit for syncing with clients measured through cpu time and memory used for sync",
-    "labels": [
-      "database"
-    ],
-    "stability": "volatile",
-    "type": "counter"
   },
   "sgw_database_total_sync_time": {
     "added": "3.2.0",
@@ -877,6 +926,15 @@
     "stability": "committed",
     "type": "gauge"
   },
+  "sgw_replication_pull_norev_send_count": {
+    "added": "3.2.0",
+    "help": "The total number of norev messages sent during replication.",
+    "labels": [
+      "database"
+    ],
+    "stability": "committed",
+    "type": "counter"
+  },
   "sgw_replication_pull_num_pull_repl_active_continuous": {
     "added": "3.0.0",
     "help": "The total number of continuous pull replications in the active state.",
@@ -942,12 +1000,21 @@
   },
   "sgw_replication_pull_num_replications_active": {
     "added": "3.0.0",
-    "help": "The total number of active replications. This metric only counts continuous pull replications.",
+    "help": "The total number of active replications.",
     "labels": [
       "database"
     ],
     "stability": "committed",
     "type": "gauge"
+  },
+  "sgw_replication_pull_replacement_rev_send_count": {
+    "added": "3.2.0",
+    "help": "The total number of replacement revisions sent instead of a norev during replication.",
+    "labels": [
+      "database"
+    ],
+    "stability": "committed",
+    "type": "counter"
   },
   "sgw_replication_pull_request_changes_count": {
     "added": "3.0.0",
@@ -1070,6 +1137,25 @@
     ],
     "stability": "committed",
     "type": "gauge",
+    "unit": "nanoseconds"
+  },
+  "sgw_replication_push_write_throttled_count": {
+    "added": "3.1.4",
+    "help": "The total number of times a revision was throttled during push replication from clients. The write_throttled_count stat can be useful to to determine an appropriate limit of concurrent revisions for each client. There's a direct tradeoff with memory and CPU usage for replicating clients and large amounts of concurrent revisions.",
+    "labels": [
+      "database"
+    ],
+    "stability": "committed",
+    "type": "counter"
+  },
+  "sgw_replication_push_write_throttled_time": {
+    "added": "3.1.4",
+    "help": "The total time (in nanoseconds) waiting for an available slot to handle a pushed revision after being throttled. The write_throttled_time stat can be useful to determine whether clients are waiting too long for an available slot to push a revision. There's a direct tradeoff with memory and CPU usage for replicating clients and large amounts of concurrent revisions.",
+    "labels": [
+      "database"
+    ],
+    "stability": "committed",
+    "type": "counter",
     "unit": "nanoseconds"
   },
   "sgw_replication_sgr_conflict_resolved_local_count": {
@@ -1396,6 +1482,13 @@
     "stability": "committed",
     "type": "gauge"
   },
+  "sgw_resource_utilization_node_cpu_percent_utilization": {
+    "added": "3.2.0",
+    "help": "The node CPU utilization as percentage value, since the last time this stat was called. The CPU usage calculation is performed based on user and system CPU time, but it does not include components such as iowait.",
+    "stability": "committed",
+    "type": "gauge",
+    "unit": "percent"
+  },
   "sgw_resource_utilization_num_goroutines": {
     "added": "3.0.0",
     "help": "The total number of goroutines.",
@@ -1404,7 +1497,7 @@
   },
   "sgw_resource_utilization_process_cpu_percent_utilization": {
     "added": "3.0.0",
-    "help": "The CPU's utilization as percentage value. The CPU usage calculation is performed based on user and system CPU time, but it does not include components such as iowait. The derivation means that the values of process_cpu_percent_utilization and %Cpu, returned when running the top command, will differ",
+    "help": "The CPU's utilization as percentage value * 10. The extra 10 multiplier is a mistake left for backwards compatibility. Please consider using node_cpu_percent_utilization. The CPU usage calculation is performed based on user and system CPU time, but it does not include components such as iowait. The derivation means that the values of process_cpu_percent_utilization and %Cpu, returned when running the top command, will differ",
     "stability": "committed",
     "type": "gauge",
     "unit": "percent"
