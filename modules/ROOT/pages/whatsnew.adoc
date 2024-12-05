@@ -18,62 +18,32 @@ include::ROOT:partial$_show_page_header_block.adoc[]
 
 include::ROOT:partial$block-caveats.adoc[tags=eventing-mixed-mode]
 
-== Release 3.3.0 (July 2025)
+Do not deploy Eventing/Sync Gateway until all SGW nodes are at version 3.2+.
+For earlier Sync Gateway versions that do not write import XATTRs, Eventing functions may encounter infinite recursions and duplicate mutations if deployed in a mixed mode SGW environment.
+This occurs if you have a mixed installation consisting of Sync Gateway 3.2 and an earlier version, and you deploy a new Eventing or Sync Gateway function during an upgrade.
 
-=== New Features
+== Release 4.0.0 (Q1 2025)
 
-==== Partitioned Indexes
+=== Version Vectors
 
-Sync Gateway 3.3 introduces support for partitioned indexes.
-Partitioned indexes offer horizontal scalability for large deployments by sharding indexes across multiple nodes.
-Only `allDocs` and `channels` indexes can be partitioned.
+NOTE: TODO
 
-Partitioned indexes are not intended for general use in Sync Gateway.
-They may decrease performance, as each partition is queried separately and results are aggregated.
+=== Mobile XDCR Coexistence
 
-You should only migrate to partitioned indexes in cases where you are using memory-optimized indexes which exceed the memory capacity of a single index node, and you cannot reduce the index size using collections or database sharding.
-
-For more information, see xref:deploy:index-partitions.adoc[].
-
-==== Disable the Public All Docs Endpoint
-
-Sync Gateway 3.3 introduces an option to disable the xref:rest-api:rest_api_public.adoc#tag/Document/operation/get_keyspace-_all_docs[`GET /{keyspace}/_all_docs`] operation in the Public REST API.
-That operation is intended mainly for debugging in a small setup.
-With a large number of documents, it may lead to timeouts and out-of-memory conditions on the Query nodes.
-
-In any sizeable setup, it is recommended that you should instead use the xref:rest-api:rest_api_public.adoc#tag/Database-Management/operation/get_keyspace-_changes[`GET /{keyspace}/_changes`] operation to get all documents for a user, or the xref:rest-api:rest_api_public.adoc#tag/Document/operation/post_keyspace-_bulk_docs[`POST /{keyspace}/_bulk_docs`] operation to return a specific subset of documents.
-
-To disable the xref:rest-api:rest_api_public.adoc#tag/Document/operation/get_keyspace-_all_docs[`GET /{keyspace}/_all_docs`] operation in the Public REST API, set xref:configuration:configuration-schema-database.adoc#disable_public_all_docs[`disable_public_all_docs`] to `true` in the database configuration.
-This option is set to `false` by default; it will be set to `true` by default in a future release.
-
-==== Interactive Admin Credentials for SG Collect Info
-
-In Sync Gateway 3.3 and later, the `--sync-gateway-password` command line argument has been removed from `sgcollect_info` for security reasons.
-When you specify the `--sync-gateway-username` option, `sgcollect_info` prompts you to enter the password interactively.
-Attempting to use the `--sync-gateway-password` option causes an error, with instructions for next steps.
-
-Alternatively, you can set credentials using the `SG_USERNAME` and `SG_PASSWORD` environment variables to avoid the prompt.
-
-For more information, see xref:manage:sgcollect-info.adoc[].
-
-==== Performance Improvements for Larger Deployments
-
-Sync Gateway 3.3 includes several performance enhancements for larger deployments.
-Change notification processing has been optimized to better support high volumes of connected clients per Sync Gateway node.
-Channel cache memory and CPU utilization has been optimized, particularly under high write load.
-Finally, memory and CPU usage associated with skipped sequence processing, which commonly occurs under high write load, has been reduced.
+NOTE: TODO
 
 == See Also
 
-xref:3.2@sync-gateway:ROOT:whatsnew.adoc[What's new in previous version 3.2].
+xref:3.3@sync-gateway:ROOT:whatsnew.adoc[What's new in previous version 3.3].
 
 === Sync Gateway Release Notes
 
-xref:product-notes:release-notes.adoc[Read the full 3.3 release notes here].
-
+xref:4.0@release-notes.adoc[Read the full 4.0 release notes here].
 
 == Upgrading
 
-xref:ROOT:upgrading.adoc[].
+IMPORTANT: Upgrading to version 4.0 is a one way process.
+
+xref:upgrading.adoc[].
 
 include::ROOT:partial$block-related-content-data.adoc[]
