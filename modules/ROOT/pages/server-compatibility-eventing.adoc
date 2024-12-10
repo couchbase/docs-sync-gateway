@@ -53,11 +53,7 @@ You can use Eventing to handle data changes that happen when applications intera
 
 You can also use Eventing to generate vector embeddings from document fields, see xref:couchbase-lite:ROOT/cbl-whatsnew.adoc#vector-search[Vector Search] for more details about Vector Search with Couchbase Lite.
 
-When using Server versions 7.6.3 and later, users should set `Sync Gateway Aware` to `true` in the on prem Eventing Service UI on their Eventing functions.
-This will avoid duplicated event hits for documents being imported by Sync Gateway.
-
 Eventing now skips all documents with IDs prefixed with `_sync`.
-
 
 For Sync Gateway versions that write import XATTRs:
 
@@ -67,9 +63,55 @@ For Sync Gateway versions that write import XATTRs:
 
 NOTE: If the `import_mutation_aware` flag is set to `true`, the performance of the Eventing function will drop because every mutation processed by Eventing will require a subdocument operation to maintain a cursor or progress for any Function that is sharing a Sync Gateway endpoint.  
 
+The procedure to enable Sync Gateway support for an Eventing function is as follows:
+
+. On Couchbase Server, xref:server:eventing:eventing-api.adoc#basic_pause[pause the function].
+
+. Using the Eventing REST API, set the `allow_sync_documents` setting for the function to false.
++
+NOTE: The `allow_sync_documents` setting is true by default.
+You must also include the `deployment_status` and `processing_status` settings in the request body.
++
+For example, for a global function with a scope of `*.*`:
++
+[source, shell]
+----
+curl -XPOST -d '{
+  "deployment_status": true,
+  "processing_status": false,
+  "allow_sync_documents": false
+}' "http://$ADMIN:$PASSWORD@$HOST:8096/api/v1/functions/my_function/settings"
+----
++
+For a scoped function:
++
+[source, shell]
+----
+curl -XPOST -d '{
+  "deployment_status": true,
+  "processing_status": false,
+  "allow_sync_documents": false
+}' "http://$USER:$PASSWORD@$HOST:8096/api/v1/functions/my_function/settings?bucket=bulk&scope=data"
+----
++
+Where:
++
+* `$HOST` is the hostname or IP address of a node running the Eventing service.
++
+* `$ADMIN` is the user name of an administrator.
++
+* `$USER` is the user name of any authorized user .
++
+* `$PASSWORD` is the password to connect to Couchbase Server.
++
+. On Couchbase Server, xref:server:eventing:eventing-api.adoc#basic_resume[resume the function].
+
+For more details, see xref:server:eventing:eventing-api.adoc[Eventing REST API].
+
 == Using Eventing (Pre-Server 7.6.3)
 
-You can use Eventing and Sync Gateway connected to the same bucket, when Eventing operates on server buckets in *read only* mode -- see {server-eventing-terminologies--xref-bindings} for how to do this.
+You can use Eventing and Sync Gateway connected to the same bucket. 
+When Eventing operates on server buckets in *read only* mode -- see {server-eventing-terminologies--xref-bindings} for how to do this.
 
 You should write your Eventing function to be *idempotent*; to behave correctly when the same mutation is seen more than once.
 This is necessary because:
