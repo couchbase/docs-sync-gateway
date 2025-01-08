@@ -39,6 +39,11 @@ actions:
       tags:
         - JSON
 
+  - description: Update summary of the _expvar endpoint
+    target: $.paths['/_expvar'].get
+    update:
+      summary: Get all Sync Gateway statistics in JSON format
+
   - description: Update description for the JSON metrics endpoint
     target: $.paths['/_expvar'].get.responses.200
     update:
@@ -47,7 +52,7 @@ actions:
           For details, see [JSON Metrics](stats-monitoring-json.html).
 
   - description: Remove the duplicate metrics endpoint
-    target: $.paths['/metrics']
+    target: $.paths['/_metrics']
     remove: true
 
   - description: Update the description for the Sync Gateway `per_db` response
@@ -68,12 +73,12 @@ actions:
         - per_replication statistics for each `replication_id`
 
   - description: Fix name of Prometheus method
-    target: $.paths['/_metrics'].get
+    target: $.paths['/metrics'].get
     update:
       summary: Get debugging and monitoring runtime stats in Prometheus Exposition format
 
   - description: Add Prometheus metrics
-    target: $.paths['/_metrics'].get.responses
+    target: $.paths['/metrics'].get.responses
     update:
       '200':
         description: |-
@@ -85,5 +90,5 @@ actions:
               $ref: metrics_metadata.json
 
   - description: Remove the plain text Prometheus response.
-    target: $.paths['/_metrics'].get.responses.200.content['text/plain']
+    target: $.paths['/metrics'].get.responses.200.content['text/plain']
     remove: true
