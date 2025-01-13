@@ -2,6 +2,8 @@
 
 set -exuo pipefail
 
+cd $(dirname "${BASH_SOURCE[0]}")
+
 GIT_ROOT=$(git rev-parse --show-toplevel)
 cd "${GIT_ROOT}"
 
@@ -14,6 +16,13 @@ tag=$(yq -r .version antora.yml)-docs
 cd sync_gateway
 git sparse-checkout init --cone
 git sparse-checkout set docs/api
+# check & delete local tag in case remote tag has been moved
+has_tag=$(git tag -l ${tag})
+if [[ -n ${has_tag} ]]; then
+    git tag -d ${tag}
+fi
+# update remote tags after deleting local ones
+git fetch --tags
 git reset --hard ${tag}
 cd ..
 
