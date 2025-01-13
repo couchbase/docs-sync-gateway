@@ -3,17 +3,18 @@
 set -exuo pipefail
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
+cd "${GIT_ROOT}"
+
+# Get docs tag name from current major.minor version
+yq -V || brew install yq
+tag=$(yq -r .version antora.yml)-docs
 
 # Get upstream sync_gateway repo
-cd "${GIT_ROOT}"
-branch=release/3.2.1
-
 [[ -d ./sync_gateway ]] || git clone --no-checkout https://github.com/couchbase/sync_gateway.git
 cd sync_gateway
 git sparse-checkout init --cone
 git sparse-checkout set docs/api
-git checkout ${branch}
-git pull --depth=1 origin ${branch}
+git reset --hard ${tag}
 cd ..
 
 PATH_TO_SYNC_GATEWAY=${PATH_TO_SYNC_GATEWAY:-${GIT_ROOT}/sync_gateway}
