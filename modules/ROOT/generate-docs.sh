@@ -55,7 +55,7 @@ generate() {
     # this bundle may be needed for the database configuration part?
     npx '@redocly/cli' bundle \
         --config "${PATH_TO_SYNC_GATEWAY}/.redocly.yaml" \
-        "${PATH_TO_SYNC_GATEWAY}/docs/api/${WHAT}.yaml" \
+        "${WHAT}" \
         --dereferenced \
         --output "${PATH_TO_BUNDLE}/bundled-${WHAT}.yaml"
 
