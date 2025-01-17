@@ -12,7 +12,7 @@ yq -V || brew install yq
 tag=$(yq -r .version antora.yml)-docs
 
 # Get upstream sync_gateway repo
-[[ -d ./sync_gateway ]] || git clone --no-checkout https://github.com/couchbase/sync_gateway.git
+git clone --no-checkout https://github.com/couchbase/sync_gateway.git
 cd sync_gateway
 git sparse-checkout init --cone
 git sparse-checkout set docs/api
