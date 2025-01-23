@@ -1,0 +1,97 @@
+overlay: 1.0.0
+
+info:
+  title: Overlay for Metrics REST API spec
+  version: 1.0.0
+  # The `version` property above is the version of this overlay file, not the version of the OpenAPI spec.
+  # It is not displayed in the generated documentation and there is no need to update it.
+  # This property is required by the OpenAPI overlay schema, otherwise I wouldn't have bothered to include it.
+
+extends: ../attachments/bundled-metric.yaml
+
+actions:
+  - description: Update title and introduction
+    target: $.info
+    update:
+      title: Sync Gateway Metrics REST API
+      description: |-
+        # Introduction
+
+        Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server.
+        The Sync Gateway Metrics REST API returns Sync Gateway metrics, in JSON or Prometheus-compatible formats, for performance monitoring and diagnostic purposes.
+
+  - description: Update link to external docs
+    target: '$'
+    update:
+      externalDocs:
+        description: ⬆️ Metrics REST API Overview
+        url: rest-api-metrics.html
+
+  - description: Add a tag for JSON metrics and description for the Server tag
+    target: '$'
+    update:
+      tags:
+        - name: JSON
+          description: Endpoints for use with JSON metrics
+        - name: Server
+          description: Endpoints for managing the REST API
+
+  - description: Add the JSON tag to the _expvar endpoint
+    target: $.paths['/_expvar'].get
+    update:
+      tags:
+        - JSON
+
+  - description: Update summary of the _expvar endpoint
+    target: $.paths['/_expvar'].get
+    update:
+      summary: Get all Sync Gateway statistics in JSON format
+
+  - description: Update description for the JSON metrics endpoint
+    target: $.paths['/_expvar'].get.responses.200
+    update:
+      description: |-
+          Successfully returned statistics.
+          For details, see [JSON Metrics](stats-monitoring-json.html).
+
+  - description: Remove the duplicate metrics endpoint
+    target: $.paths['/_metrics']
+    remove: true
+
+  - description: Update the description for the Sync Gateway `per_db` response
+    target: $.paths['/_expvar'].get.responses.200.content['application/javascript'].schema.properties.syncgateway.properties.per_db
+    update:
+      description: |-
+        This array contains stats for all databases declared in the config file &mdash; see [View Statistics and Metrics](stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
+        The statistics for each database are grouped into:
+        - cache related statistics
+        - collections statistics
+        - cbl_replication_push
+        - cbl_replication_pull
+        - database_related_statistics
+        - delta_sync
+        - gsi_views
+        - security_related_statistics
+        - shared_bucket_import
+        - per_replication statistics for each `replication_id`
+
+  - description: Fix name of Prometheus method
+    target: $.paths['/metrics'].get
+    update:
+      summary: Get debugging and monitoring runtime stats in Prometheus Exposition format
+
+  - description: Add Prometheus metrics
+    target: $.paths['/metrics'].get.responses
+    update:
+      '200':
+        description: |-
+          Successfully returned statistics.
+          For details, see [Prometheus Metrics](stats-monitoring-prometheus.html).
+        content:
+          application/json:
+            schema:
+              $ref: metrics_metadata.json
+
+  - description: Remove the plain text Prometheus response.
+    target: $.paths['/metrics'].get.responses.200.content['text/plain']
+    remove: true
