@@ -1,0 +1,59 @@
+= Buckets -- Server Compatibility
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:description: pass:q[How _Sync Gateway_ works with _Couchbase Server's_ _Buckets_]
+:idprefix:
+:idseparator: -
+
+
+include::partial$_set_page_context.adoc[]
+
+
+// BEGIN -- Page Attributes
+// END -- Page Attributes
+
+
+// BEGIN -- Page Header
+:param-topic-group: compatibility
+:param-related: {compatibility--xref}
+include::partial$_show_page_header_block.adoc[]
+// END -- Page Header
+
+== Introduction
+
+A bucket in Couchbase Server is the fundamental space for storing data.
+Each bucket contains a hierachy of Scopes and Collections to logically group keys and values.
+
+For more information, see xref:server:learn:buckets-memory-and-storage/buckets.adoc[]
+
+TIP: See: {compatibility--xref} for version compatibility information.
+
+You can find details here about compatibility between Couchbase Server buckets and the Couchbase Mobile ecosystem.
+
+== Durability
+
+Sync Gateway does not support non-default durability settings at the bucket level for xref:server:learn:data/durability.adoc[durable writes].
+Make sure your buckets have their bucket durability setting set to `None`.
+If this is not the case you'll get a xref:server:learn:data/durability.adoc#failure-scenarios[failure scenario], `Write while SyncWrite is pending`, and the attempt at a durable write fails.
+
+You can still use high durability settings when set on the client side. 
+For more information about how to configure client-level durability for durable writes, see xref:server:learn:data/durability.adoc#specifying-levels[specifying levels].
+
+== Time To Live (TTL)
+
+IMPORTANT: Document TTL is an Enterprise Edition only feature.
+
+Couchbase Server Enterprise Edition lets you have documents expire after a period of time, called the document’s Time To Live (TTL). 
+This feature only works in Couchbase and Ephemeral buckets. 
+It does not work in Memcached buckets.
+For more information, see xref:server:learn:data/expiration.adoc[].
+
+Sync Gateway does not support Bucket-level TTL, make sure your buckets have their `maxTTL` setting set to `0`.
+If the bucket setting has a non-zero `maxTTL` value set, Sync Gateway returns an error prompting you to set the value to `0` in the Couchbase Server Admin UI.
+
+NOTE: You can still set Document expiration settings and Collection maxTTL.
+
+// BEGIN -- Page Footer
+include::partial$block-related-content-sync.adoc[]
+// END -- Page Footer
