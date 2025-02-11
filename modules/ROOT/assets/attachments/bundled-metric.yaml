@@ -1,8 +1,12 @@
 openapi: 3.0.3
 info:
-  title: Sync Gateway
-  description: Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server
   version: '3.2'
+  title: Sync Gateway Metrics REST API
+  description: |-
+    # Introduction
+
+    Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server.
+    The Sync Gateway Metrics REST API returns Sync Gateway metrics, in JSON or Prometheus-compatible formats, for performance monitoring and diagnostic purposes.
   license:
     name: Business Source License 1.1 (BSL)
     url: https://github.com/couchbase/sync_gateway/blob/master/LICENSE
@@ -22,9 +26,13 @@ servers:
 tags:
   - name: Prometheus
     description: Endpoints for use with Prometheus
+  - name: JSON
+    description: Endpoints for use with JSON metrics
+  - name: Server
+    description: Endpoints for managing the REST API
 externalDocs:
-  description: Sync Gateway Quickstart | Couchbase Docs
-  url: https://docs.couchbase.com/sync-gateway/current/index.html
+  description: ⬆️ Metrics REST API Overview
+  url: rest-api-metrics.html
 paths:
   /_ping:
     get:
@@ -50,9 +58,9 @@ paths:
       summary: Check if API is available
       description: Returns OK status if API is available.
       operationId: head__ping
-  /_metrics:
-    get: &ref_0
-      summary: Debugging/monitoring runtime stats in Prometheus Exposition format
+  /metrics:
+    get:
+      summary: Get debugging and monitoring runtime stats in Prometheus Exposition format
       description: |-
         Returns Sync Gateway statistics and other runtime variables in Prometheus Exposition format.
 
@@ -63,19 +71,15 @@ paths:
         * External Stats Reader
       responses:
         '200':
-          description: Successfully returned stats
-          content:
-            text/plain:
-              schema:
-                type: string
+          description: |-
+            Successfully returned statistics.
+            For details, see [Prometheus Metrics](stats-monitoring-prometheus.html).
       tags:
         - Prometheus
       operationId: get_metrics
-  /metrics:
-    get: *ref_0
   /_expvar:
     get:
-      summary: Get all Sync Gateway statistics
+      summary: Get all Sync Gateway statistics in JSON format
       description: |-
         This returns a snapshot of all metrics in Sync Gateway for debugging and monitoring purposes.
 
@@ -86,14 +90,18 @@ paths:
         * Sync Gateway Architect
         * Sync Gateway Dev Ops
         * External Stats Reader
+      tags:
+        - JSON
       responses:
         '200':
-          description: Returned statistics
+          description: |-
+            Successfully returned statistics.
+            For details, see [JSON Metrics](stats-monitoring-json.html).
           content:
-            application/javascript:
+            application/json:
               schema:
                 type: object
-                properties: &ref_1
+                properties: &ref_0
                   cmdline:
                     description: Built-in variables from the Go runtime, lists the command-line arguments
                     type: object
@@ -223,6 +231,9 @@ paths:
                               num_idle_kv_ops:
                                 type: integer
                                 description: The total number of idle kv operations.
+                              num_idle_query_ops:
+                                type: integer
+                                description: The total number of idle query operations.
                               process_cpu_percent_utilization:
                                 type: number
                                 format: float
@@ -251,8 +262,9 @@ paths:
                                 description: The total uptime.
                       per_db:
                         description: |-
-                          This array contains stats for all databases declared in the config file -- see the [Sync Gateway Statistics Schema](./../stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
-                          The statistics for each {$db_name} database are grouped into:
+                          This array contains stats for all databases declared in the config file &mdash; see [View Statistics and Metrics](stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
+
+                          The statistics for each database are grouped into:
                           - cache related statistics
                           - collections statistics
                           - cbl_replication_push
@@ -328,4 +340,4 @@ components:
   schemas:
     ExpVars:
       type: object
-      properties: *ref_1
+      properties: *ref_0
