@@ -10,7 +10,12 @@ info:
 extends: ../attachments/bundled-admin.yaml
 
 actions:
-  - description: Dummy action (no changes required)
-    target: '$'
+  - description: Remove existing tags from the _expvar endpoint
+    target: $.paths['/_expvar'].get.tags
+    remove: true
+
+  - description: Add the Metrics tag to the _expvar endpoint
+    target: $.paths['/_expvar'].get
     update:
-      x-overlaid: false
+      tags:
+        - Metrics
