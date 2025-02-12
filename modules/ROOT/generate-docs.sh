@@ -26,12 +26,11 @@ git fetch --tags
 git reset --hard ${tag}
 cd ..
 
-PATH_TO_SYNC_GATEWAY=${PATH_TO_SYNC_GATEWAY:-${GIT_ROOT}/sync_gateway}
-PATH_TO_SPECS="${PATH_TO_SYNC_GATEWAY}/docs/api/"
+PATH_TO_SYNC_GATEWAY="${GIT_ROOT}/sync_gateway"
 
-PATH_TO_BUNDLE=${PATH_TO_BUNDLE:-${GIT_ROOT}/modules/ROOT/assets/attachments}
-PATH_TO_OVERLAY=${PATH_TO_OVERLAY:-${GIT_ROOT}/modules/ROOT/assets/overlays}
-PATH_TO_TEMP=${PATH_TO_TEMP:-${GIT_ROOT}/modules/ROOT/assets/bld}
+PATH_TO_BUNDLE="${GIT_ROOT}/modules/ROOT/assets/attachments"
+PATH_TO_OVERLAY="${GIT_ROOT}/modules/ROOT/assets/overlays"
+PATH_TO_TEMP="${GIT_ROOT}/modules/ROOT/assets/bld"
 
 # Create a bld directory to hold temporary files, if it doesn't already exist
 [[ -d "${PATH_TO_TEMP}" ]] || mkdir "${PATH_TO_TEMP}"

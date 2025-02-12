@@ -10,19 +10,12 @@ info:
 extends: ../attachments/bundled-admin.yaml
 
 actions:
-  - description: Update title and introduction
-    target: $.info
-    update:
-      title: Sync Gateway Admin REST API
-      description: |-
-        # Introduction
+  - description: Remove existing tags from the _expvar endpoint
+    target: $.paths['/_expvar'].get.tags
+    remove: true
 
-        Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server.
-        The Sync Gateway Admin REST API is used to administer user accounts and roles, and to run administrative tasks in superuser mode.
-
-  - description: Update link to external docs
-    target: '$'
+  - description: Add the Metrics tag to the _expvar endpoint
+    target: $.paths['/_expvar'].get
     update:
-      externalDocs:
-        description: ⬆️ Admin REST API Overview
-        url: rest-api-admin.html
+      tags:
+        - Metrics
