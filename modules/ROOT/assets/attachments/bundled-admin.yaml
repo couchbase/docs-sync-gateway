@@ -1,8 +1,11 @@
 openapi: 3.0.3
 info:
-  title: Sync Gateway
-  description: Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server
   version: '3.2'
+  title: Sync Gateway Admin REST API
+  description: |-
+    # Introduction
+
+    The Sync Gateway Admin REST API is used to administer user accounts and roles, and to run administrative tasks in superuser mode.
   license:
     name: Business Source License 1.1 (BSL)
     url: https://github.com/couchbase/sync_gateway/blob/master/LICENSE
@@ -45,8 +48,8 @@ tags:
   - name: Unsupported
     description: Endpoints that are not supported by Sync Gateway
 externalDocs:
-  description: Sync Gateway Quickstart | Couchbase Docs
-  url: https://docs.couchbase.com/sync-gateway/current/index.html
+  description: ⬆️ Admin REST API Overview
+  url: rest-api-admin.html
 paths:
   /{db}/_session:
     parameters:
@@ -3935,12 +3938,16 @@ paths:
                         type: object
                         properties:
                           size:
-                            description: The maximum number of revisions that can be stored in the revision cache.
+                            description: |-
+                              The maximum number of revisions that can be stored in the revision cache.
+                              Note when running with greater than 1 shard count we add 10% capacity overall to avoid early eviction when some shards fill up before others, so
+                              you may find that the capacity stat (revision_cache_num_items) will climb to the defined rev cache size + 10%.
                             type: string
                             default: 5000
                           max_memory_count_mb:
                             description: |-
                               The maximum amount of memory the revision cache should take up in MB, setting to 0 will disable any eviction based on memory at rev cache.
+                              There is a minimum value of 50 (50MB) for this config option.
                               When set this memory limit will work in in hand with revision cache size parameter. So you will potentially get eviction at revision cache both based off memory footprint and number of items in the cache.
                               **This is an Enterprise Edition feature only**
                             type: integer
@@ -6389,7 +6396,7 @@ paths:
       operationId: post_keyspace-
   /_expvar:
     get:
-      summary: Get all Sync Gateway statistics
+      summary: Get all Sync Gateway statistics in JSON format
       description: |-
         This returns a snapshot of all metrics in Sync Gateway for debugging and monitoring purposes.
 
@@ -6400,11 +6407,15 @@ paths:
         * Sync Gateway Architect
         * Sync Gateway Dev Ops
         * External Stats Reader
+      tags:
+        - JSON
       responses:
         '200':
-          description: Returned statistics
+          description: |-
+            Successfully returned statistics.
+            For details, see [JSON Metrics](stats-monitoring-json.html).
           content:
-            application/javascript:
+            application/json:
               schema:
                 type: object
                 properties: &ref_126
@@ -6537,6 +6548,9 @@ paths:
                               num_idle_kv_ops:
                                 type: integer
                                 description: The total number of idle kv operations.
+                              num_idle_query_ops:
+                                type: integer
+                                description: The total number of idle query operations.
                               process_cpu_percent_utilization:
                                 type: number
                                 format: float
@@ -6565,8 +6579,9 @@ paths:
                                 description: The total uptime.
                       per_db:
                         description: |-
-                          This array contains stats for all databases declared in the config file -- see the [Sync Gateway Statistics Schema](./../stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
-                          The statistics for each {$db_name} database are grouped into:
+                          This array contains stats for all databases declared in the config file &mdash; see [View Statistics and Metrics](stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
+
+                          The statistics for each database are grouped into:
                           - cache related statistics
                           - collections statistics
                           - cbl_replication_push
@@ -6637,8 +6652,6 @@ paths:
                                     Used by versions 1 and 2.
                                   type: integer
                         deprecated: true
-      tags:
-        - Metrics
       operationId: get__expvar
   /:
     get:
