@@ -47,9 +47,9 @@ Create a new role using the {rest-api-admin-role-post--xref} endpoint.
 ----
 $ curl -vX POST "http://localhost:4985/mydatabase/_roles/" -H
 "accept: application/json" -H "Content-Type: application/json" -d
-'{"name": "Edge1", "admin_channels": ["channel1", "channel3"]]}' // <.>
+'{"name": "Edge1", "collection_acces": {"scopename": {"collectionname": {"admin_channels": ["channel1", "channel3"]]}}}}' // <.>
 ----
-<.> Here we add the Edge1 role.
+<.> Here we add the Edge1 role which grants channel access to channel1 and channel3 in scope scopename and collection collectionname.
 
 --
 
@@ -69,7 +69,15 @@ It is recommended to use the *REST API* for production systems.
   "databases": {
     "mydatabase": {
       "roles": { // <.>
-        "Edge1": {"admin_channels": ["channel1", "channel3"]}, // <.>
+        "Edge1": {
+          "collection_access": {
+            "scopename": {
+              "collectionname": {
+                "admin_channels": ["channel1", "channel3"] // <.>
+              }
+            }
+          }
+	},
         "Edge2": {"admin_channels": ["channel2", "channel3"]},
         "GUEST": {"disabled": true}
       }
