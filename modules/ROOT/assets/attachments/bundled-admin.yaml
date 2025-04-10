@@ -1,11 +1,8 @@
 openapi: 3.0.3
 info:
+  title: Sync Gateway
+  description: Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server
   version: '3.2'
-  title: Sync Gateway Admin REST API
-  description: |-
-    # Introduction
-
-    The Sync Gateway Admin REST API is used to administer user accounts and roles, and to run administrative tasks in superuser mode.
   license:
     name: Business Source License 1.1 (BSL)
     url: https://github.com/couchbase/sync_gateway/blob/master/LICENSE
@@ -48,8 +45,8 @@ tags:
   - name: Unsupported
     description: Endpoints that are not supported by Sync Gateway
 externalDocs:
-  description: ⬆️ Admin REST API Overview
-  url: rest-api-admin.html
+  description: Sync Gateway Quickstart | Couchbase Docs
+  url: https://docs.couchbase.com/sync-gateway/current/index.html
 paths:
   /{db}/_session:
     parameters:
@@ -1161,7 +1158,7 @@ paths:
                         description: |-
                           This defines what conflict resolution policy Sync Gateway should use to apply when resolving conflicting revisions.
 
-                          Changing this is an Enterprise Edition only feature.
+                          Changing this is an enterprise-edition only feature.
 
                           **Behaviour**
                           * *default* - In priority order, this will cause
@@ -1169,7 +1166,7 @@ paths:
                             - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
                           * *localWins* - This will result in local revisions always being the winner in any conflict.
                           * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
-                          * *custom* - This will result in conflicts going through your own custom conflict resolver. You must provide this logic as a Javascript function in the `custom_conflict_resolver` parameter. This is an Enterprise Edition only feature.
+                          * *custom* - This will result in conflicts going through your own custom conflict resolver. You must provide this logic as a Javascript function in the `custom_conflict_resolver` parameter. This is an enterprise-edition only feature.
 
 
                           Note: replications created prior to Sync Gateway 2.8 will default to `default`.
@@ -1181,7 +1178,7 @@ paths:
                           - localWins
                           - custom
                       custom_conflict_resolver:
-                        description: "This specifies the Javascript function to use to resolve conflicts between conflicting revisions.\n \nThis **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.\n\nThe Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:\n* `LocalDocument` - The local document. This contains the document ID under the `_id` key.\n* `RemoteDocument` - The remote document\nThe function should return the new documents body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.\n\nExample:\n```\n\"custom_conflict_resolver\":\\`\n\tfunction(conflict) {\n\t\tconsole.log(\"Doc ID: \"+conflict.LocalDocument._id);\n\t\tconsole.log(\"Full remote doc: \"+JSON.stringify(conflict.RemoteDocument));\n\t\treturn conflict.RemoteDocument;\n\t}\n\\`\n```\n\nUsing complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.\n\nThis is an Enterprise Edition only feature.\n"
+                        description: "This specifies the Javascript function to use to resolve conflicts between conflicting revisions.\n \nThis **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.\n\nThe Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:\n* `LocalDocument` - The local document. This contains the document ID under the `_id` key.\n* `RemoteDocument` - The remote document\nThe function should return the new documents body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.\n\nExample:\n```\n\"custom_conflict_resolver\":\\`\n\tfunction(conflict) {\n\t\tconsole.log(\"Doc ID: \"+conflict.LocalDocument._id);\n\t\tconsole.log(\"Full remote doc: \"+JSON.stringify(conflict.RemoteDocument));\n\t\treturn conflict.RemoteDocument;\n\t}\n\\`\n```\n\nUsing complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.\n\nThis is an enterprise-edition only feature.\n"
                         type: string
                         default: none
                       purge_on_removal:
@@ -1199,7 +1196,7 @@ paths:
 
                           Replications created prior to Sync Gateway 2.8 must have delta-sync disabled.
 
-                          Enabling this is an Enterprise Edition only feature.
+                          Enabling this is an enterprise-edition only feature.
                         type: boolean
                         default: false
                       max_backoff_time:
@@ -1264,7 +1261,7 @@ paths:
                         type: boolean
                         default: false
                       batch_size:
-                        description: The amount of changes to be sent in one batch of replications. Changing this is an Enterprise Edition only feature.
+                        description: The amount of changes to be sent in one batch of replications. Changing this is an enterprise-edition only feature.
                         type: integer
                         default: 200
                       run_as:
@@ -1415,7 +1412,7 @@ paths:
                   description: |-
                     This defines what conflict resolution policy Sync Gateway should use to apply when resolving conflicting revisions.
 
-                    Changing this is an Enterprise Edition only feature.
+                    Changing this is an enterprise-edition only feature.
 
                     **Behaviour**
                     * *default* - In priority order, this will cause
@@ -1423,7 +1420,7 @@ paths:
                       - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
                     * *localWins* - This will result in local revisions always being the winner in any conflict.
                     * *remoteWins* - This will result in remote revisions always being the winner in any conflict.
-                    * *custom* - This will result in conflicts going through your own custom conflict resolver. You must provide this logic as a Javascript function in the `custom_conflict_resolver` parameter. This is an Enterprise Edition only feature.
+                    * *custom* - This will result in conflicts going through your own custom conflict resolver. You must provide this logic as a Javascript function in the `custom_conflict_resolver` parameter. This is an enterprise-edition only feature.
 
 
                     Note: replications created prior to Sync Gateway 2.8 will default to `default`.
@@ -1435,7 +1432,7 @@ paths:
                     - localWins
                     - custom
                 custom_conflict_resolver:
-                  description: "This specifies the Javascript function to use to resolve conflicts between conflicting revisions.\n \nThis **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.\n\nThe Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:\n* `LocalDocument` - The local document. This contains the document ID under the `_id` key.\n* `RemoteDocument` - The remote document\nThe function should return the new documents body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.\n\nExample:\n```\n\"custom_conflict_resolver\":\\`\n\tfunction(conflict) {\n\t\tconsole.log(\"Doc ID: \"+conflict.LocalDocument._id);\n\t\tconsole.log(\"Full remote doc: \"+JSON.stringify(conflict.RemoteDocument));\n\t\treturn conflict.RemoteDocument;\n\t}\n\\`\n```\n\nUsing complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.\n\nThis is an Enterprise Edition only feature.\n"
+                  description: "This specifies the Javascript function to use to resolve conflicts between conflicting revisions.\n \nThis **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.\n\nThe Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:\n* `LocalDocument` - The local document. This contains the document ID under the `_id` key.\n* `RemoteDocument` - The remote document\nThe function should return the new documents body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.\n\nExample:\n```\n\"custom_conflict_resolver\":\\`\n\tfunction(conflict) {\n\t\tconsole.log(\"Doc ID: \"+conflict.LocalDocument._id);\n\t\tconsole.log(\"Full remote doc: \"+JSON.stringify(conflict.RemoteDocument));\n\t\treturn conflict.RemoteDocument;\n\t}\n\\`\n```\n\nUsing complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.\n\nThis is an enterprise-edition only feature.\n"
                   type: string
                   default: none
                 purge_on_removal:
@@ -1453,7 +1450,7 @@ paths:
 
                     Replications created prior to Sync Gateway 2.8 must have delta-sync disabled.
 
-                    Enabling this is an Enterprise Edition only feature.
+                    Enabling this is an enterprise-edition only feature.
                   type: boolean
                   default: false
                 max_backoff_time:
@@ -1518,7 +1515,7 @@ paths:
                   type: boolean
                   default: false
                 batch_size:
-                  description: The amount of changes to be sent in one batch of replications. Changing this is an Enterprise Edition only feature.
+                  description: The amount of changes to be sent in one batch of replications. Changing this is an enterprise-edition only feature.
                   type: integer
                   default: 200
                 run_as:
@@ -2337,7 +2334,7 @@ paths:
                         description: |-
                           Whether to enable the DP permissions check feature of admin auth.
 
-                          Defaults to `true` if using Enterprise Edition or `false` if using Community Edition.
+                          Defaults to `true` if using enterprise-edition or `false` if using community-edition.
                         type: boolean
                       server_read_timeout:
                         description: |-
@@ -3854,13 +3851,13 @@ paths:
                     description: |-
                       If true, documents will be imported in to Sync Gateway from the bucket when requested. Documents will be ran through the set `import_filter` if any is set.
 
-                      The default value depends on the edition of Sync Gateway being used. If the edition is the Community Edition, then this will default to `false` or else in the Enterprise Edition, it will default to `true`.
+                      The default value depends on the edition of Sync Gateway being used. If the edition is the community-edition, then this will default to `false` or else in the enterprise-edition, it will default to `true`.
 
                       This can also be set to the string `continuous` which maps to true.
                     type: boolean
                   import_partitions:
                     description: |-
-                      ** This is an Enterprise Edition feature only**
+                      ** This is an enterprise-edition feature only**
 
                       This is how many import partitions should be used for import sharding.
 
@@ -3938,18 +3935,14 @@ paths:
                         type: object
                         properties:
                           size:
-                            description: |-
-                              The maximum number of revisions that can be stored in the revision cache.
-                              Note when running with greater than 1 shard count we add 10% capacity overall to avoid early eviction when some shards fill up before others, so
-                              you may find that the capacity stat (revision_cache_num_items) will climb to the defined rev cache size + 10%.
+                            description: The maximum number of revisions that can be stored in the revision cache.
                             type: string
                             default: 5000
                           max_memory_count_mb:
                             description: |-
                               The maximum amount of memory the revision cache should take up in MB, setting to 0 will disable any eviction based on memory at rev cache.
-                              There is a minimum value of 50 (50MB) for this config option.
                               When set this memory limit will work in in hand with revision cache size parameter. So you will potentially get eviction at revision cache both based off memory footprint and number of items in the cache.
-                              **This is an Enterprise Edition feature only**
+                              **This is an enterprise-edition feature only**
                             type: integer
                             default: 0
                           shard_count:
@@ -4388,14 +4381,14 @@ paths:
                     description: |-
                       Delta sync configuration settings.
 
-                      **This is an Enterprise Edition feature only**
+                      **This is an enterprise-edition feature only**
                     type: object
                     properties:
                       enabled:
                         description: |-
                           Whether delta sync is enabled.
 
-                          **This is an Enterprise Edition feature only**
+                          **This is an enterprise-edition feature only**
                         type: boolean
                         default: false
                       rev_max_age_seconds:
@@ -6396,7 +6389,7 @@ paths:
       operationId: post_keyspace-
   /_expvar:
     get:
-      summary: Get all Sync Gateway statistics in JSON format
+      summary: Get all Sync Gateway statistics
       description: |-
         This returns a snapshot of all metrics in Sync Gateway for debugging and monitoring purposes.
 
@@ -6407,15 +6400,11 @@ paths:
         * Sync Gateway Architect
         * Sync Gateway Dev Ops
         * External Stats Reader
-      tags:
-        - JSON
       responses:
         '200':
-          description: |-
-            Successfully returned statistics.
-            For details, see [JSON Metrics](stats-monitoring-json.html).
+          description: Returned statistics
           content:
-            application/json:
+            application/javascript:
               schema:
                 type: object
                 properties: &ref_126
@@ -6548,9 +6537,6 @@ paths:
                               num_idle_kv_ops:
                                 type: integer
                                 description: The total number of idle kv operations.
-                              num_idle_query_ops:
-                                type: integer
-                                description: The total number of idle query operations.
                               process_cpu_percent_utilization:
                                 type: number
                                 format: float
@@ -6579,9 +6565,8 @@ paths:
                                 description: The total uptime.
                       per_db:
                         description: |-
-                          This array contains stats for all databases declared in the config file &mdash; see [View Statistics and Metrics](stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
-
-                          The statistics for each database are grouped into:
+                          This array contains stats for all databases declared in the config file -- see the [Sync Gateway Statistics Schema](./../stats-monitoring.html) for more details on the metrics collected and reported by Sync Gateway.
+                          The statistics for each {$db_name} database are grouped into:
                           - cache related statistics
                           - collections statistics
                           - cbl_replication_push
@@ -6652,6 +6637,8 @@ paths:
                                     Used by versions 1 and 2.
                                   type: integer
                         deprecated: true
+      tags:
+        - Metrics
       operationId: get__expvar
   /:
     get:
