@@ -1,8 +1,12 @@
 openapi: 3.0.3
 info:
-  title: Sync Gateway
-  description: Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server
-  version: '3.2'
+  title: Sync Gateway Public REST API
+  description: |-
+    # Introduction
+
+    Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server.
+    The Sync Gateway Public REST API is used for client replication.
+  version: '3.3'
   license:
     name: Business Source License 1.1 (BSL)
     url: https://github.com/couchbase/sync_gateway/blob/master/LICENSE
@@ -39,8 +43,8 @@ tags:
     description: Endpoints that are not supported by Sync Gateway
     x-capella: false
 externalDocs:
-  description: Sync Gateway Quickstart | Couchbase Docs
-  url: https://docs.couchbase.com/sync-gateway/current/index.html
+  description: ⬆️ Public REST API Overview
+  url: rest-api.html
 paths:
   /{db}/_session:
     parameters:
@@ -57,7 +61,7 @@ paths:
       responses:
         '200':
           description: Properties associated with a user session
-          content: &ref_70
+          content: &ref_72
             application/json:
               schema:
                 type: object
@@ -211,17 +215,6 @@ paths:
       tags:
         - Session
       operationId: delete_db-_session
-    head:
-      summary: /{db}/_session
-      responses:
-        '200':
-          description: OK
-        '404':
-          description: Resource could not be found
-          content: *ref_2
-      tags:
-        - Session
-      operationId: head_db-_session
   /{targetdb}/:
     parameters:
       - name: targetdb
@@ -294,11 +287,21 @@ paths:
                     type: number
                     default: 0
                   state:
-                    description: The database state. Change using the `/{db}/_offline` and `/{db}/_online` endpoints.
-                    type: string
-                    enum:
-                      - Online
-                      - Offline
+                    allOf:
+                      - description: The state of the database.
+                        type: string
+                        enum: &ref_63
+                          - Online
+                          - Offline
+                          - Starting
+                          - Stopping
+                          - Resyncing
+                        x-enumDescriptions: &ref_64
+                          Online: The database is online and available for use.
+                          Offline: The database is offline, resync and other offline only endpoints are allowed.
+                          Starting: The database is in the process of going online.
+                          Stopping: The database is no longer accepting connections and is being taken offline or deleted.
+                          Resyncing: The database is offline and performing a resync operation.
                   server_uuid:
                     description: Unique server identifier.
                     type: string
@@ -332,7 +335,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_63
+                properties: &ref_65
                   ADMIN:
                     description: '`true` if the request is from the Admin API - otherwise omitted.'
                     type: boolean
@@ -369,7 +372,7 @@ paths:
                       `true` if the sync gateway node is running in persistent config mode.
                     type: boolean
                     example: true
-                required: &ref_64
+                required: &ref_66
                   - couchdb
                   - vendor
       tags:
@@ -399,15 +402,6 @@ paths:
       tags:
         - Server
       operationId: get__ping
-    head:
-      responses:
-        '200':
-          description: Server is available
-      tags:
-        - Server
-      summary: Check if API is available
-      description: Returns OK status if API is available.
-      operationId: head__ping
   /{keyspace}/:
     parameters:
       - name: keyspace
@@ -454,7 +448,7 @@ paths:
               description: The configurable Sync Gateway properties of a document.
               type: object
               additionalProperties: true
-              properties: &ref_17
+              properties: &ref_16
                 _id:
                   description: The ID of the document.
                   type: string
@@ -607,7 +601,7 @@ paths:
         - name: keys
           in: query
           required: false
-          schema: &ref_16
+          schema: &ref_20
             type: array
             items:
               type: string
@@ -740,67 +734,6 @@ paths:
       tags:
         - Document
       operationId: post_keyspace-_all_docs
-    head:
-      summary: /{db}/_all_docs
-      responses:
-        '200':
-          description: OK
-        '400':
-          description: There was a problem with your request
-          content: *ref_6
-        '404':
-          description: Resource could not be found
-          content: *ref_2
-      tags:
-        - Document
-      parameters:
-        - name: include_docs
-          in: query
-          required: false
-          schema: *ref_7
-          description: Include the body associated with each document.
-        - name: channels
-          in: query
-          required: false
-          schema: *ref_8
-          description: Include the channels each document is part of that the calling user also has access too.
-        - name: access
-          in: query
-          required: false
-          schema: *ref_9
-          description: Include what user/roles that each document grants access too.
-        - name: revs
-          in: query
-          required: false
-          schema: *ref_10
-          description: Include all the revisions for each document under the `_revisions` property.
-        - name: update_seq
-          in: query
-          required: false
-          schema: *ref_11
-          description: Include the document sequence number `update_seq` property for each document.
-        - name: keys
-          in: query
-          required: false
-          schema: *ref_16
-          description: An array of document ID strings to filter by.
-        - name: startkey
-          in: query
-          required: false
-          schema: *ref_12
-          description: Return records starting with the specified key.
-        - name: endkey
-          in: query
-          required: false
-          schema: *ref_13
-          description: Stop returning records when this key is reached.
-        - name: limit
-          in: query
-          required: false
-          schema: *ref_14
-          description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
-      description: ''
-      operationId: head_keyspace-_all_docs
   /{keyspace}/_bulk_docs:
     parameters:
       - name: keyspace
@@ -838,7 +771,7 @@ paths:
                     description: The configurable Sync Gateway properties of a document.
                     type: object
                     additionalProperties: true
-                    properties: *ref_17
+                    properties: *ref_16
               required:
                 - docs
             example:
@@ -1098,12 +1031,12 @@ paths:
       responses:
         '200':
           description: Successfully returned the changes feed
-          content: &ref_18
+          content: &ref_17
             application/json:
               schema:
                 description: Properties of a changes feed
                 type: object
-                properties: &ref_65
+                properties: &ref_67
                   results:
                     type: array
                     items:
@@ -1186,7 +1119,7 @@ paths:
       responses:
         '200':
           description: Successfully returned the changes feed
-          content: *ref_18
+          content: *ref_17
         '400':
           description: There was a problem with your request
           content: *ref_6
@@ -1196,19 +1129,6 @@ paths:
       tags:
         - Database Management
       operationId: post_keyspace-_changes
-    head:
-      summary: /{db}/_changes
-      responses:
-        '200':
-          description: OK
-        '400':
-          description: Bad Request
-        '404':
-          description: Not Found
-      tags:
-        - Database Management
-      description: ''
-      operationId: head_keyspace-_changes
   /{db}/_design/{ddoc}:
     x-capella: false
     parameters:
@@ -1221,7 +1141,7 @@ paths:
       - name: ddoc
         in: path
         required: true
-        schema: &ref_20
+        schema: &ref_19
           type: string
         description: The design document name.
     get:
@@ -1238,7 +1158,7 @@ paths:
               schema:
                 description: Properties of a design document
                 type: object
-                properties: &ref_19
+                properties: &ref_18
                   language:
                     type: string
                   views:
@@ -1283,7 +1203,7 @@ paths:
             schema:
               description: Properties of a design document
               type: object
-              properties: *ref_19
+              properties: *ref_18
       responses:
         '200':
           description: Design document changes successfully
@@ -1341,7 +1261,7 @@ paths:
       - name: ddoc
         in: path
         required: true
-        schema: *ref_20
+        schema: *ref_19
         description: The design document name.
       - name: view
         in: path
@@ -1444,7 +1364,7 @@ paths:
         - name: keys
           in: query
           required: false
-          schema: *ref_16
+          schema: *ref_20
           description: An array of document ID strings to filter by.
       responses:
         '200':
@@ -1498,7 +1418,7 @@ paths:
         example: db1
         description: The name of the database to run the operation against.
     post:
-      summary: /{db}/_ensure_full_commit
+      summary: Ensure Full Commit
       description: This endpoint is non-functional but is present for CouchDB compatibility.
       responses:
         '201':
@@ -1867,7 +1787,7 @@ paths:
               description: The configurable Sync Gateway properties of a document.
               type: object
               additionalProperties: true
-              properties: *ref_17
+              properties: *ref_16
       responses:
         '201':
           description: Created
@@ -1920,7 +1840,7 @@ paths:
       responses:
         '200':
           description: New revision created successfully
-          content: &ref_71
+          content: &ref_73
             application/json:
               schema:
                 description: Properties returned when a new document revision is created
@@ -2458,7 +2378,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_66
+                properties: &ref_68
                   id_token:
                     description: The OpenID Connect ID token
                     type: string
@@ -2697,12 +2617,12 @@ paths:
       responses:
         '200':
           description: Properties expected back from an OpenID Connect provider after successful authentication
-          content: &ref_72
+          content: &ref_74
             application/json:
               schema:
                 description: Properties expected back from an OpenID Connect provider after successful authentication
                 type: object
-                properties: &ref_67
+                properties: &ref_69
                   access_token:
                     type: string
                   token_type:
@@ -2859,12 +2779,12 @@ paths:
           schema: *ref_41
           description: The OpenID Connect authentication scope.
       requestBody:
-        content: &ref_73
+        content: &ref_75
           application/json:
             schema:
               description: Properties passed from the OpenID Connect mock login page to the handler
               type: object
-              properties: &ref_68
+              properties: &ref_70
                 username:
                   type: string
                 tokenttl:
@@ -2873,7 +2793,7 @@ paths:
                   type: string
                 authenticated:
                   type: string
-              required: &ref_69
+              required: &ref_71
                 - username
                 - tokenttl
                 - identity-token-formats
@@ -2992,7 +2912,7 @@ components:
       name: keys
       in: query
       required: false
-      schema: *ref_16
+      schema: *ref_20
       description: An array of document ID strings to filter by.
     startkey:
       name: startkey
@@ -3016,7 +2936,7 @@ components:
       name: ddoc
       in: path
       required: true
-      schema: *ref_20
+      schema: *ref_19
       description: The design document name.
     view:
       name: view
@@ -3210,15 +3130,20 @@ components:
       properties: *ref_0
       required: *ref_1
       title: HTTP-Error
+    DatabaseState:
+      description: The state of the database.
+      type: string
+      enum: *ref_63
+      x-enumDescriptions: *ref_64
     NodeInfo:
       type: object
-      properties: *ref_63
-      required: *ref_64
+      properties: *ref_65
+      required: *ref_66
     Document:
       description: The configurable Sync Gateway properties of a document.
       type: object
       additionalProperties: true
-      properties: *ref_17
+      properties: *ref_16
     New-revision:
       description: Properties returned when a new document revision is created
       type: object
@@ -3228,29 +3153,29 @@ components:
     Changes-feed:
       description: Properties of a changes feed
       type: object
-      properties: *ref_65
+      properties: *ref_67
     Design-doc:
       description: Properties of a design document
       type: object
-      properties: *ref_19
+      properties: *ref_18
     OIDC-callback:
       type: object
-      properties: *ref_66
+      properties: *ref_68
       title: OpenID Connect callback properties
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
       type: object
-      properties: *ref_67
+      properties: *ref_69
       title: OIDC-token
     OIDC-login-page-handler:
       description: Properties passed from the OpenID Connect mock login page to the handler
       type: object
-      properties: *ref_68
-      required: *ref_69
+      properties: *ref_70
+      required: *ref_71
   responses:
     User-session-information:
       description: Properties associated with a user session
-      content: *ref_70
+      content: *ref_72
     Not-found:
       description: Resource could not be found
       content: *ref_2
@@ -3271,7 +3196,7 @@ components:
       content: *ref_15
     changes-feed:
       description: Successfully returned the changes feed
-      content: *ref_18
+      content: *ref_17
     ddoc-forbidden:
       description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
     invalid-doc-id:
@@ -3282,7 +3207,7 @@ components:
       content: *ref_29
     New-revision:
       description: New revision created successfully
-      content: *ref_71
+      content: *ref_73
     OIDC-invalid-provider:
       description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
     OIDC-connection:
@@ -3300,11 +3225,11 @@ components:
       content: *ref_43
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
-      content: *ref_72
+      content: *ref_74
     OIDC-testing-redirect:
       description: Redirecting to Sync Gateway OpenID Connect callback URL
       headers: *ref_45
   requestBodies:
     OIDC-login-page-handler:
-      content: *ref_73
+      content: *ref_75
       description: Properties passed from the OpenID Connect mock login page to the handler
