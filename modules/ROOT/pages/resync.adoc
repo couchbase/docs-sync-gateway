@@ -13,9 +13,8 @@ include::partial$_set_page_context.adoc[]
 :param-abstract: This content explains the resync feature
 include::partial$_show_page_header_block.adoc[]
 
-:tkn-db: pass:q,a[\{db\}]
-:resync_api_post: {rest-api-admin--pfx}#/Database_Management/post__db___resync[/{tkn-db}/resync]
-:resync_api_get: {rest-api-admin--pfx}#/Database_Management/get__db___resync[/{tkn-db}/resync]
+:resync_api_post: {rest-api-admin--pfx}#/Database_Management/post__db___resync[+/{db}/_resync+]
+:resync_api_get: {rest-api-admin--pfx}#/Database_Management/get__db___resync[+/{db}/_resync+]
 
 
 == Introduction
@@ -50,7 +49,7 @@ To update the Sync Function and fully resync, you are recommended to follow the 
 NOTE: This is an expensive operation because it requires every document in the database to be processed by the new function.
 
 The database can accept no requests until resync is complete because no user's full access privileges are known until all documents have been scanned.
-Therefore, the Sync Function update will result in application downtime whilst the database is offline (that is, between the call to the `/{tkn-db}/_offline` and `/{tkn-db}/_online` endpoints in <<steps-to-resync>>.
+Therefore, the Sync Function update will result in application downtime whilst the database is offline (that is, between the call to the `+/{db}/_offline+` and `+/{db}/_online+` endpoints in <<steps-to-resync>>.
 
 You won't need to run the resync operation, if either:
 
@@ -66,7 +65,7 @@ You won't need to run the resync operation, if either:
 . Restart Sync Gateway
 . Take the database offline +
 Use this Admin REST API endpoint:
-{rest-api-admin--pfx}#/Database_Management/post\__db___offline[/{tkn-db}/_offline]
+{rest-api-admin--pfx}#/Database_Management/post\__db___offline[+/{db}/_offline+]
 . Resync the database +
 Use this Admin REST API endpoint: {resync_api_post}
 . Monitor the resync status using {resync_api_get} to see when it completes.
@@ -74,7 +73,7 @@ Use this Admin REST API endpoint: {resync_api_post}
 The message body of the response contains the number of changes that were made as a result of calling resync
 . Bring the database back online +
 Use this Admin REST API endpoint:
-{rest-api-admin--pfx}#/Database_Management/post\__db___online[/{tkn-db}/_online]
+{rest-api-admin--pfx}#/Database_Management/post\__db___online[+/{db}/_online+]
 ****
 
 
@@ -84,7 +83,7 @@ Use this Admin REST API endpoint:
 Resync is run asynchronously.
 Its status can be monitored using {resync_api_get}.
 
-Be sure to take the database offline using {rest-api-admin--pfx}#/Database_Management/post\__db___offline[/{tkn-db}/_offline]
+Be sure to take the database offline using {rest-api-admin--pfx}#/Database_Management/post\__db___offline[+/{db}/_offline+]
 
 === Resync Context
 
@@ -107,7 +106,7 @@ Once you detect the resync is complete, switch back to the main Sync Gateway and
 === Updating Clusters
 
 In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration.
-To ensure this happens, you must taken all instances offline using the {rest-api-admin--pfx}#/Database_Management/post\__db___offline[/{tkn-db}/_offline] endpoint.
+To ensure this happens, you must taken all instances offline using the {rest-api-admin--pfx}#/Database_Management/post\__db___offline[+/{db}/_offline+] endpoint.
 
 After the configuration is updated, *one* instance should be brought up so it can update the database--if more than one is running at this time, they'll conflict with each other.
 After the first instance finishes opening the database, the others can be started.
