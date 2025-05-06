@@ -88,8 +88,8 @@ image::static-auth-provider.png[]
 
 API reference:
 
-- xref:rest-api.adoc#/auth/post\__db___facebook[/+\{db}+/_facebook]
-- xref:rest-api.adoc#/auth/post\__db___google[/+\{db}+/_google]
+- xref:rest_api_public.adoc#tag/Authentication/operation/post_db-_facebook[/+{db}+/_facebook]
+- xref:rest_api_public.adoc#tag/Authentication/operation/post_db-_google[/+{db}+/_google]
 
 For other providers we recommend to use Custom Authentication or OpenID Connect.
 
@@ -104,7 +104,7 @@ The last request creates a session.
 
 image::custom-auth-flow.png[]
 
-Given a user that has already been created, a new session for that user can be created on the Admin {rest-api-admin--pfx}#/session/post\__db___session[POST /+\{db}+/_session] endpoint.
+Given a user that has already been created, a new session for that user can be created on the Admin xref:rest_api_admin.adoc#tag/Session/operation/post_db-_session[POST /+{db}+/_session] endpoint.
 
 [source,bash]
 ----
@@ -124,7 +124,7 @@ The HTTP response body contains the credentials of the session.
 * *name* corresponds to the `cookie_name`
 * *value* corresponds to the `session_id`
 * *path* is the hostname of the {sgw}
-* *expirationDate* corresponds to the cookie's expiration time. The endpoint's {rest-api-admin--pfx}#/session/post\__db___session[API reference] contains more information about how the expiration time is automatically extended according to the user session activity.
+* *expirationDate* corresponds to the cookie's expiration time. The endpoint's xref:rest_api_admin.adoc#tag/Session/operation/post_db-_session[API reference] contains more information about how the expiration time is automatically extended according to the user session activity.
 * *secure* Whether the cookie should only be sent using a secure protocol (e.g. HTTPS)
 * *httpOnly* Whether the cookie should only be used when transmitting HTTP, or HTTPS, requests thus restricting access from other, non-HTTP APIs
 
@@ -143,7 +143,7 @@ There are two implementation methods available with OpenID Connect:
 
 <<implicit-flow>>::
 With this method, the retrieval of the ID token takes place on the device.
-You can then create a user session using the POST `+/\{tkn-db}/_session+` endpoint on the Public REST API with the ID token.
+You can then create a user session using the POST `+/{db}/_session+` endpoint on the Public REST API with the ID token.
 <<authorization-code-flow>>::
 This method relies on {sgw} to retrieve the ID token.
 
@@ -166,11 +166,12 @@ In the algorithm dropdown, make sure to select `RS256` as the signing algorithm 
 . Upon successful validation, {sgw} authenticates the user based on the subject and issuer in the token.
 
 Since Open ID tokens are typically large, the usual approach is to use the Open ID token to obtain a {sgw} session id (using the
-xref:rest-api.adoc#/session/post\__db___session[POST /db/_session]
+xref:rest_api_public.adoc#tag/Session/operation/post_db-_session[+POST /{db}/_session+]
 endpoint), and then use the returned session id for subsequent authentication requests.
 
 =====
 *Note:* This example is based on a deployment using legacy configuration.
+
 [{tabs}]
 ====
 
@@ -178,20 +179,19 @@ REST API::
 +
 --
 include::{examples-lib}[tags="oidc-rest-api-simple"]
+
+<.> Use `register` to auto-register a {sgw} user on successful completion of the validation
 --
 
 Configuration File::
 +
 --
-
 Here is a sample {sgw} config file, configured to use the Implicit Flow.
 
 include::{examples-lib}[tags="oidc-config-simple"]
 
---
-
 <.> Use `register` to auto-register a {sgw} user on successful completion of the validation
-
+--
 ====
 =====
 
@@ -205,7 +205,7 @@ By doing this, the application can then use the token to create a {sgw} session.
 image::client-auth.png[]
 
 . The Google SignIn SDK prompts the user to login and if successful it returns an ID token to the application.
-. The ID token is used to create a {sgw} session by sending a POST `+/\{tkn-db}/_session+` request.
+. The ID token is used to create a {sgw} session by sending a POST `+/{db}/_session+` request.
 . {sgw} returns a cookie session in the response header.
 . The {sgw} cookie session is used on the replicator object.
 
