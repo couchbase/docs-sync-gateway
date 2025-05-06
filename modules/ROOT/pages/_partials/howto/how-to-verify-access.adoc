@@ -40,8 +40,9 @@ curl http://localhost:4985/db/_user/pupshaw
 
 The <<ex-output,output>> shows that the user `pupshaw` has access to the following channels:
 
-<.> `all` through its own `admin_channels` setting
-<.> `hoopy` through the `froods` role's `admin_channels` setting
+<.> `all` through its own `admin_channels` setting for the default collection.
+<.> `collectionAChannel` through its own `admin_channels` setting for the collection `collectionA`.
+<.> `hoopy` through the `froods` role's `admin_channels` setting in the default collection.
 
 [#ex-output]
 [source,json]
@@ -50,6 +51,18 @@ The <<ex-output,output>> shows that the user `pupshaw` has access to the followi
     "admin_channels": [
         "all" // <.>
     ],
+    "collection_access": {
+        "scopeA": {
+	    "collectionA": {
+		"admin_channels": [
+		    "collectionAChannel" // <.>
+		],
+		"all_channels": [
+		    "collectionAChannel"
+		]
+	    }
+	}
+    },
     "admin_roles": [
         "froods"
     ],
@@ -77,12 +90,25 @@ curl http://localhost:4985/db/_role/frood
 
 The output shows that the role `froods` has access to the following channels:
 
-<.> `hoopy` through its role's `admin_channels` setting
+<.> `hoopy` through its role's `admin_channels` setting for the default collection.
+<.> `collectionA` through its role's `admin_channels` setting for the collection `collectionA`.
 
 [source,json]
 ----
 {
     "name": "froods",
+    "collection_access": {
+        "scopeA": {
+	    "collectionA": {
+		"admin_channels": [
+		    "collectionAChannel" // <.>
+		],
+		"all_channels": [
+		    "collectionAChannel"
+		]
+	    }
+	}
+    },
     "admin_channels": [
         "hoopy" // <.>
     ],
