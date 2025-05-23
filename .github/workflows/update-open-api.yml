@@ -10,7 +10,7 @@ on:
 run-name: Update OpenAPI specs (${{ inputs.uuid}})
 
 jobs:
-  update-openapi-api:
+  update-open-api:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo
@@ -20,7 +20,15 @@ jobs:
         run: npm i -g @redocly/cli@latest
 
       - name: run Redocly
-        run: ./modules/ROOT/generate-docs.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          USER=$(gh api user -q .login)
+          TOKEN=$(gh auth token)
+
+          echo "https://${USER}:${TOKEN}@github.com" > ~/.git-credentials
+
+          ./modules/ROOT/generate-docs.sh
 
       - name: diff and raise PR
         env:
