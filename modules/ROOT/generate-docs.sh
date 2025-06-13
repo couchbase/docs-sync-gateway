@@ -79,8 +79,8 @@ generate() {
         --skip-validate-spec \
         --generator-name asciidoc  \
         --input-spec "${PATH_TO_TEMP}/${WHAT}.yaml" \
-        --template-dir "${PATH_TO_STATIC}/override/asciidoc" \
-        --output "${PATH_TO_STATIC}/${WHAT}.yaml"
+        --template-dir "${PATH_TO_STATIC}/templates" \
+        --output "${PATH_TO_STATIC}/${WHAT}"
 }
 
 generate public
