@@ -80,6 +80,7 @@ generate() {
         --generator-name asciidoc  \
         --input-spec "${PATH_TO_TEMP}/${WHAT}.yaml" \
         --template-dir "${PATH_TO_STATIC}/templates" \
+        --additional-properties skipExamples=true \
         --output "${PATH_TO_STATIC}/${WHAT}"
 }
 
