@@ -14,37 +14,26 @@ include::partial$_set_page_context.adoc[]
 include::partial$_show_page_header_block.adoc[]
 // END -- DO NOT EDIT
 
+include::partial$static_restapi/css.adoc[]
+
 include::partial$block-caveats.adoc[tags="legacy-config-equivalents"]
 
 == Introduction
 
 From {sgw-te} 3.0 you can use the Admin REST API to provision persistent configuration changes.
-This content introduces the <<lbl-create-db>> and <<lbl-configure-db>> endpoints for convenience -- see {rest-api-admin--xref--database-configuration} for a full description of the endpoints available.
+This content introduces the <<put_db-,Create Database>> and <<post_db-_config,Configure Database>> endpoints for convenience -- see {rest-api-admin--xref--database-configuration} for a full description of the endpoints available.
 
 NOTE: You can define 1 custom scope per database with up to 1000 custom collections.
 If you don't specify a custom scope and collection, any documents you create will be saved in the default scope and collection.
 
 [#lbl-create-db]
-== Create Database
-
-----
-PUT {url}/{dbname}/
-----
-
-include::partial$static_restapi/admin/index.adoc[tags=put_db--description,leveloffset=-3]
-
-=== Parameters
-include::partial$static_restapi/admin/index.adoc[tags=put_db--parameters,leveloffset=-3]
-
-=== Responses
-include::partial$static_restapi/admin/index.adoc[tags=put_db--responses,leveloffset=-3]
-
+include::partial$static_restapi/admin/index.adoc[tags="put_db-",leveloffset=+1]
 
 === Example
 
 .Create database
 ====
-Here we create a new {sgw} database.
+This example creates a new {sgw} database.
 
 [{tabs}]
 =====
@@ -86,34 +75,21 @@ Content-Length: 44
 
 =====
 
-<.> Here we create a {sgw} database called `traveldb`
-<.> Note we are using Basic Authentication here to authenticate against an existing Couchbase Server RBAC user
-<.> Here we point to the Couchbase Server bucket called `todo`
+<.> Create a {sgw} database called `traveldb`
+<.> Use Basic Authentication to authenticate against an existing Couchbase Server RBAC user
+<.> Point to the Couchbase Server bucket called `todo`
 
 ====
 
 
 [#lbl-configure-db]
-== Configure Database
-
-----
-PUT {url}/{db}/_config
-----
-
-include::partial$static_restapi/admin/index.adoc[tags=post_db-_config-description,leveloffset=-3]
-
-=== Parameters
-include::partial$static_restapi/admin/index.adoc[tags=post_db-_config-parameters,leveloffset=-3]
-
-=== Responses
-include::partial$static_restapi/admin/index.adoc[tags=post_db-_config-responses,leveloffset=-3]
-
+include::partial$static_restapi/admin/index.adoc[tags="post_db-_config",leveloffset=+1]
 
 === Example
 
 .Configure database
 ====
-Here we configure an existing {sgw} database.
+This example configures an existing {sgw} database.
 
 [{tabs}]
 =====
@@ -157,13 +133,13 @@ Content-Length: 120
 
 =====
 
-<.> Here we choose to configure (`_config`) a {sgw} database called `traveldb`
-<.> Note we are using Basic Authentication here to authenticate against an existing Couchbase Server RBAC user
-<.> Here we toggle a couple of database properties
+<.> Configure (`_config`) a {sgw} database called `traveldb`
+<.> Use Basic Authentication to authenticate against an existing Couchbase Server RBAC user
+<.> Toggle a couple of database properties
 
 ====
 
-[#_database]
+[#DatabaseConfig]
 == Schema
 
 This section shows Sync Gateway's database configuration settings in schema format for convenience in constructing JSON models for use in the Admin REST API.
@@ -177,6 +153,12 @@ The configuration settings described here are provisioned through the {rest-api-
 {{/each-openapi}}
 --
 
+[#HTTP_Error]
+== Errors
+
+This section shows possible error responses returned by the Admin REST API.
+
+include::partial$static_restapi/admin/index.adoc[tags=HTTP_Error]
 
 // BEGIN -- DO NOT EDIT
 include::partial$block-related-content-api.adoc[]
