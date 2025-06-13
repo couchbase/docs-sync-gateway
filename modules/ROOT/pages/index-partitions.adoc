@@ -1,0 +1,153 @@
+= Partitioned Indexes
+ifdef::show_edition[:page-edition: {release}]
+:page-status: Sync Gateway 3.3
+:page-role:
+:Description: Partitioning a large index across multiple nodes
+
+include::partial$_set_page_context.adoc[]
+
+:topic-group: Deploy
+:param-related: {deployment--xref}  |  {rest-api-access--xref}  |  {configuration-properties-legacy--xref}
+:param-abstract: Explains how to use partitioned indexes in Sync Gateway
+include::partial$_show_page_header_block.adoc[]
+
+== Overview
+
+Partitioned indexes in Sync Gateway offer horizontal scalability for large deployments by sharding indexes across multiple nodes.
+This can decrease performance, as each partition is queried separately and results are aggregated.
+Only `allDocs` and channels indexes can be partitioned.
+
+== When to Use Partitioned Indexes
+
+Partitioned indexes are an optimization in Sync Gateway intended only for deployments using Memory-Optimized Indexes (MOI) on Couchbase Server, and only when those MOI indexes have grown too large to fit on a single index node.
+
+[IMPORTANT]
+.Recommendation
+--
+Partitioned indexes should not be used for experimentation or general performance tuning.
+Misuse can lead to index bloat, increased resource usage, and unnecessary complexity.
+Partitioning should be configured only after careful evaluation.
+It increases resource usage (CPU and memory) and may introduce performance degradation.
+--
+
+=== Appropriate Use Case
+
+* You are using MOI.
+* Your current GSI index size exceeds the memory capacity of a single index node.
+* You cannot further split your data (for example, by collections or database sharding) to reduce index size.
+
+In this case, partitioning can help by horizontally scaling the index across multiple nodes to keep it in memory.
+
+=== When Not to Use Partitioned Indexes
+
+* You're not using MOI; that is, your indexes are disk-based.
+* Your dataset is small or moderate in size, even if you have high concurrency.
+* You have a high number of connections or clients, but not many documents.
+* Your index size could be reduced by splitting data into multiple collections, which is the preferred approach.
+
+=== What Impacts Index Size?
+
+The size of Sync Gateway's indexes is correlated to:
+
+* The number of documents in a collection.
+* The number of channels each document is assigned to.
+
+If index size is a concern, your first approach should be to:
+
+* Split documents across multiple collections.
+* Review and minimize channel fan-out.
+
+Only if these strategies are exhausted, and you're using MOI with oversized indexes, should partitioned indexes be considered.
+
+== Migrate to Partitioned Indexes
+
+Before switching from non-partitioned to partitioned indexes, it's important to understand the operational trade-offs and cluster implications.
+Here are two migration options, designed to accommodate different use cases and resource tolerances.
+
+If you are using partitioned indexes, the recommended number of partitions is 8.
+
+=== Option 1: Zero Downtime (Recommended for Production)
+
+This option is ideal for production environments where uptime is critical.
+It requires temporary over-provisioning of index nodes (2&times; size) while partitioned indexes are created.
+The advantage is no downtime; the disadvantage is temporarily higher resource usage.
+
+.Procedure
+. Spin up a new Sync Gateway instance (not in LB, no import/ISGR).
+
+. Run xref:rest_api_admin_static.adoc#tag/Database-Management/operation/post_db-_index_init[`POST /{db}/_index_init`] on the new instance with `num_partitions` set to the required number of partitions -- 8 recommended.
+
+. Wait for completion via xref:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`].
+
+. Run xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/post_db-_config[`POST /{db}/_config`] to use new indexes.
+
+. Run xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] to remove old indexes.
+
+. Optionally rebalance index nodes using Couchbase Server REST API.
+
+=== Option 2: With Downtime
+
+This option requires no extra resources, but involves planned downtime.
+It involves lower intermittent hardware requirements.
+
+.Procedure
+. Take the database offline via xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/post_db-_config[`POST /{db}/_config`] with `offline` set to `true`.
+
+. Manually delete old indexes -- those with names matching `^sg_.*x1$`.
+
+. Bring the database online using xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/post_db-_config[`POST /{db}/_config`] with `index.num_partitions` set to the required number of partitions -- 8 recommended.
+
+. Run integration and performance testing.
+
+== Guardrails
+
+To prevent misconfiguration or accidental misuse, follow these best practices:
+
+* *Never change the number of partitions without a plan*.
+Indexes are not deletable from Couchbase Server once creation starts.
+Reverting requires downtime and manual deletion.
+Make sure only advanced users (typically Architects or Admins) modify partitioning settings.
+
+* Monitor memory and disk usage on index nodes during and after creation to catch unexpected bloat.
+
+* Optionally set feature flags or config validation, if available, to restrict low-risk deployments from using this feature.
+
+Changing the number of partitions "just to test it" may permanently increase index footprint, cause cluster performance issues, and trigger long rebalance operations.
+
+== Configuration Group Considerations
+
+If your deployment uses xref:configuration-overview.adoc#lbl-config-grp[Configuration Groups], ensure that:
+
+* All nodes are updated with the new config before running xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`].
+* Import and sync workloads are not unintentionally unbalanced across partitions.
+
+Misalignment between config groups can lead to unexpected deletion of active indexes if xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] is run.
+This will result in:
+
+* Doing a CBS sequential scan on the Query nodes, which will seriously degrade performance of Query nodes.
+
+* Recreating indexes that were deleted by another config when a node is rebooted with a different `index.num_partitions`, even after xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] is run.
+
+== Supportability
+
+=== Identify Index Configuration
+
+To identify the current index configuration, you can:
+
+* Query xref:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`] to verify the `settings.num_partitions` in use.
+
+* Use xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/get_db-_config[`GET /{db}/_config`] to check the active configuration.
+
+* List existing GSI indexes on Couchbase Server via UI or REST API and identify any ending in `x1` -- the default for unpartitioned indexes.
+
+=== Identify Failures
+
+To troubleshoot problems with index configurations, note the following.
+
+* The status returned by xref:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`] includes `last_error`.
+
+* Partial updates across nodes using Configuration Groups may result in mixed indexing behavior.
+
+* If indexes are not removed post-upgrade, xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] may return a failure or partial success.
+
+include::partial$block-related-content-api.adoc[]
