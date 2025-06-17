@@ -20,11 +20,31 @@ include::partial$block-caveats.adoc[tags=eventing-mixed-mode]
 
 == Release 3.3.0 (June 2025)
 
-=== TODO: New Feature
+=== New Features
 
-Description.
+==== Partitioned Indexes
 
-For more information, see link.
+Sync Gateway 3.3 introduces support for partitioned indexes.
+Partitioned indexes offer horizontal scalability for large deployments by sharding indexes across multiple nodes.
+Only `allDocs` and channels indexes can be partitioned.
+
+Partitioned indexes are not intended for general use in Sync Gateway.
+They may decrease performance, as each partition is queried separately and results are aggregated.
+
+You should only migrate to partitioned indexes in cases where you are using memory-optimized indexes which exceed the memory capacity of a single index node, and you cannot reduce the index size using collections or database sharding.
+
+For more information, see xref:index-partitions.adoc[].
+
+==== Disable the Public All Docs Endpoint
+
+Sync Gateway 3.3 introduces an option to disable the xref:rest_api_public.adoc#tag/Document/operation/get_keyspace-_all_docs[`GET /{keyspace}/_all_docs`] operation in the Public REST API.
+That operation is intended mainly for debugging in a small setup.
+With a large number of documents, it may lead to timeouts and out-of-memory conditions on the Query nodes.
+
+In any sizeable setup, it is recommended that you should instead use the xref:rest_api_public.adoc#tag/Document/operation/get_keyspace-_changes[`GET /{keyspace}/_changes`] operation to get all documents for a user, or the xref:rest_api_public.adoc#tag/Document/operation/post_keyspace-_bulk_docs[`POST /{keyspace}/_bulk_get`] operation to return any number of documents.
+
+To disable the xref:rest_api_admin.adoc#tag/Document/operation/get_keyspace-_all_docs[`GET /{keyspace}/_all_docs`] operation in the Public REST API, set xref:configuration-schema-database.adoc#disable_public_all_docs[`disable_public_all_docs`] to `true` in the database configuration.
+This option is set to `false` by default.
 
 == See Also
 
