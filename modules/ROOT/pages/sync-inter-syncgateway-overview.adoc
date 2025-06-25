@@ -58,14 +58,15 @@ A typical architecture for this use cases is shown in <<icr-cloud-to-edge>>
 image::icr-cloud-to-edge200712.svg[,600]
 
 === Active-to-active Mobile Synchronization
-Here edge clusters containing active Sync{nbsp}Gateway nodes are replicated between geographically separate cloud-based Sync Gateway deployments.
-An ideal use-case for inter-Sync{nbsp}Gateway replication, which was designed to keep clusters in different data centers in sync.
 
-The Couchbase Server Cross Data Center Replication API (xref:server:manage:manage-xdcr/xdcr-management-overview.adoc[XDCR]) is similarly used to replicate between Couchbase Server clusters.
-*However, the inter-Sync{nbsp}Gateway replication feature is specifically designed for Sync Gateway deployments and it must be used for replication between mobile clusters.* {fnxdcr}
+Inter-Sync Gateway replication replicates edge clusters containing Sync{nbsp}Gateway nodes between geographically separate cloud-based Sync Gateway deployments.
+This provides an ideal use-case for inter-Sync{nbsp}Gateway replication, which was designed to keep clusters in different data centers in sync.
+
+Couchbase Server uses the Cross Data Center Replication API (xref:server:manage:manage-xdcr/xdcr-management-overview.adoc[XDCR]) similarly to replicate between Couchbase Server clusters.
+*However, inter-Sync{nbsp}Gateway replication feature is specifically designed for Sync Gateway deployments and must be used for replication between mobile clusters.* {fnxdcr}
 
 
-A typical architecture for this use case is shown in <<icr-active-mobile>>
+<<icr-active-mobile>> shows a typical architecture for this use case.
 
 [[icr-active-mobile]]
 .Active-to-active mobile synchronization
@@ -148,6 +149,29 @@ NOTE: Push replications to pre-2.8 targets do not use Delta Sync
 _Related configuration elements_:  {configuration-schema-database--xref}  |  {configuration-schema-database--xref--db-replications}  |
 {configuration-schema-database--xref--delta-sync}  |  {configuration-schema-database--xref--db-rep-delta}
 
+=== Collections Support
+
+Inter-Sync Gateway replication supports named collections, including:
+
+* Enabling or disabling collections replication.
+* Limit replication to specific collections.
+* Map local collections to differently named remote collections.
+
+For detailed configuration of collections parameters (`collections_enabled`, `collections_local`, `collections_remote`), see xref:configuration-schema-isgr.adoc#replication[Run Inter-Sync Gateway Replication Configuration Schema].
+
+==== Collection Mapping
+
+Collection mapping allows you to replicate local collections to differently named collections on the remote target. You configure this using two parallel arrays:
+
+* `collections_local` - specifies the collections to replicate from the source.
+* `collections_remote` - specifies the corresponding target collection names on the remote.
+
+The mapping works positionally, where the first collection in `collections_local` maps to the first collection in `collections_remote`, the second to the second, and so on.
+
+NOTE: You must verify all specified collections exist in both source and target Sync Gateway database configurations before starting replication. 
+Sync Gateway does not automatically create missing collections or sync new collections after replication begins.
+
+This collection mapping capability adapts the mapping concept from XDCR for Sync Gateway deployments. For information about xref:server:learn:clusters-and-availability/xdcr-with-scopes-and-collections.adoc#implicit-mapping[Implicit Mapping] and xref:server:learn:clusters-and-availability/xdcr-with-scopes-and-collections.adoc#explicit-mapping[Explicit Mapping] in the XDCR documentation.
 
 === Directionality
 
