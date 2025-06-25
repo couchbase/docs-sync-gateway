@@ -1,0 +1,29 @@
+{{! If this has a reference, create a link to that object; }}
+{{#ref}}
+xref:{{dataType}}[]
+{{/ref}}
+{{! ... if it has no reference, then: }}
+{{^ref}}
+{{! ... if it's a model, create a link to that object; }}
+{{#isModel}}
+xref:{{dataType}}[]
+{{/isModel}}
+{{! ... if it's not a model, then: }}
+{{^isModel}}
+{{! ... if it's a map, create a link to that object; }}
+{{#isMap}}
+xref:{{dataType}}[]
+{{/isMap}}
+{{! ... if it isn't a map, then: }}
+{{^isMap}}
+{{! ... if this has a specific data type, output the data type and data format; }}
+{{^isAnyType}}
+{{#lambda.uncamelize}}{{dataType}}{{/lambda.uncamelize}}{{#dataFormat}} ({{{dataFormat}}}){{/dataFormat}}
+{{/isAnyType}}
+{{! ... if not, just output the base type. }}
+{{#isAnyType}}
+{{#lambda.uncamelize}}{{baseType}}{{/lambda.uncamelize}}
+{{/isAnyType}}
+{{/isMap}}
+{{/isModel}}
+{{/ref}}

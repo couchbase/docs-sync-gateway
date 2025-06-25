@@ -17,34 +17,19 @@ include::partial$_show_page_header_block.adoc[]
 
 // END -- DO NOT EDIT
 
+include::partial$static_restapi/css.adoc[]
+
 include::partial$block-caveats.adoc[tags="legacy-config-equivalents"]
 
 == Introduction
 
-We use the Admin REST API `_user` and `_role` endpoints to provision and manage {sgw} users through persistent configuration changes.
+Use the Admin REST API `_user` and `_role` endpoints to provision and manage {sgw} users through persistent configuration changes.
 
-This content introduces the <<lbl-upsert-role>> and <<lbl-upsert-user>> endpoints for convenience -- see {rest-api-admin--xref--database-security} for a full description of the endpoints available.
+This page introduces the <<put_db-_role-name,Create or Update a Role>> and <<put_db-_user-name,Create or Update a User>> endpoints for convenience -- see {rest-api-admin--xref--database-security} for a full description of the endpoints available.
 
-It also includes a JSON-data model, you can use to build your request bodies. -- see: <<lbl-schema>>
+It also includes a JSON-data model, you can use to build your request bodies. See: <<lbl-schema>>
 
-[#lbl-upsert-role]
-== Create or Update a Role
-
-
-----
-
-PUT /{db}/_role/{name}
-
-----
-
-include::partial$static_restapi/admin/index.adoc[tags=put_db-_role-name-description,leveloffset=-2]
-
-=== Parameters
-include::partial$static_restapi/admin/index.adoc[tags=put_db-_role-name-parameters,leveloffset=-2]
-
-=== Responses
-include::partial$static_restapi/admin/index.adoc[tags=put_db-_role-name-responses,leveloffset=-2]
-
+include::partial$static_restapi/admin/index.adoc[tags=put_db-_role-name,leveloffset=+1]
 
 === Example
 
@@ -97,31 +82,13 @@ Content-Length: 67
 =====
 
 <.> Add role `newrole` to the `travel25` database
-<.> Note we are using Basic Auth to authenticate to an existing RBAC user
+<.> Use Basic Auth to authenticate to an existing RBAC user
 
 ====
 
 
 
-[#lbl-upsert-user]
-== Create or Update a User
-
-----
-
-PUT /{db}/_user/{username} // <.>
-
-----
-
-<.> where `{db}` is the Sync Gateway database and `{username}` is the name for the new user
-
-include::partial$static_restapi/admin/index.adoc[tags=put_db-_user-name-description,leveloffset=-3]
-
-=== Parameters
-include::partial$static_restapi/admin/index.adoc[tags=put_db-_user-name-parameters,leveloffset=-3]
-
-=== Responses
-include::partial$static_restapi/admin/index.adoc[tags=put_db-_user-name-responses,leveloffset=-3]
-
+include::partial$static_restapi/admin/index.adoc[tags=put_db-_user-name,leveloffset=+1]
 
 === Example
 
@@ -175,8 +142,6 @@ Content-Length: 63
 
 ====
 
-[#_user]
-[#_role]
 [#lbl-schema]
 == Schema
 
@@ -184,13 +149,32 @@ This section shows Sync Gateway's database security configuration settings in sc
 
 The configuration settings described here are provisioned through the Admin REST API -- see as shown in {rest-api-admin--xref--database-security}.
 
+[#Role2]
+=== Role
 
 [template,attachment$bundled-admin.yaml,  partials="partial$json_ui_listing.hbs"]
 --
-{{#each-openapi components.schemas "Role" "User" }}
+{{#each-openapi components.schemas.Role }}
 {{> json_ui_listing}}
 {{/each-openapi}}
 --
+
+[#User2]
+=== User
+
+[template,attachment$bundled-admin.yaml,  partials="partial$json_ui_listing.hbs"]
+--
+{{#each-openapi components.schemas.User }}
+{{> json_ui_listing}}
+{{/each-openapi}}
+--
+
+[#HTTP_Error]
+== Errors
+
+This section shows possible error responses returned by the Admin REST API.
+
+include::partial$static_restapi/admin/index.adoc[tags=HTTP_Error]
 
 // BEGIN -- DO NOT EDIT
 include::partial$block-related-content-api.adoc[]
