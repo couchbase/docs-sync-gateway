@@ -274,7 +274,7 @@ When Sync Gateway starts, it will publish a Design Document which contains the V
       "channels":{
          "map":"function (doc, meta) { ... }"
       },
-      ...
+      // ...
    },
    "index_xattr_on_deleted_docs":true
 }
@@ -306,7 +306,7 @@ $ curl -X PUT http://localhost:8092/<BUCKET_NAME>/_design/dev_sync_gateway/ -d @
 
 This should return:
 
-[source,bash]
+[source,json]
 ----
 {"ok":true,"id":"_design/dev_sync_gateway"}
 ----
@@ -671,12 +671,14 @@ It is recommended to test the upgrade on a staging environment before upgrading 
 
 The known issue xref:release-notes.adoc#2-5-0[CBG-394], means that the upgrade will *require downtime* when enabling shared bucket access on an existing deployment that is running with GSI indexing. This is to allow all documents to migrate, using index-based data requests whilst migration is in progress could result in an incomplete data set being returned (containing only those docs migrated at the time of the request). You are advised to schedule a maintenance window to allow time for migration to complete.
 
-| *Sync Gateway 2.1 or above*
-`index.num_replicas: 1`
-| *Sync Gateway 2.1 or above*
+| *Sync Gateway 2.1 to 3.2*
+`num_index_replicas: 2` (or n)
+| *Sync Gateway 3.3 or later*
 `index.num_replicas: 2` (or n)
 2+|
 After restarting Sync Gateway with the updated configuration file, the number of Index Replicas in the Couchbase Server cluster is automatically updated.
+
+As of Sync Gateway 3.3, `num_index_replicas` still works, but this option has been deprecated in favor of `index.num_replicas`.
 |===
 
 == Migrating from Bucket Shadowing

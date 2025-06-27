@@ -15,7 +15,7 @@ include::partial$_show_page_header_block.adoc[]
 
 Partitioned indexes in Sync Gateway offer horizontal scalability for large deployments by sharding indexes across multiple nodes.
 This can decrease performance, as each partition is queried separately and results are aggregated.
-Only `allDocs` and channels indexes can be partitioned.
+Only `allDocs` and `channels` indexes can be partitioned.
 
 [#when-to-use]
 == When to Use Partitioned Indexes
@@ -55,10 +55,7 @@ The size of Sync Gateway's indexes is correlated to:
 * The number of documents in a collection.
 * The number of channels each document is assigned to.
 
-If index size is a concern, your first approach should be to:
-
-* Split documents across multiple collections.
-* Review and minimize channel fan-out.
+If index size is a concern, your first approach should be to split documents across multiple collections.
 
 Query performance is sensitive to channel design.
 Systems with many small channels tend to perform worse than those using fewer, larger channels.
@@ -86,7 +83,7 @@ The advantage is no downtime; the disadvantage is temporarily higher resource us
 
 . Wait for completion via xref:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`].
 
-. Run xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/post_db-_config[`POST /{db}/_config`] to use new indexes.
+. Run xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/post_db-_config[`POST /{db}/_config`] with `index.num_partitions` updated in the configuration to use new indexes.
 
 . Run xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] to remove old indexes.
 
@@ -143,7 +140,7 @@ If your deployment uses xref:configuration-overview.adoc#lbl-config-grp[Configur
 Misalignment between config groups can lead to unexpected deletion of active indexes if xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] is run.
 This will result in:
 
-* Doing a CBS sequential scan on the Query nodes, which will seriously degrade performance of Query nodes.
+* Couchbase Server (version 7.6 and later) falling back on a sequential scan of the Query nodes, which will seriously degrade Query performance.
 
 * Recreating indexes that were deleted by another config when a node is rebooted with a different `index.num_partitions`, even after xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] is run.
 
@@ -155,9 +152,9 @@ This will result in:
 
 To identify the current index configuration, you can:
 
-* Use xref:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`] to verify the `settings.num_partitions` in use.
+* Use xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/get_db-_config[`GET /{db}/_config`] to check the active configuration in `index.num_partitions`.
 
-* Use xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/get_db-_config[`GET /{db}/_config`] to check the active configuration.
+* Use xref:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`] to see if there is an index creation in progress.
 
 [#failures]
 === Identify Failures
