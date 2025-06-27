@@ -52,7 +52,9 @@ For more information, see xref:server:learn:data/expiration.adoc[].
 Sync Gateway does not support Bucket-level TTL, make sure your buckets have their `maxTTL` setting set to `0`.
 If the bucket setting has a non-zero `maxTTL` value set, Sync Gateway returns an error prompting you to set the value to `0` in the Couchbase Server Admin UI.
 
-NOTE: You can still set Document expiration settings and Collection maxTTL.
+Similarly, do not set Collection-level TTL (`maxTTL` on collections) as this can interfere with Sync Gateway's internal documents, including those with `_sync` prefixes and other system documents that are essential for proper operation. If these system documents expire due to collection-level TTL, Sync Gateway may malfunction or fail to operate properly. You can use per-collection sync functions to set expiry on all documents within a collection when you need TTL-like behavior at the collection level, while preserving Sync Gateway's system documents.
+
+NOTE: You can still set Document expiration settings on individual documents.
 
 // BEGIN -- Page Footer
 include::partial$block-related-content-sync.adoc[]
