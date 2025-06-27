@@ -43,6 +43,15 @@ To see the CLI command line parameters, run:
 
 You can can use `sgcollect` to collect and save information locally and-or to collect and upload the information to Couchbase -- see: <<ex-collect>>.
 
+In Sync Gateway 3.3 and later, the `sgcollect_info` tool provides an interactive password prompt so that you can enter administrative credentials.
+The `--sync-gateway-password` option is no longer available.
+Attempting to use this option causes an error.
+
+When you specify the `--sync-gateway-user` option, `sgcollect_info` first tries to use the value of the `SG_PASSWORD` environment variable as the password.
+If this is not set, `sgcollect_info` prompts you to enter the password.
+
+You must use the `--sync-gateway-user` option to collect the full set of diagnostics.
+
 [#ex-collect]
 .Using sgcollect
 =====
@@ -71,7 +80,6 @@ Collect Sync Gateway diagnostics and upload them to Couchbase Support:
   --sync-gateway-config=/path/to/config.json \
   --sync-gateway-executable=/usr/bin/sync_gateway \
   --sync-gateway-username=Admin \
-  --sync-gateway-password=password \
   --log-redaction-level=partial \
   --upload-host=uploads.couchbase.com \
   --customer=Acme \
