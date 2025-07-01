@@ -41,19 +41,16 @@ To see the CLI command line parameters, run:
 ./sgcollect_info --help
 ----
 
+In Sync Gateway 3.3 and later, the `--sync-gateway-password` option has been removed from `sgcollect_info` as a security precaution.
+When you specify the `--sync-gateway-user` option, `sgcollect_info` prompts you to enter the password interactively.
+Attempting to use the `--sync-gateway-password` option causes an error, with instructions for next steps.
+
+Alternatively, you can specify credentials using the `SG_USERNAME` and `SG_PASSWORD` environment variables to avoid the prompt.
+
 You can can use `sgcollect_info` to collect and save information locally, and/or to collect and upload the information to Couchbase -- see: <<ex-collect>>.
 
-In Sync Gateway 3.3 and later, the `sgcollect_info` tool provides an interactive password prompt so that you can enter administrative credentials.
-The `--sync-gateway-password` option is no longer available.
-Attempting to use this option causes an error.
-
-When you specify the `--sync-gateway-user` option, `sgcollect_info` first tries to use the value of the `SG_PASSWORD` environment variable as the password.
-If this is not set, `sgcollect_info` prompts you to enter the password.
-
-You must use the `--sync-gateway-user` option to collect the full set of diagnostics.
-
 [#ex-collect]
-.Using sgcollect
+.Using sgcollect_info
 =====
 
 [{tabs}]
@@ -64,8 +61,13 @@ Collect and Save Locally::
 --
 [source,bash]
 ----
-./sgcollect_info /tmp/sgcollect_info.zip
+./sgcollect_info \
+  --sync-gateway-url=https://127.0.0.1:4985 \
+  --sync-gateway-username=Admin \
+  /tmp/sgcollect_info.zip
 ----
+
+When prompted, enter the password.
 --
 
 Collect and Upload to Couchbase::
@@ -77,8 +79,7 @@ Collect Sync Gateway diagnostics and upload them to Couchbase Support:
 [source,bash]
 ----
 ./sgcollect_info \
-  --sync-gateway-config=/path/to/config.json \
-  --sync-gateway-executable=/usr/bin/sync_gateway \
+  --sync-gateway-url=https://127.0.0.1:4985 \
   --sync-gateway-username=Admin \
   --log-redaction-level=partial \
   --upload-host=uploads.couchbase.com \
@@ -86,6 +87,8 @@ Collect Sync Gateway diagnostics and upload them to Couchbase Support:
   --ticket=123 \
   /tmp/sgcollect_info.zip
 ----
+
+When prompted, enter the password.
 --
 ====
 =====
