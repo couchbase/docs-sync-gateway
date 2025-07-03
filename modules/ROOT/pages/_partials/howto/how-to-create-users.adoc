@@ -39,17 +39,37 @@ The user credentials (**username**/**password**) are passed in the request body.
 
 [source,bash]
 ----
-$ curl -vX POST "http://localhost:4985/mydatabase/_user/" -H
+curl -vX POST "http://localhost:4985/mydatabase/_user/" -H
 "accept: application/json" -H "Content-Type: application/json" -d
-'{"name": "Edge1User", "password": "pass"}' // <.>
+'{"name": "Edge1User", "password": "pass"}' 
 
 $ curl -vX PUT "http://localhost:4985/mydatabase/_user/Edge1User" -H
 "accept: application/json" -H "Content-Type: application/json" -d
-'{"name": "Edge1User", "admin_channels": ["RandomChannel"]}' // <.>
+'{"name": "Edge1User", "admin_channels": ["RandomChannel"]}' 
 ----
 
 <.> Add new user "Edge1User", no `admin_channels` or `role` is specified here.
 <.> Update existing user "Edge1User" and add `admin_channels` data
+
+
+---
+Using Named collections::
++
+---
+
+[source,bash]
+----
+$ curl -vX POST "http://localhost:4985/mydatabase/_user/" -H \
+"accept: application/json" -H "Content-Type: application/json" -d \
+'{"name": "Edge1User", "password": "pass", "collection_access": {"scopename": {"collectionname": {"admin_channels": ["RandomChannel"]}}}}' // <.>
+
+$ curl -vX PUT "http://localhost:4985/mydatabase/_user/Edge1User" -H \
+"accept: application/json" -H "Content-Type: application/json" -d \
+'{"name": "Edge1User", "collection_access": {"scopename": {"collectionname": {"admin_channels": ["RandomChannel"]}}}}' // <.>
+----
+
+<.> Add new user "Edge1User" with collection-aware channel access to `scopename.collectionname`
+<.> Update existing user "Edge1User" and add `collection_access` data for named collections
 
 --
 
@@ -74,6 +94,44 @@ Create users by hardcoding their credentials in the Configuration Properties fil
 This method is convenient for testing and to get started. +
 Use the Admin REST API for production system changes.
 
+[#{tabs}]
+======
+
+Using named collections::
++
+---
+
+[source,json]
+----
+{
+  "databases": {
+    "mydatabase": {
+      "users": { // <.>
+        "GUEST": {"disabled": true},
+        "Edge1User": {
+          "password": "pass", // <.>
+          "collection_access": {
+            "scopename": {
+              "collectionname": {
+                "admin_channels": ["RandomChannel"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+----
+
+<.> {configuration-schema-database--pfx--db}-users[databases.$db.users]
+<.> Here we add the Edge1 user with collection-aware channel access
+
+---
+
+Using default collection::
++
+---
 
 [source,json]
 ----
