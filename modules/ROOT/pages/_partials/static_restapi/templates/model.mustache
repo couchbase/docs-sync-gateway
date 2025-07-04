@@ -1,0 +1,61 @@
+.icon:brackets-curly[fw] Object
+{blank}
+
+{{! tag for partial}}
+//tag::{{name}}[]
+
+{{! Create partial model description }}
+{{#description}}
+ifdef::model-descriptions[]
+//tag::desc-{{name}}[]
+{{{unescapedDescription}}}
+//end::desc-{{name}}[]
+endif::model-descriptions[]
+{{/description}}
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+{{#vars}}
+{{! DEFINITION NAME }}
+a¦ {{#vendorExtensions}}{{#x-desc-name}}[#{{this}}]{{/x-desc-name}}{{/vendorExtensions}}
+*+++{{{baseName}}}+++* +
+_{{#required}}required{{/required}}{{^required}}optional{{/required}}_
+{{! DEFINITION DESCRIPTION }}
+a¦ {{>property}}
+{{! DEFINITION SCHEMA }}
+a¦ {{>schemas}}
+{{/vars}}
+{{#additionalProperties}}
+{{! ADDITIONAL PROPERTY NAME }}
+a¦ {{#vendorExtensions}}{{#x-desc-name}}[#{{this}}]{{/x-desc-name}}{{/vendorExtensions}}
+_additional +
+property_
+{{! ADDITIONAL PROPERTY DESCRIPTION }}
+a¦ {{>property}}
+{{! ADDITIONAL PROPERTY SCHEMA }}
+a¦ {{>schemas}}
+{{/additionalProperties}}
+|===
+
+{{! end tag for partial}}
+//end::{{name}}[]
+
+{{! Polymorphism}}
+{{#hasDiscriminatorWithNonEmptyMapping}}
+This schema has alternative properties, depending on the value of *{{discriminatorName}}*:
+{{#discriminator}}
+
+[cols="25,55,20"]
+|===
+| Value | | Schema
+{{#mappedModels}}
+
+a| `{{mappingName}}`
+a| {{{model.unescapedDescription}}}
+a| xref:{{modelName}}[]
+{{/mappedModels}}
+|===
+{{/discriminator}}
+{{/hasDiscriminatorWithNonEmptyMapping}}
