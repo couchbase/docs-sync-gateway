@@ -1,0 +1,149 @@
+{{! include partial before definitions }}
+{{#specinclude}}/definitions/document-before.adoc{{/specinclude}}
+
+[#models]
+= Definitions
+
+{{! Count the models }}
+{{#models}}
+{{#model}}
+{{^isEnum}}
+{{#-last}}
+:count-models: {{-index}}
+{{/-last}}
+{{/isEnum}}
+{{/model}}
+{{/models}}
+
+{{! include partial before definitions body }}
+:leveloffset: +1
+{{#specinclude}}/definitions/document-begin.adoc{{/specinclude}}
+
+{{! Table of contents }}
+This section describes the properties consumed and returned by this REST API.
+
+ifeval::[{count-models} > 1]
+ifdef::collapse-models[]
+[.two-columns]
+endif::collapse-models[]
+[%hardbreaks]
+{{#models}}
+{{#model}}
+{{#isEnum}}
+ifdef::enum-definitions[]
+{{/isEnum}}
+xref:#+{{name}}+[{{#title}}{{title}}{{/title}}{{^title}}{{classname}}{{/title}}]
+{{#isEnum}}
+endif::enum-definitions[]
+{{/isEnum}}
+{{/model}}
+{{/models}}
+endif::[]
+
+{{! *** DEFINITION *** }}
+{{#models}}
+{{#model}}
+{{! omit enums from model list. Probably going to regret this }}
+{{#isEnum}}
+ifdef::enum-definitions[]
+[id="{{name}}"]
+= {{#title}}{{title}}{{/title}}{{^title}}{{classname}}{{/title}}
+
+.icon:menu[fw] Enumeration
+{blank}
+
+{{#description}}
+//tag::desc-{{name}}[]
+{{{unescapedDescription}}}
+//end::desc-{{name}}[]
+
+{{/description}}
+.Schema
+//tag::type-{{name}}[]
+{{>schemas}}
+//end::type-{{name}}[]
+endif::enum-definitions[]
+{{/isEnum}}
+{{^isEnum}}
+
+{{! include partial before definition }}
+{{#specinclude}}/definitions/{{name}}/definition-before.adoc{{/specinclude}}
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[id="{{name}}"]
+= {{#title}}{{title}}{{/title}}{{^title}}{{classname}}{{/title}}
+
+{{! include partial before definition body }}
+:leveloffset: +1
+{{#specinclude}}/definitions/{{name}}/definition-begin.adoc{{/specinclude}}
+
+{{^composedSchemas}}
+{{#hasVars}}
+{{>model}}
+{{/hasVars}}
+{{^hasVars}}
+{{#isMap}}
+{{>model}}
+{{/isMap}}
+{{/hasVars}}
+{{#isString}}
+.icon:quote-left[fw] String
+{blank}
+
+{{>property}}
+{{/isString}}
+{{#isArray}}
+.icon:brackets[fw] Array
+{blank}
+
+{{>property}}
+
+{{#items}}
+.Schema
+{{>schemas}} array
+{{/items}}
+{{/isArray}}
+{{/composedSchemas}}
+{{#composedSchemas}}
+.icon:bars[fw] Composite Schema
+{blank}
+
+{{#oneOf}}
+{{#-first}}One of the following:
+
+{{/-first}}
+* {{>schemas}}
+{{/oneOf}}
+{{#anyOf}}
+{{#-first}}Any of the following:
+
+{{/-first}}
+* {{>schemas}}
+{{/anyOf}}
+{{#allOf}}
+{{#-first}}All of the following:
+
+{{/-first}}
+* {{>schemas}}
+{{/allOf}}
+{{/composedSchemas}}
+
+{{! include partial after definition body }}
+{{#specinclude}}/definitions/{{name}}/definition-end.adoc{{/specinclude}}
+
+{{! include partial after definition }}
+:leveloffset: -1
+{{#specinclude}}/definitions/{{name}}/definition-after.adoc{{/specinclude}}
+
+{{/isEnum}}
+{{/model}}
+{{/models}}
+
+{{! include partial after definitions body }}
+{{#specinclude}}/definitions/document-end.adoc{{/specinclude}}
+
+{{! include partial after definitions }}
+:leveloffset: -1
+{{#specinclude}}/definitions/document-after.adoc{{/specinclude}}
