@@ -7,6 +7,8 @@ ifdef::prerelease[:page-status: {prerelease}]
 
 include::partial$_set_page_context.adoc[]
 
+include::partial$static_restapi/css.adoc[]
+
 include::partial$block-caveats.adoc[tags="legacy-config-equivalents"]
 
 == Introduction
@@ -20,17 +22,19 @@ It looks at the application's needs and applies these criteria to all future cha
 * By reducing the amount of data that needs to be processed, an import filter will improve the performance of your queries and analysis. 
 It's worth noting that Sync Gateway imports all documents by default, so it's generally a good idea to use an import filter unless you have a strong reason not to.
 
+See: {import-filter--xref} for more.
 
 == Function Provision
 
 Use the {rest-api-admin--xref--database-configuration} Admin Rest API endpoint xref:rest_api_admin.adoc#tag/Database-Configuration/operation/post_db-_config[POST /{db}/_config] to provision an import filter for a database using the `application/javascript` mime type.
 
-If you are using legacy configuration then, you need to include it in your configuration file, see: {configuration-properties-legacy--xref--databases-import-filter}.
+If you are using legacy configuration, you need to include it in your configuration file.
+See: {configuration-properties-legacy--xref--databases-import-filter}.
 
 == Configuration
 
 NOTE: You need Couchbase Lite 3.1+ and Sync Gateway 3.1+ to use `custom` Scopes and Collections. +
-If you’re using Capella App Services or Sync Gateway releases that are older than version 3.1, you won’t be able to access `custom` Scopes and Collections. 
+If you're using Capella App Services or Sync Gateway releases that are older than version 3.1, you won't be able to access `custom` Scopes and Collections. 
 To use Couchbase Lite 3.1+ with these older versions, you can use the `default` Collection as a backup option.
 
 The configuration settings described here are provisioned through the xref:rest-api-admin.adoc[Database Configuration] endpoints.
@@ -38,11 +42,11 @@ The configuration settings described here are provisioned through the xref:rest-
 [source,JSON]
 ----
 {
-  scopes: {
-      {scopename...}: {
-         collections: {
-            {collectionname...}: {
-               import_filter: "function(doc) { if (doc.type != 'mobile') { return false; } return true; }",
+  "scopes": {
+      "scopename...": {
+         "collections": {
+            "collectionname...": {
+               "import_filter": "function(doc) { if (doc.type != 'mobile') { return false; } return true; }",
             }
          }
       }
@@ -51,7 +55,7 @@ The configuration settings described here are provisioned through the xref:rest-
 }
 ----
 
-For more information, see xref:configuration-schema-database.adoc#_database[Sync Gateway Configuration Schema].
+For more information, see xref:configuration-schema-database.adoc#DatabaseConfig[Sync Gateway Configuration Schema].
 
 [cols="2", options="header"]
 |===
@@ -101,26 +105,7 @@ include::{example-cfg}[tag="import-filter-config-legacy"]
 =====
 ====
 
-== Upsert Import Filter Function
-
-----
-
-https:://{sgw-uri}/{db}/_config/import_filter
-
-----
-
-include::partial$static_restapi/admin/index.adoc[tags=put_keyspace-_config-import_filter-description,leveloffset=-2]
-
-See: {import-filter--xref} for more.
-
-
-== Parameters
-include::partial$static_restapi/admin/index.adoc[tags=put_keyspace-_config-import_filter-parameters,leveloffset=-2]
-
-
-== Responses
-include::partial$static_restapi/admin/index.adoc[tags=put_keyspace-_config-import_filter-responses,leveloffset=-2]
-
+include::partial$static_restapi/admin/index.adoc[tags=put_keyspace-_config-import_filter,leveloffset=+1]
 
 [#_Import_filter]
 == Schema
@@ -129,7 +114,27 @@ This section shows Sync Gateway's import control configuration settings in schem
 
 The configuration settings described here are provisioned through {rest-api-admin--xref--access-control} endpoints.
 
-include::partial$static_restapi/admin/definitions.adoc[tags=Import_filter_model]
+[[_import_filter_model]]
+=== Import Filter Model
+
+The `import_filter` controls whether a document written to the Couchbase Server bucket should be made available to Couchbase Mobile clients (that is, whether it ought to be imported).
+
+You should provision the filter as a Javascript function in the request body of a call to the Admin Rest API endpoint `put {db}/_config/import_filter`.
+
+Set the header's content type to `content-Type: application/javascript`.
+
+The function takes the document body as parameter and is expected to return a boolean to indicate whether the document should be imported.
+
+If you do not provide a filter function then no filter will be applied and ALL documents will be imported.
+
+__Type__ : string
+
+[#HTTP_Error]
+== Errors
+
+This section shows possible error responses returned by the Admin REST API.
+
+include::partial$static_restapi/admin/index.adoc[tags=HTTP_Error]
 
 // BEGIN -- DO NOT EDIT
 include::partial$block-related-content-api.adoc[]
