@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -exuo pipefail
 
@@ -31,6 +31,7 @@ PATH_TO_SYNC_GATEWAY="${GIT_ROOT}/sync_gateway"
 PATH_TO_BUNDLE="${GIT_ROOT}/modules/ROOT/assets/attachments"
 PATH_TO_OVERLAY="${GIT_ROOT}/modules/ROOT/assets/overlays"
 PATH_TO_TEMP="${GIT_ROOT}/modules/ROOT/assets/bld"
+PATH_TO_STATIC="${GIT_ROOT}"
 
 # Create a bld directory to hold temporary files, if it doesn't already exist
 [[ -d "${PATH_TO_TEMP}" ]] || mkdir "${PATH_TO_TEMP}"
@@ -72,6 +73,15 @@ generate() {
       "${PATH_TO_TEMP}/${WHAT}.yaml" \
       --output partials/sgw-openapi-$WHAT.html \
       --template partials/redocAll.hbs
+
+    # Build the static output using the overlaid spec.
+    npx @openapitools/openapi-generator-cli generate \
+        --skip-validate-spec \
+        --generator-name asciidoc  \
+        --input-spec "${PATH_TO_TEMP}/${WHAT}.yaml" \
+        --template-dir "${PATH_TO_STATIC}/templates" \
+        --additional-properties skipExamples=true \
+        --output "${PATH_TO_STATIC}/${WHAT}"
 }
 
 generate public
