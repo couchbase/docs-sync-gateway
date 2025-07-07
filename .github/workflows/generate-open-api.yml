@@ -20,12 +20,14 @@ jobs:
         run: npm i -g @redocly/cli@latest
 
       - name: run Redocly
+        shell: bash
         run: ./modules/ROOT/generate-docs.sh
 
       - name: diff and raise PR
         env:
           GH_TOKEN: ${{ github.token }}
           USER: ${{ github.actor }}
+        shell: bash
         run: |
           BRANCH=$(git branch --show-current)
           DATE=$(date "+%Y-%m-%d-%H.%M.%S")
