@@ -33,24 +33,7 @@ Admin REST API::
 NOTE: This is the default recommended option starting 3.0.
 
 Create a new user by sending a POST request to the Admin Rest Api `_user` endpoint ({rest-api-admin-user-post--xref}).
-Update existing users by sending a PUT instead; in this case include the user name at the end of the url.
-
-The user credentials (**username**/**password**) are passed in the request body.
-
-[source,bash]
-----
-curl -vX POST "http://localhost:4985/mydatabase/_user/" -H
-"accept: application/json" -H "Content-Type: application/json" -d
-'{"name": "Edge1User", "password": "pass"}' 
-
-$ curl -vX PUT "http://localhost:4985/mydatabase/_user/Edge1User" -H
-"accept: application/json" -H "Content-Type: application/json" -d
-'{"name": "Edge1User", "admin_channels": ["RandomChannel"]}' 
-----
-
-<.> Add new user "Edge1User", no `admin_channels` or `role` is specified here.
-<.> Update existing user "Edge1User" and add `admin_channels` data
-
+Update existing users by sending a PUT request ({rest-api-admin-user-put--xref}); in this case include the user name at the end of the url.
 
 ---
 Using Named collections::
@@ -61,7 +44,7 @@ Using Named collections::
 ----
 $ curl -vX POST "http://localhost:4985/mydatabase/_user/" -H \
 "accept: application/json" -H "Content-Type: application/json" -d \
-'{"name": "Edge1User", "password": "pass", "collection_access": {"scopename": {"collectionname": {"admin_channels": ["RandomChannel"]}}}}' // <.>
+'{"name":"Edge1User","password":"pass","collection_access":{"scopename":{"collectionname":{"admin_channels":["RandomChannel"]}}}}' // <.>
 
 $ curl -vX PUT "http://localhost:4985/mydatabase/_user/Edge1User" -H \
 "accept: application/json" -H "Content-Type: application/json" -d \
@@ -70,6 +53,26 @@ $ curl -vX PUT "http://localhost:4985/mydatabase/_user/Edge1User" -H \
 
 <.> Add new user "Edge1User" with collection-aware channel access to `scopename.collectionname`
 <.> Update existing user "Edge1User" and add `collection_access` data for named collections
+
+
+---
+Using default collection::
++
+---
+
+[source,bash]
+----
+curl -vX POST "http://localhost:4985/mydatabase/_user/" -H
+"accept: application/json" -H "Content-Type: application/json" -d
+'{"name": "Edge1User", "password": "pass"}' // <.>
+
+$ curl -vX PUT "http://localhost:4985/mydatabase/_user/Edge1User" -H
+"accept: application/json" -H "Content-Type: application/json" -d
+'{"name": "Edge1User", "admin_channels": ["RandomChannel"]}' // <.>
+----
+
+<.> Add new user "Edge1User", no `admin_channels` or `role` is specified here.
+<.> Update existing user "Edge1User" and add `admin_channels` data
 
 --
 
@@ -106,14 +109,18 @@ Using named collections::
 {
   "databases": {
     "mydatabase": {
-      "users": { // <.>
-        "GUEST": {"disabled": true},
+      "users": {. // <.>
+        "GUEST": {
+          "disabled": true
+        },
         "Edge1User": {
           "password": "pass", // <.>
           "collection_access": {
             "scopename": {
               "collectionname": {
-                "admin_channels": ["RandomChannel"]
+                "admin_channels": [
+                  "RandomChannel"
+                ]
               }
             }
           }
@@ -125,7 +132,7 @@ Using named collections::
 ----
 
 <.> {configuration-schema-database--pfx--db}-users[databases.$db.users]
-<.> Here we add the Edge1 user with collection-aware channel access
+<.> Here we add the Edge1 user with access to channel `RandomChannel` in the scope `scopename` and collection `collectionname`.
 
 ---
 
@@ -138,10 +145,16 @@ Using default collection::
 {
   "databases": {
     "mydatabase": {
-      "users": { // <.>
-        "GUEST": {"disabled": true},
-        "Edge1User": {"password": "pass", // <.>
-                      "admin_channels": ["RandomChannel"]},
+      "users": {. //<.>
+        "GUEST": {
+          "disabled": true
+        },
+        "Edge1User": {
+          "password": "pass", // <.>
+          "admin_channels": [
+            "RandomChannel"
+          ]
+        }
       }
     }
   }
