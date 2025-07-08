@@ -29,9 +29,19 @@ This page introduces the <<put_db-_role-name,Create or Update a Role>> and <<put
 
 It also includes a JSON-data model, you can use to build your request bodies. See: <<lbl-schema>>
 
-include::partial$static_restapi/admin/index.adoc[tags=put_db-_role-name,leveloffset=+1]
+[#lbl-upsert-role]
+== Create or Update a Role
 
-=== Example
+
+----
+PUT /{db}/_role/{name}
+----
+
+include::partial$static_restapi/admin/index.adoc[tags=put_db-_role-name-description,leveloffset=-2]
+
+For detailed parameters and response information, see: {rest-api-admin-role-post--xref}
+
+=== Example using Named collections
 
 ====
 
@@ -50,7 +60,13 @@ curl --location --request PUT 'http://127.0.0.1:4985/travel25/_role/newrole' \ /
 --header 'Content-Type: application/json' \
 --data-raw '{
     "name": "newrole",
-    "admin_channels": ["newrolechannel"]
+    "collection_access": {
+      "scopename": {
+          "collectionname": {
+               "admin_channels": ["newrolechannel"]
+          }
+      }
+   }
 }'
 
 ----
@@ -68,11 +84,17 @@ PUT /travel25/_role/newrole HTTP/1.1 // <.>
 Host: 127.0.0.1:4985
 Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk // <.>
 Content-Type: application/json
-Content-Length: 67
+Content-Length: 134
 
 {
     "name": "newrole",
-    "admin_channels": ["newrolechannel"]
+    "collection_access": {
+      "scopename": {
+          "collectionname": {
+               "admin_channels": ["newrolechannel"]
+          }
+      }
+   }
 }
 
 ----
@@ -81,16 +103,95 @@ Content-Length: 67
 
 =====
 
-<.> Add role `newrole` to the `travel25` database
-<.> Use Basic Auth to authenticate to an existing RBAC user
+<.> Add role `newrole` to the `travel25` database and the `scopename` scope and `collectionname` collection
+<.> Note we are using Basic Auth to authenticate to an existing RBAC user
 
 ====
 
+=== Example using Default collections
+
+====
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://127.0.0.1:4985/travel25/_role/newrole' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ // <.>
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "newrole",
+    "collection_access": {
+      "_default": {
+          "_default": {
+               "admin_channels": ["newrolechannel"]
+          }
+      }
+   }
+}'
+
+----
+
+--
+
+HTTP::
++
+--
+
+[source, bash]
+----
+
+PUT /travel25/_role/newrole HTTP/1.1 // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk // <.>
+Content-Type: application/json
+Content-Length: 132
+
+{
+    "name": "newrole",
+    "collection_access": {
+      "_default": {
+          "_default": {
+               "admin_channels": ["newrolechannel"]
+          }
+      }
+   }
+}
+
+----
+
+--
+
+=====
+
+<.> Add role `newrole` to the `travel25` database using the `_default` scope and collection
+<.> Note we are using Basic Auth to authenticate to an existing RBAC user
+
+====
+
+For complete role management operations, see: {rest-api-admin-role-post--xref}[Role management API Reference]
 
 
-include::partial$static_restapi/admin/index.adoc[tags=put_db-_user-name,leveloffset=+1]
+[#lbl-upsert-user]
+== Create or Update a User
 
-=== Example
+----
+PUT /{db}/_user/{username} // <.>
+----
+
+<.> where `{db}` is the Sync Gateway database and `{username}` is the name for the new user
+
+include::partial$static_restapi/admin/index.adoc[tags=put_db-_user-name-description,leveloffset=-3]
+
+For detailed parameters and response information, see: {rest-api-admin-user-post--xref}[Create User] or {rest-api-admin-user-put--xref}[Update User]
+
+=== Example using Named collections
 
 ====
 
@@ -107,10 +208,16 @@ curl --location --request PUT 'http://127.0.0.1:4985/travel25/_user/newuser' \ /
 --header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
 --header 'Content-Type: application/json' \
 --data-raw '{
+    "name": "newuser",
     "password": "pass",
-    "admin_channels": ["newrole"]
-}
-'
+    "collection_access": {
+      "scopename": {
+          "collectionname": {
+               "admin_channels": ["newuserchannel"]
+          }
+      }
+   }
+}'
 
 ----
 
@@ -126,11 +233,18 @@ PUT /travel25/_user/newuser HTTP/1.1 // <.>
 Host: 127.0.0.1:4985
 Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk
 Content-Type: application/json
-Content-Length: 63
+Content-Length: 154
 
 {
+    "name": "newuser",
     "password": "pass",
-    "admin_channels": ["newrole"]
+    "collection_access": {
+      "scopename": {
+          "collectionname": {
+               "admin_channels": ["newuserchannel"]
+          }
+      }
+   }
 }
 
 ----
@@ -138,10 +252,79 @@ Content-Length: 63
 
 =====
 
-<.> Add user `newuser` to the `travel25` database
+<.> Add user `newuser` to the `travel25` database with access to `scopename.collectionname`
 
 ====
 
+=== Example using Default collections
+
+====
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+curl --location --request PUT 'http://127.0.0.1:4985/travel25/_user/newuser' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "newuser",
+    "password": "pass",
+    "collection_access": {
+      "_default": {
+          "_default": {
+               "admin_channels": ["newuserchannel"]
+          }
+      }
+   }
+}'
+----
+
+--
+
+HTTP::
++
+--
+[source, bash]
+----
+
+PUT /travel25/_user/newuser HTTP/1.1 // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk
+Content-Type: application/json
+Content-Length: 152
+
+{
+    "name": "newuser",
+    "password": "pass",
+    "collection_access": {
+      "_default": {
+          "_default": {
+            "admin_channels": ["newuserchannel"]
+        }
+      }
+   }
+}
+
+----
+--
+
+=====
+
+<.> Add user `newuser` to the `travel25` database using the default scope and collection
+
+====
+
+For complete user management operations, see: {rest-api-admin-user-put--xref}[User management API Reference]
+
+
+[#_user]
+[#_role]
 [#lbl-schema]
 == Schema
 
