@@ -32,6 +32,41 @@ This tool must be run on each node individually, not on all simultaneously.
 . Golang profile output (runtime memory and cpu profiling info)
 
 
+== REST Endpoint
+
+You can also run `sgcollect_info` from the Admin REST API using the xref:rest_api_admin.adoc#tag/Server/operation/post__sgcollect_info[_sgcollect_info] endpoint.
+
+[source,bash]
+----
+curl -X POST \
+  http://localhost:4985/_sgcollect_info \
+  -H 'Accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "output_dir": "/home/sync_gateway/logs",
+    "upload": false
+  }'
+----
+
+When you set `admin_interface_authentication` to `true` in your Sync Gateway configuration, include proper authentication headers in your requests.
+
+
+[source,bash]
+----
+curl -X POST \
+  http://localhost:4985/_sgcollect_info \
+  -H 'Accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ <.>
+  -d '{
+    "output_dir": "/home/sync_gateway/logs",
+    "upload": false
+  }'
+----
+
+<.> Using a Basic Auth to authenticate to an existing user. 
+
+
 == CLI Command and Parameters
 
 To see the CLI command line parameters, run:
@@ -82,10 +117,7 @@ Collect Sync Gateway diagnostics and upload them to Couchbase Support:
 ====
 =====
 
-
-== REST Endpoint
-
-You can also run `sgcollect_info` from the Admin REST API using the xref:rest_api_admin.adoc#tag/Server/operation/post__sgcollect_info[_sgcollect_info] endpoint.
+NOTE: When `admin_interface_authentication` is set to `true` in your Sync Gateway configuration, specify `--sync-gateway-username` and `--sync-gateway-password`.
 
 
 == Zipfile Contents
