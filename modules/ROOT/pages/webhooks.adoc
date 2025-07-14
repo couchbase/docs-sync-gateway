@@ -7,134 +7,72 @@ ifdef::prerelease[:page-status: {prerelease}]
 include::partial$_set_page_context.adoc[]
 
 :topic-group: integration
-:param-abstract: You can configure webhooks to detect document_changed events and post the changed documents to specified URLs.
+:param-abstract: Configure webhooks to detect `document_changed` events and post changed documents to specified URLs.
 :param-related: xref:{sgw-pg-server-integration}[Changes Feed]  |  {xref-sgw-pg-stats-prometheus}
-// :param-related: xref:{sgw-pg-server-integration}[Changes Feed]  |  {sgw--xref}{integrating-external-stores--page}[External Stores]  |  {xref-sgw-pg-stats-prometheus}
 include::partial$_show_page_header_block.adoc[]
 
-.Caveats
+.Caution
 [CAUTION]
 --
-Webhooks post your application’s data, which might include user data, to URLs.
-Consider the security implications.
+Webhooks post your application data, including user data, to external URLs. Consider the security implications and validate the receiving endpoints.
 --
-
 
 == Introduction
 
+Sync Gateway enables event-driven integrations by triggering actions when documents change. This allows you to extend the replication process to include real-time notifications, audits, and system integrations.
 
-Sync Gateway provides the ability to extend the replication process and build responsive services that react to changes in documents, adding value to the end to end process.
+A webhook event handler listens for `document_changed` events and performs HTTP `POST` operations asynchronously. This minimizes:
 
-For example, by initiating the sending of notifications, or specialist audit processes, when certain document changes are detected.
+* Performance impact on Sync Gateway's core processing.
+* CPU overhead caused by slow HTTP responses from external systems.
 
-This can be done using either the xref:{sgw-pg-server-integration}[changes feed] or `document_changed` events -- see  <<tbl-scenarios>> for a comparison of these scenarios.
+== Webhook Behavior
 
-Sync Gateway's *_webhook_* event handlers perform both document filtering, and HTTP POST operations, asynchronously.
+Webhooks operate on the push-cycle of a replication. If a webhook event handler is configured:
 
-In addition to providing the opportunity to integrate with external systems, this minimizes:
-
-* The performance impact on Sync Gateway's regular processing
-* The amount of Sync Gateway node CPU resources consumed by slow response times from the HTTP POST operations.
-
-
-== Behavior
-
-
-Webhooks work on the push-cycle of a replication.
-
-If a _webhook_ event handler is defined:
-
-* Sync Gateway adds a `document_changed` event to the _event queue_ footnote:[An asynchronous event-processing queue] whenever it updates a document in a Couchbase Server bucket.
-These changes footnote:[Creations, updates, and deletions] can arise from Sync Gateway’s Public REST API and-or Couchbase Lite push replications.
-
-* Whenever the _event queue_ contains a _data_changed_ event, Sync Gateway spawns a process to:
-
-** FILTER -- decide which changed documents to post. +
-The event process executes the _webhook's_ event handler (the `filter`) on the associated document.
-The filter determines which documents need to be POSTed.
-+
-If there is no filter all document changes are passed to POST.
-** POST -- send selected changed documents to the URL endpoint. +
-HTTP/HTTPS is used to POST the document changes selected by the filter to the defined _url_.
+1. Sync Gateway adds a `document_changed` event to the event queue whenever a document is created, updated, or deleted in a Couchbase Server bucket.
+2. The event queue processes the change asynchronously:
+   - **Filtering**: Determines whether a document should be posted based on a JavaScript function.
+   - **POST Operation**: Sends selected document changes to the configured URL.
 
 include::partial$server-integration-scenario-table.adoc[]
 
+== Configuring Webhooks
 
-== Definition
-
-
-You can define _Webhooks_ using the Admin Rest API {rest-api-admin--xref--database-configuration} endpoints.
-For Pre-3.0 Legacy configurations, see the {configuration-properties-legacy--xref} at the database level.
+Webhooks are configured using the **Admin REST API** at `{rest-api-admin--xref--database-configuration}`. 
+For legacy configurations (pre-3.0), refer to `{configuration-properties-legacy--xref}`.
 
 include::partial$common-cfg-ext-javascript.adoc[tag=intro]
 
-Learn more about this property ($db.event_handlers) in the Configuration Schema Reference -- see: {configuration-schema-database--xref--eventhandlers}.
+Learn more about the `$db.event_handlers` property in the Configuration Schema Reference: `{configuration-schema-database--xref--eventhandlers}`.
 
 include::partial$common-cfg-ext-javascript.adoc[tag=config-full]
 
-You can define multiple webhook event handlers.
-For example, you could define webhooks with different filtering criteria to post changed documents to different URLs -- see: <<ex-definitions>>.
+=== Webhook Configuration Properties
 
-=== Document Change Properties
+A webhook configuration consists of the following properties:
 
-Each event handler definition comprises the following properties:
+[cols="1,2"]
+|===
+| Property | Description
 
-A Filter::
-+
---
-Property name: {configuration-schema-database--xref--eventhandlers-doc-changed-filter}
+| **Filter**
+| JavaScript function that determines which documents should be posted. Accepts the document body as input and returns a boolean.
 
-The filter is a JavaScript function used to determine which documents to post.
-It accepts the document body as input and returns a boolean value.
+| **Handler Type**
+| Must be set to `webhook`.
 
-* If the filter function returns true, then Sync Gateway posts the document.
-* If the filter function returns false, then Sync Gateway does not post the document.
-* If no filter function is defined, then Sync Gateway posts all changed documents.
+| **Timeout**
+| Time (in seconds) to wait for a response before discarding the operation.
 
-Filtering only determines which documents to post. It does not extract specific content from documents and post only that.
+| **URL**
+| Target endpoint where documents will be posted.
+|===
 
---
+=== Sample Webhook Definitions
 
-An event handler type::
-Property name: {configuration-schema-database--xref--eventhandlers-doc-changed-handler}
-+
---
-Sets the event handler's type; currently, this must be `webhook`.
---
-
-A timeout value::
-+
---
-Property name: {configuration-schema-database--xref--eventhandlers-doc-changed-timeout}
-
-Sets the time (in seconds) to wait for a response to the POST operation.
-It ensures that slow-running POST operations don't cause the webhook event queue to back up.
-When the timeout limit is reached, Sync Gateway stops listening for a response and discards the operation.
-
-You should not need to adjust the default setting to tune performance.
-
---
-
-URL::
-+
---
-Property name: {configuration-schema-database--xref--eventhandlers-doc-changed-url}
-
-Sets the address to which documents are posted.
-
---
-
-[#ex-definitions]
-.Sample Webhook Definitions
-=====
-[tabs]
-====
-
-Simple Webhook::
-+
---
-In this simple example of a `webhook` event handler we define a single instance with no filter.
-It simply listens for the `document_changed` event and immediately sends the changed document to the URL `+http://someurl.com+`.
+==== Simple Webhook
+A basic webhook that sends all changed documents to `http://someurl.com`:
 
 [source,javascript]
 ----
@@ -147,82 +85,58 @@ It simply listens for the `document_changed` event and immediately sends the cha
     ]
 }
 ----
---
 
-Multiple Webhooks::
-+
---
-In this example we define two `webhook` event handlers, both of which use filters to decide how to process the changed document.
-
-The `filter` function in the first handler recognizes documents with `doc.type` equal to `A` and posts the documents to the URL `+http://someurl.com/type_A+`.
-
-The `filter` function in the second handler recognizes documents with `doc.type` equal to B and posts the documents to the URL `+http://someurl.com/type_B+`.
+==== Webhook with Filtering
+This example uses filters to route different document types to separate URLs:
 
 [source,javascript]
 ----
 "event_handlers": {
-      "document_changed": [
-        {"handler": "webhook",
-         "url": "http://someurl.com/type_A",
-         "filter": `function(doc) {
-              if (doc.type == "A") {
-                return true;
-              }
-              return false;
+    "document_changed": [
+        {
+            "handler": "webhook",
+            "url": "http://someurl.com/type_A",
+            "filter": `function(doc) {
+                return doc.type == "A";
             }`
-         },
-        {"handler": "webhook",
-         "url": "http://someurl.com/type_B",
-         "filter": `function(doc) {
-              if (doc.type == "B") {
-                return true;
-              }
-              return false;
+        },
+        {
+            "handler": "webhook",
+            "url": "http://someurl.com/type_B",
+            "filter": `function(doc) {
+                return doc.type == "B";
             }`
         }
-     ]
-  }
+    ]
+}
 ----
---
-====
-=====
 
-=== Event Processing Properties
+== Event Processing Properties
 
-Limited Concurrent Processes::
-+
---
-Property name: {configuration-schema-database--xref--eventhandlers-max-processes}
+[cols="1,2"]
+|===
+| Property | Description
 
-Sets the maximum number of events that can be processed concurrently.
-The default value should work well in the majority of cases.
-You should not need to adjust it to tune performance.
-However, if you wish to ensure that most webhook posts are sent, you can set it to sufficiently high value.
+| **Max Concurrent Processes**
+| Limits the number of concurrent webhook processes. Default values usually work well.
 
---
+| **Full-Queue Wait Time**
+| Defines the maximum wait time for event processing before discarding new events when the queue is full.
+|===
 
-Limited Full-Queue Wait Time::
-+
---
-Property name: {configuration-schema-database--xref--eventhandlers-wait-for-process}
+== Testing Webhooks
 
-Sets the maximum time (milliseconds) that event processing will wait for a free process, if an event is received whilst the event queue is full.
-You should not need to adjust it to tune performance.
+To test webhook configurations, you can use tools like:
 
-To avoid blocking standard Sync Gateway processing, set a zero value.
-Any events arriving whilst the queue is full are then immediately discarded -- see also <<lbl-evlog>>.
+- **[Beeceptor](https://beeceptor.com/)** – Easily set up a mock endpoint to inspect webhook payloads.
+- **[Webhook.site](https://webhook.site/)** – Generates a custom URL to receive and debug webhook requests.
 
---
+For tunneling local servers to the internet, consider **ngrok** or **Localtunnel**.
 
+== Logging Webhook Events
 
-[#lbl-evlog]
-== Logging
+Sync Gateway logs discarded events when the queue is full. You can configure logging through the configuration file or the Admin REST API: `{logging--xref}`.
 
-
-Sync Gateway creates a log whenever an event is discarded, and not added to the event queue.
-
-You can configure the console logging of events using the configuration file and-or the ADMIN Rest API -- see {logging--xref}.
-The `log_key` you need to include is `Event`; or `Events+` for more verbose output.
-
+For more verbose output, use the log key `Events+`.
 
 include::partial$block-related-content-api.adoc[]
