@@ -129,13 +129,10 @@ Options::
 --
 Property name: {configuration-schema-database--xref--eventhandlers-doc-changed-options}
 
-The options object configures additional webhook behavior. 
+The options object configures additional webhook behavior.
 
-Available options include:
-
-* `winning_rev_only`
-
-Set `winning_rev_only` to `true` to fire the webhook only when the change involves the winning revision.
+Configure options in webhooks by setting the `"winning_rev_only": true` in the options object.
+Set `winning_rev_only` to fire the webhook only when the change involves the winning revision.
 This reduces webhook noise during conflict resolution by skipping events for removed non-winning revisions.
 
 NOTE: If an earlier winning revision becomes the winner again, Sync Gateway may still send duplicate events.
@@ -152,8 +149,8 @@ Verify your webhook client handles duplicate events appropriately.
 Simple Webhook::
 +
 --
-In this simple example of a `webhook` event handler we define a single instance with no filter.
-It simply listens for the `document_changed` event and immediately sends the changed document to the URL `+http://someurl.com+`.
+In this example of a `webhook` event handler you define a single instance with no filter.
+It listens for the `document_changed` event and sends the changed document to the URL `+http://someurl.com+`.
 
 [source,javascript]
 ----
@@ -174,11 +171,11 @@ It simply listens for the `document_changed` event and immediately sends the cha
 Multiple Webhooks::
 +
 --
-In this example you define two `webhook` event handlers with different configurations. 
+In this example you define two `webhook` event handlers with different configurations.
 
 The first handler uses both a `filter` and the `winning_rev_only` option, while the second handler uses only a `filter` to decide how to process the changed document.
 
-The `filter` function in the first handler recognizes documents with `doc.type` equal to `A` and posts the documents to the URL `+http://someurl.com/type_A+`. 
+The `filter` function in the first handler recognizes documents with `doc.type` equal to `A` and posts the documents to the URL `+http://someurl.com/type_A+`.
 
 This handler also uses the `winning_rev_only` option to prevent webhook spam during conflict resolution.
 
