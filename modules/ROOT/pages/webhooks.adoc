@@ -124,6 +124,22 @@ Sets the address to which documents are posted.
 
 --
 
+Options::
++
+--
+Property name: {configuration-schema-database--xref--eventhandlers-doc-changed-options}
+
+The options object configures additional webhook behavior.
+
+Configure options in webhooks by setting the `"winning_rev_only": true` in the options object.
+Set `winning_rev_only` to fire the webhook only when the change involves the winning revision.
+This reduces webhook noise during conflict resolution by skipping events for removed non-winning revisions.
+
+NOTE: If an earlier winning revision becomes the winner again, Sync Gateway may still send duplicate events.
+Verify your webhook client handles duplicate events appropriately.
+
+--
+
 [#ex-definitions]
 .Sample Webhook Definitions
 =====
@@ -133,8 +149,8 @@ Sets the address to which documents are posted.
 Simple Webhook::
 +
 --
-In this simple example of a `webhook` event handler we define a single instance with no filter.
-It simply listens for the `document_changed` event and immediately sends the changed document to the URL `+http://someurl.com+`.
+In this example of a `webhook` event handler you define a single instance with no filter.
+It listens for the `document_changed` event and sends the changed document to the URL `+http://someurl.com+`.
 
 [source,javascript]
 ----
@@ -143,6 +159,9 @@ It simply listens for the `document_changed` event and immediately sends the cha
         {
             "handler": "webhook",
             "url": "http://someurl.com"
+            "options": {
+                "winning_rev_only": true
+            }
         }
     ]
 }
@@ -152,11 +171,15 @@ It simply listens for the `document_changed` event and immediately sends the cha
 Multiple Webhooks::
 +
 --
-In this example we define two `webhook` event handlers, both of which use filters to decide how to process the changed document.
+In this example you define two `webhook` event handlers with different configurations.
+
+The first handler uses both a `filter` and the `winning_rev_only` option, while the second handler uses only a `filter` to decide how to process the changed document.
 
 The `filter` function in the first handler recognizes documents with `doc.type` equal to `A` and posts the documents to the URL `+http://someurl.com/type_A+`.
 
-The `filter` function in the second handler recognizes documents with `doc.type` equal to B and posts the documents to the URL `+http://someurl.com/type_B+`.
+This handler also uses the `winning_rev_only` option to prevent webhook spam during conflict resolution.
+
+The `filter` function in the second handler recognizes documents with `doc.type` equal to `B` and posts the documents to the URL `+http://someurl.com/type_B+`.
 
 [source,javascript]
 ----
@@ -164,6 +187,9 @@ The `filter` function in the second handler recognizes documents with `doc.type`
       "document_changed": [
         {"handler": "webhook",
          "url": "http://someurl.com/type_A",
+         "options": {
+            "winning_rev_only": true
+         },
          "filter": `function(doc) {
               if (doc.type == "A") {
                 return true;
