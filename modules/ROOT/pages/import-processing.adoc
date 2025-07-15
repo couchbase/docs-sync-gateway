@@ -5,7 +5,7 @@ include::partial$_set_page_context.adoc[]
 == Overview
 
 The *import process* is a key part of mobile convergence.
-It is the means by which {sgw} becomes aware of non-{sgw} data changes and obtains the mobile metadata it requires to replicate changes.
+It's the means by which {sgw} becomes aware of non-{sgw} data changes and obtains the mobile metadata it requires to replicate changes.
 
 image::shared-bucket-access.png[]
 
@@ -15,14 +15,38 @@ Any non-{sgw} change is eligible for import. For more information, refer to the 
 
 The document is first run through the Sync Function to compute read security and routing, with the following differences:
 
-* The import is processed with an admin user context in the Sync Function, similar to writes made through the {sgw} Admin API.
-This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
-* During import, `oldDoc` is `nil` when the Sync Function is executed.
+* The Sync Function processes the import using an admin user context, similar to how the {sgw} Admin API handles writes.
+This means the Sync Function treats `requireAccess`, `requireUser`, and `requireRole` calls as no-ops.
+* During import, the Sync Function executes with `oldDoc` set to `nil`.
+
+When importing a deleted document:
+
+* The `doc` object includes the `_deleted` property set to `true`.
+* The `doc` object does not include the `_id` and `_rev` fields.
+* Include an explicit check for `doc._deleted` in your import filter function to verify it handles deletions.
+
+[source,javascript]
+----
+function(doc) {
+    // Always return true for deletions so they are not ignored during import
+    if (doc._deleted === true) {
+        return true;
+    }
+    // Only import mobile-type documents
+    if (doc.type != 'mobile') {
+        return false;
+    }
+    return true;
+}
+----
+
+
+TIP: Check for `_deleted` property to avoid skipping deletion events.
 
 You can specify a filter function dynamically using xref:rest_api_admin.adoc#tag/Database-Configuration/operation/get_keyspace-_config-import_filter[/{keyspace}/_config/import_filter], or you can define one when you set up a database.
 Refer to the xref:configuration-schema-import-filter.adoc[Import Filter Configuration] documentation for more information.
 
-TIP: Use the `logging-console-log-keys` in the xref:configuration-schema-bootstrap.adoc#lbl-schema[Bootstrap Schema] log key to troubleshoot import processing issues in the logs. 
+TIP: Use the `logging-console-log-keys` in the xref:configuration-schema-bootstrap.adoc#lbl-schema[Bootstrap Schema] log key to troubleshoot import processing issues in the logs.
 
 == Function Provision
 
@@ -34,7 +58,7 @@ If you are using legacy configuration then, you need to include it in your confi
 == Configuration
 
 NOTE: You need Couchbase Lite 3.1+ and Sync Gateway 3.1+ to use `custom` Scopes and Collections. +
-If you’re using Capella App Services or Sync Gateway releases that are older than version 3.1, you won’t be able to access `custom` Scopes and Collections. 
+If you’re using Capella App Services or Sync Gateway releases that are older than version 3.1, you won’t be able to access `custom` Scopes and Collections.
 To use Couchbase Lite 3.1+ with these older versions, you can use the `default` Collection as a backup option.
 
 The configuration settings described here are provisioned through the xref:rest-api-admin.adoc[Database Configuration] endpoints.
@@ -61,7 +85,7 @@ For more information, see xref:configuration-schema-database.adoc#_database[Sync
 |===
 | Property | Description
 
-| scopename 
+| scopename
 | Represents the name of each scope
 
 | collections
