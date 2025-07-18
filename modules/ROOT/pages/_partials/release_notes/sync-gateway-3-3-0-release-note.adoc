@@ -1,21 +1,176 @@
-== 3.3.0 -- June 2025
+== 3.3.0 -- July 2025
 
 include::partial$block-caveats.adoc[tags=eventing-mixed-mode]
 
-=== TODO: New Feature
+=== Partitioned Indexes
+
+Sync Gateway 3.3 introduces support for partitioned indexes.
+Partitioned indexes offer horizontal scalability for large deployments by sharding indexes across multiple nodes.
+
+=== Disable the Public All Docs Endpoint
+
+Sync Gateway 3.3 introduces an option to disable the xref:rest_api_public.adoc#tag/Document/operation/get_keyspace-_all_docs[`GET /{keyspace}/_all_docs`] operation in the Public REST API.
+
+=== Interactive Admin Credentials for SG Collect Info
+
+In Sync Gateway 3.3 and later, the `sgcollect_info` tool provides an interactive password prompt so that you can enter administrative credentials.
+
+=== Performance Improvements for Larger Deployments
+
+Sync Gateway 3.3 includes several performance enhancements for larger deployments.
 
 For more information on new features and enhancements in this release, see xref:whatsnew.adoc[].
 
-Version 3.3.0 of Sync Gateway also delivers the following features and enhancements:
+Version 3.3.0 of Sync Gateway also delivers the following features and enhancements.
 
 [#maint-3-3-0]
 === Fixed Issues
 
-TODO: Fixes
+* https://jira.issues.couchbase.com/browse/CBG-3933[CBG-3933 -- rotated_logs_size_limit not used by ConsoleLogger's FileOutput]
+
+* https://jira.issues.couchbase.com/browse/CBG-3935[CBG-3935 -- Documents with invalid inline _sync metadata cause panic during import]
+
+* https://jira.issues.couchbase.com/browse/CBG-3947[CBG-3947 -- make config polling more resilient to timeout errors]
+
+* https://jira.issues.couchbase.com/browse/CBG-4067[CBG-4067 -- Timeout error will release document sequence as unused]
+
+* https://jira.issues.couchbase.com/browse/CBG-4186[CBG-4186 -- ISGR replicators reaching max_backoff with a reconnection error will not transition to stop]
+
+* https://jira.issues.couchbase.com/browse/CBG-4216[CBG-4216 -- Pending unused sequences shouldn't update high cache sequence]
+
+* https://jira.issues.couchbase.com/browse/CBG-4236[CBG-4236 -- Default log file permissions changed from 644 to 600]
+
+* https://jira.issues.couchbase.com/browse/CBG-4309[CBG-4309 -- Missing janitor kick in cbgt rollback]
+
+* https://jira.issues.couchbase.com/browse/CBG-4322[CBG-4322 -- sgcollect_info: logs duplicated or repeated]
+
+* https://jira.issues.couchbase.com/browse/CBG-4371[CBG-4371 -- empty files for high memory heap profiles]
+
+* https://jira.issues.couchbase.com/browse/CBG-4373[CBG-4373 -- http continuous changes requests no longer flush output]
+
+* https://jira.issues.couchbase.com/browse/CBG-4387[CBG-4387 -- remove print debugging for GET /ks/_all_docs]
+
+* https://jira.issues.couchbase.com/browse/CBG-4395[CBG-4395 -- remove debug logging for GetWithXattrs for multiple xattrs]
+
+* https://jira.issues.couchbase.com/browse/CBG-4399[CBG-4399 -- remove confusing logging when importing a tombstone with non sync xattrs]
+
+* https://jira.issues.couchbase.com/browse/CBG-4422[CBG-4422 -- Resync collections processing is nil while no documents have been processed]
+
+* https://jira.issues.couchbase.com/browse/CBG-4453[CBG-4453 -- Increase index creation retry time]
+
+* https://jira.issues.couchbase.com/browse/CBG-4462[CBG-4462 -- Leaking/duplicate status reporters across ISGR reconnection can cause 409 conflcts]
+
+* https://jira.issues.couchbase.com/browse/CBG-4478[CBG-4478 -- Db state is stuck in starting after failure in StartOnlineProcesses]
+
+* https://jira.issues.couchbase.com/browse/CBG-4512[CBG-4512 -- Sync Gateway 3.1.9+/3.2.x does not support buckets containing `.` characters]
+
+* https://jira.issues.couchbase.com/browse/CBG-4536[CBG-4536 -- ISGR fatal connection errors will leak a stats reporter goroutine]
+
+* https://jira.issues.couchbase.com/browse/CBG-4554[CBG-4554 -- import feed: not all DCP streams are open after pindex reconciliation]
+
+* https://jira.issues.couchbase.com/browse/CBG-4562[CBG-4562 -- calling GET /db/_session/sessionID returns invalidated session]
+
+* https://jira.issues.couchbase.com/browse/CBG-4570[CBG-4570 -- Audit events for database audit are enabled when no per db audit logging config is set]
+
+* https://jira.issues.couchbase.com/browse/CBG-4572[CBG-4572 -- Blip will leak nextFrameToSend goroutines if non ack'd messages are queued]
+
+* https://jira.issues.couchbase.com/browse/CBG-4597[CBG-4597 -- caching dcp feed does not utilize network connstr option]
+
+* https://jira.issues.couchbase.com/browse/CBG-4603[CBG-4603 -- Better handling of pushed deltas when a client doesn't have access to its parent revision]
+
+* https://jira.issues.couchbase.com/browse/CBG-4619[CBG-4619 -- Documents created with _attachments property in value fail to sync]
+
+* https://jira.issues.couchbase.com/browse/CBG-4654[CBG-4654 -- Server MgmtRequest panics on request failure]
+
+* https://jira.issues.couchbase.com/browse/CBG-4662[CBG-4662 -- Resync performance degrades over time]
+
+* https://jira.issues.couchbase.com/browse/CBG-4666[CBG-4666 -- Missing response Content-Type on GET /db/role/... endpoint]
+
+* https://jira.issues.couchbase.com/browse/CBG-4670[CBG-4670 -- Document import should not write the document body back to bucket]
+
+* https://jira.issues.couchbase.com/browse/CBG-4697[CBG-4697 -- Recover from panics when importing a document via DCP feed]
 
 === Enhancements
 
-TODO: Enhancements
+* https://jira.issues.couchbase.com/browse/CBG-603[CBG-603 -- Throttle changes notify broadcasts under high load to reduce CPU overhead and mutex contention]
+
+* https://jira.issues.couchbase.com/browse/CBG-2838[CBG-2838 -- Aggregate system:indexes lookups for collections]
+
+* https://jira.issues.couchbase.com/browse/CBG-3692[CBG-3692 -- Log username for login attempt when user is disabled]
+
+* https://jira.issues.couchbase.com/browse/CBG-3693[CBG-3693 -- Log username for login attempt when OIDC user doesn't exist and auto-register is disabled]
+
+* https://jira.issues.couchbase.com/browse/CBG-3694[CBG-3694 -- Log username for invalid POST /_session login attempts]
+
+* https://jira.issues.couchbase.com/browse/CBG-4006[CBG-4006 -- Increase retention time for stats logs]
+
+* https://jira.issues.couchbase.com/browse/CBG-4017[CBG-4017 -- Update go-oidc and go-jose dependencies]
+
+* https://jira.issues.couchbase.com/browse/CBG-4065[CBG-4065 -- Send User-Agent header with ISGR blipsync requests]
+
+* https://jira.issues.couchbase.com/browse/CBG-4122[CBG-4122 -- Support audit log rotation via SIGHUP]
+
+* https://jira.issues.couchbase.com/browse/CBG-4135[CBG-4135 -- Add new metric for rev cache utilization]
+
+* https://jira.issues.couchbase.com/browse/CBG-4188[CBG-4188 -- Metrics related to audit logging]
+
+* https://jira.issues.couchbase.com/browse/CBG-4273[CBG-4273 -- Remove internal BLIP/Websocket frame debug logging]
+
+* https://jira.issues.couchbase.com/browse/CBG-4306[CBG-4306 -- Log which sequences are being abandoned]
+
+* https://jira.issues.couchbase.com/browse/CBG-4348[CBG-4348 -- clarify logs around changes feed]
+
+* https://jira.issues.couchbase.com/browse/CBG-4351[CBG-4351 -- Use skiplist for skipped sequence set]
+
+* https://jira.issues.couchbase.com/browse/CBG-4441[CBG-4441 -- Optimize channel cache LogEntry struct size]
+
+* https://jira.issues.couchbase.com/browse/CBG-4456[CBG-4456 -- Add user xattr key length limit]
+
+* https://jira.issues.couchbase.com/browse/CBG-4473[CBG-4473 -- Reset resync progress when changing set of collections]
+
+* https://jira.issues.couchbase.com/browse/CBG-4493[CBG-4493 -- Improve database startup time when indexes are already initialized and online]
+
+* https://jira.issues.couchbase.com/browse/CBG-4510[CBG-4510 -- sgcollect_info will throw an exception if -vv is passed]
+
+* https://jira.issues.couchbase.com/browse/CBG-4548[CBG-4548 -- support partitioned indexes]
+
+* https://jira.issues.couchbase.com/browse/CBG-4549[CBG-4549 -- Improve resync reset logging]
+
+* https://jira.issues.couchbase.com/browse/CBG-4563[CBG-4563 -- Add an import_processed stat to help identify when import is busy/idle]
+
+* https://jira.issues.couchbase.com/browse/CBG-4565[CBG-4565 -- Support principal and partitioned index cleanup via /_post_upgrade]
+
+* https://jira.issues.couchbase.com/browse/CBG-4587[CBG-4587 -- Add new async index init API to support zero downtime partitioned index creation]
+
+* https://jira.issues.couchbase.com/browse/CBG-4607[CBG-4607 -- Support principal index creation via /db/_index_init]
+
+* https://jira.issues.couchbase.com/browse/CBG-4614[CBG-4614 -- Support new principal indexes]
+
+* https://jira.issues.couchbase.com/browse/CBG-4631[CBG-4631 -- Optimize channel cache ID usage]
+
+* https://jira.issues.couchbase.com/browse/CBG-4632[CBG-4632 -- Optimize channel cache memory allocations (avoid slice growth alloc)]
+
+* https://jira.issues.couchbase.com/browse/CBG-4633[CBG-4633 -- Optimize channel cache memory allocations (avoid redundant map allocs)]
+
+* https://jira.issues.couchbase.com/browse/CBG-4634[CBG-4634 -- Move initialSequence in the cache outside cache mutex ]
+
+* https://jira.issues.couchbase.com/browse/CBG-4635[CBG-4635 -- Reduce cache mutex churn for recent sequences in doc changed handling]
+
+* https://jira.issues.couchbase.com/browse/CBG-4636[CBG-4636 -- Check skipped sequences from potential deduped entries in recent sequences]
+
+* https://jira.issues.couchbase.com/browse/CBG-4658[CBG-4658 -- Prevent javascript stack overflow]
+
+* https://jira.issues.couchbase.com/browse/CBG-4661[CBG-4661 -- Optimize DCP document key filtering]
+
+* https://jira.issues.couchbase.com/browse/CBG-4664[CBG-4664 -- Add metrics for Resync]
+
+* https://jira.issues.couchbase.com/browse/CBG-4669[CBG-4669 -- Reduce redundant info-level resync logging]
+
+* https://jira.issues.couchbase.com/browse/CBG-4684[CBG-4684 -- sgcollect_info: remove defunct -d flag]
+
+* https://jira.issues.couchbase.com/browse/CBG-4688[CBG-4688 -- Bump Go version]
+
+* https://jira.issues.couchbase.com/browse/CBG-4712[CBG-4712 -- Support non-default admin API port with /sgcollect_info REST API]
 
 === Known Issues
 
@@ -23,6 +178,8 @@ None for this release.
 
 === Deprecations
 
-TODO: Deprecations
+* https://jira.issues.couchbase.com/browse/CBG-4575[CBG-4575 -- Set default value of allow_conflicts to false]
+
+* https://jira.issues.couchbase.com/browse/CBG-4617[CBG-4617 -- Allow public /_all_docs endpoint to be disabled]
 
 NOTE: For an overview of the latest features offered in Sync Gateway 3.3, see xref:whatsnew.adoc[].
