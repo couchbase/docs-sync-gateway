@@ -28,7 +28,7 @@ The following issues can arise:
 
 * You must design Eventing functions that properly modify documents in replicated buckets.
 * Without protection logic, these functions can create infinite replication loops.
-* This typically occurs when you deploy the same Eventing function on both the source and target clusters.
+* This typically occurs when you deploy the same Eventing function that updates the source documents on both of the clusters in an active-active replication topology.
 
 == Understanding the Replication Loop Issue
 
@@ -36,6 +36,8 @@ The following issues can arise:
 === Example: Enriching IP Address Documents
 
 Consider this example function, based on `case_2_enrich_ips` from the Couchbase Eventing documentation:
+
+The `case_2_enrich_ips` function, on mutation of a document, enriches the mutated document in the same collection with additional fields, `ip_num_start` and `ip_num_end`.
 
 [source,javascript]
 ----
@@ -82,7 +84,8 @@ This behavior repeats indefinitely due to the mutual triggering of updates.
 [#lbl-prevent-redundant]
 === Basic Protection: Field Presence Check
 
-A simple way to avoid loops is to check whether the document has already been enriched.
+One way to avoid loops is to check whether the document has already been enriched.
+The OnUpdate Eventing function below includes a check at the top to return if the additional fields already exist in the document.
 
 [source,javascript]
 ----
