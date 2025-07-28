@@ -31,7 +31,7 @@ PATH_TO_SYNC_GATEWAY="${GIT_ROOT}/sync_gateway"
 PATH_TO_BUNDLE="${GIT_ROOT}/modules/ROOT/assets/attachments"
 PATH_TO_OVERLAY="${GIT_ROOT}/modules/ROOT/assets/overlays"
 PATH_TO_TEMP="${GIT_ROOT}/modules/ROOT/assets/bld"
-PATH_TO_STATIC="${GIT_ROOT}"
+PATH_TO_STATIC="${GIT_ROOT}/modules/ROOT/pages/_partials/static_restapi"
 
 # Create a bld directory to hold temporary files, if it doesn't already exist
 [[ -d "${PATH_TO_TEMP}" ]] || mkdir "${PATH_TO_TEMP}"

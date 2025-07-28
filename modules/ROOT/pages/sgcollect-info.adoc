@@ -2,7 +2,7 @@
 ifdef::show_edition[:page-edition: {release}]
 ifdef::prerelease[:page-status: {prerelease}]
 :page-role:
-:description: pass:q[Using _sgcollect_ to gather system information, diagnostics and metrics]
+:description: pass:q[Using _sgcollect_info_ to gather system information, diagnostics and metrics]
 
 
 include::partial$_set_page_context.adoc[]
@@ -10,7 +10,7 @@ include::partial$_set_page_context.adoc[]
 
 // BEGIN -- Page Header
 :topic-group: monitor
-:param-abstract: pass:q[This topic describes the command line utility, _sgcollect_, its use and the output it collates.]
+:param-abstract: pass:q[This topic describes the command line utility, _sgcollect_info_, its use and the output it collates.]
 include::partial$_show_page_header_block.adoc[]
 // END -- Page Header
 
@@ -49,7 +49,7 @@ curl -X POST \
   }'
 ----
 
-<.> Using a Basic Auth to authenticate to an existing user. 
+<.> Using a Basic Auth to authenticate to an existing user.
 
 When you set `admin_interface_authentication` to `true` in your Sync Gateway configuration, include proper authentication headers in your requests.
 
@@ -63,10 +63,16 @@ To see the CLI command line parameters, run:
 ./sgcollect_info --help
 ----
 
-You can use `sgcollect` to collect and save information locally and-or to collect and upload the information to Couchbase -- see: <<ex-collect>>.
+In Sync Gateway 3.3 and later, the `--sync-gateway-password` option has been removed from `sgcollect_info` as a security precaution.
+When you specify the `--sync-gateway-username` option, `sgcollect_info` prompts you to enter the password interactively.
+Attempting to use the `--sync-gateway-password` option causes an error, with instructions for next steps.
+
+Alternatively, you can specify credentials using the `SG_USERNAME` and `SG_PASSWORD` environment variables to avoid the prompt.
+
+You can use `sgcollect_info` to collect and save information locally, or to collect and upload the information to Couchbase -- see: <<ex-collect>>.
 
 [#ex-collect]
-.Using sgcollect
+.Using sgcollect_info
 =====
 
 [{tabs}]
@@ -77,8 +83,13 @@ Collect and Save Locally::
 --
 [source,bash]
 ----
-./sgcollect_info /tmp/sgcollect_info.zip
+./sgcollect_info \
+  --sync-gateway-url=https://127.0.0.1:4985 \
+  --sync-gateway-username=Admin \
+  /tmp/sgcollect_info.zip
 ----
+
+When prompted, enter the password.
 --
 
 Collect and Upload to Couchbase::
@@ -90,16 +101,16 @@ Collect Sync Gateway diagnostics and upload them to Couchbase Support:
 [source,bash]
 ----
 ./sgcollect_info \
-  --sync-gateway-config=/path/to/config.json \
-  --sync-gateway-executable=/usr/bin/sync_gateway \
+  --sync-gateway-url=https://127.0.0.1:4985 \
   --sync-gateway-username=Admin \
-  --sync-gateway-password=password \
   --log-redaction-level=partial \
   --upload-host=uploads.couchbase.com \
   --customer=Acme \
   --ticket=123 \
   /tmp/sgcollect_info.zip
 ----
+
+When prompted, enter the password.
 --
 ====
 =====

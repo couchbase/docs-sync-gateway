@@ -16,83 +16,60 @@ include::ROOT:partial$_set_page_context.adoc[]
 :param-related: {xref-sgw-pg-release-notes}
 include::partial$_show_page_header_block.adoc[]
 
-[WARNING]
---
+include::partial$block-caveats.adoc[tags=eventing-mixed-mode]
 
-Do not deploy Eventing/Sync Gateway until all SGW nodes are at version 3.2.
-For earlier Sync Gateway versions that do not write import XATTRs, Eventing functions may encounter infinite recursions and duplicate mutations if deployed in a mixed mode SGW environment.
-This occurs if you have a mixed installation consisting of Sync Gateway 3.2 and an earlier version, and you deploy a new Eventing or Sync Gateway function during an upgrade.
+== Release 3.3.0 (July 2025)
 
---
+=== New Features
 
-== Release 3.2.6 (July 2025)
+==== Partitioned Indexes
 
-Sync Gateway 3.2.6 is a maintenance release.
+Sync Gateway 3.3 introduces support for partitioned indexes.
+Partitioned indexes offer horizontal scalability for large deployments by sharding indexes across multiple nodes.
+Only `allDocs` and `channels` indexes can be partitioned.
 
-For more information about all changes within this maintenance release, see xref:3.2@release-notes.adoc[3.2 release notes].
+Partitioned indexes are not intended for general use in Sync Gateway.
+They may decrease performance, as each partition is queried separately and results are aggregated.
 
-== Release 3.2.5 (June 2025)
+You should only migrate to partitioned indexes in cases where you are using memory-optimized indexes which exceed the memory capacity of a single index node, and you cannot reduce the index size using collections or database sharding.
 
-Sync Gateway 3.2.5 is a maintenance release.
+For more information, see xref:index-partitions.adoc[].
 
-For more information about all changes within this maintenance release, see xref:3.2@release-notes.adoc[3.2 release notes].
+==== Disable the Public All Docs Endpoint
 
-== Release 3.2.4 (April 2025)
+Sync Gateway 3.3 introduces an option to disable the xref:rest_api_public.adoc#tag/Document/operation/get_keyspace-_all_docs[`GET /{keyspace}/_all_docs`] operation in the Public REST API.
+That operation is intended mainly for debugging in a small setup.
+With a large number of documents, it may lead to timeouts and out-of-memory conditions on the Query nodes.
 
-Sync Gateway 3.2.4 is a maintenance release.
+In any sizeable setup, it is recommended that you should instead use the xref:rest_api_public.adoc#tag/Database-Management/operation/get_keyspace-_changes[`GET /{keyspace}/_changes`] operation to get all documents for a user, or the xref:rest_api_public.adoc#tag/Document/operation/post_keyspace-_bulk_docs[`POST /{keyspace}/_bulk_docs`] operation to return a specific subset of documents.
 
-For more information about all changes within this maintenance release, see xref:3.2@release-notes.adoc[3.2 release notes].
+To disable the xref:rest_api_public.adoc#tag/Document/operation/get_keyspace-_all_docs[`GET /{keyspace}/_all_docs`] operation in the Public REST API, set xref:configuration-schema-database.adoc#disable_public_all_docs[`disable_public_all_docs`] to `true` in the database configuration.
+This option is set to `false` by default; it will be set to `true` by default in a future release.
 
-== Release 3.2.3 (March 2025)
+==== Interactive Admin Credentials for SG Collect Info
 
-Sync Gateway 3.2.3 is a maintenance release.
+In Sync Gateway 3.3 and later, the `--sync-gateway-password` command line argument has been removed from `sgcollect_info` for security reasons.
+When you specify the `--sync-gateway-username` option, `sgcollect_info` prompts you to enter the password interactively.
+Attempting to use the `--sync-gateway-password` option causes an error, with instructions for next steps.
 
-For more information about all changes within this maintenance release, see xref:3.2@release-notes.adoc[3.2 release notes].
+Alternatively, you can set credentials using the `SG_USERNAME` and `SG_PASSWORD` environment variables to avoid the prompt.
 
-== Release 3.2.2 (February 2025)
+For more information, see xref:sgcollect-info.adoc[].
 
-Sync Gateway 3.2.2 is a maintenance release that addresses the following:
+==== Performance Improvements for Larger Deployments
 
-* Fixes and improvements to revcache on-demand imports.
-
-* Improving cleanup processes during rollback of the import feed.
-
-* Additional stats to track background N1QL queries.
-
-For more information about all changes within this maintenance release, see xref:3.2@release-notes.adoc[3.2 release notes].
-
-== Release 3.2.1 (October 2024)
-
-=== Additional Rev Cache Configuration Option
-
-You can now specify a memory limit on your rev cache with the `rev_cache.max_memory_count_mb` configuration option.
-You can use this option alongside existing configurable limits to the number of documents in the rev cache to reduce the risk of Out of Memory (OOM) issues.
-
-For more information, see xref:configuration-schema-database.adoc#cache-rev_cache-max_memory_count_mb[Rev Cache Max Memory Count Config Option].
-
-== Release 3.2.0 (September 2024)
-
-=== Eventing Support with Sync Gateway 3.2.0+ and Couchbase Server 7.6.3+
-
-Sync Gateway 3.2.0 now supports improved interoperability with Eventing from Couchbase Server version 7.6.3+.
-
-You can now create Eventing functions with read-write bindings with the source bucket associated with a Sync Gateway database.
-You can use Eventing to handle data changes that happen when applications interact and to integrate with other Couchbase services such as Data, Query and Full Text Search.
-
-For more information, see xref:server-compatibility-eventing.adoc[]
-
-=== Audit Logging Support
-
-Couchbase now provides Audit Logging support for Sync Gateway. Audit Logging provides tools for administrators to track operational irregularities and to support regulatory and security compliance standards, such as link:https://www.hhs.gov/hipaa/index.html[HIPAA] and link:https://soc2.co.uk/soc2[SOC-2].
-For more information, see xref:audit-logging.adoc[].
+Sync Gateway 3.3 includes several performance enhancements for larger deployments.
+Change notification processing has been optimized to better support high volumes of connected clients per Sync Gateway node.
+Channel cache memory and CPU utilization has been optimized, particularly under high write load.
+Finally, memory and CPU usage associated with skipped sequence processing, which commonly occurs under high write load, has been reduced.
 
 == See Also
 
-xref:3.1@sync-gateway:ROOT:whatsnew.adoc[What's new in previous version 3.1].
+xref:3.2@sync-gateway:ROOT:whatsnew.adoc[What's new in previous version 3.2].
 
 === Sync Gateway Release Notes
 
-xref:3.2@release-notes.adoc[Read the full 3.2 release notes here].
+xref:3.3@release-notes.adoc[Read the full 3.3 release notes here].
 
 == Upgrading
 

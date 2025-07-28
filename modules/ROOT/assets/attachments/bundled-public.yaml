@@ -1,12 +1,12 @@
 openapi: 3.0.3
 info:
-  version: '3.2'
   title: Sync Gateway Public REST API
   description: |-
     # Introduction
 
     Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server.
     The Sync Gateway Public REST API is used for client replication.
+  version: '3.3'
   license:
     name: Business Source License 1.1 (BSL)
     url: https://github.com/couchbase/sync_gateway/blob/master/LICENSE
@@ -61,7 +61,7 @@ paths:
       responses:
         '200':
           description: Properties associated with a user session
-          content: &ref_72
+          content: &ref_74
             application/json:
               schema:
                 type: object
@@ -307,7 +307,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_65
+                properties: &ref_67
                   ADMIN:
                     description: '`true` if the request is from the Admin API - otherwise omitted.'
                     type: boolean
@@ -317,21 +317,23 @@ paths:
                     type: string
                     example: Welcome
                   vendor:
-                    description: Product vendor
-                    type: object
-                    properties:
-                      name:
-                        description: Product name
-                        type: string
-                        example: Couchbase Sync Gateway
-                      version:
-                        description: |-
-                          API version.
-                          Omitted if `api.hide_product_version=true`
-                        type: string
-                        example: 3.1
-                    required:
-                      - name
+                    allOf:
+                      - description: Product vendor
+                        type: object
+                        properties: &ref_65
+                          name:
+                            description: Product name
+                            type: string
+                            example: Couchbase Sync Gateway
+                          version:
+                            description: |-
+                              API version.
+                              Omitted if `api.hide_product_version=true`
+                            type: string
+                            example: 3.1
+                        required: &ref_66
+                          - name
+                        title: Vendor
                   version:
                     description: |-
                       Product version, including the build number and edition (i.e. `EE` or `CE`)
@@ -344,7 +346,7 @@ paths:
                       `true` if the sync gateway node is running in persistent config mode.
                     type: boolean
                     example: true
-                required: &ref_66
+                required: &ref_68
                   - couchdb
                   - vendor
       tags:
@@ -966,7 +968,7 @@ paths:
           required: false
           schema: &ref_59
             type: boolean
-            default: 'true'
+            default: true
           description: Setting this to false indicates that the request body is an already-existing revision that should be directly inserted into the database, instead of a modification to apply to the current document. This mode is used for replication.  This option must be used in conjunction with the `_revisions` property in the request body.
         - name: rev
           in: query
@@ -1040,7 +1042,7 @@ paths:
       responses:
         '200':
           description: New revision created successfully
-          content: &ref_73
+          content: &ref_75
             application/json:
               schema:
                 description: Properties returned when a new document revision is created
@@ -1160,7 +1162,7 @@ paths:
           description: Set to false to disable the `Content-Encoding` response header.
           schema:
             type: boolean
-            default: 'true'
+            default: true
         - name: Range
           in: header
           description: RFC-2616 bytes range header.
@@ -1172,7 +1174,7 @@ paths:
           description: Return only the metadata of the attachment in the response body.
           schema:
             type: boolean
-            default: 'false'
+            default: false
       responses:
         '200':
           description: Found attachment successfully.
@@ -1364,7 +1366,7 @@ paths:
           description: Set true to exclude deleted documents and notifications for documents the user no longer has access to from the changes feed.
           schema:
             type: boolean
-            default: 'false'
+            default: false
         - name: include_docs
           in: query
           required: false
@@ -1398,11 +1400,10 @@ paths:
               type: string
         - name: heartbeat
           in: query
-          description: The interval (in milliseconds) to send an empty line (CRLF) in the response. This is to help prevent gateways from deciding the socket is idle and therefore closing it. This is only applicable to `feed=longpoll` or `feed=continuous`. This will override any timeouts to keep the feed alive indefinitely. Setting to 0 results in no heartbeat. The maximum heartbeat can be set in the server replication configuration.
+          description: The interval (in milliseconds) to send an empty line (CRLF) in the response. This is to help prevent gateways from deciding the socket is idle and therefore closing it. This is only applicable to `feed=longpoll` or `feed=continuous`. This will override any timeouts to keep the feed alive indefinitely. Setting to 0 results in no heartbeat. The maximum heartbeat can be set in the server replication configuration. If heartbeat is non zero, it must be at least 25000 milliseconds.
           schema:
             type: integer
             default: 0
-            minimum: 25000
         - name: timeout
           in: query
           description: This is the maximum period (in milliseconds) to wait for a change before the response is sent, even if there are no results. This is only applicable for `feed=longpoll` or `feed=continuous` changes feeds. Setting to 0 results in no timeout.
@@ -1430,7 +1431,7 @@ paths:
               schema:
                 description: Properties of a changes feed
                 type: object
-                properties: &ref_67
+                properties: &ref_69
                   results:
                     type: array
                     items:
@@ -1536,7 +1537,11 @@ paths:
           A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
     get:
       summary: Gets all the documents in the database with the given parameters
-      description: Returns all documents in the database based on the specified parameters.
+      description: |-
+        Returns all documents in the database based on the specified parameters.
+
+        This endpoint is not recommended for larger datasets or production workloads.
+        [GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or [POST /{keyspace}/_bulk_get](#operation/post_keyspace-_bulk_get) have more efficient implementations and should be used instead.
       parameters:
         - name: include_docs
           in: query
@@ -1622,6 +1627,15 @@ paths:
         '400':
           description: There was a problem with your request
           content: *ref_14
+        '403':
+          description: This API endpoint has been disabled by the administrator.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: *ref_0
+                required: *ref_1
+                title: HTTP-Error
         '404':
           description: Resource could not be found
           content: *ref_2
@@ -1630,7 +1644,11 @@ paths:
       operationId: get_keyspace-_all_docs
     post:
       summary: Get all the documents in the database using a built-in view
-      description: Returns all documents in the database based on the specified parameters.
+      description: |-
+        Returns all documents in the database based on the specified parameters.
+
+        This endpoint is not recommended for larger datasets or production workloads.
+        [GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or [POST /{keyspace}/_bulk_get](#operation/post_keyspace-_bulk_get) have more efficient implementations and should be used instead.
       parameters:
         - name: include_docs
           in: query
@@ -1692,6 +1710,15 @@ paths:
         '400':
           description: There was a problem with your request
           content: *ref_14
+        '403':
+          description: This API endpoint has been disabled by the administrator.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: *ref_0
+                required: *ref_1
+                title: HTTP-Error
         '404':
           description: Resource could not be found
           content: *ref_2
@@ -1838,7 +1865,7 @@ paths:
           description: This is for whether to include attachments in each of the documents returned or not.
           schema:
             type: boolean
-            default: 'false'
+            default: false
         - name: revs
           in: query
           required: false
@@ -2187,7 +2214,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_68
+                properties: &ref_70
                   id_token:
                     description: The OpenID Connect ID token
                     type: string
@@ -2429,12 +2456,12 @@ paths:
       responses:
         '200':
           description: Properties expected back from an OpenID Connect provider after successful authentication
-          content: &ref_74
+          content: &ref_76
             application/json:
               schema:
                 description: Properties expected back from an OpenID Connect provider after successful authentication
                 type: object
-                properties: &ref_69
+                properties: &ref_71
                   access_token:
                     type: string
                   token_type:
@@ -2593,12 +2620,12 @@ paths:
           schema: *ref_40
           description: The OpenID Connect authentication scope.
       requestBody:
-        content: &ref_75
+        content: &ref_77
           application/json:
             schema:
               description: Properties passed from the OpenID Connect mock login page to the handler
               type: object
-              properties: &ref_70
+              properties: &ref_72
                 username:
                   type: string
                 tokenttl:
@@ -2607,7 +2634,7 @@ paths:
                   type: string
                 authenticated:
                   type: string
-              required: &ref_71
+              required: &ref_73
                 - username
                 - tokenttl
                 - identity-token-formats
@@ -3140,10 +3167,16 @@ components:
       type: string
       enum: *ref_63
       x-enumDescriptions: *ref_64
-    NodeInfo:
+    Vendor:
+      description: Product vendor
       type: object
       properties: *ref_65
       required: *ref_66
+      title: Vendor
+    NodeInfo:
+      type: object
+      properties: *ref_67
+      required: *ref_68
     Document:
       description: The configurable Sync Gateway properties of a document.
       type: object
@@ -3162,25 +3195,25 @@ components:
     Changes-feed:
       description: Properties of a changes feed
       type: object
-      properties: *ref_67
+      properties: *ref_69
     OIDC-callback:
       type: object
-      properties: *ref_68
+      properties: *ref_70
       title: OpenID Connect callback properties
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
       type: object
-      properties: *ref_69
+      properties: *ref_71
       title: OIDC-token
     OIDC-login-page-handler:
       description: Properties passed from the OpenID Connect mock login page to the handler
       type: object
-      properties: *ref_70
-      required: *ref_71
+      properties: *ref_72
+      required: *ref_73
   responses:
     User-session-information:
       description: Properties associated with a user session
-      content: *ref_72
+      content: *ref_74
     Not-found:
       description: Resource could not be found
       content: *ref_2
@@ -3206,7 +3239,7 @@ components:
       content: *ref_18
     New-revision:
       description: New revision created successfully
-      content: *ref_73
+      content: *ref_75
     changes-feed:
       description: Successfully returned the changes feed
       content: *ref_26
@@ -3230,11 +3263,11 @@ components:
       content: *ref_42
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
-      content: *ref_74
+      content: *ref_76
     OIDC-testing-redirect:
       description: Redirecting to Sync Gateway OpenID Connect callback URL
       headers: *ref_44
   requestBodies:
     OIDC-login-page-handler:
-      content: *ref_75
+      content: *ref_77
       description: Properties passed from the OpenID Connect mock login page to the handler
