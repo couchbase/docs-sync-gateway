@@ -95,12 +95,13 @@ You can vary the number of retained revisions using the Configuration File's
 {configuration-schema-database--xref--revs-limit}
 setting.
 
-So, for example, with a `revs_limit` of 1,000 the algorithm will keep the last 1,000 revisions in the shortest non-tombstoned branch and remove any others from that branch.
+The algorithm keeps the configured number of revisions (`revs_limit`) in the shortest non-tombstoned branch and removes all older revisions from that branch.
+For applications using Couchbase Lite 2.x+ with automatic conflict resolution, low `revs_limit` values, even as low as 1, provide optimal performance and storage efficiency.
 
 [NOTE]
 --
-Do not set `revs_limit` below 100 when `allow_conflicts = true` +
-*Otherwise* ... you may adversely affect the conflict resolution process, as there may be insufficient revision history to resolve a given conflict.
+Do not set `revs_limit` below 100 when `allow_conflicts` = true
+This setting may affect the conflict resolution process, as insufficient revision history may prevent resolving conflicts.
 --
 
 The default and minimum values of `revs_limit` are dependent on whether
@@ -113,17 +114,25 @@ On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstone
 
 If there are conflicting revisions, the document may end up with **disconnected branches** after the pruning process.
 
-In the animation below, the document has a conflicting branch (revisions `4'` - `1001'`).
-When the shortest branch (in this case the conflicting branch) reaches the 1003rd update, it gets is cut off.
+In the animation below, the document has a conflicting branch.
+When the shortest branch reaches the `revs_limit` threshold, pruning cuts it off.
 The revision tree is not in a corrupted state and the logic that chooses the winning revision still applies.
-But it may make it impossible to do certain merges (n-way merge) to resolve conflicts and will occupy disk space that could have been freed if the conflict was resolved early on.
+This prevents certain merge operations (`n-way` merge) from resolving conflicts and reduces disk space that conflict resolution could free.
+
+
+NOTE: Couchbase deprecated `allow_conflicts = true` in Sync Gateway 3.1.
+Modern applications use `allow_conflicts = false` by default, which enables automatic conflict resolution and allows `revs_limit` values as low as 1.
 
 .Pruning
 image::https://cl.ly/3C1G3t3R1v19/pruning-sg.gif[]
 
 If the revision tree gets into this state then the only option to resolve the conflict is to pick a winning branch and tombstone all the non-winning conflicting branches.
 
-NOTE: Setting the `revs_limit` to a value below 100 when `allow_conflicts = true` may adversely affect the conflict resolution process, as there may be insufficient revision history to resolve a given conflict.
+NOTE: Setting `revs_limit` below 100 when `allow_conflicts` = `true` may affect conflict resolution due to insufficient revision history.
+However, with automatic conflict resolution (`allow_conflicts` = `false`), applications can safely use much lower `revs_limit` values.
+
+Default and minimum `revs_limit` values depend on conflict handling configuration.
+Higher values primarily serve legacy conflict handling requirements:
 
 .Default and Minimum Values
 [#tbl_min_default_vals,cols="^1,^2,^2,^2"]
@@ -150,12 +159,24 @@ h| True h| False
 |===
 
 
+[#lbl-rtresolution]
+=== Automatic Conflict Resolution
+Couchbase Lite 2.0 introduced automatic conflict resolution that dramatically reduces revision history requirements.
+With `allow_conflicts` = `false`, the default configuration, Couchbase Lite resolves conflicts automatically during replication, eliminating the need for extensive revision trees.
+
+During pull replication, Couchbase Lite detects conflicts and applies automatic resolution rules where the most recent change takes precedence and deletions have priority.
+This conflict-free approach allows you to set `revs_limit` to low values—even 1—without affecting functionality.
+
+NOTE: Use default `revs_limit` values for new applications.
+Higher values provide no performance benefit and can increase storage overhead.
+
+
 [#lbl-rtcons]
 === Constraints
 The default and minimum values of `revs_limit` are dependent on whether {configuration-schema-database--xref--allow-conflicts} is True or False.
 
 The presence of multiple unresolved conflicts in a revision tree can impair the pruning process.
-It may result in obsolete revisions not being pruned or in the premature pruning of revisions.
+This can cause the pruning algorithm to skip obsolete revisions or to prune revisions prematurely.
 
 
 [#lbl-rt-more]
@@ -184,7 +205,7 @@ You can control the size of the revision cache using the {configuration-schema-d
 [#lbl-cache-limit-config]
 === Cache Limit Configuration
 
-There are two ways to configure the size of the revision cache: set a memory limit in MB using xref:configuration-schema-database.adoc#cache-rev_cache-max_memory_count_mb[`rev_cache.max_memory_count_mb`], or set the maximum number of document revisions in cache xref:configuration-schema-database.adoc#cache-rev_cache_size[`rev_cache.size`]. 
+There are two ways to configure the size of the revision cache: set a memory limit in MB using xref:configuration-schema-database.adoc#cache-rev_cache-max_memory_count_mb[`rev_cache.max_memory_count_mb`], or set the maximum number of document revisions in cache xref:configuration-schema-database.adoc#cache-rev_cache_size[`rev_cache.size`].
 These configurations allow you to configure both limits to the number of documents and the maximum memory usage within the rev cache to reduce the risk of Out of Memory (OOM) issues.
 If both configs are set, this results in eviction behavior of the rev cache based on both the memory footprint and number of items in the cache. If any of these limits are reached, cache eviction will be performed.
 
@@ -200,7 +221,7 @@ This can be useful when working on servers with limited memory and in cases when
 ==== Cache Maximum Memory
 
 You can use the xref:configuration-schema-database.adoc#cache-rev_cache-max_memory_count_mb[`rev_cache.max_memory_count_mb`] setting to specify the maximum amount of memory the revision cache should take up in MB.
-Setting the value to `0` will disable any eviction based on memory at rev cache. 
+Setting the value to `0` will disable any eviction based on memory at rev cache.
 
 IMPORTANT: `rev_cache.max_memory_count_mb` is an Enterprise only setting.
 
