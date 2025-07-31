@@ -86,24 +86,18 @@ include::partial$sgw-supported-os.adoc[tags=sup-os-cloud]
 
 == Cluster Configuration for Sync Gateway
 
-We will create a new cluster on a fresh Couchbase Server installation.
+Create a new cluster on a fresh Couchbase Server installation.
 
 . Access the Admin Console at `+http://localhost:8091+`
 +
-image::couchbase-new-installation.png[, 300]
-+
-. Click btn:[Setup New Cluster]
+. Select btn:[Setup New Cluster]
 . Fill in the details for the new cluster on the `New Cluster` screen:
-+
-image::new-cluster-details.png[,400]
 +
 . Then press btn:[Next: Accept Terms]
 . On the `Terms and Conditions` screen, accept the terms and conditions,
-then click on btn:[Configure Disk, Memory, Services] to configure the cluster.
+then Select btn:[Configure Disk, Memory, Services] to configure the cluster.
 +
-image::configure-cluster-for-sync-gateway.png[,400]
-+
-. Ensure that you have selected `Data`, `Query`, and `Index` before clicking on btn:[Save {amp} Finish]
+. Verify that you have selected `Data`, `Query`, and `Index` before selecting btn:[Save {amp} Finish]
 
 [#configure-server]
 == Configure Server for Sync Gateway
@@ -111,7 +105,7 @@ image::configure-cluster-for-sync-gateway.png[,400]
 
 === Step {counter: step} -- Create a Bucket
 
-We will use this bucket to test the deployment of Sync Gateway, later in the Getting Started section.
+Use this bucket to test the deployment of Sync Gateway, later in the Getting Started section.
 
 . Login to Couchbase Server's Admin Console
 [upperroman]
@@ -121,24 +115,19 @@ We will use this bucket to test the deployment of Sync Gateway, later in the Get
 . Within the Admin Console's toolbar,
 [upperroman]
 .. Select the *Buckets* tab
-.. btn:[Add Bucket] to continue
-+
-image::cb-create-bucket.png[]
-.. In the pop-up window, enter *get-started-bucket* for the *name* and click *Add Bucket*.
+.. Select btn:[Add Bucket] to continue
+.. In the pop-up window, enter *get-started-bucket* for the *name* and select *Add Bucket*.
 You can leave the other options to their defaults.
 +
 include::partial$block-caveats.adoc[tags="ephemeral-buckets"]
-
-+
-image::cb-create-bucket-popup.png[]
 
 
 === Step {counter: step} -- Create RBAC User
 
 // tag::create-rbac-user[]
 
-You will need to create at least one RBAC user in Couchbase Server as {sgw} requires RBAC user credentials to authenticate and authorize access not only to Couchbase Server buckets, but also to its Admin and Metrics API.
-If you plan to use these API then you are advised to create at least one user  for each of:
+You'll need to create at least one RBAC user in Couchbase Server as {sgw} requires RBAC user credentials to authenticate and authorize access not only to Couchbase Server buckets, but also to its Admin and Metrics API.
+If you plan to use these API then create at least one user for each of:
 
 * Couchbase Server Access +
 Add an RBAC user that Sync Gateway uses to authenticate and authorize access to Couchbase Server.
@@ -150,77 +139,9 @@ Use the _Full Admin_ role.
 Add an RBAC user that devops can use to authenticate and authorize access to the {sgw} Metrics REST API
 Use the _Read-Only Admin_ or _Application Access_ roles.
 
-Enterprise edition users can exert a finer-grained control using additional roles appropriate to the functionality required for the specific user.
+Enterprise edition users can exert a finer-grained control using additional roles appropriate to the capabilities required for the specific user.
 
-For more on creating Couchbase Server users see: {server-manage-security-users-and-roles--xref}.
-
-.How-to
-
-. Within _Couchbase Server's Dashboard_, *Open* the *Security* tab and click the *Add User* button.
-+
-image::create-user.png[]
-
-. Create the RBAC user with appropriate access roles, this will differ for each of the user types.
-+
-The steps for this are shown in <<rbac-roles>>. Note that they differ, depending on your Couchbase Server version.
-+
-[#rbac-roles]
-.Select RBAC roles
-=====
-[{tabs}]
-====
-Couchbase Server 6.6+ (Enterprise)::
-+
---
-include::partial$block-caveats.adoc[tags=ee-only-feature, subs=attributes]
-
-. In the pop-up window, provide
-** A Username (`sync_gateway`)
-** A Password (`password`).
-
-. Assign the _Sync Gateway_ role to the user
-+
-xref:server:learn:security/roles.adoc#sync-gateway[Sync Gateway RBAC Role Description]
-+
-image::user-settings-6-6.png[,450]
-
-+
-NOTE: Users are encouraged to move away from using the _Application Access_ and _Read-Only Admin_ roles for this purpose.
-
---
-
-Couchbase Server 5.5 - 7.x::
-+
---
-. In the pop-up window, provide:
-** A Username (`sync_gateway`)
-** A Password (`password`).
-
-. Assign these RBAC roles to the user(as shown on the image below):
-
-** Application Access
-** Read Only Admin
-+
-image::user-settings-5-5.png[,450]
---
-
-Couchbase Server 5.1::
-+
---
-. In the pop-up window, provide:
-** A Username (`sync_gateway`)
-** A Password* (`password`).
-
-. Assign these RBAC roles to the user:
-** Bucket Full Access
-** Read Only Admin
-
-image::user-settings.png[,450]
---
-====
-=====
-
-
+NOTE: For more on creating Couchbase Server users see: {server-manage-security-users-and-roles--xref}.
 
 // end::create-rbac-user[]
 
