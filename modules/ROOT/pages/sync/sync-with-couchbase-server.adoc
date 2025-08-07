@@ -56,6 +56,8 @@ Mobile applications require additional metadata in order to manage security and 
 
 {sgw-t} stores this information using {cbs} XATTRs (see {cbs} documentation on {server-data-xattr-fundamentals--xref}).
 
+CAUTION: Bi-directional XDCR is only supported in Sync Gateway 4.0.
+For earlier versions, upgrade to 4.0 to use bi-directional XDCR.
 
 === Extended Attributes (XATTRs)
 
@@ -139,6 +141,9 @@ SELECT meta().xattrs._sync FROM scope.collection WHERE meta().id = "mydocId"
 ====
 
 WARNING: {sgw} maintains the sync metadata internally, and its structure can change at any time.
+Applications must not use it for business logic.
+The direct use of the {sqlpp} query or modifying the internal sync metadata contents to drive the business logic is unsupported and must not be used in production environments.
+WARNING: {sgw-t} maintains the sync metadata internally, and its structure can change at any time.
 Applications must not use it for business logic.
 The direct use of the {sqlpp} query or modifying the internal sync metadata contents to drive the business logic is unsupported and must not be used in production environments.
 The sync metadata includes the `_sync` extended attribute (XATTR) in use case documents and all `_sync:` prefixed documents in Sync Gateway connected Buckets.
