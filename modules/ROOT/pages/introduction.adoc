@@ -1,32 +1,17 @@
-= Introduction
-ifdef::show_edition[:page-edition: {release}]
-ifdef::prerelease[:page-status: {prerelease}]
-:page-role:
-:page-partial:
-:description: pass:q[A short introduction to _Couchbase's Sync Gateway_ and how to get started using it.]
+= Sync Gateway
+:navtitle: Sync Gateway
+:description: Sync Gateway is a secure, high-performance gateway designed for cloud-to-edge data synchronization.
+// Handles boilerplate logic for landing page tiles layout
+:page-role: tiles -toc
+:!sectids:
 
 
-include::partial$_set_page_context.adoc[]
 
+Sync Gateway is a secure, high-performance gateway designed for cloud-to-edge data synchronization.
+It serves as the synchronization server in a Couchbase Mobile deployment, enabling mobile, web, and IoT applications to view and sync data with Couchbase Server.
 
-// BEGIN -- Page Heading
-:topic-group: Start Here!
-:param-abstract: pass:q[This is *Step 1* in Sync Gateway's Start Here! topic group.]
-:param-related: {get-started-prepare--xref}  |  {get-started-install--xref}  |  {get-started-verify-install--xref}
-include::partial$_show_page_header_block.adoc[]
-// END -- Page Heading
-
-
-== Getting Started with Sync Gateway
-
-:param-page: {page-relative-src-path}
-include::partial$topic-group-get-started.adoc[]
-
-// tag::intro[]
-Sync Gateway is the synchronization server in a Couchbase Mobile deployment.
-It is designed to provide data synchronization for large-scale interactive web, mobile, and IoT applications
-// end::intro[]
--- see: <<fig-mobile-server>>.
+You can use Sync Gateway in conjunction with Couchbase Lite for full Bi-directional sync between edge devices and the cloud.
+It provides fine-grained access control, RESTful API, and secure sync capabilities.
 
 [#fig-mobile-server]
 .Couchbase Mobile -- Deployment Architecture
@@ -34,22 +19,145 @@ image::cbm-architecture.png[]
 
 As you can see from <<fig-mobile-server>> Sync Gateway synchronizes changes made by web clients through its REST API, Couchbase Lite mobile-device applications, and Couchbase Server buckets.
 
-You can read more about the Data Synchronization process in {sync-with-couchbase-server--xref}.
-Some of its most central, and commonly used features, are those used to ensure secure **Access Control**.
+You can read more about the Data Synchronization process in xref:sync/sync-with-couchbase-server.adoc[Sync with Couchbase Server].
+Some of its most central, and commonly used features, are those used to secure xref:access-control/access-control-model.adoc[Access Control].
 
 Sync Gateway assures secure access control using:
 
 * **User authentication**, which ensures that only authorized users can connect to Sync Gateway.
 For more information see the
-{users--xref}, {roles--xref} and {authentication-users--xref} content.
+xref:access-control/users.adoc[Users], xref:access-control/roles.adoc[Roles] and xref:security/authentication-users.adoc[User Authentication] content.
 
-* *Data Routing*, which ensures that authorized users can only access documents in those {channels--xref} assigned to them and only in accordance with their assigned privileges.
-You can set those privileges to confer {read-access--xref} and-or {write-access--xref} as required.
+* *Data Routing*, which ensures that authorized users can only access documents in those xref:access-control/channels.adoc[Channels] assigned to them and only in accordance with their assigned privileges.
+You can set those privileges to confer xref:access-control/access-control-how-control-document-access.adoc#lbl-read-access[Read Access] and-or xref:access-control/access-control-how-control-document-access.adoc#lbl-write-access[Write Access] as required.
 
-The business logic behind the validation and authorization of document access is provided by the customizable {sync-function--xref}.
+The business logic behind the validation and authorization of document access is provided by the customizable xref:access-control/sync-function/sync-function.adoc[Sync Function].
+
+== Why Use Sync Gateway?
+
+* Bi-directional synchronization: Sync data between Couchbase Lite clients and Couchbase Server with real-time updates.
+
+* Secure access control: Supports RBAC, channels, and sync functions.
+
+* RESTful API: Public, Admin and Metric REST API interfaces for data and configuration access.
+
+* Scalable architecture: Designed for high-throughput, cloud-to-edge synchronization.
+
+== Key Capabilities
+
+* Fine-grained data distribution using channels for efficient synchronization.
+
+* Sync Function support: Customizable business logic for validation, transformation, and access control.
+
+* Role-Based Access Control.
+
+* RESTful API: Public, Admin and Metric REST API interfaces for data and configuration access.
+
+* Integration with Couchbase Lite and Couchbase Server.
+
+* Supports peer-to-peer, cloud, and hybrid sync topologies.
+
+// We need to go up one heading level to break the previous h2 div (with flex-basis 50%).
+= {empty}
+
+[.full-width-tile]
+TIP: For more information about the latest changes to Sync Gateway, see xref:whatsnew.adoc[].
 
 
-// BEGIN -- Page Footer
-include::partial$block-related-content-deploy.adoc[]
-// END -- Page Footer
+== Get Started
 
+Get started with Sync Gateway, from preparing your environment to installing and verifying your installation.
+
+* xref:start-here/get-started-prepare.adoc[Prepare your environment]
+* xref:start-here/get-started-install.adoc[Install Sync Gateway]
+* xref:start-here/get-started-verify-install.adoc[Verify your installation]
+
+== Data Modeling
+
+Learn how to design and structure your data buckets and documents using Sync Gateway.
+
+* xref:data-modeling.adoc[]
+
+== Configuration
+
+Learn how to configure Sync Gateway for cloud to edge synchronization including bootstrap, database settings, security, and more.
+
+* xref:configuration/configuration-schema-bootstrap.adoc[]
+* xref:configuration/configuration-schema-database.adoc[]
+* xref:configuration/configuration-schema-db-security.adoc[]
+* xref:configuration/configuration-schema-access-control.adoc[]
+* xref:configuration/configuration-schema-import-filter.adoc[]
+* xref:configuration/configuration-schema-isgr.adoc[]
+* xref:configuration/configuration-javascript-functions.adoc[]
+* xref:configuration/configuration-environment-variables.adoc[]
+
+== Security
+
+Implement comprehensive security measures to protect your data and control access to Sync Gateway.
+
+* xref:security/secure-sgw-access.adoc[]
+* xref:security/authentication-users.adoc[]
+* xref:security/authentication-certs.adoc[]
+* xref:security/audit-logging.adoc[]
+
+== Access Control
+
+Configure fine-grained access control with users, roles, channels, and sync functions.
+
+* xref:access-control/access-control-concepts.adoc[]
+* xref:access-control/sync-function/sync-function.adoc[]
+* xref:access-control/access-control-how.adoc[How to]
+* xref:access-control/auto-purge-channel-access-revocation.adoc[]
+
+== REST API
+
+Interact with Sync Gateway programmatically using comprehensive REST API interfaces.
+
+* xref:rest-api/rest-api-access.adoc[]
+* xref:rest-api/rest-api-admin.adoc[]
+* xref:rest-api/rest-api-metrics.adoc[]
+* xref:rest-api/rest-api.adoc[]
+* xref:rest-api/rest-api-access-rbac-roles.adoc[]
+
+== Sync
+
+Synchronize data between Sync Gateway and your applications, servers, and other Sync Gateway instances.
+
+* xref:sync/sync-with-couchbase-server.adoc[]
+* xref:sync/sync-using-app.adoc[]
+* xref:sync/sync-inter-syncgateway-overview.adoc[]
+* xref:sync/delta-sync.adoc[]
+* xref:sync/import-processing.adoc[]
+
+== Manage
+
+Perform administrative and operational tasks to maintain and monitor Sync Gateway.
+
+* xref:manage/revisions.adoc[]
+* xref:manage/managing-tombstones.adoc[]
+* xref:manage/resync.adoc[]
+* xref:manage/stats-monitoring.adoc[]
+* xref:manage/database-offline.adoc[]
+* xref:manage/logging.adoc[]
+
+== Deploy
+
+Deploy Sync Gateway in production environments with scalability and reliability considerations.
+
+* xref:deploy/command-line-options.adoc[]
+* xref:deploy/load-balancer.adoc[]
+* xref:deploy/webhooks.adoc[]
+* xref:deploy/stats-prometheus.adoc[]
+* xref:deploy/indexing.adoc[]
+* xref:use-kubernetes/deploy-cluster-to-kubernetes.adoc[]
+
+== Server Compatibility
+
+Understand Sync Gateway compatibility with Couchbase Server features and services.
+
+* xref:server-compatibility/server-compatibility-buckets.adoc[Buckets]
+* xref:server-compatibility/server-compatibility-collections.adoc[Collections]
+* xref:server-compatibility/server-compatibility-eventing.adoc[Eventing]
+* xref:server-compatibility/server-compatibility-transactions.adoc[Transactions]
+* xref:server-compatibility/server-compatibility-xdcr.adoc[XDCR]
+* xref:server-compatibility/server-compatibility-backups.adoc[Backup and Restore]

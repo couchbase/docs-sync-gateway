@@ -1,0 +1,20 @@
+overlay: 1.0.0
+
+info:
+  title: Overlay for Metrics REST API spec
+  version: 1.0.0
+  # The `version` property above is the version of this overlay file, not the version of the OpenAPI spec.
+  # It is not displayed in the generated documentation and there is no need to update it.
+  # This property is required by the OpenAPI overlay schema, otherwise I wouldn't have bothered to include it.
+
+extends: ../attachments/bundled-metric.yaml
+
+actions:
+  - description: Add Prometheus metrics
+    target: $.paths['/metrics'].get.responses
+    update:
+      '200':
+        content:
+          application/json:
+            schema:
+              $ref: metrics_metadata.json

@@ -1,0 +1,82 @@
+a¦ *{{#isBodyParam}}Body{{/isBodyParam}}{{^isBodyParam}}{{baseName}}{{/isBodyParam}}* +
+_{{#required}}required{{/required}}{{^required}}optional{{/required}}_
+a¦ {{#vendorExtensions}}
+{{#x-desc-edition}}[.edition]##{{this}}##{{/x-desc-edition}}{{#x-desc-status}}[.status]##{{this}}##{{/x-desc-status}}
+{{/vendorExtensions}}
+
+[markdown]
+--
+{{#unescapedDescription}}
+{{{unescapedDescription}}}
+{{/unescapedDescription}}
+{{^unescapedDescription}}
+{{{description}}}
+{{/unescapedDescription}}
+{{! if this is an enum reference, fetch remote description}}
+{{#isEnumRef}}
+include::index.adoc[tag=desc-{{dataType}}, opts=optional]
+{{/isEnumRef}}
+--
+
+[%hardbreaks]
+{{! enumerated values}}
+{{#allowableValues}}
+*Values:* {{#enumVars}}{{^-last}}`{{value}}`, {{/-last}}{{#-last}}`{{value}}`{{/-last}}{{/enumVars}}
+{{/allowableValues}}
+{{! default value}}
+{{#vendorExtensions.x-has-default}}
+*Default:* `{{#isString}}+++"{{/isString}}{{{defaultValue}}}{{#isString}}"+++{{/isString}}`
+{{/vendorExtensions.x-has-default}}
+{{! pattern}}
+{{#pattern}}
+*Pattern:* `+++{{{pattern}}}+++`
+{{/pattern}}
+{{! minimum value}}
+{{#minimum}}
+*Minimum:* `{{{minimum}}}`
+{{/minimum}}
+{{! maximum value}}
+{{#maximum}}
+*Maximum:* `{{{maximum}}}`
+{{/maximum}}
+{{! exclusive minimum value}}
+{{#exclusiveMinimum}}
+*Exclusive minimum:* `{{{exclusiveMinimum}}}`
+{{/exclusiveMinimum}}
+{{! exclusive maximum value}}
+{{#exclusiveMaximum}}
+*Exclusive maximum:* `{{{exclusiveMaximum}}}`
+{{/exclusiveMaximum}}
+{{! multiple of value}}
+{{#multipleOf}}
+*Multiple of:* `{{{multipleOf}}}`
+{{/multipleOf}}
+{{! minimum length value}}
+{{#minLength}}
+*Minimum length:* `{{{minLength}}}`
+{{/minLength}}
+{{! maximum length value}}
+{{#maxLength}}
+*Maximum length:* `{{{maxLength}}}`
+{{/maxLength}}
+{{! minimum items value}}
+{{#minItems}}
+*Minimum items:* `{{{minItems}}}`
+{{/minItems}}
+{{! maximum items value}}
+{{#maxItems}}
+*Maximum items:* `{{{maxItems}}}`
+{{/maxItems}}
+{{! unique items value}}
+{{#uniqueItems}}
+*Unique items:* `{{{uniqueItems}}}`
+{{/uniqueItems}}
+{{! example -- deprecated}}
+{{#isBodyParam}}
+{{#vendorExtensions.x-has-example}}
+*Example:* `{{#isString}}+++"{{/isString}}{{{example}}}{{#isString}}"+++{{/isString}}`
+{{/vendorExtensions.x-has-example}}
+{{/isBodyParam}}
+{blank}
+
+a¦ {{>schemas}}

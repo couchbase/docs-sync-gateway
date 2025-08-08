@@ -1,0 +1,21 @@
+overlay: 1.0.0
+
+info:
+  title: Overlay for Admin REST API spec
+  version: 1.0.0
+  # The `version` property above is the version of this overlay file, not the version of the OpenAPI spec.
+  # It is not displayed in the generated documentation and there is no need to update it.
+  # This property is required by the OpenAPI overlay schema, otherwise I wouldn't have bothered to include it.
+
+extends: ../attachments/bundled-admin.yaml
+
+actions:
+  - description: Remove existing tags from the _expvar endpoint
+    target: $.paths['/_expvar'].get.tags
+    remove: true
+
+  - description: Add the Metrics tag to the _expvar endpoint
+    target: $.paths['/_expvar'].get
+    update:
+      tags:
+        - Metrics

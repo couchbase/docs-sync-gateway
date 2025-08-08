@@ -1,0 +1,448 @@
+
+// BEGIN -- PAGE -- logging.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/pages/
+//  PURPOSE:
+//    This is a standard content presentations page.
+//    Its name/title identify the content/topic
+//  PARAMETERS:
+//    None
+//  INCLUSION USAGE --
+//    This module uses attributes from:
+//    - /modules/ROOT/pages/_partials/_define_page_index.adoc -- xref page links
+//
+//    This module uses these inclusions:
+//    - /modules/ROOT/pages/_partials/_set_page_context.adoc -- std attribute environment
+//    - /modules/ROOT/pages/_partials/_show_page_header_block.adoc --  std text block for page header content
+//    - /modules/ROOT/pages/_partials/block-related-content-deploy.adoc --  std text block for page footer content
+//  INCLUSION USAGE
+// END PAGE DEFINITION
+= Logging
+:page-aliases: advance/logging.adoc
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:description: Introducing Couchbase Sync Gateway's logging functionality
+
+include::partial$_set_page_context.adoc[]
+
+:param-related: {configuration-schema-bootstrap--xref}  |  {rest-api-admin--xref}  |  {sgcollect-info--xref}
+:param-abstract: Sync Gateway's _Continuous Logging_ feature delivers flexible log generation and retention, without compromising the availability of diagnostic information necessary to provide effective support and maintenance.
+include::partial$_show_page_header_block.adoc[]
+
+// BEGIN Local attributes
+//
+:fn-clog: footnote:fn-clog[Introduced in Sync Gateway version 2.1]
+// :fn-dep-cfg: footnote:fn-dep-cfg[The pre-2.1 logging configuration method, using 'logging.default` is deprecated. If upgrading from a pre2.1 Sync Gateway version, then you will observe warnings on startup stating what is required to update your configuration -- see also: {legacy-logging-pre2-1--xref} ]
+
+:fn-legacy-text: pass:q,a[For legacy Pre-3.0 see xref:configuration/configuration-properties-legacy.adoc[legacy Pre-3.0 configuration]]
+:fn-legacy-pre-3-0: footnote:fnleg3-0[{fn-legacy-text}]
+:fnref-legacy-pre-3-0: footnote:fnleg3-0[]
+
+
+// END Local attributes
+
+include::partial$block-caveats.adoc[tags=logfilefolderuse]
+
+
+// BEGIN Content
+== Overview
+
+
+Sync Gateway provides a robust <<lbl-continuous-logging>>{fn-clog} solution that delivers flexibility in terms of how logs are generated and retained, whilst also maintaining the level of logging required by Couchbase Support for investigation of issues.
+Its logs are written to <<log-file-outputs, separate log files>> filtered by log level, with each log level supporting individual retention policies.
+You control what is logged using the {configuration-schema-bootstrap--xref} {bootstrap-schema--xref--logging} properties
+{fnref-legacy-pre-3-0}.
+
+In addition to the log files, you can also independently configure and control <<lbl-console-logs>>, which is a convenient method of accessing diagnostic information during debugging scenarios.
+With _console logging_, system administrators can easily fine-tune diagnostic output to suit specific debug scenarios.
+All without interfering with the logging required by Couchbase Support for the investigation of issues.
+
+
+== Configuration
+
+
+You configure _continuous_ and _console_ logging requirements in the {configuration-schema-bootstrap--xref} file, using the {bootstrap-schema--xref--logging} properties {fn-legacy-pre-3-0}  -- see: <<sample-log-cfg>>.
+
+[#sample-log-cfg]
+.Sample Logging Configuration
+====
+[source, json]
+----
+{
+  "logging": {
+    "log_file_path": "/var/tmp/sglogs", // <.>
+    "redaction_level": "partial", // <.>
+    "console": { // <.>
+      "log_level": "debug",
+      "log_keys": ["*"]
+      }, // <.>
+    "error": { // <.>
+      "enabled": true,
+      "rotation": {
+        "max_size": 20,
+        "max_age": 180
+        }
+      },
+    "warn": { // <.>
+      "enabled": true,
+      "rotation": {
+        "max_size": 20,
+        "max_age": 90
+        }
+      },
+    "info": { // <.>
+      "enabled": false
+    },
+    "debug": { // <.>
+      "enabled": false
+      }
+  }
+}
+----
+<.> Set the path to the log file(s)
+<.> Define the optional redaction level, here we select "partial" redaction -- see: <<lbl-log-redaction>>
+<.> Here we define the <<lbl-console-logs>> levels we require for debugging.
+In this instance turning on _debug_ level output for _all_ available log_keys -- see: {bootstrap-schema--xref--logging-console-log-keys} {fnref-legacy-pre-3-0}
+<.> The following logging properties enable, or disable, <<lbl-continuous-logging>> at the specified level -- see: {bootstrap-schema--xref--logging-console-log-level} {fnref-legacy-pre-3-0}
+<.> Here we set `error` level logging on and define the log-file rotation, for _errors_ messages
+<.> Here we set `warn` level logging on and define the log-file rotation, for _warnings_ messages
+<.> Here we set `info` level logging off; we do not define the log-file rotation
+<.> Here we set `debug` level logging off; we do not define the log-file rotation
+
+See: {configuration-schema-bootstrap--xref} for more information on these settings {fnref-legacy-pre-3-0}.
+====
+
+
+[#lbl-log-redaction]
+== Log Redaction
+
+
+All log outputs -- _console_ or _continuous_ -- can optionally be redacted, which will remove any user-data considered private.
+
+You enable this feature by setting the {bootstrap-schema--xref--logging-redaction-level} property {fnref-legacy-pre-3-0}.
+
+
+[#lbl-console-logs]
+== Console Logging
+
+
+*In this section*: <<lbl-log-levels>>  | <<lbl-log-api>> |  <<lbl-log-keys>>  | <<lbl-log-color>>  | <<lbl-log-redirect>>
+
+TIP: By default only HTTP logging is enabled
+
+Console logs are your go-to resource for diagnostic information.
+You can easily fine-tune their diagnostic content to meet the needs of a particular debugging scenario, perhaps by increasing the verbosity and filtering out unnecessary log_keys to better focus on the problem area.
+
+Changes to _console logging_ are independent of continuous logging, so you can, for example, tweak any of the following without compromising the core continuous logging streams:
+
+* Increase the verbosity using <<lbl-log-levels>> to generate additional diagnostic information
+* Focus on the area under investigation by enabling or disabling specific <<lbl-log-keys>>
+* Enhance readability by setting a <<log-color,color>> for log output based on log level
+
+[#lbl-log-api]
+=== Admin REST API
+You can define console log settings in the bootstrap configuration file, or more conveniently, you can use the Admin REST API's `_config` endpoint to set them -- see: <<eg-setloggingwithapi>>.
+
+[#eg-setloggingwithapi]
+.Setting log_level and log_keys with API
+====
+[source, console]
+----
+
+curl --location --request PUT 'http://localhost:4985/_config' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "console": {
+
+        "log_level": "trace", // <.>
+        "log_keys": "[\"WS\",\"WSFrame\",\"Replicate\"]",  // <.>
+
+    }
+  }'
+
+
+----
+<.> Here we define the _log_level_ to be `trace` for maximum verbosity
+<.> Here we specify the particular _log_keys_ we want to focus on. +
+Note here we have chosen to exclude `http`; perhaps we want to focus on a websocket or replication issue.
+
+The console log will show the following after this command:
+[source,console]
+----
+2021-01-08T13:26:23.884Z [INF] HTTP:  #110: POST /_logging?logLevel=trace (as ADMIN)
+2021-01-08T13:26:23.885Z [INF] Setting log level to: trace
+2021-01-08T13:26:23.885Z [INF] Setting log keys to: [DCP Replicate WS WSFrame]
+----
+
+====
+
+[#lbl-log-levels]
+=== Log Levels
+TIP: When debugging, setting the _console log's_ log-level to `debug` or `trace` can provide valuable additional information
+
+Console logs have six levels of verbosity -- see: <<tbl-loglevels>>.
+The default  _log level_ is *`none`*
+
+Note that the log levels are inclusive, so if you enable `info` level, then `warn` and `error` logs are also enabled.
+
+You can define console log levels in the configuration file -- see {bootstrap-schema--xref--logging-console-log-level} {fnref-legacy-pre-3-0} and by using the Admin REST API (see: <<eg-setloggingwithapi>>).
+
+One approach might be to set your base level in the configuration file and then use the Admin REST API for specific debugging scenarios.
+
+.Console Logging -- Available Log Levels
+[#tbl-loglevels,cols="^2,^1,7"]
+|===
+h|Log Level
+h|Appearance
+h|Description
+
+|`none`
+|          -
+|Disables log output
+
+|`error`
+|`[ERR]`
+|Displays errors that need urgent attention
+
+|`warn`
+|`[WRN]`
+|Displays warnings that need some attention
+
+|`info`
+|`[INF]`
+|Displays information about normal operations that don't need attention
+
+|`debug`
+|`[DBG]`
+|Displays verbose output that might be useful when debugging
+
+|`trace`
+|`[TRC]`
+|Displays extremely verbose output that might be useful when debugging
+|===
+
+[#lbl-log-keys]
+=== Log Keys
+TIP: Select log keys relevant to the area you are debugging, providing them as a comma-delimited list, such as: `"log_keys": ["HTTP", "CRUD", "Import"]` in the config or see <<eg-setloggingwithapi>> for how to provide them using the Admin REST API.
+
+Log keys provide fine-grained control over the information types that Sync Gateway outputs to the console log.
+By default, only *`HTTP`* related information is enabled, but a range of other keys are available to meet specific diagnostic needs -- see: <<tbl-logkeylist>>.
+
+You can define the required {bootstrap-schema--xref--logging-console-log-keys} within your configuration file and-or use the Admin REST API (see: <<eg-setloggingwithapi>>).
+
+.List of Available Log Keys
+[#tbl-logkeylist,cols="^2,8"]
+|===
+h|Log Key
+h|Description
+
+a| {asterisk}
+a|This wildcard log key, enables all log keys
+
+[source, console]
+----
+curl --location --request PUT 'http://localhost:4985/_config' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "console": {
+
+      "log_keys": "[\"*\"]
+
+    }
+  }'
+----
+
+|none
+a|
+Disable all log keys; no logging output
+
+[source, console]
+----
+curl --location --request PUT 'http://localhost:4985/_config' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "console": {
+
+        "log_keys": "[\"none\"]
+
+    }
+  }'
+
+|Admin
+|Admin processes in Sync Gateway.
+
+|Access
+|Anytime an access() call is made in the sync function.
+
+|Auth
+|Authentication.
+
+|Bucket
+|Sync Gateway interactions with the bucket.
+
+|Cache
+|Interactions with Sync Gateway's in-memory channel cache.
+
+|Changes
+|Processing of /\{db}/_changes requests.
+
+|CRUD
+|Updates made by Sync Gateway to documents.
+
+|DCP
+|DCP-feed processing.
+
+|Events
+|Event processing (webhooks).
+
+|gocb
+|All logging emitted by the GoCB SDK
+
+|HTTP
+|All requests made to the Sync Gateway REST APIs.
+
+|HTTP+
+|Additional information about HTTP requests (response times, status codes).
+
+|Import
+| This log key can be useful to troubleshoot why a given document was not successfully imported.
+
+|Javascript
+|All logging from Javascript.
+This includes: sync function, import filters, webhook filter function, and custom inter-Sync{nbsp}Gateway{nbsp}replication conflict resolvers
+
+|Migrate
+|Logs messages that show when old inline document metadata is upgraded to xattrs
+
+|Query
+|Query is used for Sync Gateway code related to {sqlpp} queries
+
+|Replicate
+|Log messages related to replications between Sync Gateways (using sg-replicate).
+This tag cannot be used for replications initiated by Couchbase Lite.
+
+|SGCluster
+|Log messages related to the sharded import and HA sg-replicate
+
+|Sync
+|Activity which relates to synchronization between Couchbase Lite and Sync Gateway
+
+|SyncMsg
+|Can be used for additional Sync logging output
+
+|WS
+|Websocket replication log messages
+
+|WSFrame
+|Can be used for additional WS logging output
+
+|===
+
+
+[#lbl-log-color]
+=== Set Log Color
+
+To use color for log output based on log level, set  {bootstrap-schema--xref--logging-console-color-enabled} to `true`
+
+NOTE: This setting is always disabled on Windows for compatibility reasons.
+
+[#lbl-log-redirect]
+=== Redirect Console Log
+You can easily redirect the console log output to a file.
+This can be useful not only for diagnostic sessions, but also when you have specialized logging requirements, such as centralized logging.
+Just redirect the output and then apply your own log collection mechanism to feed that data elsewhere -- see <<eg-console-log-redirect>>.
+
+[#eg-console-log-redirect]
+.Console Log Redirection
+====
+[source, console]
+----
+# Start Sync Gateway and redirect console output to a file
+./sync-gateway > my_sg_logs.txt 2>&1
+
+# Start log collection to send to a centralized log aggregator.
+logcollector my_sg_logs.txt
+----
+====
+
+[#lbl-continuous-logging]
+== Continuous Logging
+
+
+*In this section*: <<lbl-logoutputs>>  |  <<lbl-logrotate>>
+
+_Continuous logging_ produces a set of log files aimed primarily at providing appropriate diagnostic information for the Couchbase Support team should their intervention be required.
+You define continuous logging settings in the configuration file -- see: <<sample-log-cfg>>.
+
+With continuous logging the logs for each level are written to <<lbl-logoutputs, separate log files>> -- see: <<tbl-contlogoutputs>>.
+You can set individual retention policies for each log-level.
+
+[#lbl-logoutputs]
+=== Log File Outputs
+The log files output from continuous logging are intended *solely* for the use of _Couchbase Support_.
+
+TIP: If you require special log handling, for example for centralized logging, then use the <<lbl-log-redirect>> feature to create a log file for this purpose from the console output stream.
+
+Sync Gateway produces four separate log files, split by log level.
+Each log file has its own guaranteed retention period - as shown in <<tbl-contlogoutputs>>
+
+You can collect the log files, for analysis by Couchbase Support when diagnosing Sync Gateway issues, using {sgcollect-info--xref}.
+
+.Continuos Logging - Log File Outputs
+[#tbl-contlogoutputs,cols="^1,4,2,^1,^1,^1"]
+|===
+h|Log File
+h|Level
+h|Description
+h|Default enabled
+h|Default max_age
+h|Minimum max_age
+
+|ERROR
+|Critical error messages.
+|`sg_error.log`
+|`true`
+|360 Days
+|180 Days
+
+|WARN
+|Something is wrong but SG can still service requests
+|`sg_warn.log`
+|`true`
+|180 Days
+|90 Days
+
+|INFO
+|Important diagnostics for support and customers
+|`sg_info.log`
+|`true`
+|6 Days
+|3 Days
+
+|DEBUG
+|Lower level development analysis
+|`sg_debug.log`
+|`false`
+|2 Days
+|1 Day
+|===
+
+TIP: Each log level and its parameters are defined using the {bootstrap-schema--xref--logging-console-log-level} property.
+
+[#lbl-logrotate]
+=== Log File Rotation
+
+Log files are _rotated_ when they exceed a threshold `max_size` (megabytes).
+Once rotated, they are compressed (gzip) to reduce the disk usage.
+
+Aged logs are cleaned up once their age exceeds `max_age` days -- see: <<tbl-contlogoutputs>>
+
+Configure log rotation using the {bootstrap-schema--xref--logging-console-rotation} property.
+
+For pre-2.1 log rotation -- see:
+xref:2.0@sync-gateway::logging.adoc[Pre 2.1 Log Rotation]
+
+include::partial$block-related-content-api.adoc[]
+
+// END -- PAGE -- logging.adoc

@@ -22,7 +22,7 @@ This dual-purpose is reflected in the way you use channels:
 You grant roles and-or users access to channels using:
 
 * Admin REST API +
- Using admin_channels property using the admin REST API endpoint -- see {rest-api-admin-user-put--xref}
+ Using `admin_channels` property inside the `collection_access` property using the admin REST API endpoint -- see {rest-api-admin-user-put--xref}
 * Dynamically via Sync Function  +
  Programmatically within the sync function using the exposed helper function access() — see {sync-function-api--xref}
 * Configuration File (pre 3.0) +
@@ -47,11 +47,11 @@ Specify the roles to be assigned in the `admin_channels` array.
 ----
 $ curl -vX PUT "http://localhost:4985/mydatabase/_user/{user}" -H //<.>
 "accept: application/json" -H "Content-Type: application/json" -d
-'{ "admin_channels": ["Channel1","Channel3]}' // <.>
+'{"collection_access": {"scopename": { "collectionname": {"admin_channels": ["Channel1","Channel3"]}}}}' // <.>
 ----
 
 <.> {user} is the user name to be updated, e.g. "Edge1User"
-<.> Here we add _Channel1_ and _Channel3_ to the user
+<.> Here we add _Channel1_ and _Channel3_ to the user inside scope scopename and collection collectionname.
 
 --
 
@@ -134,21 +134,46 @@ Use the *Admin REST API* for production systems.
     "mydatabase": {
       "users": {
         "GUEST": {"disabled": true},
-        "Edge1User": {"password": "pass", "admin_roles": ["Edge1"],
-              "admin_channels": ["Channel1","Channel3","RandomChannel"]} // <.>
+        "Edge1User": {
+          "password": "pass",
+          "admin_roles": ["Edge1"],
+          "collection_access": {
+            "scopename": {
+              "collectionname": {
+                "admin_channels": ["Channel1","Channel3","RandomChannel"] // <.>
+              }
+            }
+          }
+        }
       },
       "roles": {
-        "Edge1": {"admin_channels": ["channel1", "channel3"]},
-        "Edge2": {"admin_channels": ["Channel2","Channel3","SkyChannel"]} // <.>
+        "Edge1": {
+          "collection_access": {
+	    "scopename": {
+	      "collectionname": {
+		"admin_channels": ["channel1","channel3"]
+	      }
+	    }
+	  }
+	},
+	"Edge2": {
+          "collection_access": {
+	    "scopename": {
+	      "collectionname": {
+                "admin_channels": ["channel2","channel3","SkyChannel"]} // <.>
+	      }
+	    }
+	  }
+	},
       }
     }
   }
 }
 ----
 
-<.> Here we have added the channel _RandomChannel_ to the user _Edge1User_ {configuration-schema-database--pfx--db}-users-this_user-admin_channels[databases.$db.users.$user.admin_channel]
+<.> Here we have added the channels _channel1_ and `_channel3_ to the user _Edge1User_ {configuration-schema-database--pfx--db}-users-this_user-admin_channels[databases.$db.users.$user.collection_access.$scopename.$collectionname.admin_channels]
 
-<.> Here we have added the channel _SkyChannel_ to the role _Edge2_ {configuration-schema-database--pfx--db}-roles-this_role-admin_channels[databases.$db.users.$user.admin_channel]
+<.> Here we have added the channels _channel2_, _channel3_ and _SkyChannel_ to the role _Edge2_ {configuration-schema-database--pfx--db}-roles-this_role-admin_channels[databases.$db.users.$user.$collection_access.$scopename.$collectionname.$admin_channels]
 
 --
 

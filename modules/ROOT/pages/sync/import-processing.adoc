@@ -1,0 +1,79 @@
+= Import Processing
+:page-aliases: import-filter.adoc
+include::partial$_set_page_context.adoc[]
+
+== Overview
+
+The *import process* is a key part of mobile convergence.
+It is the means by which {sgw} becomes aware of non-{sgw} data changes and obtains the mobile metadata it requires to replicate changes.
+
+image::shared-bucket-access.png[]
+
+== Operation
+
+Any non-{sgw} change is eligible for import. For more information, refer to the xref:access-control/sync-function/sync-function.adoc[Sync Function] documentation.
+
+The document is first run through the Sync Function to compute read security and routing, with the following differences:
+
+* The import is processed with an admin user context in the Sync Function, similar to writes made through the {sgw} Admin API.
+This means that `requireAccess`, `requireUser` and `requireRole` calls in the Sync Function are treated as no-ops.
+* During import, `oldDoc` is `nil` when the Sync Function is executed.
+
+You can specify a filter function dynamically using xref:rest_api_admin.adoc#tag/Database-Configuration/operation/get_keyspace-_config-import_filter[/{keyspace}/_config/import_filter], or you can define one when you set up a database.
+Refer to the xref:configuration/configuration-schema-import-filter.adoc[Import Filter Configuration] documentation for more information.
+
+TIP: Use the `logging-console-log-keys` in the xref:configuration/configuration-schema-bootstrap.adoc#lbl-schema[Bootstrap Schema] log key to troubleshoot import processing issues in the logs.
+
+== Function Provision
+
+Use the {rest-api-admin--xref--database-configuration} Admin Rest API endpoint xref:rest_api_admin.adoc#tag/Database-Configuration/operation/post_db-_config[POST /{db}/_config] to provision an import filter for a database using the `application/javascript` mime type.
+
+If you are using legacy configuration then, you need to include it in your configuration file, see: {configuration-properties-legacy--xref--databases-import-filter}.
+
+
+== Configuration
+
+NOTE: You need Couchbase Lite 3.1+ and Sync Gateway 3.1+ to use `custom` Scopes and Collections. +
+If you’re using Capella App Services or Sync Gateway releases that are older than version 3.1, you won’t be able to access `custom` Scopes and Collections.
+To use Couchbase Lite 3.1+ with these older versions, you can use the `default` Collection as a backup option.
+
+The configuration settings described here are provisioned through the xref:rest-api/rest-api-admin.adoc[Database Configuration] endpoints.
+
+[source,JSON]
+----
+{
+  scopes: {
+      {scopename...}: {
+         collections: {
+            {collectionname...}: {
+               import_filter: "function(doc) { if (doc.type != 'mobile') { return false; } return true; }",
+            }
+         }
+      }
+   },
+   // other configuration
+}
+----
+
+For more information, see xref:configuration/configuration-schema-database.adoc#_database[Sync Gateway Configuration Schema].
+
+[cols="2", options="header"]
+|===
+| Property | Description
+
+| scopename
+| Represents the name of each scope
+
+| collections
+| Contains different collections within each scope
+
+| collectionname
+| Represents the name of each collection within a scope.
+
+|import_filter
+|Used to decide if a document should be imported. It checks the type property of the document. If it is not 'mobile', the function returns false, otherwise, it returns true.
+
+|===
+
+
+include::partial$block-related-content-api.adoc[]
