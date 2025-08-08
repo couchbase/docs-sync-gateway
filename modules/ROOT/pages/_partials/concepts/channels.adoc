@@ -14,7 +14,7 @@ They serve as a security conduit between the document and a user:
 // tag::body[]
 == Overview
 
-Channels are defined at the collection level, which means that specific channels can be associated with individual collections of documents. 
+Channels are defined at the collection level, which means that specific channels can be associated with individual collections of documents.
 This system allows users with access to a specific channel to access all documents assigned to that channel within that collection.
 
 By defining channels at the collection level, it's possible to implement detailed access control for different types of data within the database.
@@ -31,8 +31,8 @@ Sync Gateway provides two special channels and a channel wildcard character.
 [#ex-sync-function-examples]
 == Sync Function Examples
 
-Couchbase Sync Gateway defines a Sync Function at the `collection` level. 
-Defining at this level helps simplify data management and improve data reliability. 
+Couchbase Sync Gateway defines a Sync Function at the `collection` level.
+Defining at this level helps simplify data management and improve data reliability.
 Each collection in the system allows for only one Sync Function, which enables the specification of Access Control rules.
 
 .Default Sync Function
@@ -43,8 +43,8 @@ Each collection in the system allows for only one Sync Function, which enables t
 
 [source, javascript]
 ----
-function (doc, oldDoc, meta) { 
-   channel(CollectionName); 
+function (doc, oldDoc, meta) {
+   channel(CollectionName);
 }
 ----
 Here the function then calls the `channel` and passes in the name of the collection `(CollectionsName)` as an argument.
@@ -68,7 +68,7 @@ To override this, use a custom sync function or a Specified Default Sync Functio
 ----
 function (doc, oldDoc, meta) {
    channel(doc.channels);
-} 
+}
 ----
 Here is the default Sync Function when you have upgraded; it remains the same as the previous version.
 
@@ -78,8 +78,8 @@ Here is the default Sync Function when you have upgraded; it remains the same as
 
 [#lbl-usecase]
 == Use Case
-Imagine a database containing a collection of customer data. Within this collection, channels can be established to provide varying customer data access levels. 
-For example, one channel may provide access to general customer information, while another may allow access to sensitive customer information. 
+Imagine a database containing a collection of customer data. Within this collection, channels can be established to provide varying customer data access levels.
+For example, one channel may provide access to general customer information, while another may allow access to sensitive customer information.
 Users can then be granted access to one or both channels based on their need to access the associated data.
 
 [#lbl-config]
@@ -196,15 +196,92 @@ Channels with no documents assigned to them are empty.
 | Guidance Limit (Channels)
 
 | Channels per document
-| The amount of memory consumed by the combined number of channels and access grants must fit within the maximum 1Mb xattr size limit -- see: <<tbl-metadata-size>>.
+| The amount of memory consumed by the combined number of channels and access grants must fit within the maximum 1Mb `xattr` size limit -- see: <<tbl-metadata-size>>.
 | 50
 
 | Channels per user
 a| The amount of memory consumed by channels must fit within the 20 MB available on Couchbase Server docs for storing metadata -- see: <<tbl-metadata-size>> +
-Note that the memory is retained for as long as the replication remains active.
+NOTE: that the memory is retained for as long as the replication remains active.
 | 1,000
 
 !===
+
+[#lbl-chan-metda-struct]
+== Channel Metadata Structure
+
+When troubleshooting channel assignments or access issues, it's helpful to understand how Sync Gateway stores channel information in the document's `_sync` metadata.
+
+=== Channel Metadata Fields
+
+Sync Gateway stores this metadata in the document's extended attributes (`XATTRs`) and includes three key fields that track channel membership over time.
+
+==== `_sync.history.channels`
+
+`_sync.history.channels` array shows the exact channels that each document revision belonged to, with one array per revision.
+
+[source,json]
+----
+{
+  "history": {
+    "revs": [
+      "2-e9615f134966a72a286fd270e15c4f",
+      "1-38782707b39d3647026a86c3dabfb3"
+    ],
+    "channels": [
+      [
+        "Prm.Dst.1016527"
+      ],
+      null
+    ]
+  }
+}
+----
+
+In this example, the channels array contains 2 entries corresponding to the 2 document revisions shown in the revs array.
+Revision 2 (the current revision) belongs to channel `Prm.Dst.1016527`, while Revision 1 had no channel assignments and shows `"null"`.
+
+
+==== `_sync.channels`
+
+`_sync.channels` shows the complete history of every channel the document has belonged to.
+It returns a `null` value for each document that still lives in a channel and a sequence number and revision `ID` for each document that has is not available in a channel.
+
+[source,json]
+----
+{
+  "channels": {
+    "Prm.Dst.1016527": null
+  }
+}
+----
+
+
+==== `_sync.channel_set`
+
+`sync.channel_set` records the sequence number when the document first joined each channel.
+When channel membership changes, it may append an end sequence number along with details about new channel assignments.
+
+[source,json]
+----
+{
+  "channel_set": [
+    {
+      "name": "Prm.Dst.1016527",
+      "start": 44575
+    }
+  ]
+}
+----
+
+This indicates the document joined the `Prm.Dst.1016527` channel at sequence number `44575`.
+
+You can access this metadata using the xref:rest-api-admin.adoc#tag/Document[Admin REST API Document endpoint], which returns the document's `_sync` metadata in the response.
+You can also access it using an {sqlpp} query:
+
+[source,sql]
+----
+SELECT META().xattrs._sync FROM bucket WHERE META().id = "document_id"
+----
 
 
 [#lbl-metda-limits]
