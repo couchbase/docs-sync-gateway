@@ -49,7 +49,7 @@ Replicator node::
 If you are using inter-Sync Gateway replication then you will have a designated replicator node whose configuration is different than the rest of the nodes -- see {sync-inter-syncgateway-overview--xref}.
 
 Sync Gateway nodes are "shared-nothing," so they don’t need to coordinate any state or even know about each other.
-With multiple Sync Gateways, we recommend placing this cluster behind a load balancer server to coordinate connection requests in clients (see the xref:deploy/load-balancer.adoc[Load Balancer] guide).
+With multiple Sync Gateways, we recommend placing this cluster behind a load balancer server to coordinate connection requests in clients (see the xref:deploy:load-balancer.adoc[Load Balancer] guide).
 
 == Channel and Revision Caches
 .Enterprise Edition only
@@ -81,8 +81,8 @@ Therefore, adding more CPU cores to a Sync Gateway node can speed it up.
 - As is typical with databases, writes are going to put a greater load on the system than reads.
 In particular, every write operation gets processed by the {sync-function--xref} and triggers notifications to other clients with read access, who then perform reads to get the new data.
 - Each client running a continuous replication has an open socket to be notified of changes. These sockets remain idle most of the time (unless documents are modified at a very high rate), so the actual data traffic is low — the issue is just managing that many sockets.
-We recommend developers to optimize how many connections they need to open to the sync tier (see the xref:deploy/os-level-tuning.adoc[OS Level Tuning] guide).
-- In a Sync Gateway deployment with xref:deploy/indexing.adoc[GSI/{sqlpp} indexing], the resources allocated to the Couchbase Server index node must be sufficient to support Sync Gateway operations.
+We recommend developers to optimize how many connections they need to open to the sync tier (see the xref:deploy:os-level-tuning.adoc[OS Level Tuning] guide).
+- In a Sync Gateway deployment with xref:deploy:indexing.adoc[GSI/{sqlpp} indexing], the resources allocated to the Couchbase Server index node must be sufficient to support Sync Gateway operations.
 - As Sync Gateway is optimized to use RAM, performance can be gained (or at minimum not lost) by changing the Linux swappiness value to 0 (see the xref:server:install:install-swap-space.adoc[Swap Space and Kernel Swappiness] guide).
 
 include::partial$block-related-content-deploy.adoc[]
