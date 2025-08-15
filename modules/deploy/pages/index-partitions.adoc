@@ -80,18 +80,18 @@ The advantage is no downtime; the disadvantage is temporarily higher resource us
 .Procedure
 . Spin up a new Sync Gateway instance.
 
-. Run xref:rest_api_admin_static.adoc#tag/Database-Management/operation/post_db-_index_init[`POST /{db}/_index_init`] on the new instance with `num_partitions` set to the required number of partitions.
+. Run xref:ROOT:rest_api_admin_static.adoc#tag/Database-Management/operation/post_db-_index_init[`POST /{db}/_index_init`] on the new instance with `num_partitions` set to the required number of partitions.
 
-. Wait for completion via xref:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`].
+. Wait for completion via xref:ROOT:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`].
 
-. Run xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/post_db-_config[`POST /{db}/_config`] with `index.num_partitions` updated in the configuration to use new indexes.
+. Run xref:ROOT:rest_api_admin_static.adoc#tag/Database-Configuration/operation/post_db-_config[`POST /{db}/_config`] with `index.num_partitions` updated in the configuration to use new indexes.
 
-. Run xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] to remove old indexes.
+. Run xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] to remove old indexes.
 
 . Optionally, rebalance index nodes using Couchbase Server.
 For details, see xref:server:learn:clusters-and-availability/rebalance.adoc#index-redistribution[Index Redistribution] in the Couchbase Server documentation.
 
-WARNING: If you are using xref:configuration:configuration-overview.adoc#lbl-config-grp[configuration groups] running on a different index configuration, calling xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] can delete indexes out from under a running database.
+WARNING: If you are using xref:configuration:configuration-overview.adoc#lbl-config-grp[configuration groups] running on a different index configuration, calling xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] can delete indexes out from under a running database.
 Please ensure that all configuration groups have consistent index configuration.
 For details, see <<config-groups>>.
 
@@ -102,11 +102,11 @@ This option requires no extra resources, but involves planned downtime.
 It involves lower intermittent hardware requirements.
 
 .Procedure
-. Take the database offline via xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/post_db-_config[`POST /{db}/_config`] with `offline` set to `true`.
+. Take the database offline via xref:ROOT:rest_api_admin_static.adoc#tag/Database-Configuration/operation/post_db-_config[`POST /{db}/_config`] with `offline` set to `true`.
 
 . Manually delete old Sync Gateway indexes.
 
-. Bring the database online using xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/post_db-_config[`POST /{db}/_config`] with `index.num_partitions` set to the required number of partitions.
+. Bring the database online using xref:ROOT:rest_api_admin_static.adoc#tag/Database-Configuration/operation/post_db-_config[`POST /{db}/_config`] with `index.num_partitions` set to the required number of partitions.
 
 . Run integration and performance testing.
 
@@ -135,15 +135,15 @@ Changing the number of partitions "just to test it" may permanently increase ind
 
 If your deployment uses xref:configuration:configuration-overview.adoc#lbl-config-grp[Configuration Groups], ensure that:
 
-* All nodes are updated with the new config before running xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`].
+* All nodes are updated with the new config before running xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`].
 * Import and sync workloads are not unintentionally unbalanced across partitions.
 
-Misalignment between config groups can lead to unexpected deletion of active indexes if xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] is run.
+Misalignment between config groups can lead to unexpected deletion of active indexes if xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] is run.
 This will result in:
 
 * Couchbase Server (version 7.6 and later) falling back on a sequential scan of the Query nodes, which will seriously degrade Query performance.
 
-* Recreating indexes that were deleted by another config when a node is rebooted with a different `index.num_partitions`, even after xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] is run.
+* Recreating indexes that were deleted by another config when a node is rebooted with a different `index.num_partitions`, even after xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] is run.
 
 [#supportability]
 == Supportability
@@ -153,19 +153,19 @@ This will result in:
 
 To identify the current index configuration, you can:
 
-* Use xref:rest_api_admin_static.adoc#tag/Database-Configuration/operation/get_db-_config[`GET /{db}/_config`] to check the active configuration in `index.num_partitions`.
+* Use xref:ROOT:rest_api_admin_static.adoc#tag/Database-Configuration/operation/get_db-_config[`GET /{db}/_config`] to check the active configuration in `index.num_partitions`.
 
-* Use xref:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`] to see if there is an index creation in progress.
+* Use xref:ROOT:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`] to see if there is an index creation in progress.
 
 [#failures]
 === Identify Failures
 
 To troubleshoot problems with index configurations, note the following.
 
-* The status returned by xref:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`] includes `last_error`.
+* The status returned by xref:ROOT:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_index_init[`GET /{db}/_index_init`] includes `last_error`.
 
 * Partial updates across nodes using Configuration Groups may result in mixed indexing behavior.
 
-* If indexes are not removed post-upgrade, xref:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] may return a failure or partial success.
+* If indexes are not removed post-upgrade, xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/post__post_upgrade[`POST /_post_upgrade`] may return a failure or partial success.
 
 include::partial$block-related-content-api.adoc[]
