@@ -1,0 +1,469 @@
+// = ICR Administration and Management
+// tag::in-this-section[]
+ifndef::is_deep_toc[*_In this Section_*: <<getting-replication-details>>  |  <<updating-a-replication>>  |  <<removing-a-replication>>]
+
+// end::in-this-section[]
+
+== Admin capabilities
+// tag::overview[]
+
+The Admin REST API provides two endpoints to assist in the monitoring, administration and management of replications.
+These enable users to examine, update, start and stop replications:
+
+You can use the endpoints manually or by using automation (for example, scripts or a container orchestration system such as  Kubernetes).
+
+The available endpoints used for admin tasks are:
+
+* `_replication`
+-- Retrieve, Update or Remove a __replication definition__
+* `_replicationStatus` -- Stop, Start or Reset a replication
+
+include::ROOT:partial$block-caveats.adoc[tags=community-only-rep-same-node]
+
+// end::overview[]
+
+== Getting Replication Details
+You can view the current definition details of a replication.
+This includes replications configured in the `JSON` file and those initialized using the Admin REST API.
+You can do this for:
+
+* Individual replications (<<get-replication-definition>>)
+* All replications defined for a specified database (<<get-replication-definition-all>>)
+
+Replication information is returned a JSON object.
+
+// _Action_: Use a `GET` request on the `_replications` endpoint to return replication definition details.
+
+[#get-replication-definition]
+.Get a replication definition
+=====
+
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replications-req]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replications-resp]
+----
+--
+====
+=====
+
+The following example retrieves definitions for all replications on a specified database, regardless of the node on which it was configured.
+The results are returned in an array; one entry per replication.
+
+[#get-replication-definition-all]
+.Get all replication definitions (for a database)
+=====
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replications-req-all-for-db]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-retrieve-replications-resp-all-for-db]
+----
+--
+====
+=====
+
+== Updating a Replication
+
+You can update an existing replication's definition, whether configured or initialized by Admin REST API, by providing the details you want to change in an API call  (<<update-replication-definition>>).
+Changes will only be made to those parameters provided in the call.
+
+If you change the remote URI it must be to a valid URI.
+
+// :tip-caption: Action!
+[TIP]
+.How do I change an existing replication's definition details?
+====
+Send a `PUT` request to the `_replication` endpoint.
+Specify just the changed items in the JSON body.
+====
+
+[#update-replication-definition]
+.Update a replication's details
+=====
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-update-replications-req]
+----
+--
++
+Response::
++
+--
+A successful update will return a 200 response, with the following body:
+
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-update-replications-resp-200]
+----
+
+If the `replication_id` in the body does not match that quoted in the URI you will see a 400 response as below.
+
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-update-replications-resp-400]
+----
+--
+====
+=====
+
+See: {rest-api-admin--xref}  |  Endpoint {rest-api-admin--pfx-replication-put}
+
+== Removing a Replication
+
+Removing a replication will delete:
+
+* The persisted replication definition
+* All {glos-term-checkpoints} associated with the replication
+* All replication status information associated with the replication
+
+To find the replication_id of an existing replication see <<getting-replication-status-data>>.
+
+_Action_: Send a `DELETE` request to the `replication` endpoint specifying the replication_id to remove
+
+.Removing a replication
+=====
+[{tabs}]
+====
+
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-remove-replications-req]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-remove-replications-resp]
+----
+
+--
+====
+=====
+
+See: {rest-api-admin--xref}  |  Endpoint {rest-api-admin--pfx-replication-delete}
+
+== Getting Replication Status Data
+
+include::ROOT:partial$icr-replicationStatus-GET.adoc[tag=overview]
+
+For more information on monitoring see: {sync-inter-syncgateway-monitor--xref}
+
+.For a Single Replication
+=====
+This example targets a known `replication-id` and returns its status data.
+
+[{tabs}]
+====
+
+include::ROOT:partial$icr-replicationStatus-GET.adoc[tag=example-specific]
+
+====
+=====
+
+.For All Replications
+=====
+
+This example targets all replications across all nodes.
+It filters the results using a query string -- see:
+{sync-inter-syncgateway-monitor--xref} for more on using this option.
+
+[{tabs}]
+====
+
+include::ROOT:partial$icr-replicationStatus-GET.adoc[tag=example-all]
+
+====
+=====
+
+== Starting a Replication
+
+You can start a persistent or ad hoc replication not already in the running state.
+You need to specify the `replication_id`.
+
+If the replication is resetting it cannot be started until the reset is complete.
+
+_Action_: Send a `POST` request to the `_replicationStatus` endpoint with `action=start`
+
+.Start a replication
+=====
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-start-replications-req]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-start-replications-resp]
+----
+--
+
+====
+=====
+
+== Stopping a Replication
+
+You can stop a persistent or ad hoc replication not already in the stopped state.
+You can use this, for example, to offline an edge cluster without waiting for a long replication to complete.
+
+_Action_: Send a `POST` request to the `_replicationStatus` endpoint with `action=stop`
+
+.Stopping replications
+=====
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-stop-replications-req]
+
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-stop-replications-resp]
+----
+--
+
+====
+=====
+
+== Resetting a Replication
+
+You can reset a persistent replication not in the running state.
+This can be useful to escape a system state where one or more documents have failed to sync but where resuming from previous synced {glos-term-checkpoint} would skip over those documents.
+You need to specify the `replication_id`.
+
+If the replication is resetting it cannot be started until the reset is complete. The replication must be stopped before it can be reset.
+
+_Action_: Send a `POST` request to the `_replicationStatus` endpoint with `action=reset`
+
+.Reset a replication
+=====
+[{tabs}]
+====
+Request::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-reset-replications-req]
+----
+--
+
+Response::
++
+--
+[source, json]
+----
+include::{example-restapi}[tag=icr-rep-reset-replications-resp]
+----
+--
+====
+=====
+
+
+== Skipping TLS Certificate Verification
+
+.Development and Testing Option ONLY
+[CAUTION]
+--
+This is an *unsupported* configuration option. It must not be used in a production environment. Its ongoing availability is not guaranteed.
+--
+
+The configuration setting. `database.this_db.unsupported.sgr_tls_skip_verify`, can be used to skip the validation of TLS certificates, simplifying development and testing -- see: <<using-sgr-tls-skip-verify>> and the configuration item {configuration-schema-database--xref--unsupp-sgr-tls-skip-verify}.
+
+[#using-sgr-tls-skip-verify]
+.Using sgr_tls_skip_verify
+====
+[source, json]
+----
+{
+  "databases": {
+    "db1": {
+      "server": "couchbase://localhost",
+      "bucket": "db1",
+      "username": "Administrator",
+      "password": "password",
+      "unsupported": {
+        "sgr_tls_skip_verify": true
+      },
+      "replications": {
+        "repl1": {
+          "direction": "pushAndPull",
+          "remote": "https://remotehost:4985/db1",
+          "continuous": true
+        }
+      }
+    }
+  }
+}
+----
+====
+
+
+== Handling Channel Access Revocation
+
+Users may lose access to channels for many reasons, including:
+
+* The User loses direct access to channel
+* The User is removed from a role
+* A role the user belongs to is revoked access to channel
+
+By default, documents are *not* auto purged on the active sync gateway even if the user on the passive sync gateway loses channel access.
+// .Breaking Change at 3.0
+// [NOTE]
+// Whenever a user loses access to a channel (or channels) all document in the channel(s) are auto-purged from local Couchbase Lite databases.
+
+Note: that _users_  are cluster-specific; _userA_ in custer A is not the same entity as _userA_ in cluster B.
+
+If required, you can override this behavior using the configurable option (`enable_auto_purge-true`).
+
+NOTE: The behavior of the config flag is the *reverse* of what is done on Couchbase Lite.
+
+Using this option auto-purges documents on the active Sync Gateway that are no longer accessible, unless a document belongs to another of replicating user’s channels.
+This applies even if they are not actively replicating that channel.
+
+TIP: When `enable_auto_purge-true=true`, documents in revoked user channels are auto purged from Sync Gateway.
+
+This is consistent with {sgw-te}'s handling of document access revocation using the `purge-on-removal` option
+
+
+=== Access Reassignment
+
+Where a user loses access to a channel and is then reassigned access to a channel, any previously auto-purged documents still assigned to any of the user’s channels are automatically pulled down by the active Sync Gateway.
+
+NOTE: This will not impact active nodes that have turned off auto-purge behavior.
+Auto-purged documents removed from a user’s channels subsequent to the purge will not be synced again.
+
+If you want to control whether to sync previous auto purged versions of the document and do not want to pull down purged documents, you must remove the documents from all of the users channels to ensure they are not synced down again.
+
+
+=== Pull-only Replication
+The expected impact of the enablement of auto purge behavior when
+
+Scenario::
++
+--
+The replicating user of a pull-only replication is revoked channel access. +
+ISGR is configured to run as admin user on active peer
+
+In ISGR, by default,  access control policies are only enforced at remote cluster.
+The `_sync` function  on an active node is by default run in context of admin user and as such there is no enforcement of access policies on the active side.
+--
+
+[,cols="1,1,2", options="header"]
+|===
+
+2+|System State
+|Impact on Sync
+
+h|Active Sync Gateway (Local) (Running as admin user)
+h|Passive Sync Gateway (Remote)
+h|Expected behavior when enable_auto_purge is TRUE
+
+|N/A
+|User revoked access to channel
+|Previously synced documents are auto purged on local
+
+|===
+
+Scenario::
++
+--
+The replicating user of a pull-only replication is revoked channel access.
+
+ISGR is configured to run as a non-admin user on active peer.
+
+NOTE: Depends on availability of a new feature (3.0) wherein the active peer is also running as the replicating user.
+--
+
+[,cols="1a,1a,2a", options="header"]
+|===
+
+2+^|System State
+^|Impact on Sync
+
+h|Active Sync Gateway (Local) (Running as non-admin user `user1`)
+h|Passive Sync Gateway (Remote)
+h|Expected behavior when enable_auto_purge is TRUE
+
+|User1 revoked access to channel
+|User2 revoked access to channel
+|Previously synced documents for User2 are auto purged on local
+
+|User1 revoked access to channel
+
+Sync Function includes
+requireAccess
+(“channel”)
+|User2 still has access to channel
+|Config option has no impact.
+
+Previously synced documents for User2 remain on local
+
+Subsequent remote changes synced down are rejected by local
+
+|User still has access to channel
+|User revoked access to channel
+Sync Function access policy is a Noop
+|Previously synced documents are auto purged on local
+
+|===
+
+
+
+
+// From 3.0 the default action during a Sync Gateway Pull replication when a user loses access to a channel, is that all documents in the channel are auto-purged from local Couchbase Lite databases (in devices belonging to the user), *unless* the document belongs to any of user’s other channels.
+
