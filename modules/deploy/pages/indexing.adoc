@@ -1,0 +1,39 @@
+= Indexing
+:page-aliases: ROOT:indexing.adoc
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:Description: Using Indexes to minimize system downtime in Sync Gateway
+
+include::ROOT:partial$_set_page_context.adoc[]
+
+:topic-group: Deploy
+:param-related: {deployment--xref}  |  {rest-api-access--xref}  |  {configuration-properties-legacy--xref}
+:param-abstract: Explains the use of Global Secondary Indexes
+include::ROOT:partial$_show_page_header_block.adoc[]
+
+== Overview
+Sync Gateway uses GSI (Global Secondary Indexes) and {sqlpp} to perform a variety of internal operations, including authentication and replication.
+
+One of the key advantages GSI is that it supports index replicas, which enables Sync Gateway to reduce the downtime -- say, during a server upgrade, re-balance or failover -- from several hours to a few seconds.
+It also improves overall query performance.
+
+Sync Gateway 3.3 supports partitioned indexes.
+This enables you to divide and spread a large index across multiple nodes.
+For details, see xref:deploy:index-partitions.adoc[].
+
+== Configuration
+This capability is enabled by default and is supported by two properties in the configuration file which can be adjusted:
+
+* {configuration-schema-database--pfx}#use_views[`databases.$db.use_views`]
+* {configuration-schema-database--pfx}#index.num_replicas[`databases.$db.index.num_replicas`]
+
+Use of GSI requires Couchbase Server 5.5 or later, with at least one node running the Index Service.
+Users wanting to run Sync Gateway 2.1 with an older version of Couchbase Server will need to continue to use views, by setting the `use_views` property.
+
+Sync Gateway requires the Index Service to be running on at least two Couchbase Server nodes (required for index replica).
+However, users can run with a single Index Service node by setting Sync Gateway's `index.num_replicas` property to zero.
+Doing so may result in increased downtime in the event of an index node failure.
+
+
+include::ROOT:partial$block-related-content-api.adoc[]
