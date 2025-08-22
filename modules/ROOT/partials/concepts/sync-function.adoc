@@ -42,8 +42,8 @@ Any validation checks will probably fail because of the missing properties, so b
 [#ex-sync-function]
 == Sync Function Examples
 
-Couchbase Sync Gateway defines a Sync Function at the `collection` level. 
-Defining at this level helps simplify data management and improve data reliability. 
+Couchbase Sync Gateway defines a Sync Function at the `collection` level.
+Defining at this level helps simplify data management and improve data reliability.
 Each collection in the system allows for only one Sync Function, which enables the specification of Access Control rules.
 
 NOTE: The Sync Function uses the https://ecma-international.org/wp-content/uploads/ECMA-262_5.1_edition_june_2011.pdf[ES5 standard] of JavaScript syntax.
@@ -56,14 +56,14 @@ NOTE: The Sync Function uses the https://ecma-international.org/wp-content/uploa
 
 [source, javascript]
 ----
-function (doc, oldDoc, meta) { 
-   channel(CollectionName); 
+function (doc, oldDoc, meta) {
+   channel(CollectionName);
 
 }
 ----
 Here the function then calls the `channel` and passes in the name of the collection `(CollectionsName)` as an argument.
 
-By default, every document in the collection is automatically assigned to a channel with the same name as the collection. This system automatically creates a channel with the collection's name. The assignment of all documents to the collection channel is functionally similar to assigning them to the xref:2.7@sync-gateway-channels.adoc#star-channel[Star Channel].
+By default, every document in the collection is automatically assigned to a channel with the same name as the collection. This system automatically creates a channel with the collection's name. The assignment of all documents to the collection channel is functionally similar to assigning them to the xref:ROOT:access-control-concepts.adoc#lbl-alldocs-channel[All Documents Channel].
 
 To override this, use a custom sync function or a Specified Default Sync Function.
 
@@ -80,7 +80,7 @@ To override this, use a custom sync function or a Specified Default Sync Functio
 function (doc, oldDoc, meta) {
    channel(doc.channels);
 
-} 
+}
 ----
 Here is the default Sync Function when you have upgraded; it remains the same as the previous version.
 
@@ -118,7 +118,7 @@ Your implementation of the sync function can omit the `oldDoc` parameter if you 
 
 This argument references the user defined XATTR that you can use to hold access grant data.
 
-The referenced object can include items such as channels or roles. 
+The referenced object can include items such as channels or roles.
 So instead of embedding channel information directly within the document body, users can specify the user-defined XATTR associated with the document -- see {access-control-how-use-xattrs-for-access-grants--xref}.
 
 |===
