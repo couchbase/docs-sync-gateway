@@ -46,9 +46,8 @@ It serves an important role in supporting Disaster Recovery (DR) and Data Migrat
 // tag::zero-downtime-active-active[]
 
 This model provides true zero-downtime disaster recovery using bi-directional XDCR between two active mobile clusters.
-Both clusters remain operational, with no fail-over through load balancer switching.
-You must configure both clusters with `shared_bucket_access=true` and `import_docs=true`.
-
+Both clusters remain operational, with seamless fail-over through load balancer switching.
+`shared_bucket_access=true` is required when loading a database in SGW 4.0+, and you must configure both clusters with `import_docs=true`.
 
 .Set Up
 To set up zero-downtime disaster recovery:
@@ -56,7 +55,9 @@ To set up zero-downtime disaster recovery:
 . Configure bi-directional XDCR between the Primary and disaster recovery clusters. +
 Enable automatic filtering of cluster specific metadata.
 . Deploy Sync Gateway in active mode on both clusters.
-. Configure load balancer to route traffic primarily to the Primary cluster.
+. Configure users, roles, and databases independently on both clusters. +
+XDCR replicates documents and attachments, but you must configure users, roles, and databases separately on each cluster.
+. Configure your load balancer to route traffic primarily to the Primary cluster.
 . Verify replication health between the two active clusters.
 
 [#fig-dr-active-active-setup]
@@ -71,7 +72,7 @@ To activate disaster recovery:
 This process requires no Sync Gateway service interruption.
 . Verify disaster recovery cluster is handling traffic properly.
 . Maintain bi-directional replication for recovery preparedness. +
-The original primary becomes new DR cluster automatically and no manual XDCR reconfiguration required
+The original primary becomes new DR cluster automatically and no manual XDCR reconfiguration required.
 
 // end::zero-downtime-active-active[]
 
@@ -84,7 +85,7 @@ It includes an optional optimization step, which verifies that there is no downt
 .Set Up
 To set up and maintain a disaster recovery cluster:
 
-. [*Optional step -- for optimization*] Connect Sync Gateway to the Disaster Recovery cluster just long enough to create indexes.
+. [*Optional step -- for optimization*] Start Sync Gateway with `offline: true` in the Disaster Recovery cluster to asynchronously create indexes.
 Having everything reindexed lowers switching costs. +
 If you skip this test, you'll incur latency when Sync Gateway switches to the Disaster Recovery cluster and Sync Gateway rebuilds its indexes.
 . Connect Sync Gateway to your Primary cluster.
@@ -121,8 +122,7 @@ The optional optimization step verifies that there is no downtime during the act
 .Set Up
 To set up and maintain a disaster recovery cluster - see: <<fig-dr-diff-regn-setup>>:
 
-. [Optional step -- for optimization] Turn on Sync Gateway in the Disaster Recovery cluster just long enough to create indexes.
-Having everything re-indexed lowers switching costs. +
+. [*Optional step -- for optimization*] Start Sync Gateway with `offline: true` in the Disaster Recovery cluster to asynchronously create indexes.
 If you skip this test, you'll incur latency when Sync Gateway is switched to the Disaster Recovery cluster and Sync Gateway rebuilds its indexes.
 . [*Critical step*] Turn off *all* the Sync Gateways in the Disaster Recovery cluster.
 . Start the *unidirectional* XDCR from the Primary cluster to the Disaster Recovery cluster.
