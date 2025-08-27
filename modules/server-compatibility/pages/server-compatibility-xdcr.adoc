@@ -44,18 +44,18 @@ Here we provide details on how XDCR feature relates to the {cbm} ecosystem.
 
 
 If you need to sync mobile clusters, you should use Inter-Sync Gateway replication -- see: {sync-inter-syncgateway-overview--xref}.
-It was designed to keep mobile clusters in different data centers in sync.
+It's designed to keep mobile clusters in different data centers in sync.
 The ideal use-case being the need to replicate edge clusters containing active Sync{nbsp}Gateway nodes between geographically separate cloud-based Sync Gateway deployments.
-A typical architecture for this use case is shown in <<icr-active-mobile>>.
+<<icr-active-mobile>> shows a typical architecture for this use case.
 
-Inter-Sync Gateway replication provides bi-directional read/write replications that ensure:
+Inter-Sync Gateway replication provides bi-directional read/write replications that make sure:
 
-* Cluster specific security is observed; by invoking the appropriate Sync Function.
-* The integrity of security history is maintained.
-Historical access rules are held and maintained in the Sync Gateway metadata.
+* Sync Gateway observes cluster-specific security by invoking the appropriate Sync Function.
+* Sync Gateway maintains the integrity of security history.
+Sync Gateway holds and maintains historical access rules in its metadata.
 This history is necessary to consistently handle the revocation of access grants.
-* A consistent Revision Id is used across all clusters, allowing clients to identify a revision regardless of the cluster it is on.
-* Cluster-specific _sync documents are not replicated to other mobile clusters
+* All clusters use a consistent Revision Id, allowing clients to identify a revision regardless of which cluster it's on.
+* Cluster-specific `_sync` documents are not replicated to other mobile clusters
 
 [[icr-active-mobile]]
 .Active-to-active mobile synchronization
@@ -71,7 +71,8 @@ XDCR replicates all of Sync Gateway’s metadata (_sync xattr) along with associ
 
 Your default preference for the replication of {cbm} changes should always be to use inter-Sync{nbsp}Gateway replication.
 
-XDCR can be useful though in use-cases where the entire dataset from a source bucket is replicated to a target bucket. This could include categories such as active standby, disaster recovery, data migration and _lift-and-shift_ cases in hybrid cloud.
+XDCR proves useful in use-cases where you replicate the entire dataset from a source bucket to a target bucket.
+These categories include active standby, disaster recovery, data migration and _lift-and-shift_ cases in hybrid cloud.
 
 
 === Unidirectional XDCR
@@ -83,8 +84,8 @@ In all these categories you should run XDCR in unidirectional mode, deploying Sy
 ====
 In this example XDCR deployment:
 
-* XDCR is run unidirectionally.
-It pushes data from the primary data center to the secondary data centers, where it is pulled by Sync Gateway for downstream clients.
+* XDCR runs unidirectionally.
+It pushes data from the primary datacenter to the secondary datacenter, where it's pulled by Sync Gateway for downstream clients.
 * Sync Gateway, although deployed at both ends of the XDCR replication, crucially is in *read-only* mode at the target end.
 
 .XDCR Replication
