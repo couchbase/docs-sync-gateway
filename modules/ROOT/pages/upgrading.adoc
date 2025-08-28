@@ -46,14 +46,62 @@ include::ROOT:partial$_show_page_header_block.adoc[]
 A rolling upgrade is the recommended method to upgrade a Sync Gateway cluster.
 At a high level, a rolling upgrade consists of the following steps:
 
-. The load balancer configuration is updated to stop any HTTP traffic going to the node that will be upgraded.
+. The load balancer configuration stops any HTTP traffic going to the node that's upgraded.
 
-. The upgrade is performed on the given node
+. The upgrade performs on the given node
 
-. The load balancer configuration is updated to re-balance the HTTP traffic across all nodes.
+. The load balancer configuration updates to re-balance the HTTP traffic across all nodes.
 
 Those steps are then repeated for each node in the {sgw} cluster.
 
+
+== Upgrade to 4.0
+
+=== Upgrade Requirements
+
+. Couchbase Server 7.6.0 or later - Sync Gateway 4.0 does not support older server versions.
+. Couchbase Server 7.6.5 or later for bi-directional XDCR features.
+. `shared_bucket_access=false` is no longer supported - databases do not start with `shared_bucket_access=false`.
+. `allow_conflicts=true` no longer supported - databases do not start with this setting.
+
+
+.One Way Upgrade
+[CAUTION]
+--
+The migration to 4.x configuration is a ONE WAY process.
+You cannot downgrade to previous versions after upgrading to 4.0.
+To continue using legacy-mode configuration see: <<lbl-3-0-upgrade-opt-out>>
+--
+
+==== Considerations
+
+Before commencing your upgrade you should:
+
+. Verify your Couchbase Server version.
+. Remove or update `shared_bucket_access=false`, `allow_conflicts=true settings` and document any custom conflict resolution strategies.
+. Create configuration backups and document your current replication settings.
+
+==== Process
+
+.Step 1
+
+. Upgrade Couchbase Server cluster to 7.6.0 or later and verify all server nodes are operational.
+. Test Sync Gateway connectivity with existing version and start the Sync Gateway service.
+. Update Sync Gateway configuration file to match the new server version and features.
+
+.Step 2
+
+. Remove the node from a load balancer or stop traffic to the node.
+. Install Sync Gateway 4.0 and update your configuration file.
+. Start the Sync Gateway service.
+. Verify node health via xref:rest-api:rest_api_public.adoc#tag/Server/operation/get_-[REST API].
+
+.Step 3
+
+. Verify all databases are online.
+. Test mobile client synchronization.
+. Validate Inter-Sync Gateway replication if configured.
+. Re-add the node to the load balancer or resume traffic to the node.
 
 == Upgrade to 3.1
 
@@ -61,40 +109,42 @@ Those steps are then repeated for each node in the {sgw} cluster.
 === Use Persistent Configuration
 
 The use of 3.x's Persistent Configuration feature is strongly recommended.
-It is the default operational mode when starting {sgw}.
+It's the default operational mode when starting {sgw}.
 
 The feature provides a smooth upgrade path for existing users by automatically converting their existing configuration files to the new persistent configuration format.
 
 .One Way Upgrade
 [CAUTION]
 --
-The migration to 3.x configuration is a ONE WAY process; to continue using legacy-mode configuration see: <<lbl-3-0-upgrade-opt-out>>
+The migration to 3.x configuration is a ONE WAY process.
+You cannot downgrade to previous versions after upgrading to 4.0.
+To continue using legacy-mode configuration see: <<lbl-3-0-upgrade-opt-out>>
 --
 
 ==== Considerations
 
 Before commencing your upgrade consider your requirements for
-<<lbl-3-0-config-grps>> although most users will likely find the default group sufficient,
+<<lbl-3-0-config-grps>> although most users find the default group sufficient,
 <<lbl-3-0-config-tls>> and
 <<lbl-3-0-config-adm>>.
 
 You should also:
 
-* Ensure {Sgw-t} has write access to the directory containing the existing configuration (the one to be converted).
-It will be used to backup the existing configuration, and to write the upgraded config.
+* Ensure {Sgw-t} has write access to the directory containing the existing configuration (the one you want to convert).
+It backups the existing configuration and write the upgraded configuration.
 
-* Ensure that, if your existing configuration has multiple databases, all of the *server* fields used to connect to _Couchbase Server_ match. +
-Although the connection credentials used may differ between databases, {sgw-t} will only use the *first* set of credentials for the bootstrap configuration file.
+* Verify that, if your existing configuration has multiple databases, all of the *server* fields used to connect to *Couchbase Server* match. +
+Although the connection credentials used may differ between databases, {sgw-t} only uses the *first* set of credentials for the bootstrap configuration file.
 +
 
-NOTE: Automatic upgrade cannot be done if you have multiple distinct server fields within the configuration file and you will need to manually create their own bootstrap configuration.
+NOTE: Sync Gateway cannot automatically upgrade configurations that have multiple distinct server fields within the configuration file, and you'll need to manually create their own bootstrap configuration.
 
 
 ==== Process
 
-Just start up a {sgw} node using your existing configuration properties file.
+Just start a {sgw} node using your existing configuration properties file.
 
-On starting, {sgw-t} will take the appropriate upgrade path as shown in <<tbl-enhancedcfg>>.
+On starting, {sgw-t} takes the appropriate upgrade path as shown in <<tbl-enhancedcfg>>.
 
 
 .Upgrade Paths
@@ -105,15 +155,15 @@ On starting, {sgw-t} will take the appropriate upgrade path as shown in <<tbl-en
 
 | No configuration exists
 
-| This is first node in the default group or with this _group ID_ to start
+| This is first node in the default group or with this *group ID* to start
 
 | {sgw-s} uses the configuration file to derive and persist a configuration for this node.
 
 | Configuration exists in the Server bucket +
 
-| A node in the default group, or with this _group ID_, has already started
+| A node in the default group, or with this *group ID*, has already started
 
-| {sgw-s} ignores the configuration file and uses the configuration associated with the default group, or _group ID_ provided.
+| {sgw-s} ignores the configuration file and uses the configuration associated with the default group, or *group ID* provided.
 
 
 |===
@@ -122,9 +172,9 @@ On starting, {sgw-t} will take the appropriate upgrade path as shown in <<tbl-en
 [#lbl-3-0-config-grps]
 ==== Configuration Groups
 
-Whilst the provided default group will suffice for most deployments {sgw} does allow for the configuration of more complex node groupings.
+Whilst the provided default group suffices for most deployments {sgw} does allow for the configuration of more complex node groupings.
 
-So, before commencing your upgrade consider your requirements for grouping {sgw} nodes within your {sgw} cluster -- see: {configuration-overview--xref--groups}
+Before commencing your upgrade consider your requirements for grouping {sgw} nodes within your {sgw} cluster -- see: {configuration-overview--xref--groups}
 
 If you want the {sgw} to associate with a specific configuration group Id, you must add the `bootstrap_group_id` value to the configuration file prior to startup -- see: {bootstrap-schema--xref--bootstrap-group-id}
 
@@ -133,7 +183,7 @@ Failing to do so may result in the configuration being overridden by one configu
 [#lbl-3-0-config-tls]
 === Secure Server Connection
 
-Secure TLS Connection to Couchbase Server is enabled out-of-the-box in 3.0.
+Sync Gateway 3.0 enables secure TLS connection to Couchbase Server out-of-the-box.
 
 If you wish to use non-secure connection, perhaps in a test environment, you need to run {sgw} with
 {bootstrap-schema--xref--bootstrap-use-tls-server} set to `false` -- see: {secure-sgw-access--xref}
@@ -142,10 +192,10 @@ If you wish to use non-secure connection, perhaps in a test environment, you nee
 [#lbl-3-0-config-adm]
 ==== Secure Administration
 
-Secure Administration is under-pinned by the use of Couchbase Server RBAC-users to authenticate and authorize access to Admin (and Metrics) API functionality.
+Secure Administration is under-pinned by the use of Couchbase Server RBAC-users to authenticate and authorize access to Admin and Metrics API feature.
 This requires you set-up and configure appropriate users -- see: {rest-api-access--xref}.
 
-To opt out of this, you can configure  {bootstrap-schema--xref--api-admin-interface-authentication} and-or {bootstrap-schema--xref--api-metrics-interface-authentication} as `false`
+To opt-out of this, you can configure  {bootstrap-schema--xref--api-admin-interface-authentication} and-or {bootstrap-schema--xref--api-metrics-interface-authentication} as `false`
 
 
 [#lbl-3-0-upgrade-opt-out]
@@ -168,24 +218,24 @@ Downtime: No -- a rolling upgrade +
 . Clean up obsolete views:
 ** *Optional* Issue a call to `/_post_upgrade?preview=true` on any node to preview which design documents will be removed.
 ** Issue a call to `/post_upgrade` to remove the obsolete design documents.
-The response should indicate that "sync_gateway" and "sync_housekeeping" were removed.
+The response should indicate that "sync_gateway" and "sync_housekeeping" are removed.
 
 === Upgrade Notes
-The upgrade, from using views to using Global Secondary Indexes and {sqlpp}, happens automatically when starting a Sync Gateway 2.1 or above node in a cluster that was previously using views.
+The upgrade, from using views to using Global Secondary Indexes and {sqlpp}, happens automatically when starting a Sync Gateway 2.1 or above node in a cluster that was using views in earlier versions.
 
 By default, Sync Gateway requires the Couchbase Server cluster to be running Couchbase Server 5.5, with at least two nodes running the Index and Query Services.
 If this is not the case, users must configure the `use_views` and/or `index.num_replicas` properties in their Sync Gateway configuration during upgrade.
 
 Installation follows the same general approach used in 2.0.
-On startup, Sync Gateway will check for the existence of the required indexes, and only attempt to create them if they do not already exist.
+On startup, Sync Gateway checks for the existence of the required indexes, and only attempts to create them if they do not already exist.
 
-Then, Sync Gateway will wait until indexes are available before starting to serve requests.
+Then, Sync Gateway waits until indexes are available before starting to serve requests.
 
 === Tidy-up
-Sync Gateway 2.1 or above will *not* automatically remove the previously used design documents.
+Sync Gateway 2.1 or above does *not* automatically remove the design documents from earlier versions.
 
 Removal of the obsolete design documents is done via a call to the xref:rest-api:rest_api_admin.adoc#tag/Server/operation/post__post_upgrade[+/_post_upgrade+] endpoint in Sync Gateway`'s Admin REST API.
-This endpoint can be run in preview mode (`?preview=true`) to see which design documents would be removed.
+You can run this endpoint in preview mode (`?preview=true`) to see which design documents would be removed.
 
 
 == 1.x to 2.x Using Views
@@ -199,20 +249,20 @@ Downtime: No -- a rolling upgrade
 . Upgrade one node in the cluster to 2.0, and wait for it to be reachable via the REST API (for example at \http://localhost:4985/).
 . Upgrade the rest of the nodes in the cluster.
 . Clean up obsolete views:
-** *Optional* Issue a call to `_post_upgrade?preview=true` on any node to preview which design documents will be removed.
+** *Optional* Issue a call to `_post_upgrade?preview=true` on any node to preview which design documents you'll remove.
 To upgrade to 2.0, expect to see "sync_gateway" and "sync_housekeeping" listed.
 ** Issue a call to `_post_upgrade` to remove the obsolete design documents.
-The response should indicate that "sync_gateway" and "sync_housekeeping" were removed.
+The response should show that Sync Gateway removed "sync_gateway" and "sync_housekeeping".
 
 === Notes
 In 2.0, Sync Gateway's design documents include the version number in the design document name.
-In this release for example, the design documents are named `_design/sync_gateway_2.0` and `_design/sync_housekeeping_2.0`.
+In this release for example, the design documents named `_design/sync_gateway_2.0` and `_design/sync_housekeeping_2.0`.
 
-On startup, Sync Gateway will check for the existence of these design documents, and only attempt to create them if they do not already exist.
-Then, Sync Gateway will wait until views are available and indexed before starting to serve requests.
-To evaluate this, Sync Gateway will issue a `stale=false&limit=1` query against the Sync Gateway views (channels, access and role_access).
+On startup, Sync Gateway checks for the existence of these design documents, and only attempt to create them if they do not already exist.
+Then, Sync Gateway waits until views are available and indexed before starting to serve requests.
+To evaluate this, Sync Gateway issues a `stale=false&limit=1` query against the Sync Gateway views (channels, access and role_access).
 
-If the view request exceeds the default timeout of 75s (which would be expected when indexing large buckets), Sync Gateway will log additional messages and retry -- see <<log-output>>.
+If the view request exceeds the default timeout of 75s (which would be expected when indexing large buckets), Sync Gateway logs additional messages and retries -- see <<log-output>>.
 
 [#log-output]
 .Logging output
