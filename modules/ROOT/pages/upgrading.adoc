@@ -284,7 +284,7 @@ If the view request exceeds the default timeout of 75s (which would be expected 
 === Tidy-up
 Sync Gateway 2.0 will *not* automatically remove the previous design documents.
 
-Removal of the obsolete design documents is done via a call to the xref:rest-api:rest_api_admin.adoc#tag/Server/operation/post__post_upgrade[`_post_upgrade`] endpoint in Sync Gateway's Admin REST API.
+To remove the obsolete design documents, call the xref:rest-api:rest_api_admin.adoc#tag/Server/operation/post__post_upgrade[`_post_upgrade`] endpoint in Sync Gateway's Admin REST API.
 This endpoint can be run in preview mode (`?preview=true`) to see which design documents would be removed.
 
 
@@ -292,24 +292,25 @@ This endpoint can be run in preview mode (`?preview=true`) to see which design d
 
 From: *Sync Gateway 1.1, 1.2, 1.3, 1.4* +
 To:  *Sync Gateway 1.5* +
-Downtime: Possible downtime in a rolling upgrade; follow the steps below to avoid any downtime.
+Downtime: possible downtime in a rolling upgrade.
+Follow the steps below to avoid any downtime.
 
 === Steps
 
 === Upgrade Notes
-In this upgrade path, the upgrade process will trigger views in Couchbase Server to be re-indexed.
-During the re-indexing, operations that are dependent on those views will not be available.
-The main operations relying on views to be indexed are:
+In this upgrade path, the upgrade process triggers views in Couchbase Server to be re-indexed.
+During the re-indexing, operations that are dependent on those views may not be available.
+The following main operations require indexed views:
 
-* A user requests data that doesn't reside in the {configuration-properties-legacy--pfx}#databases-this_db-cache-channel_cache_max_length[channel cache].
-* A new channel or role is granted to a user in the {sync-function--xref}.
+* A user requests data that does not reside in the {configuration-properties-legacy--pfx}#databases-this_db-cache-channel_cache_max_length[channel cache].
+* The {sync-function--xref} grants a new channel or role to a user.
 
-The unavailability of those operations may result in some requests not being processed.
-The duration of the downtime will depend on the data set and frequency of replications with mobile clients.
-To avoid this downtime, it is possible to pre-build the view index before directing traffic to the upgraded node.
+Those operations may become unavailable, which can prevent processing some requests.
+The duration of the downtime depends on the dataset and frequency of replications with mobile clients.
+To avoid this downtime, it's possible to pre-build the view index before directing traffic to the upgraded node.
 
 Sync Gateway uses Couchbase Server views to index and query documents.
-When Sync Gateway starts, it will publish a Design Document which contains the View definitions (map/reduce functions) -- see <<des-doc>>.
+When Sync Gateway starts, it publishes a Design Document which contains the View definitions (map/reduce functions) -- see <<des-doc>>.
 
 [#des-doc]
 .Design Document
@@ -333,12 +334,13 @@ When Sync Gateway starts, it will publish a Design Document which contains the V
 
 === Avoiding Downtime
 
-*Potential Downtime*: Following the Design Document creation, it must run against all the documents in the Couchbase Server bucket to build the index. An index rebuild may also be required during a Sync Gateway upgrade, if the Design Document definition has changed.
+*Potential Downtime*: Following the Design Document creation, it must run against all the documents in the Couchbase Server bucket to build the index.
+A Sync Gateway upgrade may also require an index rebuild if the Design Document definition has changed.
 
 To avoid this downtime, you can publish the Design Document and build the index before starting Sync Gateway by using the Couchbase Server REST API.
-The following curl commands refer to a Sync Gateway 1.3 -> Sync Gateway 1.4 upgrade but they apply to any upgrade of Sync Gateway or Accelerator.
+The following curl commands see a Sync Gateway 1.3 -> Sync Gateway 1.4 upgrade but they apply to any upgrade of Sync Gateway or Accelerator.
 
-. Start Sync Gateway 1.4 with Couchbase Server instance that *isn't* your production environment.
+. Start Sync Gateway 1.4 with Couchbase Server instance that *is not* your production environment.
 Then, copy the Design Document to a file with the following.
 +
 [source,bash]
@@ -363,7 +365,7 @@ This should return:
 --
 
 . Run a View Query against the Development Design Document.
-By default, a Development Design Document will index one vBucket per node, however we can force it to index the whole bucket using the `full_set` parameter:
+By default, a Development Design Document indexes one vBucket per node, however you can force it to index the whole bucket using the `full_set` parameter:
 +
 --
 [source,bash]
@@ -371,21 +373,21 @@ By default, a Development Design Document will index one vBucket per node, howev
 $ curl "http://localhost:8092/sync_gateway/_design/dev_sync_gateway/_view/role_access_vbseq?full_set=true&stale=false&limit=1"
 ----
 
-This may take some time to return, and you can track the index's progress in the Couchbase Server UI.
-Note that this will consume disk space to build an almost duplicate index until the switch is made.
+This may take some time to return, and you can track the index status in the Couchbase Server UI.
+NOTE: this process consumes disk space to build an almost duplicate index until you make the switch.
 --
 
-. Upgrade Sync Gateway. When Sync Gateway 1.4 starts, it will publish the new Design Document to Couchbase Server.
-This will match the Development Design Document we just indexed, so will be available immediately.
-
+. Upgrade Sync Gateway. +
+When Sync Gateway 1.4 starts, it publishes the new Design Document to Couchbase Server.
+This matches the Development Design Document you just indexed, so it's available without delay.
 
 == Couchbase Server Upgrade Paths
 
 NOTE: When upgrading your Couchbase Server from 4.x to 5.x, remember to create a Sync Gateway RBAC user on the server -- see: {xref-sgw-bmk-get-started-prepare-cfg-svr} -- and to include the user's credentials username/password in you Sync-Gateway-Config.json file.
 
-All of the different upgrade paths mentioned above assume that you are running a compatible Couchbase Server version -- see {compatibility--xref}.
+All of the different upgrade paths mentioned above assume that you're running a compatible Couchbase Server version -- see {compatibility--xref}.
 
-There are three commonly used upgrade approaches for Couchbase Server.
+Three commonly used upgrade approaches exist for Couchbase Server.
 Depending on the one you choose, there may be additional consideration to keep in mind when using Sync Gateway:
 
 [cols="2,1,1,5a"]
@@ -397,25 +399,27 @@ Depending on the one you choose, there may be additional consideration to keep i
 |Low
 |*Potential transient connection errors:* The Couchbase Server re-balance operations can result in transient connection errors between Couchbase Server and Sync Gateway, which could result in Sync Gateway performance degradation.
 
-*Potential for unexpected server errors during re-balance:* There is an increased potential to lose in-flight ops during a fail-over.
+*Potential for unexpected server errors during re-balance:* In-flight ops are lost during a fail-over due to increased potential for errors.
 
 |Upgrade Using Inter-Sync Gateway Replication
 |Small amount during switchover
 |High - duplicate entire cluster
-|Using an XDCR (Cross Data Center Replication) approach will incur some Sync Gateway downtime, but less than other approaches where Sync Gateway is shutdown during the entire Couchbase Server upgrade.
+|Using an XDCR (Cross Data Center Replication) approach incurs some Sync Gateway downtime, but less than other approaches where Sync Gateway is shutdown during the entire Couchbase Server upgrade.
 
-It's important to note that the XDCR replication must be a *one way* replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster, and that no other writes can happen on the new (target) Couchbase Server cluster other than the writes from the XDCR replication, and no Sync Gateway instances should be configured to use the new (target) Couchbase Server cluster until the last step in the process.
+NOTE: The XDCR replication must be a *one way* replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster.
+No other writes can happen on the new (target) Couchbase Server cluster other than the writes from the XDCR replication.
+Do not configure any Sync Gateway instances to use the new (target) Couchbase Server cluster until the last step in the process.
 
-. Start XDCR to do a one way replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster running the newer version.
+. Start XDCR to do a one way replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster running the earlier version.
 . Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster.
 . Shutdown Sync Gateway to prevent any new writes from coming in.
-. Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster -- this should happen very quickly, since it will only be the residual writes in transit before the Sync Gateway shutdown.
+. Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster -- this should happen quickly, since it will only be the residual writes in transit before the Sync Gateway shutdown.
 . Reconfigure Sync Gateway to point to the target cluster.
 . Restart Sync Gateway.
 
 Caveats:
 
-* *Small amount of downtime during switchover:* Since there may be writes still in transit after Sync Gateway has been shutdown, there will need to be some downtime until the target Couchbase Server cluster is completely caught up.
+* *Small amount of downtime during switchover:* Since there may be writes still in transit after Sync Gateway has been shutdown, there will need to be some downtime until the target Couchbase Server cluster is caught up.
 * *XDCR should be monitored:* Make sure to monitor the XDCR relationship as per xref:server:xdcr:xdcr-intro.adoc[XDCR docs].
 
 |Offline Upgrade
@@ -444,13 +448,13 @@ To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replica
 
 General::
 * The system supports a rolling upgrade from SG Replicate to inter-Sync Gateway replication.
-* One-shot replications configured at database level will continue as SG Replicate replications.
+* One-shot replications configured at database level continues as SG Replicate replications.
 * Any configured SG Replicate replications that you want to upgrade to Inter-Sync Gateway must be re-configured using the Inter-Sync Gateway configuration (at database rather than global level) or REST API endpoint (`_replication`).
 * An pre-2.8 systems using their own custom resolution strategy (via the REST endpoint) will function as they did for SG Replicate replications after upgrading.
 
 Restarting Replications::
-The `replicationId` is used to ensure that any replications previously setup with SG{nbsp}Replicate, automatically restart using inter-Sync Gateway replication.
-The restart point will be the last checkpoint used, unless over-ridden.
+The `replicationId` verifies any replications that were setup with SG{nbsp}Replicate, automatically restart using inter-Sync Gateway replication.
+The replication will restart from the last checkpoint used, unless you override it.
 
 Over-riding restart point::
 To restart a sync from zero: After the upgrade reconfigure the inter-Sync Gateway replication {configuration-properties-legacy--xref--db-replications} to use a different {configuration-properties-legacy--xref--db-rep-id}
@@ -467,7 +471,7 @@ Replication between two remote databases::
 --
 Replication between two remote databases is no longer supported.
 
-Sync Gateway will log an error and fail to start if a replication defined at the configuration's root level does not involve at least one local database (source or target).
+Sync Gateway logs an error and fails to start if a replication defined at the configuration's root level does not involve at least one local database (source or target).
 --
 
 Pushing to SG Replicate targets::
@@ -515,9 +519,9 @@ To::
 * Conflict resolution -- Not implemented
 
 Strategy::
-* Upgrade sequence -- Either cluster can be upgraded first
-* Restart point -- When the active node restarts it will use SG{nbsp}Replicate and will continue from where it last left off
-* Upgrade Constraint -- Replication will be down for the duration of the active node restart
+* Upgrade sequence -- You can upgrade either cluster first
+* Restart point -- When the active node restarts it uses SG{nbsp}Replicate and will continue from where it last left off
+* Upgrade Constraint -- Replication is unavailable for the duration of the active node restart
 ====
 --
 
@@ -541,12 +545,12 @@ To::
 * Conflict resolution -- Custom conflict resolution with `allow_conflicts=true`
 
 Strategy::
-* Upgrade sequence -- Either cluster can be upgraded first
-* Restart point -- When the active node restarts it will use SG{nbsp}Replicate and will continue from where it last left off
-* Conflict Resolution -- Will continue to be handled by the app
+* Upgrade sequence -- You can upgrade either cluster first
+* Restart point -- When the active node restarts it uses SG{nbsp}Replicate and continues from where it last stopped
+* Conflict Resolution -- the app continues to handle conflicts
 * Upgrade Constraints
-** Replication will be down for the duration of the active node restart
-** The `allow_conflicts` flag is ignored for any inter-Sync Gateway replication replications configured.
+** Replication is unavailable for the duration of the active node restart
+** Inter-Sync Gateway replications ignore the `allow_conflicts` flag when configured.
 ====
 --
 +
@@ -575,11 +579,11 @@ Strategy::
 // .. Remove the SG{nbsp}Replicate replication configuration and replace it with inter-Sync Gateway replication equivalent.
 .. Upgrade each cluster to 2.8.
 * Restart Outcomes
-** When The active cluster is restarted it will automatically switch to Inter-Sync Gateway Replication
-** Replication will continue from the last checkpoint, unless over-ridden.
-** {enterprise} The replication will distribute automatically
+** When the active cluster restarts, it automatically switches to Inter-Sync Gateway Replication
+** Replication continues from the last checkpoint, unless over-ridden.
+** {enterprise} The replication distributes automatically
 * Conflict resolution -- Default
-* Upgrade Constraint -- The `allow_conflicts` flag is ignored for any inter-Sync Gateway replication replications configured.
+* Upgrade Constraint -- Inter-Sync Gateway replication ignores the `allow_conflicts` flag when configured.
 
 ====
 --
@@ -608,21 +612,21 @@ Strategy::
 * Upgrade sequence
 .. Stop SG{nbsp}Replicate replications
 // .. Remove the SG{nbsp}Replicate replication configuration
-.. Add the Inter-Sync Gateway replication configuration, including Javascript function as {configuration-properties-legacy--xref--db-rep-resolver}
+.. Add the Inter-Sync Gateway replication configuration, including JavaScript function as {configuration-properties-legacy--xref--db-rep-resolver}
 .. Upgrade each cluster to 2.8
 * Restart Outcomes
-** When the active cluster is restarted it will automatically switch to Inter-Sync Gateway Replication
-** Replication will continue from the last checkpoint, unless over-ridden.
-** {enterprise} The replication will distribute automatically
-* Conflict resolution -- Conflicts will be handled by the function  specified as the as {configuration-properties-legacy--xref--db-rep-resolver}
-* Upgrade Constraint -- The `allow_conflicts` flag is ignored for any inter-Sync Gateway replication replications configured.
+** When the active cluster restarts it automatically switches to Inter-Sync Gateway Replication
+** Replication continues from the last checkpoint, unless over-ridden.
+** {enterprise} The replication distributes automatically
+* Conflict resolution -- The function specified as {configuration-properties-legacy--xref--db-rep-resolver} handles conflicts
+* Upgrade Constraint -- Inter-Sync Gateway replications ignore the `allow_conflicts` flag when configured.
 ====
 --
 =====
 
 === Re-using SG Replicate Checkpoints
-You are able to use SG Replicate {glos-term-checkpoint} as a starting point for Inter-Sync Gateway replications.
-This can save time on larger buckets by avoiding re-processing documents that have previously been replicated.
+You're able to use SG Replicate {glos-term-checkpoint} as a starting point for Inter-Sync Gateway replications.
+This can save time on larger buckets by avoiding re-processing documents that have already been replicated.
 
 To be eligible for re-use use in this way
 
@@ -632,13 +636,13 @@ To be eligible for re-use use in this way
 ** Previous Source/Target URLs match Remote URL
 ** Channel filters
 ** DocID filters
-* The new replication must be configured to be unidirectional (there was no bidirectional support prior to 2.8)
+* You must configure the new replication to be unidirectional (there was no bidirectional support prior to 2.8)
 
 === Upgrade Steps
 
-. Have both SG Replicate and Inter-Sync Gateway replications defined in the same config file.
-. Ensure prerequisites from previous slide are fulfilled (matching IDs, params, etc.)
-. On startup, Sync Gateway will determine if replications match, and log:
+. Have both SG Replicate and Inter-Sync Gateway replications defined in the same `config` file.
+. Verify that you have fulfilled the prerequisites from the previous slide (matching IDs, params, etc.)
+. On startup, Sync Gateway determines if replications match, and log:
 +
 [source]
 ----
@@ -654,7 +658,7 @@ To be eligible for re-use use in this way
 [INF] Replicate: Replication "repl1-pull" was upgraded, preventing startup of SG Replicate replication.
 [INF] Replicate: Starting sg-replicate replications...
 ----
-. When the Inter-Sync Gateway replication is assigned (even on a different node), the SG Replicate checkpoint is used if no Inter-Sync Gateway checkpoint can be found. Logs:
+. When Sync Gateway assigns the Inter-Sync Gateway replication (even on a different node), it uses the SG Replicate checkpoint if it cannot find an Inter-Sync Gateway checkpoint. Logs:
 +
 [source]
 ----
@@ -663,7 +667,7 @@ To be eligible for re-use use in this way
 [INF] Replicate: Attempting to fetch SGR1 checkpoint as fallback: 58782a013091ffc0e7e4ae3c4b6abd8baa7149c6
 [INF] Replicate: c:repl1-pull-pull using checkpointed seq from SGR1: "3"
 ----
-. Once the SG Replicate checkpoint is used, it is deleted to ensure it cannot be used as a fallback again in the event Inter-Sync Gateway replication {glos-term-checkpoints} are removed.
+. Once Sync Gateway uses the SG Replicate checkpoint, it deletes the checkpoint to ensure it cannot serve as a fallback again if someone removes Inter-Sync Gateway replication {glos-term-checkpoints}.
 
 
 :example-caption: {save-title}
@@ -673,31 +677,39 @@ To be eligible for re-use use in this way
 == Upgrade from Views to GSI
 
 Prior to 2.1, Sync Gateway used system views for a variety of internal operations, including authentication and replication.
-Starting in 2.1, Sync Gateway will use GSI and {sqlpp} to perform those tasks.
+Starting in 2.1, Sync Gateway uses GSI and {sqlpp} to perform those tasks.
 
-The upgrade, from using views to using Global Secondary Indexes and {sqlpp}, happens automatically when starting a Sync Gateway 2.1 or above node in a cluster that was previously using views.
+The upgrade, from using views to using Global Secondary Indexes and {sqlpp}, happens automatically when starting a Sync Gateway 2.1 or above node in a cluster that was using views in earlier versions.
 
 Use of GSI requires Couchbase Server 5.5, with at least one node running the Query and Index Services.
-Users wanting to run Sync Gateway 2.1 or above with an older version of Couchbase Server will need to continue to use views, by setting the `use_views` property.
+Users wanting to run Sync Gateway 2.1 or above with an earlier version of Couchbase Server needs to continue to use views, by setting the `use_views` property.
 
 == Upgrade to Shared Bucket
 
 === Implementation notes for XATTRs:
 
-Mobile applications require additional metadata in order to manage security and replication. In previous versions of Sync Gateway, this information has always been stored in the document body. Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (x-attributes) to store that metadata into an external document fragment.
+Mobile applications require additional metadata to manage security and replication.
+Sync Gateway has always stored this information in the document body in previous versions.
+Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (x-attributes) to store that metadata into an external document fragment.
 
-Extended attributes (xattrs) are JSON objects that can be associated with Couchbase documents. Each document can be associated with zero or more extended attributes. There are currently three types (user, system, virtual). Mobile Convergence uses a system extended attribute, which has the following characteristics central to convergence:
+Couchbase documents can have associated JSON objects called extended attributes (xattrs).
+You can associate each document with zero or more extended attributes.
+Three types currently exist (user, system, virtual).
+Mobile Convergence uses a system extended attribute, which has the following characteristics central to convergence:
 
-  - Shares lifetime with the document metadata - when a document is deleted, system xattrs are preserved with the tombstone.
-  - Allocated 1MB of storage, independent of the 20MB available for the document
+- System xattrs share lifetime with the document metadata - when you delete a document, the system preserves system xattrs with the tombstone.
+- The system allocates 1MB of storage, independent of the 20MB available for the document
 
-Extended attributes are stored as part of the document, and are replicated with the document (both intra-cluster replication and XDCR).
+Couchbase Server stores extended attributes as part of the document and replicates them with the document (both intra-cluster replication and XDCR).
 
-Extended attributes can be accessed via the SDKs using the sub-document API, via command-line tools, and via views.
+You can access extended attributes via the SDKs using the sub-document API, via command-line tools, and via views.
 
-They are also accessible from {sqlpp} in Couchbase Server 5.5 or above with the `().xattrs` property. For example, `SELECT meta().xattrs._sync from travel-sample where Meta().id = "user::demo";`.
+They're also accessible from {sqlpp} in Couchbase Server 5.5 or above with the `().xattrs` property.
+For example, `SELECT meta().xattrs._sync from travel-sample where Meta().id = "user::demo";`.
 
-WARNING: The sync metadata is maintained internally by Sync Gateway and its structure can change at any time. It should not be used to drive business logic of applications. The direct use of the {sqlpp} query is unsupported and must not be used in production environments.
+WARNING: Sync Gateway maintains the sync metadata internally and its structure can change at any time.
+Applications should not use it to drive business logic.
+Sync Gateway does not support the direct {sqlpp} query in production environments.
 
 The xref:rest-api:rest_api_admin.adoc#tag/Document/operation/get_keyspace-_raw-docid[raw]
  endpoint on Sync Gateway's Admin REST API returns both the document and its associated mobile metadata.
@@ -717,7 +729,7 @@ After you restart Sync Gateway with the updated configuration file, Sync Gateway
 To enable shared bucket access on incoming documents, set the `import_docs`: `true` property on at least one Sync Gateway node in the cluster.
 
 Enabling shared bucket access on your existing deployment is *not* reversible.
-It is recommended to test the upgrade on a staging environment before upgrading the production environment.
+We recommend testing the upgrade on a staging environment before upgrading the production environment.
 
 The known issue xref:product-notes:release-notes.adoc#2-5-0[CBG-394], means that the upgrade will *require downtime* when enabling shared bucket access on an existing deployment that is running with GSI indexing. This is to allow all documents to migrate, using index-based data requests whilst migration is in progress could result in an incomplete data set being returned (containing only those docs migrated at the time of the request). You are advised to schedule a maintenance window to allow time for migration to complete.
 
@@ -733,7 +745,7 @@ As of Sync Gateway 3.3, `num_index_replicas` still works, but this option has be
 
 == Migrating from Bucket Shadowing
 
-As of Sync Gateway 1.5, the Bucket Shadowing feature is deprecated and no longer supported.
+As of Sync Gateway 1.5, the Bucket Shadowing feature has been deprecated and is no longer supported.
 The following steps outline a recommended method for migrating from Bucket Shadowing to the latest version with interoperability between Couchbase Server SDKs and Couchbase Mobile.
 
 . Follow the recommendations in the xref:server:install:upgrade-online.adoc[Couchbase Server documentation] to upgrade all instances to 5.0.
@@ -741,7 +753,7 @@ The following steps outline a recommended method for migrating from Bucket Shado
 . Install Sync Gateway 1.5 on a separate node with shared access enabled and connect it to the new bucket (*bucket 2*).
 . Setup a push replication from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.
 . Once the replication has completed, test your application is performing as expected.
-. Update the load balancer to direct incoming traffic to the Sync Gateway 1.5 instance when you are ready to upgrade.
+. Update the load balancer to direct incoming traffic to the Sync Gateway 1.5 instance when you're ready to upgrade.
 . Delete the first bucket (*bucket 1*).
 
 image:bucket-shadowing-migration.png[]
