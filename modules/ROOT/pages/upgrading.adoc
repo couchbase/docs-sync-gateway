@@ -67,12 +67,12 @@ NOTE: As with all major version upgrades, downgrading from 4.0 to earlier versio
 
 ==== Process
 
-.Step 1
+.Prerequisites
 
 . Upgrade Couchbase Server cluster to 7.6.0 or later and verify all server nodes are operational.
-. Test Sync Gateway connectivity with existing version to ensure compatibility.
+. Test Sync Gateway connectivity with existing version to verify compatibility.
 
-.Step 2
+.Step 1
 
 . Remove a node from the load balancer or stop traffic to the node.
 . Update the configuration file, if using unsupported settings:
@@ -82,7 +82,7 @@ NOTE: As with all major version upgrades, downgrading from 4.0 to earlier versio
 . Start the Sync Gateway service.
 . Verify node health via xref:rest-api:rest_api_public.adoc#tag/Server/operation/get_-[REST API].
 
-.Step 3
+.Step 2
 
 . Verify all databases are online.
 . Re-add the node to the load balancer or resume traffic to the node.
@@ -207,7 +207,16 @@ Depending on the one you choose, there may be additional consideration to keep i
 |High - duplicate entire cluster
 |Using an XDCR (Cross Data Center Replication) approach incurs some Sync Gateway downtime, but less than other approaches where Sync Gateway is shutdown during the entire Couchbase Server upgrade.
 
-NOTE: The XDCR replication must be a *one way* replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster.
+|Offline Upgrade
+|During entire upgrade
+|None
+|
+* Take Sync Gateway offline
+* Upgrade Couchbase Server using any of the options mentioned in the xref:server:install:upgrade.adoc[Upgrading Couchbase Server] documentation.
+* Bring Sync Gateway online
+|===
+
+The XDCR replication must be a *one way* replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster.
 No other writes can happen on the new (target) Couchbase Server cluster other than the writes from the XDCR replication.
 Do not configure any Sync Gateway instances to use the new (target) Couchbase Server cluster until the last step in the process.
 
@@ -222,268 +231,6 @@ Caveats:
 
 * *Small amount of downtime during switchover:* Since there may be writes still in transit after Sync Gateway has been shutdown, there will need to be some downtime until the target Couchbase Server cluster is caught up.
 * *XDCR should be monitored:* Make sure to monitor the XDCR relationship as per xref:server:xdcr:xdcr-intro.adoc[XDCR docs].
-
-|Offline Upgrade
-|During entire upgrade
-|None
-|
-* Take Sync Gateway offline
-* Upgrade Couchbase Server using any of the options mentioned in the xref:server:install:upgrade.adoc[Upgrading Couchbase Server] documentation.
-* Bring Sync Gateway online
-|===
-
-
-
-== SG Replicate to Inter-Sync Gateway
-
-=== Out of the box behavior
-Any {configuration-properties-legacy--xref--db-replications} ({configuration-properties-legacy--xref--db-rep-continuous} or ad-hoc) pre-configured in the configuration file's {configuration-properties-legacy--xref--databases} section will run using the SG{nbsp}Replicate protocol.
-This is subject to any compatibility constraints defined in the {compatibility--xref}.
-
-Existing replications implementing custom conflict resolution strategies (via the REST endpoint) will continue to function in the same manner as for SG{nbsp}Replicate replications after upgrade
-
-=== Upgrading existing replications
-To upgrade existing SG{nbsp}Replicate replications to Inter-Sync Gateway Replication, reconfigure them using Inter-Sync Gateway Replication's {configuration-properties-legacy--xref--db-replications} property in the configuration file or the REST API -- see <<upgrade-strategies>> for more.
-
-=== Post-upgrade behavior
-
-General::
-* The system supports a rolling upgrade from SG Replicate to inter-Sync Gateway replication.
-* One-shot replications configured at database level continues as SG Replicate replications.
-* Any configured SG Replicate replications that you want to upgrade to Inter-Sync Gateway must be re-configured using the Inter-Sync Gateway configuration (at database rather than global level) or REST API endpoint (`_replication`).
-* An pre-2.8 systems using their own custom resolution strategy (via the REST endpoint) will function as they did for SG Replicate replications after upgrading.
-
-Restarting Replications::
-The `replicationId` verifies any replications that were setup with SG{nbsp}Replicate, automatically restart using inter-Sync Gateway replication.
-The replication will restart from the last checkpoint used, unless you override it.
-
-Over-riding restart point::
-To restart a sync from zero: After the upgrade reconfigure the inter-Sync Gateway replication {configuration-properties-legacy--xref--db-replications} to use a different {configuration-properties-legacy--xref--db-rep-id}
-
-=== Constraints
-
-Minimum Version for Inter-Sync Gateway Replication::
-In order to support Inter-Sync Gateway Replication, all active nodes in active cluster must be running Sync Gateway 2.8+.
-
-
-
-Replication between two remote databases::
-+
---
-Replication between two remote databases is no longer supported.
-
-Sync Gateway logs an error and fails to start if a replication defined at the configuration's root level does not involve at least one local database (source or target).
---
-
-Pushing to SG Replicate targets::
-+
---
-// tag:rn-con-pre2-8-tgt[]
-// https://issues.couchbase.com/browse/DOC-7056
-* Push replications do not support SG Replicate targets with `"allow_conflicts": false` set; the target must use `"allow_conflicts": true` for a replication to work.
-* Push replications do not use Delta Sync when pushing to a SG Replicate targets
-// end:rn-con-pre2-8-tgt[]
---
-
-[#upgrade-strategies]
-=== Upgrade Scenarios
-:save-title: {example-caption}
-:save-num: {example-number}
-:example-caption: Scenario
-:example-number: 0
-This section describes recommended upgrade strategies for implementing Inter-Sync Gateway Replication
-
-* <<sc1>> -- {sc1title}
-* <<sc2>> -- {sc2title}
-* <<sc3>> -- {sc3title}
-* <<sc4>> -- {sc4title}
-
-[{tabs}]
-=====
-<<sc1>>::
-+
---
-
-[#sc1]
-.{sc1title}
-====
-From::
-* Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-2.8)
-* Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-2.8)
-* Replication - SG Replicate configured in continuous or one-shot mode
-* Conflict resolution -- Not implemented
-
-To::
-* Source Cluster -- Active node running Sync Gateway 2.8+
-* Target Cluster -- Passive node running Sync Gateway 2.8+
-* Replication -- SG{nbsp}Replicate configured in continuous or one-shot mode
-* Conflict resolution -- Not implemented
-
-Strategy::
-* Upgrade sequence -- You can upgrade either cluster first
-* Restart point -- When the active node restarts it uses SG{nbsp}Replicate and will continue from where it last left off
-* Upgrade Constraint -- Replication is unavailable for the duration of the active node restart
-====
---
-
-<<sc2>>::
-+
---
-
-[#sc2]
-.{sc2title}
-====
-From::
-* Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-2.8)
-* Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-2.8)
-* Replication -- SG{nbsp}Replicate configured in continuous or one-shot mode
-* Conflict resolution -- Custom conflict resolution with `allow_conflicts=true`
-
-To::
-* Source Cluster -- Active node running Sync Gateway 2.8+
-* Target Cluster -- Passive node running Sync Gateway 2.8+
-* Replication -- SG{nbsp}Replicate configured in continuous or one-shot mode
-* Conflict resolution -- Custom conflict resolution with `allow_conflicts=true`
-
-Strategy::
-* Upgrade sequence -- You can upgrade either cluster first
-* Restart point -- When the active node restarts it uses SG{nbsp}Replicate and continues from where it last stopped
-* Conflict Resolution -- the app continues to handle conflicts
-* Upgrade Constraints
-** Replication is unavailable for the duration of the active node restart
-** Inter-Sync Gateway replications ignore the `allow_conflicts` flag when configured.
-====
---
-+
-<<sc3>>::
-+
---
-
-[#sc3]
-.{sc3title}
-====
-From::
-* Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-2.8)
-* Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-2.8)
-* Replication -- SG{nbsp}Replicate configured in continuous or one-shot mode
-* Conflict resolution -- Not implemented
-
-To::
-* Source Cluster -- Active node running Sync Gateway 2.8+
-* Target Cluster -- Passive node running Sync Gateway 2.8+
-* Replication -- Inter-Sync Gateway replication configured in continuous or one-shot mode
-* Conflict resolution -- Not implemented
-
-Strategy::
-* Upgrade sequence
-.. Stop SG{nbsp}Replicate replications
-// .. Remove the SG{nbsp}Replicate replication configuration and replace it with inter-Sync Gateway replication equivalent.
-.. Upgrade each cluster to 2.8.
-* Restart Outcomes
-** When the active cluster restarts, it automatically switches to Inter-Sync Gateway Replication
-** Replication continues from the last checkpoint, unless over-ridden.
-** {enterprise} The replication distributes automatically
-* Conflict resolution -- Default
-* Upgrade Constraint -- Inter-Sync Gateway replication ignores the `allow_conflicts` flag when configured.
-
-====
---
-+
-<<sc4>>::
-+
---
-
-[#sc4]
-.{sc4-title}
-====
-From::
-* Source Cluster -- Active peer running Sync Gateway 2.x or 1.5 (Pre-2.8)
-* Target Cluster -- Passive peer running Sync Gateway 2.x or 1.5 (Pre-2.8)
-* Replication -- SG{nbsp}Replicate configured in continuous or one-shot mode
-* Conflict resolution -- Custom conflict resolution with `allow_conflicts=true`
-
-
-To::
-* Source Cluster -- Active node running Sync Gateway 2.8+
-* Target Cluster -- Passive node running Sync Gateway 2.8+
-* Replication -- inter-Sync Gateway replication configured in continuous or one-shot mode
-* Conflict resolution -- Apply custom conflict resolution
-
-Strategy::
-* Upgrade sequence
-.. Stop SG{nbsp}Replicate replications
-// .. Remove the SG{nbsp}Replicate replication configuration
-.. Add the Inter-Sync Gateway replication configuration, including JavaScript function as {configuration-properties-legacy--xref--db-rep-resolver}
-.. Upgrade each cluster to 2.8
-* Restart Outcomes
-** When the active cluster restarts it automatically switches to Inter-Sync Gateway Replication
-** Replication continues from the last checkpoint, unless over-ridden.
-** {enterprise} The replication distributes automatically
-* Conflict resolution -- The function specified as {configuration-properties-legacy--xref--db-rep-resolver} handles conflicts
-* Upgrade Constraint -- Inter-Sync Gateway replications ignore the `allow_conflicts` flag when configured.
-====
---
-=====
-
-=== Re-using SG Replicate Checkpoints
-You're able to use SG Replicate {glos-term-checkpoint} as a starting point for Inter-Sync Gateway replications.
-This can save time on larger buckets by avoiding re-processing documents that have already been replicated.
-
-To be eligible for re-use use in this way
-
-* These replication parameters MUST match:
-** Replication ID
-** Direction (push or pull only)
-** Previous Source/Target URLs match Remote URL
-** Channel filters
-** DocID filters
-* You must configure the new replication to be unidirectional (there was no bidirectional support prior to 2.8)
-
-=== Upgrade Steps
-
-. Have both SG Replicate and Inter-Sync Gateway replications defined in the same `config` file.
-. Verify that you have fulfilled the prerequisites from the previous slide (matching IDs, params, etc.)
-. On startup, Sync Gateway determines if replications match, and log:
-+
-[source]
-----
-[DBG] Replicate+: Matched replication IDs for SGR1 checkpoint fallback: &{...}
-[INF] Replicate: Got SGR1 checkpoint ID for fallback in replication "repl1-push": b8da8486df3093141f7ed225eb2b2afae88ca9ce
-----
-
-. This prevents the SG Replicate replication from running, even though it’s configured.
-+
-[source]
-----
-[INF] Replicate: Replication "repl1-push" was upgraded, preventing startup of SG Replicate replication.
-[INF] Replicate: Replication "repl1-pull" was upgraded, preventing startup of SG Replicate replication.
-[INF] Replicate: Starting sg-replicate replications...
-----
-. When Sync Gateway assigns the Inter-Sync Gateway replication (even on a different node), it uses the SG Replicate checkpoint if it cannot find an Inter-Sync Gateway checkpoint. Logs:
-+
-[source]
-----
-[DBG] SGCluster+: Replication repl1-pull is assigned to node debbc9ed92243c01 (local node is debbc9ed92243c01)
-[INF] Replicate: Initializing replication repl1-pull
-[INF] Replicate: Attempting to fetch SGR1 checkpoint as fallback: 58782a013091ffc0e7e4ae3c4b6abd8baa7149c6
-[INF] Replicate: c:repl1-pull-pull using checkpointed seq from SGR1: "3"
-----
-. Once Sync Gateway uses the SG Replicate checkpoint, it deletes the checkpoint to ensure it cannot serve as a fallback again if someone removes Inter-Sync Gateway replication {glos-term-checkpoints}.
-
-
-:example-caption: {save-title}
-:example-number: {save-num}
-
-
-== Upgrade from Views to GSI
-
-Prior to 2.1, Sync Gateway used system views for a variety of internal operations, including authentication and replication.
-Starting in 2.1, Sync Gateway uses GSI and {sqlpp} to perform those tasks.
-
-The upgrade, from using views to using Global Secondary Indexes and {sqlpp}, happens automatically when starting a Sync Gateway 2.1 or above node in a cluster that was using views in earlier versions.
-
-Use of GSI requires Couchbase Server 5.5, with at least one node running the Query and Index Services.
-Users wanting to run Sync Gateway 2.1 or above with an earlier version of Couchbase Server needs to continue to use views, by setting the `use_views` property.
 
 == Upgrade to Shared Bucket
 
@@ -544,20 +291,6 @@ After you restart Sync Gateway with the updated configuration file, Sync Gateway
 As of Sync Gateway 3.3, `num_index_replicas` still works, but this option has been deprecated in favor of `index.num_replicas`.
 |===
 
-== Migrating from Bucket Shadowing
-
-As of Sync Gateway 1.5, the Bucket Shadowing feature has been deprecated and is no longer supported.
-The following steps outline a recommended method for migrating from Bucket Shadowing to the latest version with interoperability between Couchbase Server SDKs and Couchbase Mobile.
-
-. Follow the recommendations in the xref:server:install:upgrade-online.adoc[Couchbase Server documentation] to upgrade all instances to 5.0.
-. Create a new bucket on Couchbase Server (*bucket 2*).
-. Install Sync Gateway 1.5 on a separate node with shared access enabled and connect it to the new bucket (*bucket 2*).
-. Setup a push replication from the Sync Gateway instance used for Bucket Shadowing to the Sync Gateway 1.5 instance.
-. Once the replication has completed, test your application is performing as expected.
-. Update the load balancer to direct incoming traffic to the Sync Gateway 1.5 instance when you're ready to upgrade.
-. Delete the first bucket (*bucket 1*).
-
-image:bucket-shadowing-migration.png[]
 
 include::ROOT:partial$block-related-content-deploy.adoc[]
 
