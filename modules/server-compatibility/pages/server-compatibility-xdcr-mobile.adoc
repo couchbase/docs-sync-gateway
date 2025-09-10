@@ -54,7 +54,7 @@ Each cluster maintained its own revision tree, making it impossible to preserve 
 
 Version vectors provide a proven mechanism for tracking causality in distributed systems.
 
-A version vector consists of logical clocks maintained by each component capable of updating documents in the distributed environment.
+A version vector consists of hybrid clocks maintained by each component capable of updating documents in the distributed environment.
 Each instance of Couchbase Lite represents its own component in the version vector, while Sync Gateway and XDCR interact with the component associated with the cluster-specific Couchbase Server bucket.
 Each component increments its own count when making changes, creating a vector that captures the complete update history across all participating actors.
 
@@ -71,7 +71,7 @@ The version vector metadata travels with documents during replication, ensuring 
 
 The shift to version vectors changes the default conflict resolution strategy from revision trees' Most-Write-Wins to Last-Write-Wins.
 
-Last-Write-Wins uses timestamp comparison to resolve conflicts deterministically across all clusters.
+Last-Write-Wins uses hybrid logical clock comparison to resolve conflicts deterministically across all clusters.
 Configure custom conflict resolvers at the XDCR level for specific business logic requirements.
 
 
@@ -113,23 +113,10 @@ Apply the `enableCrossClusterVersioning=true` configuration to buckets on both s
 
 === Sync Gateway Configuration
 
-Configure Sync Gateway nodes with shared bucket access and import processing enabled.
+Sync Gateway 4.0 requires no additional configuration for bi-directional XDCR support.
 
-Add these settings to the database configuration:
-[source,json]
-----
-{
-  "databases": {
-    "db": {
-      "enable_shared_bucket_access": true,
-      "import_docs": true
-    }
-  }
-}
-----
-
-Bi-directional XDCR requires both settings.
-Shared bucket access allows Sync Gateway to coexist with direct SDK writes, while import processing handles replicated documents.
+Sync Gateway 4.0 enforces shared bucket access by default, enabling coexistence with direct SDK writes and XDCR replication.
+Couchbase Server Enterprise Edition enables document import processing by default, automatically handling replicated documents from XDCR.
 
 
 === Two Active-Active Clusters
@@ -145,7 +132,7 @@ Testing and validation have focused primarily on two-cluster deployments.
 
 Clients maintain independent checkpoints for each cluster they connect to.
 
-When a client connects to a cluster for the first time, it begins replication from sequence zero, downloading all accessible documents.
+When a client connects to a cluster for the first time, it begins replication from sequence zero, checking which documents are missing and need downloading.
 The client stores this checkpoint locally, associated with the cluster's identifier.
 Subsequent connections to the same cluster resume from the stored checkpoint, downloading only changes since the last sync.
 This mechanism prevents redundant data transfer when clients switch between clusters.
