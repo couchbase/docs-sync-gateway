@@ -4,7 +4,7 @@ ifdef::show_edition[:page-edition: {release}]
 ifdef::prerelease[:page-status: {prerelease}]
 :page-role:
 :description: pass:q[How Sync Gateway works with Couchbase Server's _Cross Data Center Replication_ (_XDCR_).]
-:keywords: high-availability, disaster recovery, sync, replicate, edge, cloud, dr, ha, sync gateway cluster, mobile cluster, data migration, active standby, lift-and-shift, in hybrid cloud
+:keywords: high-availability, disaster recovery, sync, replicate, edge, cloud, dr, ha, sync gateway cluster, mobile cluster, data migration, active standby, lift-and-shift, in hybrid cloud, bi-directional, active-active, version vectors
 :idprefix:
 :idseparator: -
 
@@ -22,7 +22,7 @@ include::ROOT:partial$_set_page_context.adoc[]
 // BEGIN -- Page Heading
 :param-topic-group: compatibility
 :param-related: {compatibility--xref}
-:param-abstract: Sync Gateway is specifically designed for mobile synchronization, but there are use-cases where it can usefully be used alongside XDCR to provide a comprehensive solution.
+:param-abstract: Sync Gateway provides multiple approaches for replicating mobile data across clusters, with capabilities evolving significantly in version 4.0 to support bi-directional XDCR for active-active deployments.
 include::ROOT:partial$_show_page_header_block.adoc[]
 // END -- Page Heading
 
@@ -34,98 +34,66 @@ Couchbase Server provides the backing data store for Sync Gateway.
 
 TIP: See: {compatibility--xref} for version compatibility information.
 
-Both {cbm-te} and {server-xdcr--xref} (XDCR) provide for efficient and secure replication of data, albeit using different replication technologies.
+Both {cbm-te} and {server-xdcr--xref} (XDCR) provide for efficient and secure replication of data, using different replication technologies optimized for specific use cases.
 
-Here we provide details on how XDCR feature relates to the {cbm} ecosystem.
+Sync Gateway provides different replication approaches depending on your version and use case requirements:
 
+* **Sync Gateway 4.0+**: Bi-directional XDCR with version vectors enables active-active mobile clusters
+* **Sync Gateway < 4.0**: Inter-Sync Gateway Replication for active-active, unidirectional XDCR for specific scenarios
 
-[#lbl-isgr]
-== Inter Sync Gateway Replication
-
-
-If you need to sync mobile clusters, you should use Inter-Sync Gateway replication -- see: {sync-inter-syncgateway-overview--xref}.
-It's designed to keep mobile clusters in different data centers in sync.
-The ideal use-case being the need to replicate edge clusters containing active Sync{nbsp}Gateway nodes between geographically separate cloud-based Sync Gateway deployments.
-<<icr-active-mobile>> shows a typical architecture for this use case.
-
-Inter-Sync Gateway replication provides bi-directional read/write replications that make sure:
-
-* Sync Gateway observes cluster-specific security by invoking the appropriate Sync Function.
-* Sync Gateway maintains the integrity of security history.
-Sync Gateway holds and maintains historical access rules in its metadata.
-This history is necessary to consistently handle the revocation of access grants.
-* All clusters use a consistent Revision Id, allowing clients to identify a revision regardless of which cluster it's on.
-* Cluster-specific `_sync` documents are not replicated to other mobile clusters
-
-[[icr-active-mobile]]
-.Active-to-active mobile synchronization
-image::ROOT:{image-icr-active-mobile-sync}[,std-image-size]
-
+Here we provide details on how XDCR feature relates to the Couchbase Mobile ecosystem.
 
 [#lbl-xdcr]
 == Cross Data Center Replication (XDCR)
 
+Couchbase Server's Cross Data Center Replication (xref:server:manage:manage-xdcr/xdcr-management-overview.adoc[XDCR]) replicates necessary Sync Gateway metadata along with associated documents, making it suitable for various mobile cluster replication scenarios.
 
-Like inter-Sync Gateway Replication, Couchbase Server's Cross Data Center Replication (xref:server:manage:manage-xdcr/xdcr-management-overview.adoc[XDCR]) can be used to replicate between {cbm} clusters.
-XDCR replicates all of Sync Gateway’s metadata (_sync xattr) along with associated documents.
+[#lbl-bidirectional-xdcr]
+=== Bi-directional XDCR
 
-Your default preference for the replication of {cbm} changes should always be to use inter-Sync{nbsp}Gateway replication.
+Sync Gateway 4.0 introduces support for bi-directional XDCR between active mobile clusters through an architectural change from revision trees to version vectors.
 
-XDCR proves useful in use-cases where you replicate the entire dataset from a source bucket to a target bucket.
-These categories include active standby, disaster recovery, data migration and _lift-and-shift_ cases in hybrid cloud.
+This enables active-active deployments where multiple clusters can process writes simultaneously while maintaining data consistency across geographically distributed datacenters.
+Both clusters process reads and writes from mobile clients simultaneously.
 
+Sync Gateway 4.0 uses automatic conflict resolution with a `Last-Write-Wins` method and hybrid logical clocks by default.
+Clients can switch seamlessly between clusters without data loss.
+This provides zero-downtime disaster recovery with immediate fail-over capabilities.
+
+
+TIP: For detailed technical implementation and configuration requirements, see: xref:server:learn:clusters-and-availability/xdcr-active-active-sgw.adoc#xdcr-active-active-sgw-prerequisites[Bi-directional XDCR Active-Active with Mobile Clusters].
+
+[[xdcr-active-active]]
+.Bi-directional Active-Active XDCR
+image::ROOT:{image-xdcr-active-active-replication}[,std-image-size]
 
 === Unidirectional XDCR
 
-In all these categories you should run XDCR in unidirectional mode, deploying Sync Gateway only at one end of the XDCR-replicated bucket (source, or target) -- see: <<ex-xdcr-data-repl>>.
+Unidirectional XDCR remains valuable for scenarios where you need to replicate the entire dataset from a source bucket to a target bucket without requiring bi-directional synchronization.
+
+In these deployments, you should deploy Sync Gateway only at one end of the XDCR-replicated bucket (source or target) -- see: <<ex-xdcr-data-repl>>.
 
 [#ex-xdcr-data-repl]
-.XDCR Replication
+.Unidirectional XDCR Replication
 ====
 In this example XDCR deployment:
 
-* XDCR runs unidirectionally.
-It pushes data from the primary datacenter to the secondary datacenter, where it's pulled by Sync Gateway for downstream clients.
-* Sync Gateway, although deployed at both ends of the XDCR replication, crucially is in *read-only* mode at the target end.
+* XDCR runs unidirectionally, pushing data from the primary datacenter to the secondary datacenter
+* Data gets pulled by Sync Gateway for downstream clients at the target location
+* Sync Gateway deploys at both ends but operates in *read-only* mode at the target end to prevent write conflicts
 
-.XDCR Replication
+.Unidirectional XDCR Replication
 image::ROOT:{image-xdcr-data-replication-to-read-only}[,std-image-size]
 ====
 
-=== Bi-directional Active-Active XDCR
-
-Sync Gateway supports bi-directional replication using XDCR between two active mobile clusters.
-This enables active-active deployments where both clusters can process writes simultaneously.
-
-TIP: Verify that you installed Couchbase Server 7.6.5 or later and configured your Sync Gateway nodes with `shared_bucket_access=true` and `import_docs=true`
-
-Bi-directional XDCR allows for both clusters to process writes simultaneously, with automatic conflict resolution.
-The setup supports different sync functions between clusters and provides unified replication for both mobile and non-mobile documents.
-
-[#ex-xdcr-bi-data-repl]
-.Bi-directional XDCR Replication
-====
-In this example XDCR deployment:
-
-* XDCR runs bi-directionally between two active mobile clusters.
-Both clusters can simultaneously process writes from Sync Gateway clients and replicate changes to each other.
-* Both clusters deploy Sync Gateway in active mode, enabling full read-write operations.
-Automatic conflict resolution ensures data consistency across clusters.
-* Clients can switch between clusters seamlessly without data loss, as both clusters maintain synchronized datasets.
-
-.XDCR Replication
-image::ROOT:{image-xdcr-active-active-replication}[,std-image-size]
-
-====
-
 [#lbl-prov-drc]
-== Disaster Recovery Scenario
+== Disaster Recovery Scenarios
 
-In a Disaster Recovery scenario XDCR serves an important role in setting-up target mobile clusters.
+XDCR serves important roles in mobile cluster disaster recovery, supporting both traditional backup scenarios and modern zero-downtime active-active deployments.
 
-Here XDCR supports Disaster Recovery and Data Migration.
-Even though Sync Gateway is the operational replicator of choice for mobile data, it's only ever deployed at one end of the unidirectional XDCR replication.
+=== Traditional Disaster Recovery
 
+In traditional disaster recovery scenarios, XDCR supports data migration and backup operations where Sync Gateway operates at only one end of the unidirectional XDCR replication.
 
 === Zero Downtime Active-Active Disaster Recovery
 
@@ -137,10 +105,34 @@ include::deploy:setting-up-dr-cluster.adoc[tags=page-attributes]
 
 include::deploy:setting-up-dr-cluster.adoc[tags=clusters-in-same-region]
 
-
 === Clusters in Different Regions
 
 include::deploy:setting-up-dr-cluster.adoc[tags=clusters-in-diff-region]
+
+[#lbl-isgr]
+== Inter Sync Gateway Replication
+
+For Sync Gateway versions prior to 4.0, Inter-Sync Gateway Replication was the primary solution for active-active mobile cluster deployments.
+
+IMPORTANT: Sync Gateway 4.0 introduces native bi-directional XDCR support for active-active mobile clusters, providing a simpler and more efficient alternative to Inter-Sync Gateway Replication.
+See <<lbl-bidirectional-xdcr>>.
+
+Inter-Sync Gateway replication was specifically designed to keep mobile clusters in different data centers in sync, with the ideal use-case being edge clusters containing active Sync Gateway nodes replicated between geographically separate cloud-based Sync Gateway deployments.
+
+See: {sync-inter-syncgateway-overview--xref} for complete implementation details.
+
+Inter-Sync Gateway replication provides bi-directional read/write replications that verify:
+
+* Sync Gateway observes cluster-specific security by invoking the appropriate Sync Function
+* Sync Gateway maintains the integrity of security history with historical access rules held in metadata
+* All clusters use a consistent Revision Id, allowing clients to identify a revision regardless of cluster location
+* Cluster-specific `_sync` documents remain local and are not replicated to other mobile clusters
+
+[[icr-active-mobile]]
+.Inter-Sync Gateway Active-to-Active Replication
+image::ROOT:{image-icr-active-mobile-sync}[,std-image-size]
+
+TIP: To upgrade to Sync Gateway 4.0 and enable bi-directional XDCR for active-active mobile clusters, see: xref:ROOT:upgrading.adoc[Upgrading Sync Gateway].
 
 // BEGIN -- Page Footer
 include::ROOT:partial$block-related-content-sync.adoc[]
