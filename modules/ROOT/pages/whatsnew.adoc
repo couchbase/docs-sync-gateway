@@ -16,21 +16,44 @@ include::ROOT:partial$_set_page_context.adoc[]
 :param-related: {xref-sgw-pg-release-notes}
 include::ROOT:partial$_show_page_header_block.adoc[]
 
-include::ROOT:partial$block-caveats.adoc[tags=eventing-mixed-mode]
+include::ROOT:partial$block-caveats.adoc[tags=caution-eventing]
 
-Do not deploy Eventing/Sync Gateway until all SGW nodes are at version 3.2+.
-For earlier Sync Gateway versions that do not write import XATTRs, Eventing functions may encounter infinite recursions and duplicate mutations if deployed in a mixed mode SGW environment.
-This occurs if you have a mixed installation consisting of Sync Gateway 3.2 and an earlier version, and you deploy a new Eventing or Sync Gateway function during an upgrade.
+== Overview of Sync Gateway {release}
 
-== Release 4.0.0 (Q1 2025)
+_Sync Gateway {release} represents a major architectural evolution, introducing version vectors as the foundation for document revision tracking and enabling bidirectional replication with Cross Data Center Replication (XDCR) between mobile clusters._
 
-=== Version Vectors
+Another significant enhancement is the transition from revision trees to version vectors enabling true active-active mobile cluster deployments with Cross Data Center Replication (XDCR) while maintaining data consistency and conflict resolution capabilities.
 
-NOTE: TODO
+== Cross Data Center Replication (XDCR) Interoperability
 
-=== Mobile XDCR Coexistence
+* *Bi-directional XDCR between mobile clusters*
+Sync Gateway now supports two way active-active replication using Couchbase Server’s XDCR across mobile clusters.
+This enables active-active deployments with high availability and no downtime during fail over or disaster recovery.
 
-NOTE: TODO
+* *Unidirectional XDCR to read-only clusters*
+Simplified support for active–standby and migration scenarios.
+Sync Gateway automatically enforces read-only behavior on target clusters, removing the need for manual configuration.
+
+* *Unified replication of mobile and non-mobile documents*
+Applications can now replicate both mobile and non-mobile data using a single replication protocol,
+reducing complexity and conflict resolution overhead.
+
+For more information, see xref:ROOT:server-compatibility-xdcr.adoc[XDCR -- Server Compatibility] and xref:ROOT:xdcr-bidirectional.adoc[Bi-directional XDCR Between Mobile Clusters].
+
+== Conflict Resolution with Version Vectors
+
+* Sync Gateway 4.0 leverages *version vector–based conflict resolution* for XDCR.
+* By default, conflicts are handled using Couchbase Server’s *custom conflict resolution (CCR)*.
+* Developers can extend with custom conflict resolvers to meet application-specific needs.
+
+This ensures consistency across mobile and server data while maintaining performance during high-volume replication.
+
+For more information, see xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[Version vectors].
+
+== Compatibility
+
+* Requires Couchbase Server 7.6.5+ for XDCR interoperability.
+* Compatible with Couchbase Lite 4.0+.
 
 == See Also
 
@@ -38,7 +61,7 @@ xref:3.3@sync-gateway:ROOT:whatsnew.adoc[What's new in previous version 3.3].
 
 === Sync Gateway Release Notes
 
-xref:4.0@release-notes.adoc[Read the full 4.0 release notes here].
+xref:product-notes:release-notes.adoc[Read the full 4.0 release notes here].
 
 == Upgrading
 
