@@ -20,19 +20,15 @@ include::ROOT:partial$block-caveats.adoc[tags=caution-eventing]
 
 == Overview of Sync Gateway {release}
 
-_Sync Gateway {release} represents a major architectural evolution, introducing version vectors as the foundation for document revision tracking and enabling bidirectional replication with Cross Data Center Replication (XDCR) between mobile clusters._
+Sync Gateway {release} represents a major architectural evolution, transitioning from revision trees to xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors] as the foundation for document revision tracking.
 
-Another significant enhancement is the transition from revision trees to version vectors enabling true active-active mobile cluster deployments with Cross Data Center Replication (XDCR) while maintaining data consistency and conflict resolution capabilities.
+This architectural change enables true active-active mobile cluster deployments with bidirectional Cross Data Center Replication (XDCR) while maintaining data consistency and conflict resolution capabilities.
 
 == Cross Data Center Replication (XDCR) Interoperability
 
 * *Bi-directional XDCR between mobile clusters*
 Sync Gateway now supports two way active-active replication using Couchbase Server’s XDCR across mobile clusters.
 This enables active-active deployments with high availability and no downtime during fail over or disaster recovery.
-
-* *Unidirectional XDCR to read-only clusters*
-Simplified support for active–standby and migration scenarios.
-Sync Gateway automatically enforces read-only behavior on target clusters, removing the need for manual configuration.
 
 * *Unified replication of mobile and non-mobile documents*
 Applications can now replicate both mobile and non-mobile data using a single replication protocol,
@@ -42,8 +38,8 @@ For more information, see xref:ROOT:server-compatibility-xdcr.adoc[XDCR -- Serve
 
 == Conflict Resolution with Version Vectors
 
-* Sync Gateway 4.0 leverages *version vector–based conflict resolution* for XDCR.
-* By default, conflicts are handled using Couchbase Server’s *custom conflict resolution (CCR)*.
+* Sync Gateway 4.0 leverages version vector–based conflict resolution for XDCR.
+* By default, Sync Gateway resolves conflicts using `Last Write Wins` (LWW), with the option to use Couchbase Server's custom conflict resolution (CCR).
 * Developers can extend with custom conflict resolvers to meet application-specific needs.
 
 This ensures consistency across mobile and server data while maintaining performance during high-volume replication.
