@@ -2,22 +2,16 @@
 // tag::description[]
 // tag::summary[]
 
-The automatic conflict resoluton policy will return the most recent change as the winning revision unless one of the revisions was a delete; in which case the delete wins. If both revisions are equally recent then the largest change wins.
+The automatic conflict resolution policy uses timestamp-based conflict resolution often referred to as `"last write wins"`, which uses a document timestamp from the most recent document revisions to compare and return the revision that was most recently updated.
 
 // end::summary[]
 // tag::body[]
 
 The default {glos-term-auto-conflict-resolution} policy always returns a winner determined by the following rules:
 
-* If one of the changes is a delete:
-+
-A deleted document (that is, a {glos-term-tombstone-revision}) always wins over a document update.
-* If both changes are document changes:
-+
-The change with the most revisions (the longest revision history) will win.
-Typically, this is the revision with the highest version number.
-* If both changes have the same number of revisions:
-An ASCII comparison of the revisions is done to pick the winner.
+* The revision with the most recent timestamp wins.
+* If replicating a document that was last updated/written pre-upgrade to SG 4.x, the default policy for versions < 4.x will be used.
+See xref:3.3@sync-gateway:ROOT:glossary.adoc#auto-conflict-resolution[Automatic Conflict Resolution].
 
 // end::body[]
 // end::description[]
