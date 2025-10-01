@@ -13,8 +13,8 @@
 // tag::overview[]
 Inter-Sync Gateway *pull* replications support automatic conflict resolution by default (no conflict mode).
 
-In _Pull_ replications the _active_ Sync Gateway detects and resolves conflicts based on its configured {configuration-schema-database--xref--db-rep-conflict} and _conflict resolver policy_.
-This policy will determine the _winner_  or return an error if it cannot.
+In _Pull_ replications the _active_ Sync Gateway detects and resolves conflicts using Last Write Wins strategy in Sync Gateway 4.x+.
+For cross-version replication scenarios (4.x ↔ 3.x), the configured conflict resolver policy determines the winner or returns an error if it cannot resolve the conflict.
 
 Conflicts are *not* resolved in *push* replications though.
 The passive end of the push simply detects and rejects any conflicting revisions (`409 Conflict` response).
@@ -27,11 +27,11 @@ Not surprising since in both instances Couchbase Lite is acting like the active 
 [NOTE]
 --
 Conflicts are only resolved during a *pull* replication.
-If conflicts are likely, you should configure a `pushAndPull` replication when using Conflict Free mode.
+If conflicts occur, you should configure a `pushAndPull` replication when using Conflict Free mode.
 
 _Alternatively_: Run the replicator from the other side; flipping the direction (to `pull`) and the resolution policy (for example `localWins` becomes `remoteWins`).
 
-See also -- our blog post: {url-blog-doc-how-conflicts-work}
+See: {url-blog-doc-how-conflicts-work}
 --
 
 For {enterprise}, a custom conflict resolver policy is available, providing additional flexibility by allowing users to provide their own conflict resolution logic -- see: {sync-inter-syncgateway-conflict-resolution--custom-conflict-resolution}
@@ -216,7 +216,7 @@ This triggers a pull replication and subsequent conflict resolution.
 
 include::ROOT:partial$common-cfg-ext-javascript.adoc[tag=intro]
 
-You can provide your conflict resolver as either an inline or external Javascript function.
+You can provide your conflict resolver as either an inline or external JavaScript function.44
 You can learn more about the ($db.custom_conflict_resolver) property in the Configuration Schema Reference -- see: {configuration-schema-database--xref--db-rep-resolver}.
 
 include::ROOT:partial$common-cfg-ext-javascript.adoc[tag=config-full]

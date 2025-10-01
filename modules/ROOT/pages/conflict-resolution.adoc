@@ -21,7 +21,7 @@
 ifdef::show_edition[:page-edition: {release}]
 ifdef::prerelease[:page-status: {prerelease}]
 :page-role:
-:description: Couchbase Sync Gateway's conflict resolution approach
+:description: How Sync Gateway resolves document conflicts during synchronization
 :idprefix:
 :idseparator: -
 
@@ -32,15 +32,61 @@ include::ROOT:partial$_set_page_context.adoc[]
 :topic-group: Sync
 include::ROOT:partial$_show_page_header_block.adoc[]
 
-Conflicts are automatically resolved footnote:[Since Couchbase Lite 2.0].
-The functionality aims to simplify the default behavior of conflict handling and save disk space (conflicting revisions are no longer be stored in the database).
+== Overview
 
-The Couchbase Lite SDK guides describe how the automatic conflict resolution works: +
+Starting with Sync Gateway 4.x, the default conflict resolution strategy has changed from *Most Write Wins* (MWW) to *Last Write Wins* (LWW). This fundamental change aligns with the shift from revision trees to version vectors and enables better consistency across distributed deployments.
+
+Conflicts are automatically resolved footnote:[Since Couchbase Lite 2.0] using deterministic algorithms that verify consistency across all participating nodes.
+
+== Conflict Resolution Strategies
+
+=== Last Write Wins (Default in 4.x+)
+
+Last Write Wins uses hybrid logical clock timestamp comparison to resolve conflicts deterministically.
+The document with the latest timestamp wins the conflict, with timestamps generated using version vectors and Hybrid Logical Vectors (HLV) for accurate ordering.
+
+This strategy provides:
+
+* Deterministic conflict resolution across all clusters
+* Consistency with XDCR timestamp-based conflict resolution
+* Better support for active-active deployments
+* Alignment with modern distributed systems practices
+
+=== Most Write Wins (Versions < 4.x)
+
+Sync Gateway uses Most Write Wins conflict resolution in the following scenarios:
+
+* Sync Gateway 4.x replicating with Couchbase Lite < 4.x clients
+* Sync Gateway 4.x replicating with Sync Gateway < 4.x instances
+* Cross-version compatibility scenarios
+
+In these cases, the document with the most revisions wins the conflict, maintaining backward compatibility.
+
+NOTE: For Sync Gateway versions less than 4.x, Most Write Wins is the default behavior.
+See xref:upgrading.adoc[Upgrading Sync Gateway] for upgrade instructions.
+
+== XDCR Integration
+
+For active-active deployments using XDCR with Sync Gateway 4.x, configure your Couchbase Server buckets to use *Timestamp-based* conflict resolution to match Sync Gateway's Last Write Wins behavior.
+
+This ensures consistent conflict resolution across:
+* Sync Gateway ↔ Couchbase Lite replication
+* XDCR bucket-to-bucket replication
+* Mixed mobile and server-side application scenarios
+
+See xref:server-compatibility:server-compatibility-xdcr-mobile.adoc[BI-directional XDCR with Mobile Clusters] for detailed configuration guidance.
+
+== Platform-Specific Documentation
+
+The Couchbase Lite SDK guides describe how automatic conflict resolution works on each platform:
+
 xref:couchbase-lite:swift:learn/swift-conflict.adoc[Swift] |
 xref:couchbase-lite:java:learn/java-conflict.adoc[Java] |
 xref:couchbase-lite:android:learn/java-android-conflict.adoc[Java (Android)] |
 xref:couchbase-lite:csharp:learn/csharp-conflict.adoc[C#] |
 xref:couchbase-lite:objc:learn/objc-conflict.adoc[Objective-C]
+
+== Legacy Support
 
 For conflict resolution on 1.x clients -- see : {xref-sgw-pg-resolving-conflicts-legacy}.
 

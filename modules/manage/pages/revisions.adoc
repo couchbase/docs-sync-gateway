@@ -5,7 +5,7 @@ ifdef::prerelease[:page-status: {prerelease}]
 :page-toclevels: 2@
 :page-role:
 :page-content: conceptual
-:description: About Sync Gateway's use of Revisions, Revision Trees and Revision Caches.
+:description: About Sync Gateway's revision tracking using version vectors and revision caches in 4.x.
 
 
 include::ROOT:partial$_set_page_context.adoc[]
@@ -33,42 +33,41 @@ Remember that within _Couchbase Mobile_, each document comprises:
 
 Binary data such as images, audio and other multimedia objects are stored separately from the document in an entity known as a _blob_ (or _attachment_).
 
-Each change to a document (even its creation and deletion) is recorded as a <<lbl-revs, revisions>>.
-Changes to _blobs_ do not generate revisions.
-
+An application records each change to a document as a revision.
+Document creation and deletion also generate revisions.
+Changes to blobs do not generate revisions.
 
 [#lbl-revs]
-=== Format
+=== Revision Tracking in 4.x
 
-Couchbase creates a revision whenever a document is created, updated or deleted.
-Each revision is given a unique _Revision ID_ in addition to the _Document ID_.
+Starting with Sync Gateway 4.x, revision tracking changed from revision trees to xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors] for improved distributed system support.
 
-The _revisions_ are contained within a document's _metadata_, as a <<lbl-revtree, revision tree>>.
+==== Version Vectors (4.x+)
 
-Sync Gateway uses a _revision id_ to resolve conflicts arising when making concurrent changes to replicated copies of distributed data.
-It comprises two parts:
+Sync Gateway 4.x uses xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors] with Hybrid Logical Vectors (HLV) to track document revisions.
+In this system:
 
-* A generation ID +
-This is a sequential auto-incrementing number.
-It is specific to the database on which the document resides.
-Couchbase Lite generates simple integers.
-Sync Gateway generates more complex long base64 values. +
-The contents of remote revision IDs are implementation dependent.
-Do not base any processing logic on their contents.
-* A hash derived from the document contents
+* 1 revision exists per client that wrote a document or resolved a conflict
+* Each client maintains its own component in the version vector
+* The number of revisions kept is at least 5
+* Only versions older than the `versionPruningWindowHrs` XDCR bucket setting are pruned
+* Version vectors enable consistent conflict resolution across distributed deployments
 
+==== Revision Trees (Legacy Compatibility)
 
-[#lbl-revtree]
-=== Structure
+Sync Gateway 4.x maintains parallel revision trees for backward compatibility with Couchbase Lite versions earlier than 4.x.
+These revision trees:
 
-The revisions for each document form a _revision tree_ within its metadata.
+* Write in parallel alongside xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors] for legacy client support
+* Exist solely for backward compatibility - not used for conflict resolution in 4.x environments
+* Follow the traditional structure with generation IDs and content hashes
+* Are automatically pruned to maintain performance
+* Preserve existing documents that used revision trees before the 4.x upgrade
 
-This revision tree comprises all revisions made to the document throughout its lifetime to date, in sequence.
-The _current revision_ (the most recent version of the document) being the tip of the tree, the _leaf_ node.
+=== Automatic Conflict Resolution
 
-A revision tree's growth is unlimited.
-So Couchbase periodically removes obsolete revisions to maintain performance levels.
-This process is known as <<lbl-prune>>.
+Sync Gateway 4.x resolves conflicts automatically using Last Write Wins strategy.
+This eliminates the need for extensive revision history and allows for efficient storage management.
 
 
 [#lbl-prune]
@@ -83,101 +82,42 @@ TIP: Use the Admin Rest API endpoint for {rest-api-admin--xref--database-configu
 
 
 [#lbl-alg]
-=== Algorithm
-Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite.
+=== Version Vector Pruning (4.x+)
 
-On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
+Sync Gateway 4.x uses a simplified pruning approach for xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors]:
 
-The algorithm allows the branch to retain a configurable number of revisions (revs_limit) and removes all older revisions.
+* Sync Gateway keeps at least 5 revisions per document
+* Sync Gateway prunes only versions older than the `versionPruningWindowHrs` XDCR bucket setting
+* 1 revision exists per client that wrote a document or resolved a conflict
+* Pruning runs automatically when new revisions are added
+
+This approach eliminates the complexity of revision tree management while ensuring sufficient history for conflict resolution.
 
 [#lbl-rtctrl]
 === Controls
-You can vary the number of retained revisions using the Configuration File's
-{configuration-schema-database--xref--revs-limit}
-setting.
 
-The algorithm keeps the configured number of revisions (`revs_limit`) in the shortest non-tombstoned branch and removes all older revisions from that branch.
-For applications using Couchbase Lite 2.x+ with automatic conflict resolution, low `revs_limit` values, even as low as 1, provide optimal performance and storage efficiency.
+You can configure revision retention using the Configuration File's {configuration-schema-database--xref--revs-limit} setting.
 
-[NOTE]
---
-Do not set `revs_limit` below 100 when `allow_conflicts` = true
-This setting may affect the conflict resolution process, as insufficient revision history may prevent resolving conflicts.
---
+For Sync Gateway 4.x with automatic conflict resolution enabled, low `revs_limit` values provide optimal performance and storage efficiency.
+The Last Write Wins conflict resolution strategy supports values as low as 1.
 
-The default and minimum values of `revs_limit` are dependent on whether
-xref:configuration:configuration-schema-database.html#database-allow_conflicts[allow conflicts]
- is set True or False -- see <<tbl_min_default_vals>>.
+=== Legacy Compatibility
 
-The process to remove obsolete revisions is called pruning and runs automatically every time a revision is added.
-Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite.
-On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
+For compatibility with Couchbase Lite versions earlier than 4.x, Sync Gateway maintains legacy revision tree structures.
+These are automatically managed and do not require manual configuration in 4.x deployments.
 
-If there are conflicting revisions, the document may end up with **disconnected branches** after the pruning process.
+=== Automatic Conflict Resolution (4.x)
 
-In the animation below, the document has a conflicting branch.
-When the shortest branch reaches the `revs_limit` threshold, pruning cuts it off.
-The revision tree is not in a corrupted state and the logic that chooses the winning revision still applies.
-This prevents certain merge operations (`n-way` merge) from resolving conflicts and reduces disk space that conflict resolution could free.
+Sync Gateway 4.x uses Last Write Wins conflict resolution by default, which eliminates the need for extensive revision history.
+This approach allows applications to use `revs_limit` values as low as 1 without affecting capabilities.
 
-
-NOTE: Couchbase deprecated `allow_conflicts = true` in Sync Gateway 3.1.
-Modern applications use `allow_conflicts = false` by default, which enables automatic conflict resolution and allows `revs_limit` values as low as 1.
-
-.Pruning
-image::https://cl.ly/3C1G3t3R1v19/pruning-sg.gif[]
-
-If the revision tree gets into this state then the only option to resolve the conflict is to pick a winning branch and tombstone all the non-winning conflicting branches.
-
-NOTE: Setting `revs_limit` below 100 when `allow_conflicts` = `true` may affect conflict resolution due to insufficient revision history.
-However, with automatic conflict resolution (`allow_conflicts` = `false`), applications can safely use much lower `revs_limit` values.
-
-Default and minimum `revs_limit` values depend on conflict handling configuration.
-Higher values primarily serve legacy conflict handling requirements:
-
-.Default and Minimum Values
-[#tbl_min_default_vals,cols="^1,^2,^2,^2"]
-|===
-
-.2+h| Release
-.2+h| Revs Limit
-2+h|Allow Conflicts setting
-
-h| True h| False
-
-.2+|2.6+
-| default |+ 100 |+ 50
-| minimum |+ 20 |+ 1
-
-.2+|2.0-2.5
-| default |+ 100 |+ 1000
-| minimum |+ 50 |+ 1
-
-.2+|1.x
-| default |+ 1000 |+ 1000
-| minimum |+ 20 |+ 20
-
-|===
-
-
-[#lbl-rtresolution]
-=== Automatic Conflict Resolution
-Couchbase Lite 2.0 introduced automatic conflict resolution that dramatically reduces revision history requirements.
-With `allow_conflicts` = `false`, the default configuration, Couchbase Lite resolves conflicts automatically during replication, eliminating the need for extensive revision trees.
-
-During pull replication, Couchbase Lite detects conflicts and applies automatic resolution rules where the most recent change takes precedence and deletions have priority.
-This conflict-free approach allows you to set `revs_limit` to low values—even 1—without affecting functionality.
+For version vector-based documents in 4.x:
+* Minimum 5 revisions are retained automatically
+* Additional retention controlled by `versionPruningWindowHrs` XDCR bucket setting
+* No manual conflict resolution configuration required
 
 NOTE: Use default `revs_limit` values for new applications.
 Higher values provide no performance benefit and can increase storage overhead.
-
-
-[#lbl-rtcons]
-=== Constraints
-The default and minimum values of `revs_limit` are dependent on whether {configuration-schema-database--xref--allow-conflicts} is True or False.
-
-The presence of multiple unresolved conflicts in a revision tree can impair the pruning process.
-This can cause the pruning algorithm to skip obsolete revisions or to prune revisions prematurely.
 
 
 [#lbl-rt-more]
@@ -190,7 +130,7 @@ To learn more about revision pruning and database size management in general see
 In this section::
 <<lbl-ctrl>> | <<lbl-cache-limit-config>> | <<lbl-sharding>> | <<lbl-deltasync>> | <<lbl-disable>>
 
-Whenever a document is accessed its revision tree (or at least some portion of its revision tree) is also cached.
+Whenever a document is accessed, its revision data is cached for improved performance.
 
 
 [#lbl-ctrl]
@@ -206,23 +146,24 @@ You can control the size of the revision cache using the {configuration-schema-d
 [#lbl-cache-limit-config]
 === Cache Limit Configuration
 
-There are two ways to configure the size of the revision cache: set a memory limit in MB using xref:configuration:configuration-schema-database.adoc#cache-rev_cache-max_memory_count_mb[`rev_cache.max_memory_count_mb`], or set the maximum number of document revisions in cache xref:configuration:configuration-schema-database.adoc#cache-rev_cache_size[`rev_cache.size`].
+You can configure the revision cache size in two ways: set a memory limit in MB using xref:configuration:configuration-schema-database.adoc#cache-rev_cache-max_memory_count_mb[`rev_cache.max_memory_count_mb`], or set the maximum number of document revisions in cache xref:configuration:configuration-schema-database.adoc#cache-rev_cache_size[`rev_cache.size`].
 These configurations allow you to configure both limits to the number of documents and the maximum memory usage within the rev cache to reduce the risk of Out of Memory (OOM) issues.
-If both configs are set, this results in eviction behavior of the rev cache based on both the memory footprint and number of items in the cache. If any of these limits are reached, cache eviction will be performed.
+If you set both configs, the rev cache evicts entries based on both the memory footprint and number of items in the cache.
+When either limit reaches its threshold, Sync Gateway performs cache eviction.
 
 ==== Cache Size
 
-Use the {configuration-schema-database--xref--cache--rev-cache--size} setting to specify the total number of document revisions to be cached in memory for all (recently accessed) documents.
+Use the {configuration-schema-database--xref--cache--rev-cache--size} setting to specify the total number of document revisions to be cached in-memory for all (recently accessed) documents.
 
-When the revision cache is full, Sync Gateway will remove older document revisions to make room for newer ones.
+When the revision cache is full, Sync Gateway removes older document revisions to make room for newer ones.
 
 By adjusting this setting you can fine-tune Sync Gateway's memory consumption.
-This can be useful when working on servers with limited memory and in cases when Sync Gateway creates and-or updated many new documents relative to the number of read operations.
+This can be useful when working on servers with limited memory and in cases when Sync Gateway creates and-or updated new documents relative to the number of read operations.
 
 ==== Cache Maximum Memory
 
 You can use the xref:configuration:configuration-schema-database.adoc#cache-rev_cache-max_memory_count_mb[`rev_cache.max_memory_count_mb`] setting to specify the maximum amount of memory the revision cache should take up in MB.
-Setting the value to `0` will disable any eviction based on memory at rev cache.
+Setting the value to `0` disables any eviction based on memory at rev cache.
 
 IMPORTANT: `rev_cache.max_memory_count_mb` is an Enterprise only setting.
 
@@ -253,7 +194,7 @@ Storing backed up revision bodies for delta sync incurs additional bucket storag
 [#ex-deltastor]
 .Calculating Additional Delta-Sync Storage
 ====
-Enabling delta sync would take up an additional 400 KB of storage on Couchbase Server, assuming:
+Enabling delta sync would take an additional 400 KB of storage on Couchbase Server, assuming:
 
 * An average document size of 4 KB
 * 100 writes/day
@@ -262,7 +203,7 @@ Enabling delta sync would take up an additional 400 KB of storage on Couchbase S
 Equating to: `(4 * 100 * 86400)/86400 = 400 KB`
 ====
 
-Setting {configuration-schema-database--xref--delta-sync-max-age} to zero will generate deltas opportunistically on pull replications, with no additional storage requirements.
+Setting {configuration-schema-database--xref--delta-sync-max-age} to zero generates deltas opportunistically on pull replications, with no additional storage requirements.
 
 
 [#lbl-disable]
@@ -270,7 +211,7 @@ Setting {configuration-schema-database--xref--delta-sync-max-age} to zero will g
 
 include::ROOT:partial$block-caveats.adoc[tags=ee-only-feature]
 
-Disabling the revision cache can be useful when there are very large documents or if you expect a very low cache hit rate.
+Disabling the revision cache can be useful when there are large documents or if you expect a low cache hit rate.
 Otherwise it can negatively impact the latency of replications.
 
 NOTE: Do not disable the revision cache, unless advised to do so by Couchbase Support -- see: {url-cb-support-policy}.
