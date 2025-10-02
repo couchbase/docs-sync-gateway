@@ -34,13 +34,13 @@ include::ROOT:partial$_show_page_header_block.adoc[]
 
 == Overview
 
-Starting with Sync Gateway 4.x, the default conflict resolution strategy has changed from *Most Write Wins* (MWW) to *Last Write Wins* (LWW). This fundamental change aligns with the shift from revision trees to version vectors and enables better consistency across distributed deployments.
+Starting with Sync Gateway 4.0+, the default conflict resolution strategy has changed from *Most Write Wins* (MWW) to *Last Write Wins* (LWW). This fundamental change aligns with the shift from revision trees to version vectors and enables better consistency across distributed deployments.
 
 Conflicts are automatically resolved footnote:[Since Couchbase Lite 2.0] using deterministic algorithms that verify consistency across all participating nodes.
 
 == Conflict Resolution Strategies
 
-=== Last Write Wins (Default in 4.x+)
+=== Last Write Wins (Default in 4.0+)
 
 Last Write Wins uses hybrid logical clock timestamp comparison to resolve conflicts deterministically.
 The document with the latest timestamp wins the conflict, with timestamps generated using version vectors and Hybrid Logical Vectors (HLV) for accurate ordering.
@@ -52,22 +52,22 @@ This strategy provides:
 * Better support for active-active deployments
 * Alignment with modern distributed systems practices
 
-=== Most Write Wins (Versions < 4.x)
+=== Most Write Wins (Versions < 4.0+)
 
 Sync Gateway uses Most Write Wins conflict resolution in the following scenarios:
 
-* Sync Gateway 4.x replicating with Couchbase Lite < 4.x clients
-* Sync Gateway 4.x replicating with Sync Gateway < 4.x instances
+* Sync Gateway 4.0+ replicating with Couchbase Lite < 4.0+ clients
+* Sync Gateway 4.0+ replicating with Sync Gateway < 4.0+ instances
 * Cross-version compatibility scenarios
 
 In these cases, the document with the most revisions wins the conflict, maintaining backward compatibility.
 
-NOTE: For Sync Gateway versions less than 4.x, Most Write Wins is the default behavior.
+NOTE: For Sync Gateway versions less than 4.0+, Most Write Wins is the default behavior.
 See xref:upgrading.adoc[Upgrading Sync Gateway] for upgrade instructions.
 
 == XDCR Integration
 
-For active-active deployments using XDCR with Sync Gateway 4.x, configure your Couchbase Server buckets to use *Timestamp-based* conflict resolution to match Sync Gateway's Last Write Wins behavior.
+For active-active deployments using XDCR with Sync Gateway 4.0+, configure your Couchbase Server buckets to use *Timestamp-based* conflict resolution to match Sync Gateway's Last Write Wins behavior.
 
 IMPORTANT: This configuration has significant constraints:
 
