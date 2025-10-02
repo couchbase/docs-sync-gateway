@@ -69,7 +69,15 @@ See xref:upgrading.adoc[Upgrading Sync Gateway] for upgrade instructions.
 
 For active-active deployments using XDCR with Sync Gateway 4.x, configure your Couchbase Server buckets to use *Timestamp-based* conflict resolution to match Sync Gateway's Last Write Wins behavior.
 
-This ensures consistent conflict resolution across:
+IMPORTANT: This configuration has significant constraints:
+
+* The conflict resolution strategy must be chosen when the bucket is created and cannot be changed later
+* Both sides of an XDCR replication must have matching conflict resolution strategies
+* This is only feasible for new deployments, not existing ones
+
+For detailed information about configuring XDCR conflict resolution, see xref:server:learn:clusters-and-availability/xdcr-conflict-resolution.adoc#choosing_a_conflict_resolution_policy[Choosing a Conflict Resolution Policy].
+
+When properly configured, this ensures consistent conflict resolution across:
 * Sync Gateway ↔ Couchbase Lite replication
 * XDCR bucket-to-bucket replication
 * Mixed mobile and server-side application scenarios
@@ -86,9 +94,6 @@ xref:couchbase-lite:android:learn/java-android-conflict.adoc[Java (Android)] |
 xref:couchbase-lite:csharp:learn/csharp-conflict.adoc[C#] |
 xref:couchbase-lite:objc:learn/objc-conflict.adoc[Objective-C]
 
-== Legacy Support
-
-For conflict resolution on 1.x clients -- see : {xref-sgw-pg-resolving-conflicts-legacy}.
 
 include::ROOT:partial$block-related-content-sync.adoc[]
 

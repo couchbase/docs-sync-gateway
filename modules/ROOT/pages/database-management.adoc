@@ -32,9 +32,7 @@ TIP: Use the Admin Rest API endpoint for {rest-api-admin--xref--database-configu
 === Algorithm
 Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite.
 
-On Sync Gateway, the pruning algorithm applies to the shortest, non-tombstoned branch in the revision tree.
-
-The algorithm allows the branch to retain a configurable number of revisions (revs_limit) and removes all older revisions.
+On Sync Gateway, the pruning algorithm retains a configurable number of revisions (revs_limit) and removes all older revisions.
 
 
 [#lbl-rtctrl]
@@ -52,11 +50,8 @@ In earlier versions, setting `revs_limit` below 100 when `allow_conflicts = true
 
 [#lbl-rtcons]
 === Constraints
-The default and minimum values of `revs_limit` are dependent on whether {configuration-schema-database--xref--allow-conflicts} is True or False.
 
 The presence of multiple unresolved conflicts in a revision tree can impair the pruning process.
-This may prevent pruning of obsolete revisions or cause premature pruning of revisions.
-
 
 [#lbl-rt-more]
 === Learn More
@@ -66,35 +61,9 @@ To learn more about revision pruning and database size management in general see
 [#lbl-tomb-purge]
 == Purging Tombstones
 
-To remove tombstones, you need to purge them.
-The table at <<tbl-tomb-purge>> shows when the database purges tombstones automatically and how to manually purge them.
+Sync Gateway automatically purges tombstones from the bucket based on the server's metadata purge interval.
 
-[#tbl-tomb-purge]
-.Purging tombstones
-[,cols="1s,2,2"]
-|===
-
-.2+^.>s|
-2+^.>s|Value of `enable_shared_bucket_access`
-
-^.>s|`false`
-^.>s|`true`
-
-|Automatic
-|Tombstones are not automatically purged from the bucket.
-
-Setting a server expiry on tombstone documents purges tombstones.
-Sync Gateway can automate this process.
-
-Use the {sync-function-api-expiry-cmd--xref} function in the Sync Function.
-
-Set the expiry time to be sufficient to allow for all other devices to sync and receive the delete notification --  perhaps a week, or a month.
-|Tombstones are automatically purged from the bucket based on the server's metadata purge interval.
-
-|Manual
-|Tombstones can be manually removed via Sync Gateway's xref:rest-api:rest_api_admin.adoc#tag/Document/operation/post_keyspace-_purge[+/{keyspace}/_purge+] endpoint, or deleting documents directly in the bucket.
-|Tombstones can be manually removed via Sync Gateway's xref:rest-api:rest_api_admin.adoc#tag/Document/operation/post_keyspace-_purge[+/{keyspace}/_purge+] endpoint.
-|===
+Tombstones can also be manually removed via Sync Gateway's xref:rest-api:rest_api_admin.adoc#tag/Document/operation/post_keyspace-_purge[+/{keyspace}/_purge+] endpoint.
 
 Purging of tombstones is also required on Couchbase Lite.
 For example, you might decide that if a Couchbase Lite client deletes a document, you want to purge the document (on that device) as soon as the delete replicates to Sync Gateway.
