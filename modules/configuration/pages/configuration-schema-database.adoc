@@ -1,0 +1,169 @@
+= Database Configuration
+:page-aliases: ROOT:configuration-schema-database.adoc
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:description: Using Sync Gateway's Admin REST API to configure and manage databases
+
+// BEGIN -- DO NOT EDIT
+include::ROOT:partial$_set_page_context.adoc[]
+
+
+:param-abstract!:
+:param-related!:
+:param-topic-group: configuration
+include::ROOT:partial$_show_page_header_block.adoc[]
+// END -- DO NOT EDIT
+
+include::ROOT:partial$static_restapi/css.adoc[]
+
+include::ROOT:partial$block-caveats.adoc[tags="legacy-config-equivalents"]
+
+== Introduction
+
+From {sgw-te} 3.0 you can use the Admin REST API to provision persistent configuration changes.
+This content introduces the <<put_db-,Create Database>> and <<post_db-_config,Configure Database>> endpoints for convenience -- see {rest-api-admin--xref--database-configuration} for a full description of the endpoints available.
+
+NOTE: You can define 1 custom scope per database with up to 1000 custom collections.
+If you don't specify a custom scope and collection, any documents you create will be saved in the default scope and collection.
+
+[#lbl-create-db]
+include::ROOT:partial$static_restapi/admin/index.adoc[tags="put_db-",leveloffset=+1]
+
+=== Example
+
+.Create database
+====
+This example creates a new {sgw} database.
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://127.0.0.1:4985/traveldb/' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ // <.>
+--header 'Content-Type: application/json' \
+--data-raw '{
+"bucket": "todo", // <.>
+"index": {"num_replicas": 0}
+}'
+
+----
+
+--
+
+HTTP::
++
+--
+[source,http]
+----
+PUT /traveldb/ HTTP/1.1 // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk // <.>
+Content-Type: application/json
+Content-Length: 44
+
+{
+"bucket": "todo", // <.>
+"index": {"num_replicas": 0}
+}
+----
+--
+
+=====
+
+<.> Create a {sgw} database called `traveldb`
+<.> Use Basic Authentication to authenticate against an existing Couchbase Server RBAC user
+<.> Point to the Couchbase Server bucket called `todo`
+
+====
+
+
+[#lbl-configure-db]
+include::ROOT:partial$static_restapi/admin/index.adoc[tags="post_db-_config",leveloffset=+1]
+
+=== Example
+
+.Configure database
+====
+This example configures an existing {sgw} database.
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://127.0.0.1:4985/traveldb/_config/' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ // <.>
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "enable_shared_bucket_access": true,
+  "import_docs": true
+}' // <.>
+
+----
+
+--
+
+HTTP::
++
+--
+[source,http]
+----
+PUT /traveldb/_config/ HTTP/1.1  // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk  // <.>
+Content-Type: application/json
+Content-Length: 120
+
+{
+"enable_shared_bucket_access": true,
+"import_docs": true
+} // <.>
+----
+--
+
+=====
+
+<.> Configure (`_config`) a {sgw} database called `traveldb`
+<.> Use Basic Authentication to authenticate against an existing Couchbase Server RBAC user
+<.> Toggle a couple of database properties
+
+====
+
+[#DatabaseConfig]
+== Schema
+
+This section shows Sync Gateway's database configuration settings in schema format for convenience in constructing JSON models for use in the Admin REST API.
+
+The configuration settings described here are provisioned through the {rest-api-admin--xref--database-configuration} endpoints.
+
+[template,ROOT:attachment$bundled-admin.yaml, partials="ROOT:partial$json_ui_listing.hbs"]
+--
+{{#each-openapi components.schemas.Database}}
+{{> json_ui_listing}}
+{{/each-openapi}}
+--
+
+[#HTTP_Error]
+== Errors
+
+This section shows possible error responses returned by the Admin REST API.
+
+include::ROOT:partial$static_restapi/admin/index.adoc[tags=HTTP_Error]
+
+// BEGIN -- DO NOT EDIT
+include::ROOT:partial$block-related-content-api.adoc[]
+
+// END -- DO NOT EDIT
