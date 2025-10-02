@@ -5,7 +5,7 @@ ifdef::prerelease[:page-status: {prerelease}]
 :page-toclevels: 2@
 :page-role:
 :page-content: conceptual
-:description: About Sync Gateway's revision tracking using version vectors and revision caches in 4.x.
+:description: About Sync Gateway's revision tracking using version vectors and revision caches in 4.0+.
 
 
 include::ROOT:partial$_set_page_context.adoc[]
@@ -37,14 +37,15 @@ An application records each change to a document as a revision.
 Document creation and deletion also generate revisions.
 
 [#lbl-revs]
-=== Revision Tracking in 4.x
+=== Revision Tracking in 4.0+
 
-Starting with Sync Gateway 4.x, revision tracking changed from revision trees to xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors] for improved distributed system support.
+Starting with Sync Gateway 4.0+, revision tracking changed from revision trees to xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors] for improved distributed system support.
 
-==== Version Vectors (4.x+)
+==== Version Vectors (4.0+)
 
-Sync Gateway 4.x uses xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors] with Hybrid Logical Vectors (HLV) to track document revisions.
-In this system:
+Sync Gateway 4.0+ uses xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors] to track document revisions.
+
+With this approach:
 
 * 1 revision exists per client that wrote a document or resolved a conflict
 * Each client maintains its own component in the version vector
@@ -54,18 +55,18 @@ In this system:
 
 ==== Revision Trees (Legacy Compatibility)
 
-Sync Gateway 4.x maintains parallel revision trees for backward compatibility with Couchbase Lite versions earlier than 4.x.
+Sync Gateway 4.0+ maintains parallel revision trees for backward compatibility with Couchbase Lite versions earlier than 4.0+.
 These revision trees:
 
 * Write in parallel alongside xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors] for legacy client support
-* Exist solely for backward compatibility - not used for conflict resolution in 4.x environments
+* Exist solely for backward compatibility - not used for conflict resolution in 4.0+ environments
 * Follow the traditional structure with generation IDs and content hashes
 * Are automatically pruned to maintain performance
-* Preserve existing documents that used revision trees before the 4.x upgrade
+* Preserve existing documents that used revision trees before the 4.0+ upgrade
 
 === Automatic Conflict Resolution
 
-Sync Gateway 4.x resolves conflicts automatically using Last Write Wins strategy.
+Sync Gateway 4.0+ resolves conflicts automatically using Last Write Wins strategy.
 This eliminates the need for extensive revision history and allows for efficient storage management.
 
 
@@ -81,9 +82,9 @@ TIP: Use the Admin Rest API endpoint for {rest-api-admin--xref--database-configu
 
 
 [#lbl-alg]
-=== Version Vector Pruning (4.x+)
+=== Version Vector Pruning (4.0+)
 
-Sync Gateway 4.x uses a simplified pruning approach for xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors]:
+Sync Gateway 4.0+ uses a simplified pruning approach for xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors]:
 
 * Sync Gateway keeps at least 5 revisions per document
 * Sync Gateway prunes only versions older than the `versionPruningWindowHrs` XDCR bucket setting
@@ -97,20 +98,20 @@ This approach eliminates the complexity of revision tree management while ensuri
 
 You can configure revision retention using the Configuration File's {configuration-schema-database--xref--revs-limit} setting.
 
-For Sync Gateway 4.x with automatic conflict resolution enabled, low `revs_limit` values provide optimal performance and storage efficiency.
+For Sync Gateway 4.0+ with automatic conflict resolution enabled, low `revs_limit` values provide optimal performance and storage efficiency.
 The Last Write Wins conflict resolution strategy supports values as low as 1.
 
 === Legacy Compatibility
 
-For compatibility with Couchbase Lite versions earlier than 4.x, Sync Gateway maintains legacy revision tree structures.
-These are automatically managed and do not require manual configuration in 4.x deployments.
+For compatibility with Couchbase Lite versions earlier than 4.0+, Sync Gateway maintains legacy revision tree structures.
+These are automatically managed and do not require manual configuration in 4.0+ deployments.
 
-=== Automatic Conflict Resolution (4.x)
+=== Automatic Conflict Resolution (4.0+)
 
-Sync Gateway 4.x uses Last Write Wins conflict resolution by default, which eliminates the need for extensive revision history.
+Sync Gateway 4.0+ uses Last Write Wins conflict resolution by default, which eliminates the need for extensive revision history.
 This approach allows applications to use `revs_limit` values as low as 1 without affecting capabilities.
 
-For version vector-based documents in 4.x:
+For version vector-based documents in 4.0+:
 * Minimum 5 revisions are retained automatically
 * Additional retention controlled by `versionPruningWindowHrs` XDCR bucket setting
 * No manual conflict resolution configuration required
