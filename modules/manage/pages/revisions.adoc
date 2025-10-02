@@ -45,13 +45,25 @@ Starting with Sync Gateway 4.0+, revision tracking changed from revision trees t
 
 Sync Gateway 4.0+ uses xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors] to track document revisions.
 
-With this approach:
+A version vector stores the version history of a document across multiple sources to enable consistent conflict resolution across a distributed deployment.
 
-* 1 revision exists per client that wrote a document or resolved a conflict
-* Each client maintains its own component in the version vector
-* The number of revisions kept is at least 5
-* Only versions older than the `versionPruningWindowHrs` XDCR bucket setting are pruned
-* Version vectors enable consistent conflict resolution across distributed deployments
+
+Sync Gateway uses the Hybrid Logical Vector implementation described in xref:server:learn:clusters-and-availability/xdcr-enable-crossclusterversioning.adoc#hlv-data-maintained-in-xattr[HLV Data Maintained in xattr] for XDCR compatibility.
+Each element of a version vector is composed of two parts: a timestamp and a unique ID of the source (Couchbase Lite client or Couchbase Server cluster).
+
+Timestamps for Sync Gateway are implemented using a _Hybrid Logical Clock_.
+This is a combination of a physical and a logical clock: the physical clock is the time returned by the system, in nanoseconds.
+The logical clock is a counter, which is incremented when the physical clock yields a value either smaller than or equal to the currently stored, physical clock-value.
+
+For more information, see xref:server:learn:clusters-and-availability/xdcr-conflict-resolution.adoc#time-synchronization[Time Synchronization].
+
+Each Couchbase Lite instance runs its own _Hybrid Logical Clock_.
+
+* A version vector contains 1 entry for each unique source consisting of the latest modified timestamp
+* The number of sources preserved is at least 5, and revisions older than xref:server:learn:clusters-and-availability/xdcr-enable-crossclusterversioning.adoc#version-pruning-window-hrs[versionPruningWindowHrs] are pruned on document modification
+
+The contents of version vectors are implementation dependent.
+Do not base any processing logic on their contents.
 
 ==== Revision Trees (Legacy Compatibility)
 
@@ -64,9 +76,14 @@ These revision trees:
 * Are automatically pruned to maintain performance
 * Preserve existing documents that used revision trees before the 4.0+ upgrade
 
+For detailed information about revision trees, see xref:3.3@ROOT:revisions.adoc[Revisions].
+
 === Automatic Conflict Resolution
 
 Sync Gateway 4.0+ resolves conflicts automatically using Last Write Wins strategy.
+The document timestamps to resolve conflicts.
+The timestamps associated with the most recent updates of source and target documents are compared.
+The document whose update has the more recent timestamp prevails.
 This eliminates the need for extensive revision history and allows for efficient storage management.
 
 
@@ -86,10 +103,8 @@ TIP: Use the Admin Rest API endpoint for {rest-api-admin--xref--database-configu
 
 Sync Gateway 4.0+ uses a simplified pruning approach for xref:server-compatibility:server-compatibility-xdcr-mobile.adoc#version-vectors[version vectors]:
 
-* Sync Gateway keeps at least 5 revisions per document
-* Sync Gateway prunes only versions older than the `versionPruningWindowHrs` XDCR bucket setting
+* The number of sources preserved is at least 5, and revisions older than xref:server:learn:clusters-and-availability/xdcr-enable-crossclusterversioning.adoc#version-pruning-window-hrs[versionPruningWindowHrs] are pruned on document modification
 * 1 revision exists per client that wrote a document or resolved a conflict
-* Pruning runs automatically when new revisions are added
 
 This approach eliminates the complexity of revision tree management while ensuring sufficient history for conflict resolution.
 
@@ -109,15 +124,13 @@ These are automatically managed and do not require manual configuration in 4.0+ 
 === Automatic Conflict Resolution (4.0+)
 
 Sync Gateway 4.0+ uses Last Write Wins conflict resolution by default, which eliminates the need for extensive revision history.
-This approach allows applications to use `revs_limit` values as low as 1 without affecting capabilities.
+This approach allows applications to use {configuration-schema-database--xref--revs-limit} values as low as 1 without affecting capabilities, though the default value remains 50.
 
-For version vector-based documents in 4.0+:
-* Minimum 5 revisions are retained automatically
-* Additional retention controlled by `versionPruningWindowHrs` XDCR bucket setting
+* Sync Gateway maintains both revision tree IDs and a version vector
+* `revs_limit` applies to the number of revision tree IDs stored, not to version vector elements
+* Version vector elements are controlled by `versionPruningWindowHrs` XDCR bucket setting
 * No manual conflict resolution configuration required
 
-NOTE: Use default `revs_limit` values for new applications.
-Higher values provide no performance benefit and can increase storage overhead.
 
 
 [#lbl-rt-more]

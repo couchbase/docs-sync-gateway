@@ -34,7 +34,12 @@ include::ROOT:partial$_show_page_header_block.adoc[]
 
 == Overview
 
-Starting with Sync Gateway 4.0+, the default conflict resolution strategy has changed from *Most Write Wins* (MWW) to *Last Write Wins* (LWW). This fundamental change aligns with the shift from revision trees to version vectors and enables better consistency across distributed deployments.
+Starting with Sync Gateway 4.0+, the default conflict resolution strategy has changed from *Most Write Wins* (MWW) to *Last Write Wins* (LWW):
+
+* *Most Write Wins*: The source (device/cluster) with more changes to a document wins in conflicts
+* *Last Write Wins*: Timestamp-based resolution where the document with the latest timestamp wins
+
+This fundamental change aligns with the shift from revision trees to version vectors and enables better consistency across distributed deployments.
 
 Conflicts are automatically resolved footnote:[Since Couchbase Lite 2.0] using deterministic algorithms that verify consistency across all participating nodes.
 
@@ -48,7 +53,7 @@ The document with the latest timestamp wins the conflict, with timestamps genera
 This strategy provides:
 
 * Deterministic conflict resolution across all clusters
-* Consistency with XDCR timestamp-based conflict resolution
+* Consistency with XDCR xref:server:learn:clusters-and-availability/xdcr-conflict-resolution.adoc#timestamp-based-conflict-resolution[timestamp-based conflict resolution]
 * Better support for active-active deployments
 * Alignment with modern distributed systems practices
 
@@ -57,7 +62,7 @@ This strategy provides:
 Sync Gateway uses Most Write Wins conflict resolution in the following scenarios:
 
 * Sync Gateway 4.0+ replicating with Couchbase Lite < 4.0+ clients
-* Sync Gateway 4.0+ replicating with Sync Gateway < 4.0+ instances
+* Sync Gateway 4.0+ replicating with Sync Gateway < 4.0+ instances via Inter-Sync Gateway Replication
 * Cross-version compatibility scenarios
 
 In these cases, the document with the most revisions wins the conflict, maintaining backward compatibility.
