@@ -43,6 +43,7 @@ This fundamental change aligns with the shift from revision trees to version vec
 
 Conflicts are automatically resolved footnote:[Since Couchbase Lite 2.0] using deterministic algorithms that verify consistency across all participating nodes.
 
+
 == Conflict Resolution Strategies
 
 === Last Write Wins (Default in 4.0+)
@@ -56,6 +57,10 @@ This strategy provides:
 * Consistency with XDCR xref:server:learn:clusters-and-availability/xdcr-conflict-resolution.adoc#timestamp-based-conflict-resolution[timestamp-based conflict resolution]
 * Better support for active-active deployments
 * Alignment with modern distributed systems practices
+
+Timestamp accuracy depends on clock synchronization.
+XDCR deployments expect server clocks to remain synchronized (see xref:server:learn:clusters-and-availability/xdcr-conflict-resolution.adoc#time-synchronization[Time Synchronization]).
+Mobile devices may have unsynchronized clocks, but each Couchbase Lite instance maintains its own Hybrid Logical Clock that captures relative time, providing sufficient accuracy for conflict resolution.
 
 === Most Write Wins (Versions < 4.0+)
 
