@@ -62,18 +62,11 @@ You may encounter the error in the following deployment situations:
 +
 A suggested workaround in this scenario is to fork the _Ottoman.js_ library, perform a search-replace for the `+_type+` property and replace it without a leading underscore.
 
-[NOTE] 
-====
-For versions 2.x of Sync Gateway, you can encounter the following error:
-
-* In Mobile-to-Web Data Sync with Field-level Encryption enabled, because the rule conflicts with the default {xref-sdk-java-encryption}.
-====
-
 How to avoid the error::
 You should change any top-level user properties that have a key with a leading underscore , by either:
 
 * Renaming them to remove the underscore, or,
-* Wrapping them inside another object with a key that doesn't have a leading underscore.
+* Wrapping them inside another object with a key that does not have a leading underscore.
 
 == Document Structure
 
@@ -108,7 +101,7 @@ Each _Document_ has the following attributes:
 
 * A document ID
 * A current revision ID (which changes when the document is updated)
-* A history of past revision IDs (usually linear, but will form a branching tree if the document has or has had conflicts)
+* Document metadata (including revision history)
 * A body in the form of a JSON object (a set of key/value pairs)
 * Zero or more named binary attachments
 
@@ -117,7 +110,8 @@ Each _Document_ has the following attributes:
 {cbl} tracks the change history of every document as a series of revisions, like version control systems such as Git or Subversion.
 Its main purpose is to enable the replicator to determine which data to sync and any conflicts arising.
 
-Each document change is assigned a unique revision ID. The IDs of past revisions are available. The content of past revisions may be available if the revision was created locally and the database has not yet been compacted.
+Each document change is assigned a unique revision ID.
+The IDs of past revisions may be available.
 
 // BEGIN -- Page Footer
 include::ROOT:partial$block-related-content-data.adoc[]

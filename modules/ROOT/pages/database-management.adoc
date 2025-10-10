@@ -32,78 +32,47 @@ TIP: Use the Admin Rest API endpoint for {rest-api-admin--xref--database-configu
 === Algorithm
 Although fundamentally the same, the pruning algorithm works slightly differently between Sync Gateway and Couchbase Lite.
 
-On Sync Gateway, the pruning algorithm is applied to the shortest, non-tombstoned branch in the revision tree.
-
-The algorithm allows the branch to retain a configurable number of revisions (revs_limit) and removes all older revisions.
+On Sync Gateway, the pruning algorithm retains a configurable number of revisions (revs_limit) and removes all older revisions.
 
 
 [#lbl-rtctrl]
 === Controls
 You can vary the number of retained revisions using the Configuration File's {configuration-schema-database--xref--revs-limit} setting.
 
-So, for example, with a `revs_limit` of 1,000 the algorithm will keep the last 1,000 revisions in the shortest non-tombstoned branch and remove any others from that branch.
+So, for example, with a `revs_limit` of 1,000 the algorithm keeps the last 1,000 revisions in the shortest non-tombstoned branch and remove any others from that branch.
 
 [NOTE]
---
-Do not set `revs_limit` below 100 when `allow_conflicts = true` +
-*Otherwise* ... you may adversely affect the conflict resolution process, as there may be insufficient revision history to resolve a given conflict.
---
+---
+Sync Gateway 4.x uses automatic conflict resolution with Last Write Wins strategy, allowing `revs_limit` values as low as 1.
+In earlier versions, setting `revs_limit` below 100 when `allow_conflicts = true` can lead to data loss during conflict resolution due to insufficient revision history.
+---
 
 
 [#lbl-rtcons]
 === Constraints
-The default and minimum values of `revs_limit` are dependent on whether {configuration-schema-database--xref--allow-conflicts} is  True or False.
 
 The presence of multiple unresolved conflicts in a revision tree can impair the pruning process.
-It may result in obsolete revisions not being pruned or in the premature pruning of revisions.
-
 
 [#lbl-rt-more]
 === Learn More
-To learn more about revision pruning and database size management in general see our blog: {url-blog-dbsizemng-pruning}.
+To learn more about revision pruning and database size management in general see: {url-blog-dbsizemng-pruning}.
 
 
 [#lbl-tomb-purge]
 == Purging Tombstones
 
-To remove tombstones, you need to purge them.
-The table at <<tbl-tomb-purge>> shows when tombstones are purged automatically and how to manually purge them.
+Sync Gateway automatically purges tombstones from the bucket based on the server's metadata purge interval.
 
-[#tbl-tomb-purge]
-.Purging tombstones
-[,cols="1s,2,2"]
-|===
-
-.2+^.>s|
-2+^.>s|Value of `enable_shared_bucket_access`
-
-^.>s|`false`
-^.>s|`true`
-
-|Automatic
-|Tombstones are not automatically purged from the bucket.
-
-Tombstones can be purged by setting a server expiry on tombstone documents.
-This can be easily automated via Sync Gateway.
-
-Use the {sync-function-api-expiry-cmd--xref} function in the Sync Function.
-
-Set the expiry time to be sufficient to allow for all other devices to sync and receive the delete notification --  perhaps a week, or a month.
-|Tombstones are automatically purged from the bucket based on the server's metadata purge interval.
-
-|Manual
-|Tombstones can be manually removed via Sync Gateway's xref:rest-api:rest_api_admin.adoc#tag/Document/operation/post_keyspace-_purge[+/{keyspace}/_purge+] endpoint, or deleting documents directly in the bucket.
-|Tombstones can be manually removed via Sync Gateway's xref:rest-api:rest_api_admin.adoc#tag/Document/operation/post_keyspace-_purge[+/{keyspace}/_purge+] endpoint.
-|===
+Tombstones can also be manually removed via Sync Gateway's xref:rest-api:rest_api_admin.adoc#tag/Document/operation/post_keyspace-_purge[+/{keyspace}/_purge+] endpoint.
 
 Purging of tombstones is also required on Couchbase Lite.
-For example, you might decide that if a document is deleted on a Couchbase Lite client, that you want to purge the document (on that device) as soon as the delete has been successfully replicated to Sync Gateway.
+For example, you might decide that if a Couchbase Lite client deletes a document, you want to purge the document (on that device) as soon as the delete replicates to Sync Gateway.
 
 
 [#lbl-tomb-cache]
 == Cache Ejection
 
-Deleted/expired tombstones aren't automatically ejected from Sync Gateway's in-memory channel caches.
+Deleted/expired tombstones are not automatically ejected from Sync Gateway's in-memory channel caches.
 See <<tbl-tomb-cache>>, which shows when channel caches are ejected.
 
 
@@ -120,14 +89,14 @@ Purged On
 ^|`true`
 
 | Couchbase Server
-| Restarting Sync Gateway will flush the cache
-| * Restarting Sync Gateway will flush the cache
-* Running the xref:rest-api:rest_api_admin.adoc#tag/Database-Management/operation/post_db-_compact[+/{db}/_compact+] endpoint will remove purged tombstones from the channel cache {fn-211}
+| Restarting Sync Gateway flushes the cache
+| * Restarting Sync Gateway flushes the cache
+* Running the xref:rest-api:rest_api_admin.adoc#tag/Database-Management/operation/post_db-_compact[+/{db}/_compact+] endpoint  removes purged tombstones from the channel cache {fn-211}
 
 | Sync Gateway
-a| * Restarting Sync Gateway will flush the cache.
+a| * Restarting Sync Gateway flushes the cache.
 * Starting in 2.1.1, this is done automatically.
-a| * Restarting Sync Gateway will flush the cache.
+a| * Restarting Sync Gateway flushes the cache.
 * Starting in 2.1.1, this is done automatically.
 |===
 
@@ -160,12 +129,12 @@ If the Sync Function is changed, Sync Gateway needs to reprocess all existing do
 To this end, the Admin REST API provides a `/{db}/_resync` endpoint that enables you to initiate the reprocessing of every document in the database again.
 
 === How
-To update the Sync Function and fully resync, you are recommended to follow the steps in <<steps-to-resync>>.
+To update the Sync Function and fully `resync`, you're recommended to follow the steps in <<steps-to-resync>>.
 
-NOTE: This is an expensive operation because it requires every document in the database to be processed by the new function.
+NOTE: This is an expensive operation because the new function must process every document in the database.
 
-The database can accept no requests until this process is complete because no user's full access privileges are known until all documents have been scanned.
-Therefore, the Sync Function update will result in application downtime whilst the database is offline (that is, between the call to the `+/{db}/_offline+` and `+/{db}/_online+` endpoints in <<steps-to-resync>>.
+The database cannot accept requests until this process completes because the database does not know any user's full access privileges until it scans all documents.
+Therefore, the Sync Function update results in application downtime whilst the database is offline (that's between the call to the `+/{db}/_offline+` and `+/{db}/_online+` endpoints in <<steps-to-resync>>.
 
 
 [#steps-to-resync]
@@ -188,19 +157,19 @@ xref:rest-api:rest_api_admin.adoc#tag/Database-Management/operation/post_db-_onl
 
 ==== Changing Channel Assignment
 When running a resync operation, the context in the Sync Function is the admin user.
-For that reason, calling the methods `requireUser`, `requireAccess`, and `requireRole` will always succeed.
-It is very likely that you are using those functions in production to govern write operations.
+For that reason, calling the methods `requireUser`, `requireAccess`, and `requireRole` always succeeds.
+You may be using these functions in production to govern write operations.
 But in a resync operation, all the documents are already written to the database.
-For that reason, it is recommended to use resync for changing the assignment to channels only (i.e. reads).
+For that reason, it's recommended to use resync for changing the assignment to channels only (i.e. reads).
 
 ==== Changing Write Security Only
-If the modifications to the Sync Function only impact write security (and not routing/access), you won't need to run the resync operation.
+If the modifications to the Sync Function only impact write security (and not routing/access), you'll not need to run the resync operation.
 
 ==== Changing Channel/Access Rules
-If you wish to change the channel/access rules, but only want those rules to apply to documents written after the change was made, then you don't need to run the resync operation.
+If you want to change the channel/access rules, but only want those rules to apply to documents written after the change was made, then you do not need to run the resync operation.
 
 ==== Access Revocation
-If you change the sync function to revoke a user's access to a document, the access will only take effect once a new revision to that document is saved on Sync Gateway.
+If you change the sync function to revoke a user's access to a document, the access only takes effect once a new revision to that document saves on Sync Gateway.
 Running a resync operation does not revoke access to that document.
 
 === Database Availability
