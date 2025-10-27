@@ -27,7 +27,7 @@ DO NOT EDIT! See https://github.com/GIT_USER_ID/GIT_REPO_ID
 [discrete#version]
 = Version information
 [%hardbreaks]
-__Version__ : 3.3
+__Version__ : 4.0
 
 [discrete#host]
 = Host information
@@ -1947,7 +1947,7 @@ a¦
 
 [markdown]
 --
-The revision ID to target.
+An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
 --
 
 [%hardbreaks]
@@ -4479,10 +4479,12 @@ endif::[]
 xref:delete_db-[]
 xref:get__all_dbs[]
 xref:get_db-[]
+xref:get_db-_attachment_migration[]
 xref:get_db-_compact[]
 xref:get_db-_index_init[]
 xref:get_db-_resync[]
 xref:head_db-[]
+xref:post_db-_attachment_migration[]
 xref:post_db-_compact[]
 xref:post_db-_ensure_full_commit[]
 xref:post_db-_index_init[]
@@ -5041,6 +5043,197 @@ a| xref:HTTP_Error[]
 
 
 //end::get_db-[]
+
+
+//tag::get_db-_attachment_migration[]
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-before.adoc[opts=optional]
+
+
+[#get_db-_attachment_migration]
+= Get the status of the most recent attachment migration operation
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-begin.adoc[opts=optional]
+
+
+....
+GET /{db}/_attachment_migration
+....
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-description-before.adoc[opts=optional]
+
+
+[#get_db-_attachment_migration-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+This will retrieve the current status of the most recent attachment migration operation.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Architect
+--
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-description-end.adoc[opts=optional]
+
+
+
+[#get_db-_attachment_migration-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-parameters-before.adoc[opts=optional]
+
+
+[#get_db-_attachment_migration-parameters]
+= Parameters
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-parameters-begin.adoc[opts=optional]
+
+
+[#get_db-_attachment_migration-path]
+= Path Parameters
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *db* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+
+
+|===
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-parameters-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-responses-before.adoc[opts=optional]
+
+
+[#get_db-_attachment_migration-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+Attachment migration status retrieved successfully
+--
+a| xref:Attachment_Migration_status[]
+
+
+| 400
+a| [markdown]
+--
+There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+
+| 404
+a| [markdown]
+--
+Resource could not be found
+--
+a| xref:HTTP_Error[]
+
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}get_db-_attachment_migration/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}get_db-_attachment_migration/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get_db-_attachment_migration/operation-after.adoc[opts=optional]
+
+
+//end::get_db-_attachment_migration[]
 
 
 //tag::get_db-_compact[]
@@ -5807,6 +6000,248 @@ a| xref:HTTP_Error[]
 
 
 //end::head_db-[]
+
+
+//tag::post_db-_attachment_migration[]
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-before.adoc[opts=optional]
+
+
+[#post_db-_attachment_migration]
+= Manage a attachment migration operation
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-begin.adoc[opts=optional]
+
+
+....
+POST /{db}/_attachment_migration
+....
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-description-before.adoc[opts=optional]
+
+
+[#post_db-_attachment_migration-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+This allows a new attachment migration operation to be done on the database, or to stop an existing running attachment migration operation.
+
+Attachment Migration is a single node process and can only one node can be running it at one point.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Architect
+--
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-description-end.adoc[opts=optional]
+
+
+
+[#post_db-_attachment_migration-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-parameters-before.adoc[opts=optional]
+
+
+[#post_db-_attachment_migration-parameters]
+= Parameters
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-parameters-begin.adoc[opts=optional]
+
+
+[#post_db-_attachment_migration-path]
+= Path Parameters
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *db* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+
+
+|===
+
+[#post_db-_attachment_migration-query]
+= Query Parameters
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *action* +
+_optional_
+a¦ 
+
+
+[markdown]
+--
+Defines whether the an attachment migration operation is being started or stopped.
+--
+
+[%hardbreaks]
+*Values:* `&quot;start&quot;`, `&quot;stop&quot;`
+{blank}
+
+a¦ String
+
+
+
+a¦ *reset* +
+_optional_
+a¦ 
+
+
+[markdown]
+--
+This forces a fresh attachment migration start instead of trying to resume the previous failed migration operation.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ Boolean
+
+
+
+|===
+
+
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-parameters-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-responses-before.adoc[opts=optional]
+
+
+[#post_db-_attachment_migration-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+Started or stopped compact operation successfully
+--
+a| 
+| 400
+a| [markdown]
+--
+There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+
+| 404
+a| [markdown]
+--
+Resource could not be found
+--
+a| xref:HTTP_Error[]
+
+
+| 503
+a| [markdown]
+--
+Cannot start attachment migration due to another migration operation still running.
+--
+a| xref:HTTP_Error[]
+
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}post_db-_attachment_migration/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}post_db-_attachment_migration/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post_db-_attachment_migration/operation-after.adoc[opts=optional]
+
+
+//end::post_db-_attachment_migration[]
 
 
 //tag::post_db-_compact[]
@@ -8718,7 +9153,7 @@ a| [markdown]
 --
 Properties associated with a user
 --
-a| xref:User_2[]
+a| xref:User_1[]
 
 
 | 404
@@ -9505,7 +9940,7 @@ Properties associated with a user
 [%hardbreaks]
 {blank}
 
-a¦ xref:User2[]
+a¦ xref:User1[]
 
 
 
@@ -9973,7 +10408,7 @@ Properties associated with a user
 [%hardbreaks]
 {blank}
 
-a¦ xref:User2[]
+a¦ xref:User1[]
 
 
 
@@ -10240,7 +10675,7 @@ a¦
 
 [markdown]
 --
-The document revision to target.
+The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
 --
 
 [%hardbreaks]
@@ -10266,7 +10701,7 @@ a¦
 
 [markdown]
 --
-The revision ID to target.
+An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
 --
 
 [%hardbreaks]
@@ -10777,7 +11212,7 @@ a¦
 
 [markdown]
 --
-The revision ID of the revision to delete.
+The Revision Tree ID of the revision to delete.
 --
 
 [%hardbreaks]
@@ -10844,7 +11279,7 @@ a| xref:HTTP_Error[]
 | 409
 a| [markdown]
 --
-A revision ID conflict would result from deleting this document revision.
+A conflict would result from deleting this document revision.
 --
 a| 
 
@@ -11579,6 +12014,24 @@ a¦ Boolean
 
 
 
+a¦ *version_type* +
+_optional_
+a¦ 
+
+
+[markdown]
+--
+The preferred type of document versioning to use for the changes feed.
+--
+
+[%hardbreaks]
+*Values:* `&quot;rev&quot;`, `&quot;cv&quot;`
+{blank}
+
+a¦ String
+
+
+
 |===
 
 
@@ -11805,7 +12258,7 @@ a¦
 
 [markdown]
 --
-The document revision to target.
+The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
 --
 
 [%hardbreaks]
@@ -12189,7 +12642,7 @@ a¦
 
 [markdown]
 --
-The document revision to target.
+The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
 --
 
 [%hardbreaks]
@@ -12603,7 +13056,7 @@ GET /{keyspace}/_raw/{docid}
 
 [markdown]
 --
-Returns a document's latest revision with its metadata.
+Returns a document's latest revision with its metadata as stored.
 
 Note: The direct use of this endpoint is unsupported. The sync metadata is maintained internally by Sync Gateway and its structure can change. It should not be used to drive business logic of applications since the response to the `/{db}/_raw/{id}` endpoint can change at any time.
 
@@ -12723,6 +13176,23 @@ This redacts sensitive parts of the response. Cannot be used when `include_doc=t
 {blank}
 
 a¦ Boolean
+
+
+
+a¦ *salt* +
+_optional_
+a¦ 
+
+
+[markdown]
+--
+Whether to apply redaction with a custom salt - the intention here is to allow consistent hashing with a log collection. If this value is not set, a random salt will be used.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
 
 
 
@@ -12952,7 +13422,7 @@ a¦
 
 [markdown]
 --
-The document revision to target.
+The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
 --
 
 [%hardbreaks]
@@ -13322,7 +13792,7 @@ a¦
 
 [markdown]
 --
-The document revision to target.
+The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
 --
 
 [%hardbreaks]
@@ -14300,9 +14770,9 @@ This will allow multiple documented to be created, updated or deleted in bulk.
 
 To create a new document, simply add the body in an object under `docs`. A doc ID will be generated by Sync Gateway unless `_id` is specified.
 
-To update an existing document, provide the document ID (`_id`) and revision ID (`_rev`) as well as the new body values.
+To update an existing document, provide the document ID (`_id`) and Revision Tree ID (`_rev`) as well as the new body values.
 
-To delete an existing document, provide the document ID (`_id`), revision ID (`_rev`), and set the deletion flag (`_deleted`) to true.
+To delete an existing document, provide the document ID (`_id`), Revision Tree ID (`_rev`), and set the deletion flag (`_deleted`) to true.
 
 Required Sync Gateway RBAC roles:
 
@@ -15296,7 +15766,7 @@ POST /{keyspace}/_revs_diff
 
 [markdown]
 --
-Takes a set of document IDs, each with a set of revision IDs. For each document, an array of unknown revisions are returned with an array of known revisions that may be recent ancestors.
+Takes a set of document IDs, each with a set of Revision Tree IDs. For each document, an array of unknown revisions are returned with an array of known revisions that may be recent ancestors.
 
 Required Sync Gateway RBAC roles:
 
@@ -15509,7 +15979,7 @@ PUT /{keyspace}/{docid}
 
 [markdown]
 --
-This will upsert a document meaning if it does not exist, then it will be created. Otherwise a new revision will be made for the existing document. A revision ID must be provided if targetting an existing document.
+This will upsert a document, meaning if it does not exist then it will be created. Otherwise a new revision will be made for the existing document. A previous known version must be provided if targeting an existing document to prevent conflicts.
 
 A document ID must be specified for this endpoint. To let Sync Gateway generate the ID, use the `POST /{db}/` endpoint.
 
@@ -15662,7 +16132,7 @@ a¦
 
 [markdown]
 --
-The document revision to target.
+The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
 --
 
 [%hardbreaks]
@@ -15688,7 +16158,7 @@ a¦
 
 [markdown]
 --
-The revision ID to target.
+An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
 --
 
 [%hardbreaks]
@@ -16196,7 +16666,7 @@ PUT /{keyspace}/_local/{docid}
 
 [markdown]
 --
-This request creates or updates a local document. Updating a local document requires that the revision ID be put in the body under `_rev`.
+This request creates or updates a local document. Updating a local document requires that the Revision Tree ID be put in the body under `_rev`.
 
 Local document IDs are given a `_local/` prefix. Local documents are not replicated or indexed, don't support attachments, and don't save revision histories. In practice they are almost only used by the client's replicator, as a place to store replication checkpoint data.
 
@@ -16363,7 +16833,7 @@ a| xref:HTTP_Error[]
 | 409
 a| [markdown]
 --
-A revision ID conflict would result from updating this document revision.
+A conflict would result from updating this document revision.
 --
 a| 
 
@@ -31095,7 +31565,7 @@ endif::[]
 [#models]
 = Definitions
 
-:count-models: 179
+:count-models: 178
 
 :leveloffset: +1
 
@@ -31110,6 +31580,7 @@ ifdef::collapse-models[]
 endif::collapse-models[]
 [%hardbreaks]
 xref:All_replications[]
+xref:Attachment_Migration_status[]
 xref:audit_event_verbose[]
 xref:Audit_logging_config[]
 xref:Changes-feed[]
@@ -31119,6 +31590,7 @@ xref:Console-logging-config[]
 xref:Console-logging-keys-level[]
 xref:Credentials_config[]
 xref:Credentials_config_1[]
+xref:Current_Version[]
 xref:Database[]
 xref:Database-audit[]
 xref:Database-audit-verbose[]
@@ -31186,10 +31658,7 @@ xref:get_keyspace__changes_200_response_results_inner[]
 xref:get_keyspace__changes_200_response_results_inner_changes_inner[]
 xref:get_keyspace_docid_200_response[]
 xref:get_keyspace__raw_docid_200_response[]
-xref:get_keyspace__raw_docid_200_response__sync[]
-xref:get_keyspace__raw_docid_200_response__sync_channel_set_history_inner[]
-xref:get_keyspace__raw_docid_200_response__sync_channel_set_inner[]
-xref:get_keyspace__raw_docid_200_response__sync_history[]
+xref:get_keyspace__raw_docid_200_response__xattrs[]
 xref:get__sgcollect_info_200_response[]
 xref:get__stats_200_response[]
 xref:HTTP_Error[]
@@ -31241,6 +31710,7 @@ xref:Replication_1[]
 xref:Replication_status[]
 xref:Resync_status[]
 xref:Retrieved-replication[]
+xref:Revision_Tree_ID[]
 xref:Role[]
 xref:Role_1[]
 xref:Role_2[]
@@ -31290,7 +31760,6 @@ xref:User_Session_Information[]
 xref:User_Session_Information_userCtx[]
 xref:Vendor[]
 xref:Verbose[]
-xref:Verbose_disabled_users_inner[]
 xref:Verbose_inner[]
 endif::[]
 
@@ -31353,6 +31822,158 @@ a¦ xref:Replication_1[]
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/All_replications/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Attachment_Migration_status/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Attachment_Migration_status]
+= Attachment-Migration-status
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Attachment_Migration_status/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::Attachment_Migration_status[]
+
+ifdef::model-descriptions[]
+//tag::desc-Attachment_Migration_status[]
+The status of a attachment migration operation
+//end::desc-Attachment_Migration_status[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*status* +
+_required_
+a¦ 
+
+[markdown]
+--
+The status of the current attachment migration operation.
+--
+
+[%hardbreaks]
+*Values:* `"running"`, `"completed"`, `"stopping"`, `"stopped"`, `"error"`
+{blank}
+a¦ String
+
+
+a¦ 
+*start_time* +
+_required_
+a¦ 
+
+[markdown]
+--
+The ISO-8601 date and time the attachment migration operation was started.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*last_error* +
+_required_
+a¦ 
+
+[markdown]
+--
+The last error that occurred in the attachment migration operation (if any).
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*migration_id* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The UUID given to the attachment migration operation.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*docs_changed* +
+_required_
+a¦ 
+
+[markdown]
+--
+The amount of documents that have had attachment metadata migrated as a result of attachment migration operation.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*docs_processed* +
+_required_
+a¦ 
+
+[markdown]
+--
+The amount of docs that have been processed through the attachment migration operation.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*docs_failed* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The amount of docs that have failed to be processed through the attachment migration operation.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+|===
+
+//end::Attachment_Migration_status[]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Attachment_Migration_status/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Attachment_Migration_status/definition-after.adoc[opts=optional]
 
 
 
@@ -32235,6 +32856,62 @@ a¦ String
 
 
 
+// markup not found, no include::{specDir}definitions/Current_Version/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Current_Version]
+= Current Version
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Current_Version/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::Current_Version[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*cv* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The Current Version associated with the change. This value requires the `version_type` preference set to `cv` and this document revision being written through SG 4.0+
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+|===
+
+//end::Current_Version[]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Current_Version/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Current_Version/definition-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}definitions/Database/definition-before.adoc[opts=optional]
 
 
@@ -32265,33 +32942,18 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*server* +
+*allow_empty_password* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This is the Couchbase Server address or addresses that the database connect to. 
+This controls whether users that are created can have an empty password or not.
 --
 
 [%hardbreaks]
 {blank}
-a¦ String
-
-
-a¦ 
-*pool* +
-_optional_
-a¦ 
-
-[markdown]
---
-This field is unsupported and ignored.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
+a¦ Boolean
 
 
 a¦ 
@@ -32310,63 +32972,18 @@ a¦ String
 
 
 a¦ 
-*username* +
+*bucket_op_timeout_ms* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The username for authenticating to the server.
+This is the amount of milliseconds should pass before a bucket operation times out. An error will be returned if the bucket operation times out saying: `operation timed out`.
 --
 
 [%hardbreaks]
 {blank}
-a¦ String
-
-
-a¦ 
-*password* +
-_optional_
-a¦ 
-
-[markdown]
---
-The password for authenticating to the server.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*certpath* +
-_optional_
-a¦ 
-
-[markdown]
---
-The cert path (public key) for X.509 bucket auth.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*keypath* +
-_optional_
-a¦ 
-
-[markdown]
---
-The key path (private key) for X.509 bucket auth
---
-
-[%hardbreaks]
-{blank}
-a¦ String
+a¦ Big Decimal
 
 
 a¦ 
@@ -32385,59 +33002,28 @@ a¦ String
 
 
 a¦ 
-*kv_tls_port* +
+*cache* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The Memcached TLS port.
+include::index.adoc[tag=desc-Database_config_cache, opts=optional]
 --
 
 [%hardbreaks]
 {blank}
-a¦ Integer
+a¦ xref:Database_config_cache[]
 
 
 a¦ 
-*max_concurrent_query_ops* +
+*certpath* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The maximum amount of query operations that can be running at any one point.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*scopes* +
-_optional_
-a¦ 
-
-[markdown]
---
-An object keyed by scope name containing config for the specific collection.
---
-
-[%hardbreaks]
-*Maximum items:* `1`
-{blank}
-a¦ xref:Map[]
-
-
-a¦ 
-*name* +
-_optional_
-a¦ 
-
-[markdown]
---
-The name of the database.
+The cert path (public key) for X.509 bucket auth.
 --
 
 [%hardbreaks]
@@ -32446,65 +33032,164 @@ a¦ String
 
 
 a¦ 
-*sync* +
+*changes_request_plus* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The Javascript function that newly created documents are ran through for the default scope and collection.
-If `scopes` parameter is set, this is ignored.
+Sets the default value of `request_plus` for one-shot/non-continuous changes feeds, which when true, ensures all valid documents written prior to the request being issued are included in the response. Setting this option at the database level is required to ensure Couchbase Lite utilizes this changes feed mode.
+
+This also sets the default value of query param `request_plus` for [GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or `request_plus` for [POST /{keyspace}/_changes](#operation/post_keyspace-_changes).
 --
 
 [%hardbreaks]
 {blank}
-a¦ String
+a¦ Boolean
 
 
 a¦ 
-*users* +
+*client_partition_window_secs* +
 _optional_
 a¦ 
 
 [markdown]
 --
+How long (in seconds) clients can remain offline for without losing replication metadata.
+
+Defaults to 30 days (in seconds)
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Map[]
+a¦ Integer
 
 
 a¦ 
-*roles* +
+*compact_interval_days* +
 _optional_
 a¦ 
 
 [markdown]
 --
+The interval between scheduled tombstone compaction runs (in days). This can be a floating point number.
+
+If set to 0, compaction will not run automatically.
 --
 
 [%hardbreaks]
-{blank}
-a¦ xref:Map[]
-
-
-a¦ 
-*revs_limit* +
-_optional_
-a¦ 
-
-[markdown]
---
-The maximum depth a document's revision tree can grow too.
-
-The minimum is `20` if conflicts are allowed and 0 if not. It is not recommended to go below `100` when conflicts are allowed. The default is `100` if conflicts are allowed and `50` if not.
---
-
-[%hardbreaks]
-*Minimum:* `0`
 {blank}
 a¦ Big Decimal
+
+
+a¦ 
+*cors* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_cors, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_cors[]
+
+
+a¦ 
+*delta_sync* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_delta_sync, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_delta_sync[]
+
+
+a¦ 
+*disable_password_auth* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Whether to disable username/password authentication and only allow OIDC and guest access.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*disable_public_all_docs* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This controls whether the [GET /{keyspace}/_all_docs](#operation/get_keyspace-_all_docs) REST API endpoint is publicly accessible or not.
+Disabling this endpoint is recommended for larger datasets or production workloads.
+[GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or [POST /{keyspace}/_bulk_get](#operation/post_keyspace-_bulk_get) have more efficient implementations and should be used instead.
+
+If set to `true`, the endpoint will not be publicly accessible, and will only be available on the Admin API.
+Setting this to `false`, or leaving it as the default value is deprecated, and may default to `true` in a future release.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*event_handlers* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_event_handlers, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_event_handlers[]
+
+
+a¦ 
+*guest* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-User_1, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:User_1[]
+
+
+a¦ 
+*import_backup_old_rev* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This controls whether import should attempt to create a temporary backup of the previous revision body (if available) when the document is modified in the bucket.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
 
 
 a¦ 
@@ -32524,6 +33209,25 @@ This can also be set to the string `continuous` which maps to true.
 [%hardbreaks]
 {blank}
 a¦ Boolean
+
+
+a¦ 
+*import_filter* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is the function that all imported documents in the default scope and collection are ran through in order to filter out what to import and what not to import. This allows you to control what is made available to Couchbase Mobile clients. If it is not set, then no documents are filtered when imported.
+
+`import_docs` must be true to make this field applicable.
+
+If `scopes` parameter is set, this is ignored.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
 
 
 a¦ 
@@ -32550,110 +33254,28 @@ a¦ Big Decimal
 
 
 a¦ 
-*import_filter* +
+*index* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This is the function that all imported documents in the default scope and collection are ran through in order to filter out what to import and what not to import. This allows you to control what is made available to Couchbase Mobile clients. If it is not set, then no documents are filtered when imported.
-
-`import_docs` must be true to make this field applicable.
-
-If `scopes` parameter is set, this is ignored.
+include::index.adoc[tag=desc-Database_config_index, opts=optional]
 --
 
 [%hardbreaks]
 {blank}
-a¦ String
+a¦ xref:Database_config_index[]
 
 
 a¦ 
-*import_backup_old_rev* +
+*javascript_timeout_secs* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This controls whether import should attempt to create a temporary backup of the previous revision body (if available) when the document is modified in the bucket.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*event_handlers* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_event_handlers, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_event_handlers[]
-
-
-a¦ 
-*feed_type* +
-_optional_
-a¦ 
-
-[markdown]
---
-The type of feed to use to communicate with Couchbase Server. This will use DCP regardless of specification.
---
-
-[%hardbreaks]
-*Values:* `"DCP"`
-{blank}
-a¦ String
-
-
-a¦ 
-*allow_empty_password* +
-_optional_
-a¦ 
-
-[markdown]
---
-This controls whether users that are created can have an empty password or not.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*cache* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_cache, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_cache[]
-
-
-a¦ 
-*rev_cache_size* +
-_optional_
-a¦ 
-
-[markdown]
---
-**Deprecated, please use the database setting `cache.rev_cache.size` instead**
-
-The maximum number of revisions to store in the revision cache.
+The maximum number of seconds the sync, import filter, and custom conflict resolver JavaScript functions are allowed to run for before timing out. Set to 0 to allow the JS functions to run uncapped.
 --
 
 [%hardbreaks]
@@ -32662,33 +33284,48 @@ a¦ Big Decimal
 
 
 a¦ 
-*offline* +
+*keypath* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Start the database in an offline state.
+The key path (private key) for X.509 bucket auth
 --
 
 [%hardbreaks]
 {blank}
-a¦ Boolean
+a¦ String
 
 
 a¦ 
-*unsupported* +
+*kv_tls_port* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Database_config_unsupported, opts=optional]
+The Memcached TLS port.
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Database_config_unsupported[]
+a¦ Integer
+
+
+a¦ 
+*local_doc_expiry_secs* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The number of seconds before a `_local` document should expire.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
 
 
 a¦ 
@@ -32704,6 +33341,66 @@ Configuration for Local JWT authentication.
 [%hardbreaks]
 {blank}
 a¦ xref:Map[]
+
+
+a¦ 
+*logging* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_logging, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_logging[]
+
+
+a¦ 
+*max_concurrent_query_ops* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The maximum amount of query operations that can be running at any one point.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*name* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The name of the database.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*offline* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Start the database in an offline state.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
 
 
 a¦ 
@@ -32737,13 +33434,28 @@ a¦ Big Decimal
 
 
 a¦ 
-*view_query_timeout_secs* +
+*password* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The number of seconds before a view query should timeout.
+The password for authenticating to the server.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*query_pagination_limit* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The query limit to be used during pagination of large queries.
 --
 
 [%hardbreaks]
@@ -32752,28 +33464,74 @@ a¦ Integer
 
 
 a¦ 
-*local_doc_expiry_secs* +
+*replications* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The number of seconds before a `_local` document should expire.
+include::index.adoc[tag=desc-Database_config_replications, opts=optional]
 --
 
 [%hardbreaks]
 {blank}
-a¦ Integer
+a¦ xref:Database_config_replications[]
 
 
 a¦ 
-*enable_shared_bucket_access* +
+*revs_limit* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Whether to use extended attributes to store Sync Gateway document (`_sync`) metadata.
+The maximum depth a document's revision tree can grow to.
+--
+
+[%hardbreaks]
+*Minimum:* `0`
+{blank}
+a¦ Big Decimal
+
+
+a¦ 
+*roles* +
+_optional_
+a¦ 
+
+[markdown]
+--
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+
+a¦ 
+*scopes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+An object keyed by scope name containing config for the specific collection.
+--
+
+[%hardbreaks]
+*Maximum items:* `1`
+{blank}
+a¦ xref:Map[]
+
+
+a¦ 
+*send_www_authenticate_header* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Controls whether to send a `WWW-Authenticate` header in `401 Unauthorized` HTTP responses.
 --
 
 [%hardbreaks]
@@ -32782,15 +33540,16 @@ a¦ Boolean
 
 
 a¦ 
-*session_cookie_secure* +
+*serve_insecure_attachment_types* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Override the session cookie `secure` flag. If set, the cookie will have the `secure` flag.
+If set, always serve attachments with the `Content-Type` header set to the type of the attachment.
 
-This will default to `true` if startup config `api.https.tls_cert_path` is set otherwise it will default to `false`.
+When serving an attachment, usually the `Content-Type` header is set to the type of the attachment but the `Content-Disposition` response header will be set instead if the content type is vulnerable to a phishing attack, causing the browser to download the file instead of display it. This option will override that behaviour and always set the `Content-Type` header.
+
 --
 
 [%hardbreaks]
@@ -32799,13 +33558,13 @@ a¦ Boolean
 
 
 a¦ 
-*session_cookie_name* +
+*server* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This can be used to define a custom per-database session cookie name.
+This is the Couchbase Server address or addresses that the database connect to. 
 --
 
 [%hardbreaks]
@@ -32829,155 +33588,35 @@ a¦ Boolean
 
 
 a¦ 
-*allow_conflicts* +
+*session_cookie_name* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This controls whether to allow conflicting document revisions. This option is going to be removed from sync gateway, and conflicts will not be allowed.
+This can be used to define a custom per-database session cookie name.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*session_cookie_secure* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Override the session cookie `secure` flag. If set, the cookie will have the `secure` flag.
+
+This will default to `true` if startup config `api.https.tls_cert_path` is set otherwise it will default to `false`.
 --
 
 [%hardbreaks]
 {blank}
 a¦ Boolean
-
-
-a¦ 
-*num_index_replicas* +
-_optional_
-a¦ 
-
-[markdown]
---
-**Deprecated, please use the database setting `index.num_replicas` instead**
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
-*index* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_index, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_index[]
-
-
-a¦ 
-*use_views* +
-_optional_
-a¦ 
-
-[markdown]
---
-Force the use of views instead of GSI.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*send_www_authenticate_header* +
-_optional_
-a¦ 
-
-[markdown]
---
-Controls whether to send a `WWW-Authenticate` header in `401 Unauthorized` HTTP responses.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*disable_password_auth* +
-_optional_
-a¦ 
-
-[markdown]
---
-Whether to disable username/password authentication and only allow OIDC and guest access.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*bucket_op_timeout_ms* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is the amount of milliseconds should pass before a bucket operation times out. An error will be returned if the bucket operation times out saying: `operation timed out`.
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
-*slow_query_warning_threshold* +
-_optional_
-a¦ 
-
-[markdown]
---
-The amount of milliseconds a N1QL query should run before logging a warning. 
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
-*delta_sync* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_delta_sync, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_delta_sync[]
-
-
-a¦ 
-*compact_interval_days* +
-_optional_
-a¦ 
-
-[markdown]
---
-The interval between scheduled tombstone compaction runs (in days). This can be a floating point number.
-
-If set to 0, compaction will not run automatically.
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
 
 
 a¦ 
@@ -33011,115 +33650,35 @@ a¦ Integer
 
 
 a¦ 
-*replications* +
+*slow_query_warning_threshold* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Database_config_replications, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_replications[]
-
-
-a¦ 
-*serve_insecure_attachment_types* +
-_optional_
-a¦ 
-
-[markdown]
---
-If set, always serve attachments with the `Content-Type` header set to the type of the attachment.
-
-When serving an attachment, usually the `Content-Type` header is set to the type of the attachment but the `Content-Disposition` response header will be set instead if the content type is vulnerable to a phishing attack, causing the browser to download the file instead of display it. This option will override that behaviour and always set the `Content-Type` header.
-
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*query_pagination_limit* +
-_optional_
-a¦ 
-
-[markdown]
---
-The query limit to be used during pagination of large queries.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*user_xattr_key* +
-_optional_
-a¦ 
-
-[markdown]
---
-The key to use for the user xattr that will be accessible from the sync function. If empty, the feature will be disabled.
-
-This is an Enterprise Edition feature only.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*client_partition_window_secs* +
-_optional_
-a¦ 
-
-[markdown]
---
-How long (in seconds) clients can remain offline for without losing replication metadata.
-
-Defaults to 30 days (in seconds)
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*guest* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-User_2, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:User_2[]
-
-
-a¦ 
-*javascript_timeout_secs* +
-_optional_
-a¦ 
-
-[markdown]
---
-The maximum number of seconds the sync, import filter, and custom conflict resolver JavaScript functions are allowed to run for before timing out. Set to 0 to allow the JS functions to run uncapped.
+The amount of milliseconds a N1QL query should run before logging a warning. 
 --
 
 [%hardbreaks]
 {blank}
 a¦ Big Decimal
+
+
+a¦ 
+*store_legacy_revtree_data* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Controls whether Sync Gateway stores additional legacy revision tree pointer data to support 3.x/early 4.x clients that still use RevTree IDs (for example when used as delta sources).
+
+Disable this when you are confident all clients use newer CV-based revisions and no longer require legacy RevTree ID lookups.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
 
 
 a¦ 
@@ -33140,15 +33699,45 @@ a¦ Boolean
 
 
 a¦ 
-*changes_request_plus* +
+*sync* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Sets the default value of `request_plus` for one-shot/non-continuous changes feeds, which when true, ensures all valid documents written prior to the request being issued are included in the response. Setting this option at the database level is required to ensure Couchbase Lite utilizes this changes feed mode.
+The Javascript function that newly created documents are ran through for the default scope and collection.
 
-This also sets the default value of query param `request_plus` for [GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or `request_plus` for [POST /{keyspace}/_changes](#operation/post_keyspace-_changes).
+If `scopes` parameter is set, this is ignored.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*unsupported* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_unsupported, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_unsupported[]
+
+
+a¦ 
+*use_views* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Force the use of views instead of GSI.
 --
 
 [%hardbreaks]
@@ -33157,53 +33746,159 @@ a¦ Boolean
 
 
 a¦ 
-*cors* +
+*user_xattr_key* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Database_config_cors, opts=optional]
+The key to use for the user xattr that will be accessible from the sync function. If empty, the feature will be disabled.
+
+This is an Enterprise Edition feature only.
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Database_config_cors[]
+a¦ String
 
 
 a¦ 
-*logging* +
+*username* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Database_config_logging, opts=optional]
+The username for authenticating to the server.
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Database_config_logging[]
+a¦ String
 
 
 a¦ 
-*disable_public_all_docs* +
+*users* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This controls whether the [GET /{keyspace}/_all_docs](#operation/get_keyspace-_all_docs) REST API endpoint is publicly accessible or not.
-Disabling this endpoint is recommended for larger datasets or production workloads.
-[GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or [POST /{keyspace}/_bulk_get](#operation/post_keyspace-_bulk_get) have more efficient implementations and should be used instead.
+--
 
-If set to `true`, the endpoint will not be publicly accessible, and will only be available on the Admin API.
-Setting this to `false`, or leaving it as the default value is deprecated, and may default to `true` in a future release.
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+
+a¦ 
+*view_query_timeout_secs* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The number of seconds before a view query should timeout.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*allow_conflicts* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Since Sync Gateway 4.0, this option has no effect.
+If this option is set to true on an existing database, the database must be modified to remove this parameter in order allow the database to come online. Otherwise, the database will be in the offline state.
 --
 
 [%hardbreaks]
 {blank}
 a¦ Boolean
+
+
+a¦ 
+*enable_shared_bucket_access* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Since Sync Gateway 4.0, this option has no effect.
+If this option is set to true on an existing database, the database must be modified to remove this parameter in order allow the database to come online. Otherwise, the database will be in the offline state.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*feed_type* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The type of feed to use to communicate with Couchbase Server. This will use DCP regardless of specification.
+--
+
+[%hardbreaks]
+*Values:* `"DCP"`
+{blank}
+a¦ String
+
+
+a¦ 
+*num_index_replicas* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**Deprecated, please use the database setting `index.num_replicas` instead**
+--
+
+[%hardbreaks]
+{blank}
+a¦ Big Decimal
+
+
+a¦ 
+*pool* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This field is unsupported and ignored.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*rev_cache_size* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**Deprecated, please use the database setting `cache.rev_cache.size` instead**
+
+The maximum number of revisions to store in the revision cache.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Big Decimal
 
 
 |===
@@ -33396,7 +34091,7 @@ List of users for which audit logging is disabled.
 
 [%hardbreaks]
 {blank}
-a¦ xref:Verbose_disabled_users_inner[]
+a¦ xref:Simple_disabled_users_inner[]
  array
 
 a¦ 
@@ -33461,33 +34156,18 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*server* +
+*allow_empty_password* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This is the Couchbase Server address or addresses that the database connect to. 
+This controls whether users that are created can have an empty password or not.
 --
 
 [%hardbreaks]
 {blank}
-a¦ String
-
-
-a¦ 
-*pool* +
-_optional_
-a¦ 
-
-[markdown]
---
-This field is unsupported and ignored.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
+a¦ Boolean
 
 
 a¦ 
@@ -33506,63 +34186,18 @@ a¦ String
 
 
 a¦ 
-*username* +
+*bucket_op_timeout_ms* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The username for authenticating to the server.
+This is the amount of milliseconds should pass before a bucket operation times out. An error will be returned if the bucket operation times out saying: `operation timed out`.
 --
 
 [%hardbreaks]
 {blank}
-a¦ String
-
-
-a¦ 
-*password* +
-_optional_
-a¦ 
-
-[markdown]
---
-The password for authenticating to the server.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*certpath* +
-_optional_
-a¦ 
-
-[markdown]
---
-The cert path (public key) for X.509 bucket auth.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*keypath* +
-_optional_
-a¦ 
-
-[markdown]
---
-The key path (private key) for X.509 bucket auth
---
-
-[%hardbreaks]
-{blank}
-a¦ String
+a¦ Big Decimal
 
 
 a¦ 
@@ -33581,59 +34216,28 @@ a¦ String
 
 
 a¦ 
-*kv_tls_port* +
+*cache* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The Memcached TLS port.
+include::index.adoc[tag=desc-Database_config_cache, opts=optional]
 --
 
 [%hardbreaks]
 {blank}
-a¦ Integer
+a¦ xref:Database_config_cache[]
 
 
 a¦ 
-*max_concurrent_query_ops* +
+*certpath* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The maximum amount of query operations that can be running at any one point.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*scopes* +
-_optional_
-a¦ 
-
-[markdown]
---
-An object keyed by scope name containing config for the specific collection.
---
-
-[%hardbreaks]
-*Maximum items:* `1`
-{blank}
-a¦ xref:Map[]
-
-
-a¦ 
-*name* +
-_optional_
-a¦ 
-
-[markdown]
---
-The name of the database.
+The cert path (public key) for X.509 bucket auth.
 --
 
 [%hardbreaks]
@@ -33642,65 +34246,164 @@ a¦ String
 
 
 a¦ 
-*sync* +
+*changes_request_plus* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The Javascript function that newly created documents are ran through for the default scope and collection.
-If `scopes` parameter is set, this is ignored.
+Sets the default value of `request_plus` for one-shot/non-continuous changes feeds, which when true, ensures all valid documents written prior to the request being issued are included in the response. Setting this option at the database level is required to ensure Couchbase Lite utilizes this changes feed mode.
+
+This also sets the default value of query param `request_plus` for [GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or `request_plus` for [POST /{keyspace}/_changes](#operation/post_keyspace-_changes).
 --
 
 [%hardbreaks]
 {blank}
-a¦ String
+a¦ Boolean
 
 
 a¦ 
-*users* +
+*client_partition_window_secs* +
 _optional_
 a¦ 
 
 [markdown]
 --
+How long (in seconds) clients can remain offline for without losing replication metadata.
+
+Defaults to 30 days (in seconds)
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Map[]
+a¦ Integer
 
 
 a¦ 
-*roles* +
+*compact_interval_days* +
 _optional_
 a¦ 
 
 [markdown]
 --
+The interval between scheduled tombstone compaction runs (in days). This can be a floating point number.
+
+If set to 0, compaction will not run automatically.
 --
 
 [%hardbreaks]
-{blank}
-a¦ xref:Map[]
-
-
-a¦ 
-*revs_limit* +
-_optional_
-a¦ 
-
-[markdown]
---
-The maximum depth a document's revision tree can grow too.
-
-The minimum is `20` if conflicts are allowed and 0 if not. It is not recommended to go below `100` when conflicts are allowed. The default is `100` if conflicts are allowed and `50` if not.
---
-
-[%hardbreaks]
-*Minimum:* `0`
 {blank}
 a¦ Big Decimal
+
+
+a¦ 
+*cors* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_cors, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_cors[]
+
+
+a¦ 
+*delta_sync* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_delta_sync, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_delta_sync[]
+
+
+a¦ 
+*disable_password_auth* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Whether to disable username/password authentication and only allow OIDC and guest access.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*disable_public_all_docs* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This controls whether the [GET /{keyspace}/_all_docs](#operation/get_keyspace-_all_docs) REST API endpoint is publicly accessible or not.
+Disabling this endpoint is recommended for larger datasets or production workloads.
+[GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or [POST /{keyspace}/_bulk_get](#operation/post_keyspace-_bulk_get) have more efficient implementations and should be used instead.
+
+If set to `true`, the endpoint will not be publicly accessible, and will only be available on the Admin API.
+Setting this to `false`, or leaving it as the default value is deprecated, and may default to `true` in a future release.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*event_handlers* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_event_handlers, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_event_handlers[]
+
+
+a¦ 
+*guest* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-User_1, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:User_1[]
+
+
+a¦ 
+*import_backup_old_rev* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This controls whether import should attempt to create a temporary backup of the previous revision body (if available) when the document is modified in the bucket.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
 
 
 a¦ 
@@ -33720,6 +34423,25 @@ This can also be set to the string `continuous` which maps to true.
 [%hardbreaks]
 {blank}
 a¦ Boolean
+
+
+a¦ 
+*import_filter* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is the function that all imported documents in the default scope and collection are ran through in order to filter out what to import and what not to import. This allows you to control what is made available to Couchbase Mobile clients. If it is not set, then no documents are filtered when imported.
+
+`import_docs` must be true to make this field applicable.
+
+If `scopes` parameter is set, this is ignored.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
 
 
 a¦ 
@@ -33746,110 +34468,28 @@ a¦ Big Decimal
 
 
 a¦ 
-*import_filter* +
+*index* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This is the function that all imported documents in the default scope and collection are ran through in order to filter out what to import and what not to import. This allows you to control what is made available to Couchbase Mobile clients. If it is not set, then no documents are filtered when imported.
-
-`import_docs` must be true to make this field applicable.
-
-If `scopes` parameter is set, this is ignored.
+include::index.adoc[tag=desc-Database_config_index, opts=optional]
 --
 
 [%hardbreaks]
 {blank}
-a¦ String
+a¦ xref:Database_config_index[]
 
 
 a¦ 
-*import_backup_old_rev* +
+*javascript_timeout_secs* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This controls whether import should attempt to create a temporary backup of the previous revision body (if available) when the document is modified in the bucket.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*event_handlers* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_event_handlers, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_event_handlers[]
-
-
-a¦ 
-*feed_type* +
-_optional_
-a¦ 
-
-[markdown]
---
-The type of feed to use to communicate with Couchbase Server. This will use DCP regardless of specification.
---
-
-[%hardbreaks]
-*Values:* `"DCP"`
-{blank}
-a¦ String
-
-
-a¦ 
-*allow_empty_password* +
-_optional_
-a¦ 
-
-[markdown]
---
-This controls whether users that are created can have an empty password or not.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*cache* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_cache, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_cache[]
-
-
-a¦ 
-*rev_cache_size* +
-_optional_
-a¦ 
-
-[markdown]
---
-**Deprecated, please use the database setting `cache.rev_cache.size` instead**
-
-The maximum number of revisions to store in the revision cache.
+The maximum number of seconds the sync, import filter, and custom conflict resolver JavaScript functions are allowed to run for before timing out. Set to 0 to allow the JS functions to run uncapped.
 --
 
 [%hardbreaks]
@@ -33858,33 +34498,48 @@ a¦ Big Decimal
 
 
 a¦ 
-*offline* +
+*keypath* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Start the database in an offline state.
+The key path (private key) for X.509 bucket auth
 --
 
 [%hardbreaks]
 {blank}
-a¦ Boolean
+a¦ String
 
 
 a¦ 
-*unsupported* +
+*kv_tls_port* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Database_config_unsupported, opts=optional]
+The Memcached TLS port.
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Database_config_unsupported[]
+a¦ Integer
+
+
+a¦ 
+*local_doc_expiry_secs* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The number of seconds before a `_local` document should expire.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
 
 
 a¦ 
@@ -33900,6 +34555,66 @@ Configuration for Local JWT authentication.
 [%hardbreaks]
 {blank}
 a¦ xref:Map[]
+
+
+a¦ 
+*logging* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_logging, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_logging[]
+
+
+a¦ 
+*max_concurrent_query_ops* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The maximum amount of query operations that can be running at any one point.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*name* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The name of the database.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*offline* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Start the database in an offline state.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
 
 
 a¦ 
@@ -33933,13 +34648,28 @@ a¦ Big Decimal
 
 
 a¦ 
-*view_query_timeout_secs* +
+*password* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The number of seconds before a view query should timeout.
+The password for authenticating to the server.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*query_pagination_limit* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The query limit to be used during pagination of large queries.
 --
 
 [%hardbreaks]
@@ -33948,28 +34678,74 @@ a¦ Integer
 
 
 a¦ 
-*local_doc_expiry_secs* +
+*replications* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The number of seconds before a `_local` document should expire.
+include::index.adoc[tag=desc-Database_config_replications, opts=optional]
 --
 
 [%hardbreaks]
 {blank}
-a¦ Integer
+a¦ xref:Database_config_replications[]
 
 
 a¦ 
-*enable_shared_bucket_access* +
+*revs_limit* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Whether to use extended attributes to store Sync Gateway document (`_sync`) metadata.
+The maximum depth a document's revision tree can grow to.
+--
+
+[%hardbreaks]
+*Minimum:* `0`
+{blank}
+a¦ Big Decimal
+
+
+a¦ 
+*roles* +
+_optional_
+a¦ 
+
+[markdown]
+--
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+
+a¦ 
+*scopes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+An object keyed by scope name containing config for the specific collection.
+--
+
+[%hardbreaks]
+*Maximum items:* `1`
+{blank}
+a¦ xref:Map[]
+
+
+a¦ 
+*send_www_authenticate_header* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Controls whether to send a `WWW-Authenticate` header in `401 Unauthorized` HTTP responses.
 --
 
 [%hardbreaks]
@@ -33978,15 +34754,16 @@ a¦ Boolean
 
 
 a¦ 
-*session_cookie_secure* +
+*serve_insecure_attachment_types* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Override the session cookie `secure` flag. If set, the cookie will have the `secure` flag.
+If set, always serve attachments with the `Content-Type` header set to the type of the attachment.
 
-This will default to `true` if startup config `api.https.tls_cert_path` is set otherwise it will default to `false`.
+When serving an attachment, usually the `Content-Type` header is set to the type of the attachment but the `Content-Disposition` response header will be set instead if the content type is vulnerable to a phishing attack, causing the browser to download the file instead of display it. This option will override that behaviour and always set the `Content-Type` header.
+
 --
 
 [%hardbreaks]
@@ -33995,13 +34772,13 @@ a¦ Boolean
 
 
 a¦ 
-*session_cookie_name* +
+*server* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This can be used to define a custom per-database session cookie name.
+This is the Couchbase Server address or addresses that the database connect to. 
 --
 
 [%hardbreaks]
@@ -34025,155 +34802,35 @@ a¦ Boolean
 
 
 a¦ 
-*allow_conflicts* +
+*session_cookie_name* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This controls whether to allow conflicting document revisions. This option is going to be removed from sync gateway, and conflicts will not be allowed.
+This can be used to define a custom per-database session cookie name.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*session_cookie_secure* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Override the session cookie `secure` flag. If set, the cookie will have the `secure` flag.
+
+This will default to `true` if startup config `api.https.tls_cert_path` is set otherwise it will default to `false`.
 --
 
 [%hardbreaks]
 {blank}
 a¦ Boolean
-
-
-a¦ 
-*num_index_replicas* +
-_optional_
-a¦ 
-
-[markdown]
---
-**Deprecated, please use the database setting `index.num_replicas` instead**
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
-*index* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_index, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_index[]
-
-
-a¦ 
-*use_views* +
-_optional_
-a¦ 
-
-[markdown]
---
-Force the use of views instead of GSI.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*send_www_authenticate_header* +
-_optional_
-a¦ 
-
-[markdown]
---
-Controls whether to send a `WWW-Authenticate` header in `401 Unauthorized` HTTP responses.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*disable_password_auth* +
-_optional_
-a¦ 
-
-[markdown]
---
-Whether to disable username/password authentication and only allow OIDC and guest access.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*bucket_op_timeout_ms* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is the amount of milliseconds should pass before a bucket operation times out. An error will be returned if the bucket operation times out saying: `operation timed out`.
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
-*slow_query_warning_threshold* +
-_optional_
-a¦ 
-
-[markdown]
---
-The amount of milliseconds a N1QL query should run before logging a warning. 
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
-*delta_sync* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_delta_sync, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_delta_sync[]
-
-
-a¦ 
-*compact_interval_days* +
-_optional_
-a¦ 
-
-[markdown]
---
-The interval between scheduled tombstone compaction runs (in days). This can be a floating point number.
-
-If set to 0, compaction will not run automatically.
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
 
 
 a¦ 
@@ -34207,115 +34864,35 @@ a¦ Integer
 
 
 a¦ 
-*replications* +
+*slow_query_warning_threshold* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Database_config_replications, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_replications[]
-
-
-a¦ 
-*serve_insecure_attachment_types* +
-_optional_
-a¦ 
-
-[markdown]
---
-If set, always serve attachments with the `Content-Type` header set to the type of the attachment.
-
-When serving an attachment, usually the `Content-Type` header is set to the type of the attachment but the `Content-Disposition` response header will be set instead if the content type is vulnerable to a phishing attack, causing the browser to download the file instead of display it. This option will override that behaviour and always set the `Content-Type` header.
-
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*query_pagination_limit* +
-_optional_
-a¦ 
-
-[markdown]
---
-The query limit to be used during pagination of large queries.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*user_xattr_key* +
-_optional_
-a¦ 
-
-[markdown]
---
-The key to use for the user xattr that will be accessible from the sync function. If empty, the feature will be disabled.
-
-This is an Enterprise Edition feature only.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*client_partition_window_secs* +
-_optional_
-a¦ 
-
-[markdown]
---
-How long (in seconds) clients can remain offline for without losing replication metadata.
-
-Defaults to 30 days (in seconds)
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*guest* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-User_2, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:User_2[]
-
-
-a¦ 
-*javascript_timeout_secs* +
-_optional_
-a¦ 
-
-[markdown]
---
-The maximum number of seconds the sync, import filter, and custom conflict resolver JavaScript functions are allowed to run for before timing out. Set to 0 to allow the JS functions to run uncapped.
+The amount of milliseconds a N1QL query should run before logging a warning. 
 --
 
 [%hardbreaks]
 {blank}
 a¦ Big Decimal
+
+
+a¦ 
+*store_legacy_revtree_data* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Controls whether Sync Gateway stores additional legacy revision tree pointer data to support 3.x/early 4.x clients that still use RevTree IDs (for example when used as delta sources).
+
+Disable this when you are confident all clients use newer CV-based revisions and no longer require legacy RevTree ID lookups.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
 
 
 a¦ 
@@ -34336,15 +34913,45 @@ a¦ Boolean
 
 
 a¦ 
-*changes_request_plus* +
+*sync* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Sets the default value of `request_plus` for one-shot/non-continuous changes feeds, which when true, ensures all valid documents written prior to the request being issued are included in the response. Setting this option at the database level is required to ensure Couchbase Lite utilizes this changes feed mode.
+The Javascript function that newly created documents are ran through for the default scope and collection.
 
-This also sets the default value of query param `request_plus` for [GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or `request_plus` for [POST /{keyspace}/_changes](#operation/post_keyspace-_changes).
+If `scopes` parameter is set, this is ignored.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*unsupported* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_unsupported, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_unsupported[]
+
+
+a¦ 
+*use_views* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Force the use of views instead of GSI.
 --
 
 [%hardbreaks]
@@ -34353,53 +34960,159 @@ a¦ Boolean
 
 
 a¦ 
-*cors* +
+*user_xattr_key* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Database_config_cors, opts=optional]
+The key to use for the user xattr that will be accessible from the sync function. If empty, the feature will be disabled.
+
+This is an Enterprise Edition feature only.
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Database_config_cors[]
+a¦ String
 
 
 a¦ 
-*logging* +
+*username* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Database_config_logging, opts=optional]
+The username for authenticating to the server.
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Database_config_logging[]
+a¦ String
 
 
 a¦ 
-*disable_public_all_docs* +
+*users* +
 _optional_
 a¦ 
 
 [markdown]
 --
-This controls whether the [GET /{keyspace}/_all_docs](#operation/get_keyspace-_all_docs) REST API endpoint is publicly accessible or not.
-Disabling this endpoint is recommended for larger datasets or production workloads.
-[GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or [POST /{keyspace}/_bulk_get](#operation/post_keyspace-_bulk_get) have more efficient implementations and should be used instead.
+--
 
-If set to `true`, the endpoint will not be publicly accessible, and will only be available on the Admin API.
-Setting this to `false`, or leaving it as the default value is deprecated, and may default to `true` in a future release.
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+
+a¦ 
+*view_query_timeout_secs* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The number of seconds before a view query should timeout.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*allow_conflicts* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Since Sync Gateway 4.0, this option has no effect.
+If this option is set to true on an existing database, the database must be modified to remove this parameter in order allow the database to come online. Otherwise, the database will be in the offline state.
 --
 
 [%hardbreaks]
 {blank}
 a¦ Boolean
+
+
+a¦ 
+*enable_shared_bucket_access* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Since Sync Gateway 4.0, this option has no effect.
+If this option is set to true on an existing database, the database must be modified to remove this parameter in order allow the database to come online. Otherwise, the database will be in the offline state.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*feed_type* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The type of feed to use to communicate with Couchbase Server. This will use DCP regardless of specification.
+--
+
+[%hardbreaks]
+*Values:* `"DCP"`
+{blank}
+a¦ String
+
+
+a¦ 
+*num_index_replicas* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**Deprecated, please use the database setting `index.num_replicas` instead**
+--
+
+[%hardbreaks]
+{blank}
+a¦ Big Decimal
+
+
+a¦ 
+*pool* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This field is unsupported and ignored.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*rev_cache_size* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**Deprecated, please use the database setting `cache.rev_cache.size` instead**
+
+The maximum number of revisions to store in the revision cache.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Big Decimal
 
 
 |===
@@ -34444,21 +35157,6 @@ endif::collapse-models[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*rev_cache* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_cache_rev_cache, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_cache_rev_cache[]
-
-
-a¦ 
 *channel_cache* +
 _optional_
 a¦ 
@@ -34474,54 +35172,35 @@ a¦ xref:Database_config_cache_channel_cache[]
 
 
 a¦ 
-*max_wait_pending* +
+*rev_cache* +
 _optional_
 a¦ 
 
 [markdown]
 --
-**Deprecated, please use the database setting `cache.channel_cache.max_wait_pending` instead**
-
-The maximum time (in milliseconds) for waiting for a pending sequence before skipping it.
+include::index.adoc[tag=desc-Database_config_cache_rev_cache, opts=optional]
 --
 
 [%hardbreaks]
 {blank}
-a¦ Big Decimal
+a¦ xref:Database_config_cache_rev_cache[]
 
 
 a¦ 
-*max_wait_skipped* +
+*channel_cache_expiry* +
 _optional_
 a¦ 
 
 [markdown]
 --
-**Deprecated, please use the database setting `cache.channel_cache.max_wait_skipped` instead**
+**Deprecated, please use the database setting `cache.channel_cache.expiry_seconds` instead**
 
-The maximum time (in milliseconds) for waiting for pending sequences before skipping.
+The time (seconds) to keep entries in cache beyond the minimum retained.
 --
 
 [%hardbreaks]
 {blank}
-a¦ Big Decimal
-
-
-a¦ 
-*enable_star_channel* +
-_optional_
-a¦ 
-
-[markdown]
---
-**Deprecated, please use the database setting `cache.channel_cache.enable_star_channel` instead**
-
-Used to control whether Sync Gateway should use the all documents (*) channel.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
+a¦ Integer
 
 
 a¦ 
@@ -34559,20 +35238,20 @@ a¦ Integer
 
 
 a¦ 
-*channel_cache_expiry* +
+*enable_star_channel* +
 _optional_
 a¦ 
 
 [markdown]
 --
-**Deprecated, please use the database setting `cache.channel_cache.expiry_seconds` instead**
+**Deprecated, please use the database setting `cache.channel_cache.enable_star_channel` instead**
 
-The time (seconds) to keep entries in cache beyond the minimum retained.
+Used to control whether Sync Gateway should use the all documents (*) channel.
 --
 
 [%hardbreaks]
 {blank}
-a¦ Integer
+a¦ Boolean
 
 
 a¦ 
@@ -34590,6 +35269,40 @@ The max number of pending sequences before skipping.
 [%hardbreaks]
 {blank}
 a¦ Integer
+
+
+a¦ 
+*max_wait_pending* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**Deprecated, please use the database setting `cache.channel_cache.max_wait_pending` instead**
+
+The maximum time (in milliseconds) for waiting for a pending sequence before skipping it.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Big Decimal
+
+
+a¦ 
+*max_wait_skipped* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**Deprecated, please use the database setting `cache.channel_cache.max_wait_skipped` instead**
+
+The maximum time (in milliseconds) for waiting for pending sequences before skipping.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Big Decimal
 
 
 |===
@@ -34639,21 +35352,6 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*max_number* +
-_optional_
-a¦ 
-
-[markdown]
---
-The maximum number of channel caches which can exist at any one point.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
 *compact_high_watermark_pct* +
 _optional_
 a¦ 
@@ -34692,63 +35390,18 @@ a¦ Integer
 
 
 a¦ 
-*max_wait_pending* +
+*expiry_seconds* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The maximum time (in milliseconds) for waiting for a pending sequence before skipping it.
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
-*max_num_pending* +
-_optional_
-a¦ 
-
-[markdown]
---
-The maximum number of pending sequences before skipping sequences.
+The amount of time (in seconds) to keep entries in the cache beyond the minimum retained.
 --
 
 [%hardbreaks]
 {blank}
 a¦ Integer
-
-
-a¦ 
-*max_wait_skipped* +
-_optional_
-a¦ 
-
-[markdown]
---
-The maximum amount of time (in milliseconds) to wait for a skipped sequence before abandoning it.
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
-*enable_star_channel* +
-_optional_
-a¦ 
-
-[markdown]
---
-Used to control whether Sync Gateway should use the all documents (*) channel.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
 
 
 a¦ 
@@ -34767,6 +35420,66 @@ a¦ Integer
 
 
 a¦ 
+*max_num_pending* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The maximum number of pending sequences before skipping sequences.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*max_number* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The maximum number of channel caches which can exist at any one point.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*max_wait_pending* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The maximum time (in milliseconds) for waiting for a pending sequence before skipping it.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Big Decimal
+
+
+a¦ 
+*max_wait_skipped* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The maximum amount of time (in milliseconds) to wait for a skipped sequence before abandoning it.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Big Decimal
+
+
+a¦ 
 *min_length* +
 _optional_
 a¦ 
@@ -34782,18 +35495,19 @@ a¦ Integer
 
 
 a¦ 
-*expiry_seconds* +
+*enable_star_channel* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The amount of time (in seconds) to keep entries in the cache beyond the minimum retained.
+Since Sync Gateway 4.0, this option no longer has an effect, the star channel is always enabled.
+If this value is set to false, a database can only exist in the offline state until this configuration is modified.
 --
 
 [%hardbreaks]
 {blank}
-a¦ Integer
+a¦ Boolean
 
 
 a¦ 
@@ -34860,23 +35574,6 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*size* +
-_optional_
-a¦ 
-
-[markdown]
---
-The maximum number of revisions that can be stored in the revision cache.
-Note when running with greater than 1 shard count we add 10% capacity overall to avoid early eviction when some shards fill up before others, so
-you may find that the capacity stat (revision_cache_num_items) will climb to the defined rev cache size + 10%.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
 *max_memory_count_mb* +
 _optional_
 a¦ 
@@ -34902,6 +35599,23 @@ a¦
 [markdown]
 --
 The number of shards the revision cache should be split into.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*size* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The maximum number of revisions that can be stored in the revision cache.
+Note when running with greater than 1 shard count we add 10% capacity overall to avoid early eviction when some shards fill up before others, so
+you may find that the capacity stat (revision_cache_num_items) will climb to the defined rev cache size + 10%.
 --
 
 [%hardbreaks]
@@ -34956,13 +35670,13 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*origin* +
+*headers* +
 _optional_
 a¦ 
 
 [markdown]
 --
-List of allowed origins, use ['*'] to allow access from everywhere
+List of allowed headers
 --
 
 [%hardbreaks]
@@ -34986,13 +35700,13 @@ a¦ String
  array
 
 a¦ 
-*headers* +
+*origin* +
 _optional_
 a¦ 
 
 [markdown]
 --
-List of allowed headers
+List of allowed origins, use ['*'] to allow access from everywhere
 --
 
 [%hardbreaks]
@@ -35129,6 +35843,36 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
+*db_state_changed* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Event_config, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Event_config[]
+
+
+a¦ 
+*document_changed* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_event_handlers_document_changed, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_event_handlers_document_changed[]
+
+
+a¦ 
 *max_processes* +
 _optional_
 a¦ 
@@ -35156,36 +35900,6 @@ The maximum amount of time (in milliseconds) to wait when the even queue is full
 [%hardbreaks]
 {blank}
 a¦ String
-
-
-a¦ 
-*document_changed* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_event_handlers_document_changed, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_event_handlers_document_changed[]
-
-
-a¦ 
-*db_state_changed* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Event_config, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Event_config[]
 
 
 |===
@@ -35411,33 +36125,35 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*issuer* +
+*algorithms* +
 _required_
 a¦ 
 
 [markdown]
 --
-The value to match against the "iss" claim of JWTs.
+The JWT signing algorithms to accept for authentication.
 --
 
 [%hardbreaks]
 {blank}
 a¦ String
-
+ array
 
 a¦ 
-*register* +
+*channels_claim* +
 _optional_
 a¦ 
 
 [markdown]
 --
-If to register a new Sync Gateway user account when a user logs in with a JWT.
+If set, the value(s) of the given JSON Web Token claim will be added to the user's channels.
+
+The value of this claim must be either a string or an array of strings, any other type will result in an error.
 --
 
 [%hardbreaks]
 {blank}
-a¦ Boolean
+a¦ String
 
 
 a¦ 
@@ -35456,19 +36172,34 @@ a¦ String
 
 
 a¦ 
-*algorithms* +
+*disable_session* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Disable Sync Gateway session creation on successful JWT authentication.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*issuer* +
 _required_
 a¦ 
 
 [markdown]
 --
-The JWT signing algorithms to accept for authentication.
+The value to match against the "iss" claim of JWTs.
 --
 
 [%hardbreaks]
 {blank}
 a¦ String
- array
+
 
 a¦ 
 *keys* +
@@ -35486,18 +36217,35 @@ a¦ xref:Database_config_local_jwt_value_keys_inner[]
  array
 
 a¦ 
-*disable_session* +
+*register* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Disable Sync Gateway session creation on successful JWT authentication.
+If to register a new Sync Gateway user account when a user logs in with a JWT.
 --
 
 [%hardbreaks]
 {blank}
 a¦ Boolean
+
+
+a¦ 
+*roles_claim* +
+_optional_
+a¦ 
+
+[markdown]
+--
+If set, the value(s) of the given JSON Web Token claim will be added to the user's roles.
+
+The value of this claim must be either a string or an array of strings, any other type will result in an error.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
 
 
 a¦ 
@@ -35525,40 +36273,6 @@ a¦
 Allows a different OpenID Connect field to be specified instead of the Subject (`sub`).
 
 The field name to use can be specified here.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*roles_claim* +
-_optional_
-a¦ 
-
-[markdown]
---
-If set, the value(s) of the given JSON Web Token claim will be added to the user's roles.
-
-The value of this claim must be either a string or an array of strings, any other type will result in an error.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*channels_claim* +
-_optional_
-a¦ 
-
-[markdown]
---
-If set, the value(s) of the given JSON Web Token claim will be added to the user's channels.
-
-The value of this claim must be either a string or an array of strings, any other type will result in an error.
 --
 
 [%hardbreaks]
@@ -35608,38 +36322,6 @@ endif::collapse-models[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*kty* +
-_optional_
-a¦ 
-
-[markdown]
---
-The cryptographic algorithm family used with the key, such as "RSA" or "EC"
---
-
-[%hardbreaks]
-*Values:* `"RSA"`, `"EC"`
-{blank}
-a¦ String
-
-
-a¦ 
-*use* +
-_optional_
-a¦ 
-
-[markdown]
---
-The intended use of the public key. Only 'sig' is accepted.
---
-
-[%hardbreaks]
-*Values:* `"sig"`
-{blank}
-a¦ String
-
-
-a¦ 
 *alg* +
 _optional_
 a¦ 
@@ -35647,6 +36329,37 @@ a¦
 [markdown]
 --
 The algorithm intended for use with the key.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*crv* +
+_optional_
+a¦ 
+
+[markdown]
+--
+For Elliptic Curve keys, the name of the curve to use.
+--
+
+[%hardbreaks]
+*Values:* `"P-256"`, `"P-384"`, `"P-521"`
+{blank}
+a¦ String
+
+
+a¦ 
+*e* +
+_optional_
+a¦ 
+
+[markdown]
+--
+For RSA keys, the exponent of the public key, as a Base64urlUInt-encoded value.
 --
 
 [%hardbreaks]
@@ -35670,17 +36383,48 @@ a¦ String
 
 
 a¦ 
-*crv* +
+*kty* +
 _optional_
 a¦ 
 
 [markdown]
 --
-For Elliptic Curve keys, the name of the curve to use.
+The cryptographic algorithm family used with the key, such as "RSA" or "EC"
 --
 
 [%hardbreaks]
-*Values:* `"P-256"`, `"P-384"`, `"P-521"`
+*Values:* `"RSA"`, `"EC"`
+{blank}
+a¦ String
+
+
+a¦ 
+*n* +
+_optional_
+a¦ 
+
+[markdown]
+--
+For RSA keys, the modulus value of the key, as a Base64urlUInt-encoded value.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*use* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The intended use of the public key. Only 'sig' is accepted.
+--
+
+[%hardbreaks]
+*Values:* `"sig"`
 {blank}
 a¦ String
 
@@ -35708,36 +36452,6 @@ a¦
 [markdown]
 --
 For Elliptic Curve keys, the Y coordinate of the point, as a base64url string.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*n* +
-_optional_
-a¦ 
-
-[markdown]
---
-For RSA keys, the modulus value of the key, as a Base64urlUInt-encoded value.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*e* +
-_optional_
-a¦ 
-
-[markdown]
---
-For RSA keys, the exponent of the public key, as a Base64urlUInt-encoded value.
 --
 
 [%hardbreaks]
@@ -35792,21 +36506,6 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*console* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_logging_console, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_logging_console[]
-
-
-a¦ 
 *audit* +
 _optional_
 a¦ 
@@ -35819,6 +36518,21 @@ include::index.adoc[tag=desc-Database_config_logging_audit, opts=optional]
 [%hardbreaks]
 {blank}
 a¦ xref:Database_config_logging_audit[]
+
+
+a¦ 
+*console* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_logging_console, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_logging_console[]
 
 
 |===
@@ -35868,6 +36582,36 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
+*disabled_roles* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of roles for which audit logging is disabled. Either cbs or sgw.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_logging_audit_disabled_roles_inner[]
+ array
+
+a¦ 
+*disabled_users* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of users for which audit logging is disabled.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_logging_audit_disabled_users_inner[]
+ array
+
+a¦ 
 *enabled* +
 _optional_
 a¦ 
@@ -35895,36 +36639,6 @@ List of enabled audit events for this database.
 [%hardbreaks]
 {blank}
 a¦ Big Decimal
- array
-
-a¦ 
-*disabled_users* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of users for which audit logging is disabled.
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_logging_audit_disabled_users_inner[]
- array
-
-a¦ 
-*disabled_roles* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of roles for which audit logging is disabled. Either cbs or sgw.
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_logging_audit_disabled_roles_inner[]
  array
 
 |===
@@ -35976,9 +36690,6 @@ a¦
 [markdown]
 --
 The domain of the role for which audit logging is disabled.
-
- * `cbs` - Couchbase Server RBAC
- * `sgw` - Sync Gateway Role
 
 --
 
@@ -36053,9 +36764,6 @@ a¦
 --
 The domain of the user for which audit logging is disabled.
 
- * `cbs` - Couchbase Server User
- * `sgw` - Sync Gateway User
-
 --
 
 [%hardbreaks]
@@ -36126,6 +36834,21 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
+*log_keys* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Log Keys for the console output
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+a¦ 
 *log_level* +
 _optional_
 a¦ 
@@ -36140,21 +36863,6 @@ Log Level for the console output
 {blank}
 a¦ String
 
-
-a¦ 
-*log_keys* +
-_optional_
-a¦ 
-
-[markdown]
---
-Log Keys for the console output
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
 
 |===
 
@@ -36203,21 +36911,6 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*providers* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of OpenID Connect issuers.
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Map[]
-
-
-a¦ 
 *default_provider* +
 _optional_
 a¦ 
@@ -36230,6 +36923,21 @@ The default provider to use when the provider is not specified in the client.
 [%hardbreaks]
 {blank}
 a¦ String
+
+
+a¦ 
+*providers* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of OpenID Connect issuers.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
 
 
 |===
@@ -36279,248 +36987,13 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*issuer* +
+*InsecureSkipVerify* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The URL for the OpenID Connect issuer.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*register* +
-_optional_
-a¦ 
-
-[markdown]
---
-If to register a new Sync Gateway user account when a user logs in with OpenID Connect.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*client_id* +
-_optional_
-a¦ 
-
-[markdown]
---
-The OpenID Connect provider client ID.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*validation_key* +
-_optional_
-a¦ 
-
-[markdown]
---
-The OpenID Connect provider client secret.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*callback_url* +
-_optional_
-a¦ 
-
-[markdown]
---
-The URL that the OpenID Connect will redirect to after authentication.
-
-If not provided, a callback URL will be generated.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*disable_session* +
-_optional_
-a¦ 
-
-[markdown]
---
-Disable Sync Gateway session creation on successful OpenID Connect authentication.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*scope* +
-_optional_
-a¦ 
-
-[markdown]
---
-The scope sent for the OpenID Connect request.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*include_access* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is whether the `_oidc_callback` response should include the OpenID Connect access token and associated fields (such as `token_type`, and `expires_in`).
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*user_prefix* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is the username prefix for all users created through this provider.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*discovery_url* +
-_optional_
-a¦ 
-
-[markdown]
---
-The non-standard discovery endpoint.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*disable_cfg_validation* +
-_optional_
-a¦ 
-
-[markdown]
---
-This bypasses the configuration validation based on the OpenID Connect specifications. This may be required for some OpenID providers that don't strictly adhere to the specifications.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*disable_callback_state* +
-_optional_
-a¦ 
-
-[markdown]
---
-Controls whether to maintain state between the auth request and callback endpoints (`/_oidc` and `/_oidc_callback`).
-
-**This is not recommended as it would cause OpenID Connect authentication to be vulnerable to Cross-Site Request Forgery (CSRF, XSRF).**
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*username_claim* +
-_optional_
-a¦ 
-
-[markdown]
---
-Allows a different OpenID Connect field to be specified instead of the Subject (`sub`).
-
-The field name to use can be specified here.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*roles_claim* +
-_optional_
-a¦ 
-
-[markdown]
---
-If set, the value(s) of the given OpenID Connect authentication token claim will be added to the user's roles.
-
-The value of this claim must be either a string or an array of strings, any other type will result in an error.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*channels_claim* +
-_optional_
-a¦ 
-
-[markdown]
---
-If set, the value(s) of the given OpenID Connect authentication token claim will be added to the user's channels.
-
-The value of this claim must be either a string or an array of strings, any other type will result in an error.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*allow_unsigned_provider_tokens* +
-_optional_
-a¦ 
-
-[markdown]
---
-Allows users accept unsigned tokens from providers.
+Determines whether the TLS certificate verification should be disabled for this provider. 
 --
 
 [%hardbreaks]
@@ -36559,18 +37032,253 @@ a¦ String
 
 
 a¦ 
-*InsecureSkipVerify* +
+*allow_unsigned_provider_tokens* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Determines whether the TLS certificate verification should be disabled for this provider. 
+Allows users accept unsigned tokens from providers.
 --
 
 [%hardbreaks]
 {blank}
 a¦ Boolean
+
+
+a¦ 
+*callback_url* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The URL that the OpenID Connect will redirect to after authentication.
+
+If not provided, a callback URL will be generated.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*channels_claim* +
+_optional_
+a¦ 
+
+[markdown]
+--
+If set, the value(s) of the given OpenID Connect authentication token claim will be added to the user's channels.
+
+The value of this claim must be either a string or an array of strings, any other type will result in an error.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*client_id* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The OpenID Connect provider client ID.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*disable_callback_state* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Controls whether to maintain state between the auth request and callback endpoints (`/_oidc` and `/_oidc_callback`).
+
+**This is not recommended as it would cause OpenID Connect authentication to be vulnerable to Cross-Site Request Forgery (CSRF, XSRF).**
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*disable_cfg_validation* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This bypasses the configuration validation based on the OpenID Connect specifications. This may be required for some OpenID providers that don't strictly adhere to the specifications.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*disable_session* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Disable Sync Gateway session creation on successful OpenID Connect authentication.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*discovery_url* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The non-standard discovery endpoint.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*include_access* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is whether the `_oidc_callback` response should include the OpenID Connect access token and associated fields (such as `token_type`, and `expires_in`).
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*issuer* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The URL for the OpenID Connect issuer.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*register* +
+_optional_
+a¦ 
+
+[markdown]
+--
+If to register a new Sync Gateway user account when a user logs in with OpenID Connect.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*roles_claim* +
+_optional_
+a¦ 
+
+[markdown]
+--
+If set, the value(s) of the given OpenID Connect authentication token claim will be added to the user's roles.
+
+The value of this claim must be either a string or an array of strings, any other type will result in an error.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*scope* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The scope sent for the OpenID Connect request.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+a¦ 
+*user_prefix* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is the username prefix for all users created through this provider.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*username_claim* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Allows a different OpenID Connect field to be specified instead of the Subject (`sub`).
+
+The field name to use can be specified here.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*validation_key* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The OpenID Connect provider client secret.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
 
 
 |===
@@ -36676,36 +37384,6 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*user_views* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_unsupported_user_views, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_unsupported_user_views[]
-
-
-a¦ 
-*oidc_test_provider* +
-_optional_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-Database_config_unsupported_oidc_test_provider, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Database_config_unsupported_oidc_test_provider[]
-
-
-a¦ 
 *api_endpoints* +
 _optional_
 a¦ 
@@ -36721,58 +37399,28 @@ a¦ xref:Database_config_unsupported_api_endpoints[]
 
 
 a¦ 
-*warning_thresholds* +
+*dcp_read_buffer* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Database_config_unsupported_warning_thresholds, opts=optional]
+Set the dcp feed to use a different read buffer size.
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Database_config_unsupported_warning_thresholds[]
+a¦ Big Decimal
 
 
 a¦ 
-*oidc_tls_skip_verify* +
+*force_api_forbidden_errors* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Enable self-signed certificates for OIDC testing.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*sgr_tls_skip_verify* +
-_optional_
-a¦ 
-
-[markdown]
---
-Enable self-signed certificates for SG-replicate testing.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*remote_config_tls_skip_verify* +
-_optional_
-a¦ 
-
-[markdown]
---
-Enable self-signed certificates for external JavaScript load.
+Force REST API errors to return forbidden
 --
 
 [%hardbreaks]
@@ -36796,36 +37444,6 @@ a¦ Boolean
 
 
 a¦ 
-*force_api_forbidden_errors* +
-_optional_
-a¦ 
-
-[markdown]
---
-Force REST API errors to return forbidden
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*dcp_read_buffer* +
-_optional_
-a¦ 
-
-[markdown]
---
-Set the dcp feed to use a different read buffer size.
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
 *kv_buffer* +
 _optional_
 a¦ 
@@ -36838,6 +37456,96 @@ Set the kv pool to use a different buffer size.
 [%hardbreaks]
 {blank}
 a¦ Big Decimal
+
+
+a¦ 
+*oidc_test_provider* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_unsupported_oidc_test_provider, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_unsupported_oidc_test_provider[]
+
+
+a¦ 
+*oidc_tls_skip_verify* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Enable self-signed certificates for OIDC testing.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*remote_config_tls_skip_verify* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Enable self-signed certificates for external JavaScript load.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*sgr_tls_skip_verify* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Enable self-signed certificates for SG-replicate testing.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*user_views* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_unsupported_user_views, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_unsupported_user_views[]
+
+
+a¦ 
+*warning_thresholds* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Database_config_unsupported_warning_thresholds, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Database_config_unsupported_warning_thresholds[]
 
 
 |===
@@ -37052,13 +37760,28 @@ endif::collapse-models[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*xattr_size_bytes* +
+*access_and_role_grants_per_doc* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The number of bytes to be used as a threshold for xattr size limit warnings.
+The number of access and role grants per document to be used as a threshold for grant count warnings.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Big Decimal
+
+
+a¦ 
+*channel_name_size* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The number of channel name characters to be used as a threshold for channel name warnings.
 --
 
 [%hardbreaks]
@@ -37082,21 +37805,6 @@ a¦ Big Decimal
 
 
 a¦ 
-*access_and_role_grants_per_doc* +
-_optional_
-a¦ 
-
-[markdown]
---
-The number of access and role grants per document to be used as a threshold for grant count warnings.
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
 *channels_per_user* +
 _optional_
 a¦ 
@@ -37112,13 +37820,13 @@ a¦ Big Decimal
 
 
 a¦ 
-*channel_name_size* +
+*xattr_size_bytes* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The number of channel name characters to be used as a threshold for channel name warnings.
+The number of bytes to be used as a threshold for xattr size limit warnings.
 --
 
 [%hardbreaks]
@@ -40634,6 +41342,20 @@ a¦
 a¦ String
 
 
+a¦ 
+*cv* +
+_optional_
+a¦ 
+
+[markdown]
+--
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
 |===
 
 //end::get_keyspace__all_docs_200_response_rows_inner_value[]
@@ -40788,7 +41510,7 @@ a¦
 
 [markdown]
 --
-List of document leafs with each leaf containing only a `rev` field.
+List of document leafs with each leaf containing only a `rev` or `cv` field.
 --
 
 [%hardbreaks]
@@ -40828,34 +41550,15 @@ endif::collapse-models[]
 // markup not found, no include::{specDir}definitions/get_keyspace__changes_200_response_results_inner_changes_inner/definition-begin.adoc[opts=optional]
 
 
-.icon:brackets-curly[fw] Object
+.icon:bars[fw] Composite Schema
 {blank}
 
-//tag::get_keyspace__changes_200_response_results_inner_changes_inner[]
+One of the following:
+
+* xref:Revision_Tree_ID[]
 
 
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*rev* +
-_optional_
-a¦ 
-
-[markdown]
---
-The new revision that was caused by that change.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-|===
-
-//end::get_keyspace__changes_200_response_results_inner_changes_inner[]
+* xref:Current_Version[]
 
 
 
@@ -40916,7 +41619,7 @@ a¦
 
 [markdown]
 --
-The revision ID of the document.
+The Revision Tree ID of the document.
 --
 
 [%hardbreaks]
@@ -40980,18 +41683,32 @@ endif::collapse-models[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*_sync* +
+*_xattrs* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-get_keyspace__raw_docid_200_response__sync, opts=optional]
+include::index.adoc[tag=desc-get_keyspace__raw_docid_200_response__xattrs, opts=optional]
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:get_keyspace__raw_docid_200_response__sync[]
+a¦ xref:get_keyspace__raw_docid_200_response__xattrs[]
+
+
+a¦ 
+_additional +
+property_
+a¦ 
+
+[markdown]
+--
+--
+
+[%hardbreaks]
+{blank}
+a¦ Any Type
 
 
 |===
@@ -41011,431 +41728,123 @@ a¦ xref:get_keyspace__raw_docid_200_response__sync[]
 
 
 
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync/definition-before.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__xattrs/definition-before.adoc[opts=optional]
 
 
 ifdef::collapse-models[]
 [discrete]
 endif::collapse-models[]
-[#get_keyspace__raw_docid_200_response__sync]
-= GetKeyspaceRawDocid200ResponseSync
+[#get_keyspace__raw_docid_200_response__xattrs]
+= GetKeyspaceRawDocid200ResponseXattrs
 
 :leveloffset: +1
 
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync/definition-begin.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__xattrs/definition-begin.adoc[opts=optional]
 
 
 .icon:brackets-curly[fw] Object
 {blank}
 
-//tag::get_keyspace__raw_docid_200_response__sync[]
+//tag::get_keyspace__raw_docid_200_response__xattrs[]
 
+ifdef::model-descriptions[]
+//tag::desc-get_keyspace__raw_docid_200_response__xattrs[]
+The extended attributes of the document, which can include Sync Gateway metadata, such as revision history, channel information, and other sync-related data. This is non-exhaustive and only includes xattrs that are relevant to Sync Gateway. Any `null` values indicate the xattr is not present on the document.
+//end::desc-get_keyspace__raw_docid_200_response__xattrs[]
+endif::model-descriptions[]
 
 [cols="25,55,20",separator=¦]
 |===
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*rev* +
+*_sync* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The current document revision ID.
+Sync Gateway metadata for the document.
 --
 
 [%hardbreaks]
 {blank}
-a¦ String
+a¦ xref:Map[]
 
 
 a¦ 
-*sequence* +
+*_globalSync* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The most recent sequence number of the document.
+Globally replicated Sync Gateway metadata for the document.
 --
 
 [%hardbreaks]
 {blank}
-a¦ Big Decimal
+a¦ xref:Map[]
 
 
 a¦ 
-*recent_sequences* +
+*_mou* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The previous sequence numbers of the document.
+Metadata-only update information.
 --
 
 [%hardbreaks]
 {blank}
-a¦ Big Decimal
- array
+a¦ xref:Map[]
+
 
 a¦ 
-*history* +
+*_vv* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-get_keyspace__raw_docid_200_response__sync_history, opts=optional]
+Version Vector for the document.
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:get_keyspace__raw_docid_200_response__sync_history[]
+a¦ xref:Map[]
 
 
 a¦ 
-*cas* +
+*$document* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The document CAS (Concurrent Document Mutations) number used for document locking.
+Document virtual xattrs.
 --
 
 [%hardbreaks]
 {blank}
-a¦ String
-
-
-a¦ 
-*value_crc32c* +
-_optional_
-a¦ 
-
-[markdown]
---
-The document's CRC32 number.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*channel_set* +
-_optional_
-a¦ 
-
-[markdown]
---
-The channels the document has been in.
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:get_keyspace__raw_docid_200_response__sync_channel_set_inner[]
- array
-
-a¦ 
-*channel_set_history* +
-_optional_
-a¦ 
-
-[markdown]
---
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:get_keyspace__raw_docid_200_response__sync_channel_set_history_inner[]
- array
-
-a¦ 
-*time_saved* +
-_optional_
-a¦ 
-
-[markdown]
---
-The time and date the document was most recently changed.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
+a¦ xref:Map[]
 
 
 |===
 
-//end::get_keyspace__raw_docid_200_response__sync[]
+//end::get_keyspace__raw_docid_200_response__xattrs[]
 
 
 
 
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync/definition-end.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__xattrs/definition-end.adoc[opts=optional]
 
 
 :leveloffset: -1
 
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_channel_set_history_inner/definition-before.adoc[opts=optional]
-
-
-ifdef::collapse-models[]
-[discrete]
-endif::collapse-models[]
-[#get_keyspace__raw_docid_200_response__sync_channel_set_history_inner]
-= GetKeyspaceRawDocid200ResponseSyncChannelSetHistoryInner
-
-:leveloffset: +1
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_channel_set_history_inner/definition-begin.adoc[opts=optional]
-
-
-.icon:brackets-curly[fw] Object
-{blank}
-
-//tag::get_keyspace__raw_docid_200_response__sync_channel_set_history_inner[]
-
-
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*name* +
-_optional_
-a¦ 
-
-[markdown]
---
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*start* +
-_optional_
-a¦ 
-
-[markdown]
---
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*end* +
-_optional_
-a¦ 
-
-[markdown]
---
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-|===
-
-//end::get_keyspace__raw_docid_200_response__sync_channel_set_history_inner[]
-
-
-
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_channel_set_history_inner/definition-end.adoc[opts=optional]
-
-
-:leveloffset: -1
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_channel_set_history_inner/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_channel_set_inner/definition-before.adoc[opts=optional]
-
-
-ifdef::collapse-models[]
-[discrete]
-endif::collapse-models[]
-[#get_keyspace__raw_docid_200_response__sync_channel_set_inner]
-= GetKeyspaceRawDocid200ResponseSyncChannelSetInner
-
-:leveloffset: +1
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_channel_set_inner/definition-begin.adoc[opts=optional]
-
-
-.icon:brackets-curly[fw] Object
-{blank}
-
-//tag::get_keyspace__raw_docid_200_response__sync_channel_set_inner[]
-
-
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*name* +
-_optional_
-a¦ 
-
-[markdown]
---
-The name of the channel.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*start* +
-_optional_
-a¦ 
-
-[markdown]
---
-The sequence number that document was added to the channel.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*end* +
-_optional_
-a¦ 
-
-[markdown]
---
-The sequence number the document was removed from the channel. Omitted if not removed.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-|===
-
-//end::get_keyspace__raw_docid_200_response__sync_channel_set_inner[]
-
-
-
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_channel_set_inner/definition-end.adoc[opts=optional]
-
-
-:leveloffset: -1
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_channel_set_inner/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_history/definition-before.adoc[opts=optional]
-
-
-ifdef::collapse-models[]
-[discrete]
-endif::collapse-models[]
-[#get_keyspace__raw_docid_200_response__sync_history]
-= GetKeyspaceRawDocid200ResponseSyncHistory
-
-:leveloffset: +1
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_history/definition-begin.adoc[opts=optional]
-
-
-.icon:brackets-curly[fw] Object
-{blank}
-
-//tag::get_keyspace__raw_docid_200_response__sync_history[]
-
-
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*revs* +
-_optional_
-a¦ 
-
-[markdown]
---
-The past revision IDs.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*parents* +
-_optional_
-a¦ 
-
-[markdown]
---
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
- array
-
-a¦ 
-*channels* +
-_optional_
-a¦ 
-
-[markdown]
---
-The past channel history. Can contain string arrays, strings, or be null depending on if and how the channels where set.
---
-
-[%hardbreaks]
-{blank}
-a¦ List
- array
-
-|===
-
-//end::get_keyspace__raw_docid_200_response__sync_history[]
-
-
-
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_history/definition-end.adoc[opts=optional]
-
-
-:leveloffset: -1
-
-// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__sync_history/definition-after.adoc[opts=optional]
+// markup not found, no include::{specDir}definitions/get_keyspace__raw_docid_200_response__xattrs/definition-after.adoc[opts=optional]
 
 
 
@@ -42378,7 +42787,22 @@ a¦
 
 [markdown]
 --
-The revision of the document.
+The Revision Tree ID of the document.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*cv* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The CV of the document.
 --
 
 [%hardbreaks]
@@ -44242,6 +44666,22 @@ When true, ensures all valid documents written prior to the request being issued
 a¦ Boolean
 
 
+a¦ 
+*version_type* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The preferred type of document versioning to use for the changes feed.
+--
+
+[%hardbreaks]
+*Values:* `"rev"`, `"cv"`
+{blank}
+a¦ String
+
+
 |===
 
 //end::post_keyspace__changes_request[]
@@ -44588,7 +45028,7 @@ a¦
 
 [markdown]
 --
-Array of valid revision IDs, in reverse order (latest first).
+Array of valid Revision Tree IDs, in reverse order (latest first).
 --
 
 [%hardbreaks]
@@ -45314,273 +45754,6 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*replication_id* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is the ID of the replication.
-
-When creating a new replication using a POST request, this will be set to a random UUID if not explicitly set.
-
-When the replication ID is specified in the URL, this must be set to the same replication ID if specifying it at all.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is the endpoint of the database for the remote Sync Gateway that is the subject of this replication's `push`, `pull`, or `pushAndPull` action.
-
-Typically this would include the URI, port, and database name. For example, `https://localhost:4985/db`.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote_username* +
-_optional_
-a¦ 
-
-[markdown]
---
-The username to use to authenticate with the remote.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote_password* +
-_optional_
-a¦ 
-
-[markdown]
---
-The password to use to authenticate with the remote. This password will be redacted in the replication config.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*direction* +
-_required_
-a¦ 
-
-[markdown]
---
-This specifies which direction the replication will be replicating with the `remote` replicator.
---
-
-[%hardbreaks]
-*Values:* `"push"`, `"pull"`, `"pushAndPull"`
-{blank}
-a¦ String
-
-
-a¦ 
-*conflict_resolution_type* +
-_optional_
-a¦ 
-
-[markdown]
---
-This defines what conflict resolution policy Sync Gateway should use to apply when resolving conflicting revisions.
-
-Changing this is an Enterprise Edition only feature.
---
-
-[%hardbreaks]
-*Values:* `"default"`, `"remoteWins"`, `"localWins"`, `"custom"`
-{blank}
-a¦ String
-
-
-a¦ 
-*custom_conflict_resolver* +
-_optional_
-a¦ 
-
-[markdown]
---
-This specifies the Javascript function to use to resolve conflicts between conflicting revisions.
-
-This **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.
-
-The Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:
-  * `LocalDocument` - The local document. This contains the document ID under the `_id` key.
-  * `RemoteDocument` - The remote document
-The function should return the new document's body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.
-
-Example:
-
-```javascript
-function(conflict) {
-  console.log("Doc ID: "+conflict.LocalDocument._id);
-  console.log("Full remote doc: "+JSON.stringify(conflict.RemoteDocument));
-  return conflict.RemoteDocument;
-}
-```
-
-Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
-
-This is an Enterprise Edition only feature.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*purge_on_removal* +
-_optional_
-a¦ 
-
-[markdown]
---
-Specifies whether to purge a document if the remote user loses access to all of the channels on the document when attempting to pull it from the remote.
-
-If false, documents will not be replicated and not be purged when the user loses access.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*enable_delta_sync* +
-_optional_
-a¦ 
-
-[markdown]
---
-This will turn on delta-sync for the replication. In order to enable delta-sync for a replication, the database level setting `delta_sync.enabled` must also be set to true.
-
-Using delta-sync is an Enterprise Edition only feature.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*max_backoff_time* +
-_optional_
-a¦ 
-
-[markdown]
---
-Specifies the maximum time-period (in minutes) that Sync Gateway will attempt to reconnect to a lost or unreachable remote.
-
-When a disconnection happens, Sync Gateway will do an exponential backoff up to this specified value. When this value is met, it will attempt to reconnect indefinitely every `max_backoff_time` minutes.
-
-If this is set to 0, Sync Gateway will do the normal exponential backoff after the disconnect happens but then attempting 10 minutes and stop the replication.
-
-Note: this defaults to 5 minutes for replications created prior to Sync Gateway 2.8.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*initial_state* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is what state to start the replication in when creating a new replication.
-
-This allows you to control if the replication starts in a `stopped` start or `running` state.
-
-Replications prior to Sync Gateway 2.8 will run in the default state `running`.
---
-
-[%hardbreaks]
-*Values:* `"running"`, `"stopped"`
-{blank}
-a¦ String
-
-
-a¦ 
-*continuous* +
-_optional_
-a¦ 
-
-[markdown]
---
-If true, changes will be immediately synced when they happen. This is known as a continuous replication.
-
-If false, all changes will be synced until they have been processed. The replication will then cease and not process any future changes (unless started again by the user). This is known as a one-shot replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*filter* +
-_optional_
-a¦ 
-
-[markdown]
---
-This defines whether to filter documents.
---
-
-[%hardbreaks]
-*Values:* `"sync_gateway/bychannel"`, `""`
-{blank}
-a¦ String
-
-
-a¦ 
-*query_params* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is a set of key/value pairs used in the query string of the replication.
-
-If `filters=sync_gateway/bychannel` then this can be used to set the channels to filter by in a pull replication. To do this, set the `channels` key to a string array of the channels to filter by. For example:
-```json
-"filter":"sync_gateway/bychannel",
-"query_params": {
-  "channels":["chanUser1"]
-},
-```
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
 *adhoc* +
 _optional_
 a¦ 
@@ -45610,21 +45783,6 @@ The amount of changes to be sent in one batch of replications. Changing this is 
 [%hardbreaks]
 {blank}
 a¦ Integer
-
-
-a¦ 
-*run_as* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is used if you want to specify a user to run the replication as. This means that the replication will only be able to replicate what the user  access to what the user has access to.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
 
 
 a¦ 
@@ -45681,15 +45839,281 @@ a¦ String
  array
 
 a¦ 
-*username* +
+*conflict_resolution_type* +
 _optional_
 a¦ 
 
 [markdown]
 --
-**This has been deprecated in favour of `remote_username`.**
+This defines what conflict resolution policy Sync Gateway should use to apply when resolving conflicting revisions.
 
-This is the username to use to authenticate with the remote.
+Changing this is an Enterprise Edition only feature.
+--
+
+[%hardbreaks]
+*Values:* `"default"`, `"remoteWins"`, `"localWins"`, `"custom"`
+{blank}
+a¦ String
+
+
+a¦ 
+*continuous* +
+_optional_
+a¦ 
+
+[markdown]
+--
+If true, changes will be immediately synced when they happen. This is known as a continuous replication.
+
+If false, all changes will be synced until they have been processed. The replication will then cease and not process any future changes (unless started again by the user). This is known as a one-shot replication.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*custom_conflict_resolver* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This specifies the Javascript function to use to resolve conflicts between conflicting revisions.
+
+This **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.
+
+The Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:
+  * `LocalDocument` - The local document. This contains the document ID under the `_id` key.
+  * `RemoteDocument` - The remote document
+The function should return the new document's body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.
+
+Example:
+
+```javascript
+function(conflict) {
+  console.log("Doc ID: "+conflict.LocalDocument._id);
+  console.log("Full remote doc: "+JSON.stringify(conflict.RemoteDocument));
+  return conflict.RemoteDocument;
+}
+```
+
+Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
+
+If a document merge is being done, the `_rev` and `_cv` properties should not be included in the returned document body as Sync Gateway will generate new values for these.
+
+This is an Enterprise Edition only feature.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*direction* +
+_required_
+a¦ 
+
+[markdown]
+--
+This specifies which direction the replication will be replicating with the `remote` replicator.
+--
+
+[%hardbreaks]
+*Values:* `"push"`, `"pull"`, `"pushAndPull"`
+{blank}
+a¦ String
+
+
+a¦ 
+*enable_delta_sync* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This will turn on delta-sync for the replication. In order to enable delta-sync for a replication, the database level setting `delta_sync.enabled` must also be set to true.
+
+Using delta-sync is an Enterprise Edition only feature.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*filter* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This defines whether to filter documents.
+--
+
+[%hardbreaks]
+*Values:* `"sync_gateway/bychannel"`, `""`
+{blank}
+a¦ String
+
+
+a¦ 
+*initial_state* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is what state to start the replication in when creating a new replication.
+
+This allows you to control if the replication starts in a `stopped` start or `running` state.
+
+Replications prior to Sync Gateway 2.8 will run in the default state `running`.
+--
+
+[%hardbreaks]
+*Values:* `"running"`, `"stopped"`
+{blank}
+a¦ String
+
+
+a¦ 
+*max_backoff_time* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Specifies the maximum time-period (in minutes) that Sync Gateway will attempt to reconnect to a lost or unreachable remote.
+
+When a disconnection happens, Sync Gateway will do an exponential backoff up to this specified value. When this value is met, it will attempt to reconnect indefinitely every `max_backoff_time` minutes.
+
+If this is set to 0, Sync Gateway will do the normal exponential backoff after the disconnect happens but then attempting 10 minutes and stop the replication.
+
+Note: this defaults to 5 minutes for replications created prior to Sync Gateway 2.8.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*purge_on_removal* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Specifies whether to purge a document if the remote user loses access to all of the channels on the document when attempting to pull it from the remote.
+
+If false, documents will not be replicated and not be purged when the user loses access.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*query_params* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is a set of key/value pairs used in the query string of the replication.
+
+If `filters=sync_gateway/bychannel` then this can be used to set the channels to filter by in a pull replication. To do this, set the `channels` key to a string array of the channels to filter by. For example:
+```json
+"filter":"sync_gateway/bychannel",
+"query_params": {
+  "channels":["chanUser1"]
+},
+```
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+a¦ 
+*remote* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is the endpoint of the database for the remote Sync Gateway that is the subject of this replication's `push`, `pull`, or `pushAndPull` action.
+Typically this would include the URI, port, and database name. For example, `https://localhost:4985/db`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*remote_password* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The password to use to authenticate with the remote. This password will be redacted in the replication config.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*remote_username* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The username to use to authenticate with the remote.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*replication_id* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is the ID of the replication.
+
+When creating a new replication using a POST request, this will be set to a random UUID if not explicitly set.
+
+When the replication ID is specified in the URL, this must be set to the same replication ID if specifying it at all.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*run_as* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is used if you want to specify a user to run the replication as. This means that the replication will only be able to replicate what the user  access to what the user has access to.
 --
 
 [%hardbreaks]
@@ -45707,6 +46131,23 @@ a¦
 **This has been deprecated in favour of `remote_password`.**
 
 This is the password to use to authenticate with the remote. This password will be redacted in the replication config.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*username* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**This has been deprecated in favour of `remote_username`.**
+
+This is the username to use to authenticate with the remote.
 --
 
 [%hardbreaks]
@@ -46253,6 +46694,62 @@ All of the following:
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/Retrieved-replication/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Revision_Tree_ID/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Revision_Tree_ID]
+= Revision Tree ID
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Revision_Tree_ID/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::Revision_Tree_ID[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*rev* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The Revision Tree ID associated with the change. This may be returned even when the `version_type` preference is set to `cv` if this document was an old revision written prior to upgrading to SG 4.0+
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+|===
+
+//end::Revision_Tree_ID[]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Revision_Tree_ID/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Revision_Tree_ID/definition-after.adoc[opts=optional]
 
 
 
@@ -47032,9 +47529,6 @@ a¦
 --
 The domain of the role for which audit logging is disabled.
 
-  * `cbs` - Couchbase Server User
-  * `sgw` - Sync Gateway User
-
 --
 
 [%hardbreaks]
@@ -47100,6 +47594,36 @@ endif::collapse-models[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
+*api* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Startup_config_api, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Startup_config_api[]
+
+
+a¦ 
+*auth* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Startup_config_auth, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Startup_config_auth[]
+
+
+a¦ 
 *bootstrap* +
 _optional_
 a¦ 
@@ -47115,18 +47639,63 @@ a¦ xref:Startup_config_bootstrap[]
 
 
 a¦ 
-*api* +
+*bucket_credentials* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Startup_config_api, opts=optional]
+A map of bucket names to credentials, that can be used instead of the bootstrap ones.
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Startup_config_api[]
+a¦ xref:Map[]
+
+
+a¦ 
+*database_credentials* +
+_optional_
+a¦ 
+
+[markdown]
+--
+A map of database name to credentials, that can be used instead of the bootstrap ones.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+
+a¦ 
+*heap_profile_collection_threshold* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Threshold in bytes for automatic collection of heap profiles. If not specified, defaults to 85% of the lesser of cgroup or system memory.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*heap_profile_disable_collection* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Disables automatic heap profile collection.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
 
 
 a¦ 
@@ -47145,18 +47714,19 @@ a¦ xref:Startup_config_logging[]
 
 
 a¦ 
-*auth* +
+*max_file_descriptors* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Startup_config_auth, opts=optional]
+Max of open file descriptors (RLIMIT_NOFILE)
 --
 
 [%hardbreaks]
+*Minimum:* `0`
 {blank}
-a¦ xref:Startup_config_auth[]
+a¦ Big Decimal
 
 
 a¦ 
@@ -47190,52 +47760,6 @@ a¦ xref:Startup_config_unsupported[]
 
 
 a¦ 
-*database_credentials* +
-_optional_
-a¦ 
-
-[markdown]
---
-A map of database name to credentials, that can be used instead of the bootstrap ones.
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Map[]
-
-
-a¦ 
-*bucket_credentials* +
-_optional_
-a¦ 
-
-[markdown]
---
-A map of bucket names to credentials, that can be used instead of the bootstrap ones.
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Map[]
-
-
-a¦ 
-*max_file_descriptors* +
-_optional_
-a¦ 
-
-[markdown]
---
-Max of open file descriptors (RLIMIT_NOFILE)
---
-
-[%hardbreaks]
-*Minimum:* `0`
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
 *couchbase_keepalive_interval* +
 _optional_
 a¦ 
@@ -47248,36 +47772,6 @@ TCP keep-alive interval between SG and Couchbase server. This is unused.
 [%hardbreaks]
 {blank}
 a¦ Integer
-
-
-a¦ 
-*heap_profile_collection_threshold* +
-_optional_
-a¦ 
-
-[markdown]
---
-Threshold in bytes for automatic collection of heap profiles. If not specified, defaults to 85% of the lesser of cgroup or system memory.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*heap_profile_disable_collection* +
-_optional_
-a¦ 
-
-[markdown]
---
-Disables automatic heap profile collection.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
 
 
 |===
@@ -47327,21 +47821,6 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*public_interface* +
-_optional_
-a¦ 
-
-[markdown]
---
-Network interface to bind public API to
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
 *admin_interface* +
 _optional_
 a¦ 
@@ -47351,38 +47830,6 @@ a¦
 Network interface to bind admin API to.
 
 By default, this will only be accessible to the localhost.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*metrics_interface* +
-_optional_
-a¦ 
-
-[markdown]
---
-Network interface to bind metrics API to.
-
-By default, this will only be accessible to the localhost.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*profile_interface* +
-_optional_
-a¦ 
-
-[markdown]
---
-Network interface to bind profiling API to
 --
 
 [%hardbreaks]
@@ -47406,18 +47853,33 @@ a¦ Boolean
 
 
 a¦ 
-*metrics_interface_authentication* +
+*compress_responses* +
 _optional_
 a¦ 
 
 [markdown]
 --
-Whether the metrics API requires authentication
+If false, disables compression of HTTP responses
 --
 
 [%hardbreaks]
 {blank}
 a¦ Boolean
+
+
+a¦ 
+*cors* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Startup_config_api_cors, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Startup_config_api_cors[]
 
 
 a¦ 
@@ -47430,119 +47892,6 @@ a¦
 Whether to enable the DP permissions check feature of admin auth.
 
 Defaults to `true` if using Enterprise Edition or `false` if using Community Edition.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*server_read_timeout* +
-_optional_
-a¦ 
-
-[markdown]
---
-Maximum duration before timing out read of the HTTP(S) request.
-
-This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*server_write_timeout* +
-_optional_
-a¦ 
-
-[markdown]
---
-Maximum duration before timing out write of the HTTP(S) response.
-
-This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*read_header_timeout* +
-_optional_
-a¦ 
-
-[markdown]
---
-The amount of time allowed to read request headers.
-
-This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*idle_timeout* +
-_optional_
-a¦ 
-
-[markdown]
---
-The maximum amount of time to wait for the next request when keep-alives are enabled.
-
-This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*pretty* +
-_optional_
-a¦ 
-
-[markdown]
---
-Pretty-print JSON responses. This property is deprecated.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*max_connections* +
-_optional_
-a¦ 
-
-[markdown]
---
-Max of incoming HTTP connections to accept
---
-
-[%hardbreaks]
-{blank}
-a¦ Big Decimal
-
-
-a¦ 
-*compress_responses* +
-_optional_
-a¦ 
-
-[markdown]
---
-If false, disables compression of HTTP responses
 --
 
 [%hardbreaks]
@@ -47581,18 +47930,163 @@ a¦ xref:Startup_config_api_https[]
 
 
 a¦ 
-*cors* +
+*idle_timeout* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Startup_config_api_cors, opts=optional]
+The maximum amount of time to wait for the next request when keep-alives are enabled.
+
+This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Startup_config_api_cors[]
+a¦ String
+
+
+a¦ 
+*max_connections* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Max of incoming HTTP connections to accept
+--
+
+[%hardbreaks]
+{blank}
+a¦ Big Decimal
+
+
+a¦ 
+*metrics_interface* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Network interface to bind metrics API to.
+
+By default, this will only be accessible to the localhost.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*metrics_interface_authentication* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Whether the metrics API requires authentication
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*profile_interface* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Network interface to bind profiling API to
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*public_interface* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Network interface to bind public API to
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*read_header_timeout* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The amount of time allowed to read request headers.
+
+This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*server_read_timeout* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Maximum duration before timing out read of the HTTP(S) request.
+
+This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*server_write_timeout* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Maximum duration before timing out write of the HTTP(S) response.
+
+This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*pretty* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Pretty-print JSON responses. This property is deprecated.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
 
 
 |===
@@ -47637,13 +48131,13 @@ endif::collapse-models[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*origin* +
+*headers* +
 _optional_
 a¦ 
 
 [markdown]
 --
-List of allowed origins, use ['*'] to allow access from everywhere
+List of allowed headers
 --
 
 [%hardbreaks]
@@ -47667,21 +48161,6 @@ a¦ String
  array
 
 a¦ 
-*headers* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed headers
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
 *max_age* +
 _optional_
 a¦ 
@@ -47695,6 +48174,21 @@ Maximum age of the CORS Options request
 {blank}
 a¦ Integer
 
+
+a¦ 
+*origin* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of allowed origins, use ['*'] to allow access from everywhere
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
 
 |===
 
@@ -47738,21 +48232,6 @@ endif::collapse-models[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*tls_minimum_version* +
-_optional_
-a¦ 
-
-[markdown]
---
-The minimum allowable TLS version for the REST APIs
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
 *tls_cert_path* +
 _optional_
 a¦ 
@@ -47775,6 +48254,21 @@ a¦
 [markdown]
 --
 The TLS key file to use for the REST APIs
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*tls_minimum_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The minimum allowable TLS version for the REST APIs
 --
 
 [%hardbreaks]
@@ -47887,13 +48381,13 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*group_id* +
+*ca_cert_path* +
 _optional_
 a¦ 
 
 [markdown]
 --
-The config group ID to use when discovering databases. Allows for non-homogenous configuration.
+Root CA cert path for TLS connection
 --
 
 [%hardbreaks]
@@ -47919,28 +48413,13 @@ a¦ String
 
 
 a¦ 
-*server* +
-_required_
+*group_id* +
+_optional_
 a¦ 
 
 [markdown]
 --
-Couchbase Server connection string/URL.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*username* +
-_required_
-a¦ 
-
-[markdown]
---
-Username for authenticating to server.
+The config group ID to use when discovering databases. Allows for non-homogenous configuration.
 --
 
 [%hardbreaks]
@@ -47964,13 +48443,45 @@ a¦ String
 
 
 a¦ 
-*ca_cert_path* +
-_optional_
+*server* +
+_required_
 a¦ 
 
 [markdown]
 --
-Root CA cert path for TLS connection
+Couchbase Server connection string/URL for bootstrap configuration.
+The connection string should only reference Couchbase Server Data (KV) nodes.
+Using other node types (Query, Index, Analytics, or Search nodes) is not supported.
+**Connection String Format**
+Sync Gateway supports the ability to resolve DNS SRV records for alternate hostnames, or specifying multiple hostnames explicitly. See the [Couchbase Go SDK documentation on DNS SRV records](https://docs.couchbase.com/go-sdk/current/howtos/managing-connections.html#using-dns-srv-records) for more details.
+Sync Gateway supports both the couchbases:// for TLS and couchbase:// schemes for insecure connection.
+The supported schemes match that of the Couchbase Server SDKs.
+**Examples of valid server values:**
+- `couchbases://nodeA.example.com`
+- `couchbase://nodeA.example.com`
+- `couchbases://nodeA.example.com,nodeB.example.com`
+- `couchbase://nodeA.example.com,nodeB.example.com`
+- `couchbases://nodeA.example.com:1234,nodeB.example.com:1234`
+- `couchbase://nodeA.example.com:1234,nodeB.example.com:1234`
+- `couchbases://127.0.0.1`
+- `couchbase://127.0.0.1`
+On startup, Sync Gateway will try all hostnames until it is able
+to connect successfully.
+**Port Information**
+When using the couchbase:// or couchbases:// schemes, the port is not required as Sync Gateway will use the default Couchbase Server client-to-node ports (11210 for couchbase:// and 11207 for couchbases://). See the [Couchbase Server ports documentation](https://docs.couchbase.com/server/current/install/install-ports.html#ports-listed-by-communication-path) for more details.
+**Alternate Addresses**
+If your Couchbase Server cluster is running in a containerized, port mapped, or otherwise NATd environment like Docker or Kubernetes, Sync Gateway might need more information to connect to the cluster. In many cases the client is able to automatically select the correct set of addresses.
+If the detection heuristic fails in your environment, it is possible to override this behavior by adding a network parameter to the connection string.
+The network parameter can be:
+- `external`: Force the use alternate addresses of Couchbase Server. Used when Sync Gateway should not share network used by Couchbase Server internally.
+- `default`: Do not allow use of alternate addresses of Couchbase Server. Used when Sync Gateway and Couchbase Server are on the same network.
+Example: `"server": "couchbases://my-cbs-server?network=default"`
+Will force the connection to ignore any alternative external addresses configured
+on the Couchbase Server node.
+**Lost Connections**
+If the connection to Couchbase Server is lost during normal operations, Sync Gateway
+will automatically re-connect to another node in the cluster.
+
 --
 
 [%hardbreaks]
@@ -47991,6 +48502,36 @@ Allow empty server CA Cert Path without attempting to use system root pool
 [%hardbreaks]
 {blank}
 a¦ Boolean
+
+
+a¦ 
+*use_tls_server* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Enforces a secure or non-secure server scheme
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*username* +
+_required_
+a¦ 
+
+[markdown]
+--
+Username for authenticating to server.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
 
 
 a¦ 
@@ -48021,21 +48562,6 @@ Key path (private key) for X.509 bucket auth
 [%hardbreaks]
 {blank}
 a¦ String
-
-
-a¦ 
-*use_tls_server* +
-_optional_
-a¦ 
-
-[markdown]
---
-Enforces a secure or non-secure server scheme
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
 
 
 |===
@@ -49166,23 +49692,6 @@ endif::collapse-models[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*max_heartbeat* +
-_optional_
-a¦ 
-
-[markdown]
---
-Max heartbeat value for `_changes` request.
-
-This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
 *blip_compression* +
 _optional_
 a¦ 
@@ -49195,21 +49704,6 @@ BLIP data compression level (0-9)
 [%hardbreaks]
 *Minimum:* `0`
 *Maximum:* `9`
-{blank}
-a¦ Integer
-
-
-a¦ 
-*max_concurrent_replications* +
-_optional_
-a¦ 
-
-[markdown]
---
-Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
---
-
-[%hardbreaks]
 {blank}
 a¦ Integer
 
@@ -49232,6 +49726,21 @@ a¦ Integer
 
 
 a¦ 
+*max_concurrent_replications* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Maximum number of concurrent replication connections allowed. If set to 0 this limit will be ignored.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
 *max_concurrent_revs* +
 _optional_
 a¦ 
@@ -49246,6 +49755,23 @@ Maximum number of revs to process concurrently per replication (5-200)
 *Maximum:* `200`
 {blank}
 a¦ Integer
+
+
+a¦ 
+*max_heartbeat* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Max heartbeat value for `_changes` request.
+
+This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
 
 
 |===
@@ -49295,6 +49821,53 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
+*allow_dbconfig_env_vars* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Can be set to false to skip environment variable expansion in database configs
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*diagnostic_interface* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Network interface to bind diagnotic API to.
+
+By default, this API will not be run unless this string is specified.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*http2* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Startup_config_unsupported_http2, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Startup_config_unsupported_http2[]
+
+
+a¦ 
 *serverless* +
 _optional_
 a¦ 
@@ -49307,21 +49880,6 @@ include::index.adoc[tag=desc-Startup_config_unsupported_serverless, opts=optiona
 [%hardbreaks]
 {blank}
 a¦ xref:Startup_config_unsupported_serverless[]
-
-
-a¦ 
-*use_xattr_config* +
-_optional_
-a¦ 
-
-[markdown]
---
-Store database configurations in system xattrs
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
 
 
 a¦ 
@@ -49357,50 +49915,18 @@ a¦ Boolean
 
 
 a¦ 
-*http2* +
+*use_xattr_config* +
 _optional_
 a¦ 
 
 [markdown]
 --
-include::index.adoc[tag=desc-Startup_config_unsupported_http2, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Startup_config_unsupported_http2[]
-
-
-a¦ 
-*allow_dbconfig_env_vars* +
-_optional_
-a¦ 
-
-[markdown]
---
-Can be set to false to skip environment variable expansion in database configs
+Store database configurations in system xattrs
 --
 
 [%hardbreaks]
 {blank}
 a¦ Boolean
-
-
-a¦ 
-*diagnostic_interface* +
-_optional_
-a¦ 
-
-[markdown]
---
-Network interface to bind diagnotic API to.
-
-By default, this API will not be run unless this string is specified.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
 
 
 |===
@@ -51076,273 +51602,6 @@ endif::model-descriptions[]
 ¦ Property ¦ ¦ Schema
 
 a¦ 
-*replication_id* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is the ID of the replication.
-
-When creating a new replication using a POST request, this will be set to a random UUID if not explicitly set.
-
-When the replication ID is specified in the URL, this must be set to the same replication ID if specifying it at all.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is the endpoint of the database for the remote Sync Gateway that is the subject of this replication's `push`, `pull`, or `pushAndPull` action.
-
-Typically this would include the URI, port, and database name. For example, `https://localhost:4985/db`.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote_username* +
-_optional_
-a¦ 
-
-[markdown]
---
-The username to use to authenticate with the remote.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote_password* +
-_optional_
-a¦ 
-
-[markdown]
---
-The password to use to authenticate with the remote. This password will be redacted in the replication config.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*direction* +
-_required_
-a¦ 
-
-[markdown]
---
-This specifies which direction the replication will be replicating with the `remote` replicator.
---
-
-[%hardbreaks]
-*Values:* `"push"`, `"pull"`, `"pushAndPull"`
-{blank}
-a¦ String
-
-
-a¦ 
-*conflict_resolution_type* +
-_optional_
-a¦ 
-
-[markdown]
---
-This defines what conflict resolution policy Sync Gateway should use to apply when resolving conflicting revisions.
-
-Changing this is an Enterprise Edition only feature.
---
-
-[%hardbreaks]
-*Values:* `"default"`, `"remoteWins"`, `"localWins"`, `"custom"`
-{blank}
-a¦ String
-
-
-a¦ 
-*custom_conflict_resolver* +
-_optional_
-a¦ 
-
-[markdown]
---
-This specifies the Javascript function to use to resolve conflicts between conflicting revisions.
-
-This **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.
-
-The Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:
-  * `LocalDocument` - The local document. This contains the document ID under the `_id` key.
-  * `RemoteDocument` - The remote document
-The function should return the new document's body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.
-
-Example:
-
-```javascript
-function(conflict) {
-  console.log("Doc ID: "+conflict.LocalDocument._id);
-  console.log("Full remote doc: "+JSON.stringify(conflict.RemoteDocument));
-  return conflict.RemoteDocument;
-}
-```
-
-Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
-
-This is an Enterprise Edition only feature.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*purge_on_removal* +
-_optional_
-a¦ 
-
-[markdown]
---
-Specifies whether to purge a document if the remote user loses access to all of the channels on the document when attempting to pull it from the remote.
-
-If false, documents will not be replicated and not be purged when the user loses access.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*enable_delta_sync* +
-_optional_
-a¦ 
-
-[markdown]
---
-This will turn on delta-sync for the replication. In order to enable delta-sync for a replication, the database level setting `delta_sync.enabled` must also be set to true.
-
-Using delta-sync is an Enterprise Edition only feature.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*max_backoff_time* +
-_optional_
-a¦ 
-
-[markdown]
---
-Specifies the maximum time-period (in minutes) that Sync Gateway will attempt to reconnect to a lost or unreachable remote.
-
-When a disconnection happens, Sync Gateway will do an exponential backoff up to this specified value. When this value is met, it will attempt to reconnect indefinitely every `max_backoff_time` minutes.
-
-If this is set to 0, Sync Gateway will do the normal exponential backoff after the disconnect happens but then attempting 10 minutes and stop the replication.
-
-Note: this defaults to 5 minutes for replications created prior to Sync Gateway 2.8.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*initial_state* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is what state to start the replication in when creating a new replication.
-
-This allows you to control if the replication starts in a `stopped` start or `running` state.
-
-Replications prior to Sync Gateway 2.8 will run in the default state `running`.
---
-
-[%hardbreaks]
-*Values:* `"running"`, `"stopped"`
-{blank}
-a¦ String
-
-
-a¦ 
-*continuous* +
-_optional_
-a¦ 
-
-[markdown]
---
-If true, changes will be immediately synced when they happen. This is known as a continuous replication.
-
-If false, all changes will be synced until they have been processed. The replication will then cease and not process any future changes (unless started again by the user). This is known as a one-shot replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*filter* +
-_optional_
-a¦ 
-
-[markdown]
---
-This defines whether to filter documents.
---
-
-[%hardbreaks]
-*Values:* `"sync_gateway/bychannel"`, `""`
-{blank}
-a¦ String
-
-
-a¦ 
-*query_params* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is a set of key/value pairs used in the query string of the replication.
-
-If `filters=sync_gateway/bychannel` then this can be used to set the channels to filter by in a pull replication. To do this, set the `channels` key to a string array of the channels to filter by. For example:
-```json
-"filter":"sync_gateway/bychannel",
-"query_params": {
-  "channels":["chanUser1"]
-},
-```
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
 *adhoc* +
 _optional_
 a¦ 
@@ -51372,21 +51631,6 @@ The amount of changes to be sent in one batch of replications. Changing this is 
 [%hardbreaks]
 {blank}
 a¦ Integer
-
-
-a¦ 
-*run_as* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is used if you want to specify a user to run the replication as. This means that the replication will only be able to replicate what the user  access to what the user has access to.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
 
 
 a¦ 
@@ -51443,15 +51687,281 @@ a¦ String
  array
 
 a¦ 
-*username* +
+*conflict_resolution_type* +
 _optional_
 a¦ 
 
 [markdown]
 --
-**This has been deprecated in favour of `remote_username`.**
+This defines what conflict resolution policy Sync Gateway should use to apply when resolving conflicting revisions.
 
-This is the username to use to authenticate with the remote.
+Changing this is an Enterprise Edition only feature.
+--
+
+[%hardbreaks]
+*Values:* `"default"`, `"remoteWins"`, `"localWins"`, `"custom"`
+{blank}
+a¦ String
+
+
+a¦ 
+*continuous* +
+_optional_
+a¦ 
+
+[markdown]
+--
+If true, changes will be immediately synced when they happen. This is known as a continuous replication.
+
+If false, all changes will be synced until they have been processed. The replication will then cease and not process any future changes (unless started again by the user). This is known as a one-shot replication.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*custom_conflict_resolver* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This specifies the Javascript function to use to resolve conflicts between conflicting revisions.
+
+This **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.
+
+The Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:
+  * `LocalDocument` - The local document. This contains the document ID under the `_id` key.
+  * `RemoteDocument` - The remote document
+The function should return the new document's body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.
+
+Example:
+
+```javascript
+function(conflict) {
+  console.log("Doc ID: "+conflict.LocalDocument._id);
+  console.log("Full remote doc: "+JSON.stringify(conflict.RemoteDocument));
+  return conflict.RemoteDocument;
+}
+```
+
+Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
+
+If a document merge is being done, the `_rev` and `_cv` properties should not be included in the returned document body as Sync Gateway will generate new values for these.
+
+This is an Enterprise Edition only feature.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*direction* +
+_required_
+a¦ 
+
+[markdown]
+--
+This specifies which direction the replication will be replicating with the `remote` replicator.
+--
+
+[%hardbreaks]
+*Values:* `"push"`, `"pull"`, `"pushAndPull"`
+{blank}
+a¦ String
+
+
+a¦ 
+*enable_delta_sync* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This will turn on delta-sync for the replication. In order to enable delta-sync for a replication, the database level setting `delta_sync.enabled` must also be set to true.
+
+Using delta-sync is an Enterprise Edition only feature.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*filter* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This defines whether to filter documents.
+--
+
+[%hardbreaks]
+*Values:* `"sync_gateway/bychannel"`, `""`
+{blank}
+a¦ String
+
+
+a¦ 
+*initial_state* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is what state to start the replication in when creating a new replication.
+
+This allows you to control if the replication starts in a `stopped` start or `running` state.
+
+Replications prior to Sync Gateway 2.8 will run in the default state `running`.
+--
+
+[%hardbreaks]
+*Values:* `"running"`, `"stopped"`
+{blank}
+a¦ String
+
+
+a¦ 
+*max_backoff_time* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Specifies the maximum time-period (in minutes) that Sync Gateway will attempt to reconnect to a lost or unreachable remote.
+
+When a disconnection happens, Sync Gateway will do an exponential backoff up to this specified value. When this value is met, it will attempt to reconnect indefinitely every `max_backoff_time` minutes.
+
+If this is set to 0, Sync Gateway will do the normal exponential backoff after the disconnect happens but then attempting 10 minutes and stop the replication.
+
+Note: this defaults to 5 minutes for replications created prior to Sync Gateway 2.8.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*purge_on_removal* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Specifies whether to purge a document if the remote user loses access to all of the channels on the document when attempting to pull it from the remote.
+
+If false, documents will not be replicated and not be purged when the user loses access.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*query_params* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is a set of key/value pairs used in the query string of the replication.
+
+If `filters=sync_gateway/bychannel` then this can be used to set the channels to filter by in a pull replication. To do this, set the `channels` key to a string array of the channels to filter by. For example:
+```json
+"filter":"sync_gateway/bychannel",
+"query_params": {
+  "channels":["chanUser1"]
+},
+```
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+a¦ 
+*remote* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is the endpoint of the database for the remote Sync Gateway that is the subject of this replication's `push`, `pull`, or `pushAndPull` action.
+Typically this would include the URI, port, and database name. For example, `https://localhost:4985/db`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*remote_password* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The password to use to authenticate with the remote. This password will be redacted in the replication config.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*remote_username* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The username to use to authenticate with the remote.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*replication_id* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is the ID of the replication.
+
+When creating a new replication using a POST request, this will be set to a random UUID if not explicitly set.
+
+When the replication ID is specified in the URL, this must be set to the same replication ID if specifying it at all.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*run_as* +
+_optional_
+a¦ 
+
+[markdown]
+--
+This is used if you want to specify a user to run the replication as. This means that the replication will only be able to replicate what the user  access to what the user has access to.
 --
 
 [%hardbreaks]
@@ -51469,6 +51979,23 @@ a¦
 **This has been deprecated in favour of `remote_password`.**
 
 This is the password to use to authenticate with the remote. This password will be redacted in the replication config.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*username* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**This has been deprecated in favour of `remote_username`.**
+
+This is the username to use to authenticate with the remote.
 --
 
 [%hardbreaks]
@@ -51798,7 +52325,7 @@ List of users for which audit logging is disabled.
 
 [%hardbreaks]
 {blank}
-a¦ xref:Verbose_disabled_users_inner[]
+a¦ xref:Simple_disabled_users_inner[]
  array
 
 a¦ 
@@ -51829,82 +52356,6 @@ a¦ xref:Database_config_logging_audit_disabled_roles_inner[]
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/Verbose/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/Verbose_disabled_users_inner/definition-before.adoc[opts=optional]
-
-
-ifdef::collapse-models[]
-[discrete]
-endif::collapse-models[]
-[#Verbose_disabled_users_inner]
-= VerboseDisabledUsersInner
-
-:leveloffset: +1
-
-// markup not found, no include::{specDir}definitions/Verbose_disabled_users_inner/definition-begin.adoc[opts=optional]
-
-
-.icon:brackets-curly[fw] Object
-{blank}
-
-//tag::Verbose_disabled_users_inner[]
-
-
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*domain* +
-_optional_
-a¦ 
-
-[markdown]
---
-The domain of the role for which audit logging is disabled.
-
- * `cbs` - Couchbase Server User
- * `sgw` - Sync Gateway User
-
---
-
-[%hardbreaks]
-*Values:* `"cbs"`, `"sgw"`
-{blank}
-a¦ String
-
-
-a¦ 
-*name* +
-_optional_
-a¦ 
-
-[markdown]
---
-The name of the user for which audit logging is disabled.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-|===
-
-//end::Verbose_disabled_users_inner[]
-
-
-
-
-// markup not found, no include::{specDir}definitions/Verbose_disabled_users_inner/definition-end.adoc[opts=optional]
-
-
-:leveloffset: -1
-
-// markup not found, no include::{specDir}definitions/Verbose_disabled_users_inner/definition-after.adoc[opts=optional]
 
 
 
