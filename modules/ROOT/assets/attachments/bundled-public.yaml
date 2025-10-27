@@ -6,7 +6,7 @@ info:
 
     Sync Gateway manages access and synchronization between Couchbase Lite and Couchbase Server.
     The Sync Gateway Public REST API is used for client replication.
-  version: '3.3'
+  version: '4.0'
   license:
     name: Business Source License 1.1 (BSL)
     url: https://github.com/couchbase/sync_gateway/blob/master/LICENSE
@@ -445,7 +445,7 @@ paths:
                       description: Prefix number for the latest revision.
                       type: number
                     ids:
-                      description: Array of valid revision IDs, in reverse order (latest first).
+                      description: Array of valid Revision Tree IDs, in reverse order (latest first).
                       type: array
                       items:
                         type: string
@@ -487,7 +487,10 @@ paths:
                     description: Whether the request completed successfully.
                     type: boolean
                   rev:
-                    description: The revision of the document.
+                    description: The Revision Tree ID of the document.
+                    type: string
+                  cv:
+                    description: The CV of the document.
                     type: string
                 required: &ref_13
                   - id
@@ -840,7 +843,7 @@ paths:
           schema: &ref_10
             type: string
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
-          description: The document revision to target.
+          description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
         - name: open_revs
           in: query
           required: false
@@ -896,7 +899,7 @@ paths:
             Etag:
               schema:
                 type: string
-              description: The document revision ID if only returning 1 revision.
+              description: An optimistic concurrency control (OCC) value used to prevent conflicts in a subsequent update. This value can be a RevTree ID or a CV (Current Version) ID, depending on the version type requested.
           content:
             application/json:
               schema:
@@ -908,6 +911,9 @@ paths:
                   _rev:
                     description: The revision ID of the document.
                     type: string
+                  _cv:
+                    description: The Current Version of the document.
+                    type: string
                 additionalProperties: true
               example:
                 FailedLoginAttempts: 5
@@ -915,6 +921,7 @@ paths:
                   - Bob
                 _id: AliceSettings
                 _rev: 1-64d4a1f179db5c1848fe52967b47c166
+                _cv: 1@src
         '400':
           description: |-
             Document ID is not in an allowed format therefore is invalid.
@@ -975,13 +982,13 @@ paths:
           required: false
           schema: *ref_10
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
-          description: The document revision to target.
+          description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
         - name: If-Match
           in: header
           required: false
           schema: &ref_17
             type: string
-          description: The revision ID to target.
+          description: An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
       requestBody:
         content:
           application/json:
@@ -1033,12 +1040,12 @@ paths:
           required: false
           schema: *ref_10
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
-          description: The document revision to target.
+          description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
         - name: If-Match
           in: header
           required: false
           schema: *ref_17
-          description: The revision ID to target.
+          description: An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
       responses:
         '200':
           description: New revision created successfully
@@ -1081,7 +1088,7 @@ paths:
           required: false
           schema: *ref_10
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
-          description: The document revision to target.
+          description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
         - name: open_revs
           in: query
           required: false
@@ -1156,7 +1163,7 @@ paths:
           required: false
           schema: *ref_10
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
-          description: The document revision to target.
+          description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
         - name: content_encoding
           in: query
           description: Set to false to disable the `Content-Encoding` response header.
@@ -1280,7 +1287,7 @@ paths:
           required: false
           schema: *ref_10
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
-          description: The document revision to target.
+          description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
       operationId: head_keyspace-docid-attach
     delete:
       summary: Delete an attachment on a document
@@ -1414,7 +1421,7 @@ paths:
             minimum: 0
         - name: feed
           in: query
-          description: 'The type of changes feed to use. '
+          description: The type of changes feed to use.
           schema:
             type: string
             default: normal
@@ -1423,6 +1430,18 @@ paths:
               - longpoll
               - continuous
               - websocket
+        - name: version_type
+          in: query
+          description: The preferred type of document versioning to use for the changes feed.
+          schema:
+            type: string
+            default: rev
+            enum:
+              - rev
+              - cv
+            x-enumDescriptions:
+              rev: 'Revision Tree IDs. For example: 1-293a80ce8f4874724732f27d35b3959a13cd96e0'
+              cv: 'Current Version. For example: 1854e4e557cc0000@zTWkmBiYZgNQo7BHVZrB/Q'
       responses:
         '200':
           description: Successfully returned the changes feed
@@ -1444,14 +1463,22 @@ paths:
                           description: The document ID the change happened on.
                           type: string
                         changes:
-                          description: List of document leafs with each leaf containing only a `rev` field.
+                          description: List of document leafs with each leaf containing only a `rev` or `cv` field.
                           type: array
                           items:
-                            type: object
-                            properties:
-                              rev:
-                                description: The new revision that was caused by that change.
-                                type: string
+                            oneOf:
+                              - type: object
+                                properties:
+                                  rev:
+                                    description: The Revision Tree ID associated with the change. This may be returned even when the `version_type` preference is set to `cv` if this document was an old revision written prior to upgrading to SG 4.0+
+                                    type: string
+                                title: Revision Tree ID
+                              - type: object
+                                properties:
+                                  cv:
+                                    description: The Current Version associated with the change. This value requires the `version_type` preference set to `cv` and this document revision being written through SG 4.0+
+                                    type: string
+                                title: Current Version
                           uniqueItems: true
                     uniqueItems: true
                   last_seq:
@@ -1615,6 +1642,8 @@ paths:
                           properties:
                             rev:
                               type: string
+                            cv:
+                              type: string
                     uniqueItems: true
                   total_rows:
                     type: number
@@ -1743,9 +1772,9 @@ paths:
 
         To create a new document, simply add the body in an object under `docs`. A doc ID will be generated by Sync Gateway unless `_id` is specified.
 
-        To update an existing document, provide the document ID (`_id`) and revision ID (`_rev`) as well as the new body values.
+        To update an existing document, provide the document ID (`_id`) and Revision Tree ID (`_rev`) as well as the new body values.
 
-        To delete an existing document, provide the document ID (`_id`), revision ID (`_rev`), and set the deletion flag (`_deleted`) to true.
+        To delete an existing document, provide the document ID (`_id`), Revision Tree ID (`_rev`), and set the deletion flag (`_deleted`) to true.
       requestBody:
         content:
           application/json:
@@ -1989,7 +2018,7 @@ paths:
           description: Resource could not be found
           content: *ref_2
         '409':
-          description: A revision ID conflict would result from updating this document revision.
+          description: A conflict would result from updating this document revision.
       tags:
         - Document
       operationId: put_keyspace-_local-docid
@@ -3025,7 +3054,7 @@ components:
       required: false
       schema: *ref_10
       example: 2-5145e1086bb8d1d71a531e9f6b543c58
-      description: The document revision to target.
+      description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
     open_revs:
       name: open_revs
       in: query
@@ -3074,12 +3103,12 @@ components:
       required: false
       schema: *ref_59
       description: Setting this to false indicates that the request body is an already-existing revision that should be directly inserted into the database, instead of a modification to apply to the current document. This mode is used for replication.  This option must be used in conjunction with the `_revisions` property in the request body.
-    If-Match:
+    Document-If-Match:
       name: If-Match
       in: header
       required: false
       schema: *ref_17
-      description: The revision ID to target.
+      description: An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
     include_docs:
       name: include_docs
       in: query

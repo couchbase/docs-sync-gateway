@@ -12,7 +12,7 @@ yq -V || brew install yq
 tag=$(yq -r .version antora.yml)-docs
 
 # Get upstream sync_gateway repo
-git clone --no-checkout https://github.com/couchbase/sync_gateway.git
+git clone --no-checkout https://github.com/couchbase/sync_gateway.git || true
 cd sync_gateway
 git sparse-checkout init --cone
 git sparse-checkout set docs/api
@@ -36,16 +36,20 @@ PATH_TO_STATIC="${GIT_ROOT}/modules/ROOT/pages/_partials/static_restapi"
 # Create a bld directory to hold temporary files, if it doesn't already exist
 [[ -d "${PATH_TO_TEMP}" ]] || mkdir "${PATH_TO_TEMP}"
 
+cat "${PATH_TO_BUNDLE}/metrics_metadata.json"
+jq . "${PATH_TO_BUNDLE}/metrics_metadata.json"
+jq --version
+
 # Use jq to transform the Prometheus metrics file into JSON schema.
 # Temporarily omitting the description until we can sort out Redocly CSS issues.
 # Should be {"type": "integer", "format": .value.type, "description": .value.help}
-npx node-jq 'to_entries |
-map(.value += {"type": "integer", "format": .value.type}) |
-map(.value |= del(.added, .labels, .unit, .stability, .help)) |
-from_entries |
-{type: "object", properties: .}' \
-  "${PATH_TO_BUNDLE}/metrics_metadata.json" \
-  > "${PATH_TO_TEMP}/metrics_metadata.json"
+npx --yes node-jq 'to_entries |
+  map(.value += {"type": "integer", "format": .value.type}) |
+  map(.value |= del(.added, .labels, .unit, .stability, .help)) |
+  from_entries |
+  {type: "object", properties: .}' \
+    "${PATH_TO_BUNDLE}/metrics_metadata.json" \
+    > "${PATH_TO_TEMP}/metrics_metadata.json"
 
 cd modules/ROOT
 
@@ -53,7 +57,7 @@ generate() {
     WHAT=$1
 
     # this bundle may be needed for the database configuration part?
-    npx '@redocly/cli' bundle \
+    npx --yes '@redocly/cli' bundle \
         --config "${PATH_TO_SYNC_GATEWAY}/.redocly.yaml" \
         "${WHAT}" \
         --dereferenced \
@@ -61,13 +65,13 @@ generate() {
 
     # Get the bundled spec, apply the OpenAPI overlay,
     # and output to the temporary bld folder.
-    npx openapi-overlays-js \
+    npx --yes openapi-overlays-js \
         --openapi "${PATH_TO_BUNDLE}/bundled-${WHAT}.yaml" \
         --overlay "${PATH_TO_OVERLAY}/${WHAT}.yaml" \
         > "${PATH_TO_TEMP}/${WHAT}.yaml"
 
     # Build the reference documentation using the overlaid spec.
-    npx @redocly/cli \
+    npx --yes @redocly/cli \
       build-docs \
       --config redocly.yaml \
       "${PATH_TO_TEMP}/${WHAT}.yaml" \
@@ -75,7 +79,7 @@ generate() {
       --template partials/redocAll.hbs
 
     # Build the static output using the overlaid spec.
-    npx @openapitools/openapi-generator-cli generate \
+    npx --yes @openapitools/openapi-generator-cli generate \
         --skip-validate-spec \
         --generator-name asciidoc  \
         --input-spec "${PATH_TO_TEMP}/${WHAT}.yaml" \
