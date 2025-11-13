@@ -82,7 +82,10 @@ xref:rest-api:rest_api_admin.adoc#tag/Database-Management/operation/post_db-_onl
 Resync is run asynchronously.
 Its status can be monitored using {resync_api_get}.
 
-Be sure to take the database offline using xref:rest-api:rest_api_admin.adoc#tag/Database-Management/operation/post_db-_offline[+/{db}/_offline+].
+*Before running resync, take the database offline:*
+
+* *Persistent Configuration*: Use  xref:rest-api:rest_api_admin.adoc#tag/Database-Management/operation/post_db-_offline[+/{db}/_offline+] with `{"offline": true}` (can use Load Balancer)
+* *Non-Persistent Configuration*: Use  xref:rest-api:rest_api_admin.adoc#tag/Database-Management/operation/post_db-_offline[+/{db}/_offline+] on each node individually (do not use Load Balancer)
 
 === Resync Context
 
@@ -104,11 +107,27 @@ Once you detect the resync is complete, switch back to the main Sync Gateway and
 
 === Updating Clusters
 
-In a clustered environment with multiple Sync Gateway instances sharing the load, all the instances need to share the same configuration.
-To ensure this happens, you must taken all instances offline using the xref:rest-api:rest_api_admin.adoc#tag/Database-Management/operation/post_db-_offline[+/{db}/_offline+] endpoint.
+*For Persistent Configuration:*
 
-After the configuration is updated, *one* instance should be brought up so it can update the database--if more than one is running at this time, they'll conflict with each other.
-After the first instance finishes opening the database, the others can be started.
+In a clustered environment using persistent configuration, the process is simplified:
+
+. Take the database offline: `POST /{db}/_config` with `{"offline": true}` (via Load Balancer)
+. Update the sync function in the configuration
+. Run resync: xref:rest-api:rest_api_admin.adoc#tag/Database-Management/operation/post_db-_resync[+POST /{db}/_resync?action=start+] (via Load Balancer)
+. Monitor resync status: {resync_api_get}
+. Bring the database back online: `POST /{db}/_config` with `{"offline": false}` (via Load Balancer)
+
+All configuration changes propagate automatically to all Sync Gateway nodes.
+
+*For Non-Persistent Configuration:*
+
+In a clustered environment with multiple Sync Gateway instances sharing the load, all instances need to share the same configuration:
+
+. Take all instances offline by calling xref:rest-api:rest_api_admin.adoc#tag/Database-Management/operation/post_db-_offline[+/{db}/_offline+] on each node individually (do not use Load Balancer)
+. Update the configuration file on all nodes
+. Bring one instance online first to update the database
+. After the first instance finishes opening the database, bring the other instances online
+. If more than one instance is brought online simultaneously during this process, they may conflict with each other
 
 
 
