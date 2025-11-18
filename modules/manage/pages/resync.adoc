@@ -9,6 +9,7 @@ ifdef::prerelease[:page-status: {prerelease}]
 
 include::ROOT:partial$_set_page_context.adoc[]
 
+:tabs:
 :topic-group: sync
 :param-related:   {rest-api-admin--xref} |    {configuration-schema-database--xref}  |  {configuration-schema-database--xref--sync}  |  {configuration-properties-legacy--xref}
 :param-abstract: This content explains the resync feature
@@ -57,43 +58,46 @@ This section describes how to update your Sync Function and perform a full resyn
 
 IMPORTANT: This is an expensive operation because it requires every document in the database to be processed by the new function. The database cannot accept requests until resync is complete because no user's full access privileges are known until all documents have been scanned. Therefore, the Sync Function update will result in application downtime whilst the database is offline.
 
-=== Persistent Configuration
-
+[{tabs}]
+====
+Persistent Configuration::
++
 Use this method when your Sync Gateway configuration is stored in Couchbase Server (recommended).
-
++
 .Prerequisites
-
-* The database is currently online
-
++
+* The database is currently online.
++
 .Procedure
-
++
 . Update the configuration file of the Sync Gateway instance.
 . Restart Sync Gateway.
-. xref:database-offline.adoc#_persistent_configuration[Take the database offline] using `POST /{db}/_config` with `{"offline": true}` (can use Load Balancer)
-. Run resync using {resync_api_post}
-. Monitor resync status using {resync_api_get}
+. xref:database-offline.adoc#_persistent_configuration[Take the database offline] using `POST /{db}/_config` with `{"offline": true}` (can use Load Balancer).
+. Run resync using {resync_api_post}.
+. Monitor resync status using {resync_api_get}.
 +
 The message body of the response contains the number of changes that were made as a result of calling resync.
-. xref:database-offline.adoc#_persistent_configuration_2[Bring the database back online] using `POST /{db}/_config` with `{"offline": false}` (can use Load Balancer)
+. xref:database-offline.adoc#_persistent_configuration_2[Bring the database back online] using `POST /{db}/_config` with `{"offline": false}` (can use Load Balancer).
 
-=== Non-Persistent Configuration
-
+Non-Persistent Configuration::
++
 Use this method when your Sync Gateway configuration is stored in local config files (legacy mode).
-
++
 .Prerequisites
-
-* The database is currently online
-
++
+* The database is currently online.
++
 .Procedure
-
++
 . Update the configuration file on all nodes.
 . Restart Sync Gateway.
-. xref:database-offline.adoc#_non_persistent_configuration[Take the database offline] by calling `POST /{db}/_offline` on each node individually (do not use Load Balancer)
-. Run resync using {resync_api_post}
-. Monitor resync status using {resync_api_get}
+. xref:database-offline.adoc#_non_persistent_configuration[Take the database offline] by calling `POST /{db}/_offline` on each node individually (do not use Load Balancer).
+. Run resync using {resync_api_post}.
+. Monitor resync status using {resync_api_get}.
 +
 The message body of the response contains the number of changes that were made as a result of calling resync.
-. xref:database-offline.adoc#_non_persistent_configuration_2[Bring the database back online] by calling `POST /{db}/_online` on each node individually (do not use Load Balancer)
+. xref:database-offline.adoc#_non_persistent_configuration_2[Bring the database back online] by calling `POST /{db}/_online` on each node individually (do not use Load Balancer).
+====
 
 
 == Resync Considerations

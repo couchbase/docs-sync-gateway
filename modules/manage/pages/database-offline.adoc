@@ -44,38 +44,38 @@ The state diagram in <<fig-state-diag>> represents the states for Sync Gateway a
 .State Change Diagram
 image::ROOT:state-diagram-offline-12.png[]
 
-In the state diagram:
+The state diagram illustrates two types of operations:
 
-* To the left of the gray dashed line, starting or stopping a Sync Gateway instance affects the connections to all of the databases that the instance serves.
-* To the right of the gray dashed line, you perform operations on specific databases.
+* *Instance-level operations*: Starting or stopping a Sync Gateway instance affects the connections to all of the databases that the instance serves.
+* *Database-level operations*: You can perform operations on specific databases independently.
 For example, two databases could be online, while a third database could be taken offline, resynchronized, and then brought back online.
 
 == Sync Gateway Configuration Mode Considerations
 
 The workflow for taking databases offline/online differs depending on your configuration mode:
 
-=== Persistent Configuration 
+=== Persistent Configuration
 
-If you use the *Persistent Configuration* mode for Sync Gateway, your configuration is stored in Couchbase Server. 
+If you use the *Persistent Configuration* mode for Sync Gateway, your configuration is stored in Couchbase Server.
 
-Any changes made to your configuration propagate automatically to all Sync Gateway nodes. 
+Any changes made to your configuration propagate automatically to all Sync Gateway nodes.
 You can take advantage of using a Load Balancer for your configuration changes.
 For more information on Load Balancers, see xref:[].
-// Add a link here, please. 
+// Add a link here, please.
 
-With this configuration mode, you cannot use the `/{db}/_offline` and `/{db}/_online` endpoints to take your databases offline or bring them back online. 
+With this configuration mode, you cannot use the `/{db}/_offline` and `/{db}/_online` endpoints to take your databases offline or bring them back online.
 These endpoints are node-local only.
 
 To take your database online and offline, use `POST /{db}/_config` with `{"offline": true/false}`, instead.
 
 === Non-Persistent Configuration (Legacy)
 
-If you use the *Non-Persistent Configuration* mode for Sync Gateway, your configuration is stored in local config files. 
+If you use the *Non-Persistent Configuration* mode for Sync Gateway, your configuration is stored in local config files.
 
-You must coordinate any changes to your configuration across all Sync Gateway nodes manually. 
-You cannot use a Load Balancer for configuration changes. 
+You must coordinate any changes to your configuration across all Sync Gateway nodes manually.
+You cannot use a Load Balancer for configuration changes.
 
-With this configuration mode, you must use the `/{db}/_offline` and `/{db}/_online` endpoints on each individual node you want to take offline or bring online. 
+With this configuration mode, you must use the `/{db}/_offline` and `/{db}/_online` endpoints on each individual node you want to take offline or bring online.
 
 
 == Automatically Taking a Database Offline
@@ -100,11 +100,11 @@ Persistent Configuration::
 +
 Use this method when your Sync Gateway configuration is stored in Couchbase Server (recommended).
 +
-. Make a POST request to xref:rest-api:rest_api_admin.adoc#tag/Database-Configuration/operation/post_db-_config[`/{db}/_config`] with `{"offline": true}`
+. Make a POST request to xref:rest-api:rest_api_admin.adoc#tag/Database-Configuration/operation/post_db-_config[`/{db}/_config`] with `{"offline": true}`.
 +
-You can use a Load Balancer for this operation. 
+You can use a Load Balancer for this operation.
 +
-For example: 
+For example:
 //Insert a full REST API/curl example request here, please!
 
 Non-Persistent Configuration::
@@ -115,7 +115,7 @@ Use this method when your Sync Gateway configuration is stored in local config f
 +
 Do not use a Load Balancer.
 +
-For example: 
+For example:
 //Insert a full REST API/curl example request here, please!
 ====
 
@@ -130,11 +130,11 @@ Persistent Configuration::
 +
 Use this method when your Sync Gateway configuration is stored in Couchbase Server (recommended).
 +
-. Make a POST request to xref:rest-api:rest_api_admin.adoc#tag/Database-Configuration/operation/post_db-_config[`/{db}/_config`] with `{"offline": false}`
+. Make a POST request to xref:rest-api:rest_api_admin.adoc#tag/Database-Configuration/operation/post_db-_config[`/{db}/_config`] with `{"offline": false}`.
 +
-You can use a Load Balancer for this operation. 
+You can use a Load Balancer for this operation.
 +
-For example: 
+For example:
 //Insert a full REST API/curl example request here, please!
 
 Non-Persistent Configuration::
@@ -145,7 +145,7 @@ Use this method when your Sync Gateway configuration is stored in local config f
 +
 Do not use a Load Balancer.
 +
-For example: 
+For example:
 //Insert a full REST API/curl example request here, please!
 ====
 
