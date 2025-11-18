@@ -54,12 +54,19 @@ For example, two databases could be online, while a third database could be take
 
 The workflow for taking databases offline/online differs depending on your configuration mode:
 
-*Persistent Configuration (Recommended)*::
-* Configuration is stored in Couchbase Server
-* Changes propagate automatically to all Sync Gateway nodes
-* DO NOT use `/{db}/_offline` and `/{db}/_online` endpoints (these are node-local only)
-* Use `POST /{db}/_config` with `{"offline": true/false}` instead
-* Can use a Load Balancer for configuration changes
+=== Persistent Configuration 
+
+If you use the *Persistent Configuration* mode for Sync Gateway, your configuration is stored in Couchbase Server. 
+
+Any changes made to your configuration propagate automatically to all Sync Gateway nodes. 
+You can take advantage of using a Load Balancer for your configuration changes.
+For more information on Load Balancers, see xref:[].
+// Add a link here, please. 
+
+With this configuration mode, you cannot use the `/{db}/_offline` and `/{db}/_online` endpoints to take your databases offline or bring them back online. 
+These endpoints are node-local only.
+
+To take your database online and offline, use `POST /{db}/_config` with `{"offline": true/false}`, instead.
 
 *Non-Persistent Configuration (Legacy)*::
 * Configuration stored in local config files
