@@ -35,13 +35,13 @@ It makes the switching of the runtime behavior -- for example during development
 
 == Syntax
 
-To use environment variables in your configuration file, insert the variable name -- prefixed by a `$` symbol -- wherever you would normally put the configuration value you are substituting for -- see <<ex-syntax>>.
+To use environment variables in your configuration file, insert the variable name -- prefixed by a `$` symbol -- wherever you would normally put the configuration value you're substituting for -- see <<ex-syntax>>.
 
 You can define inline default values using the notation `${var:-default}`.
-The default value is used if the referenced environment variable is empty or undefined.
+Sync Gateway uses the default value if the referenced environment variable is empty or undefined.
 
 If you need to include a string containing one or more literal `$` symbols, use `{double-dollar}` instead of `$`.
-This enables the parser to differentiate between a literal `$` and the start of a variable name; so `pa{double-dollar}{double-dollar}` resolves to the value `pa{double-dollar}`.
+This enables the parser to differentiate between a literal `$` and the start of a variable name, so `pa{double-dollar}{double-dollar}` resolves to the value `pa{double-dollar}`.
 
 Variable names are case-sensitive in this context.
 So `$\{username\}` and `$\{USERNAME\}` are not the same variable
@@ -108,28 +108,28 @@ So, the value `pa{double-dollar}{double-dollar}word` is interpreted as `pa{doubl
 
 Insert the required environment variable references in a {configuration-schema-bootstrap--xref}, or in a {configuration-properties-legacy--xref} with `disable_persistent_config=true`.
 
-Sync Gateway will replace each variable occurrence immediately prior to the parsing of the configuration file at each startup.
+Sync Gateway replaces each variable occurrence before parsing the configuration file at startup.
 
 The variables are immutable.
-This means changes to the values of the environment variables are not detected by Sync Gateway whilst it is running.
+This means changes to the values of the environment variables are not detected by Sync Gateway while it's running.
 Such changes only become effective after a restart of Sync Gateway.
 
-Any references to undefined variables found in the configuration will cause {sgw} to throw an error.
-This will prevent an invalid configuration being processed.
+Any references to undefined variables found in the configuration cause {sgw} to throw an error.
+This prevents {sgw} from processing an invalid configuration.
 
 
 == Variable Definition
 
-How you define the environment variables in your runtime environment will depend on the platform used to host Sync Gateway.
+How you define the environment variables in your runtime environment depends on the platform used to host Sync Gateway.
 
-As with the configuration file, you may need to define strings containing meta-characters (for example, symbols such as `$\*/`).
+As with the configuration file, you might need to define strings containing meta-characters (for example, symbols such as `$\*/`).
 
-Depending on the shell environment you can use a number of options:
+Depending on the shell environment, you can use a number of options:
 
-* Enclose the string in single-quotes, which will remove the special meaning of every character between the quotes.
+* Enclose the string in single-quotes, which removes the special meaning of every character between the quotes.
 Everything inside single quotes becomes a literal string.
 * Precede the meta-character with an escape character, typically a reverse solidus (`\`) (a backtick (```) in Powershell).
-Note -- This works in double-quote enclosed strings or in strings with no enclosing quotes, but not in single-quotes since as stated above, the remove the special meaning of the enclosed characters including any escape characters.
+Note -- This works in double-quote enclosed strings or in strings with no enclosing quotes, but not in single-quotes since as stated above, it removes the special meaning of the enclosed characters including any escape characters.
 
 
 [{tabs}]
@@ -142,7 +142,7 @@ Linux/Mac OS::
 export USERNAME=Administrator
 export PASSWORD='pa$$word' // <.>
 ----
-<.> Use quotes to prevent interpolation of the literal string's `$` symbols, alternatively use "pa\$\$word"
+<.> Use quotes to prevent interpolation of the literal string's `$` symbols, or use "pa\$\$word"
 
 --
 
@@ -180,7 +180,7 @@ Powershell::
 $ENV:USERNAME=Administrator
 $ENV:PASSWORD='pa{double-dollar}word' // <.>
 ----
-<.> Note we use single-quotes because of the password value's {double-dollar} symbols, alternatively use "pa\`$`$word"
+<.> Note we use single-quotes because of the password value's {double-dollar} symbols, or use "pa\`$`$word"
 
 --
 =====
