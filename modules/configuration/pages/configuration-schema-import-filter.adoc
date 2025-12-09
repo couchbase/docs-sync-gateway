@@ -14,31 +14,38 @@ include::ROOT:partial$block-caveats.adoc[tags="legacy-config-equivalents"]
 
 == Introduction
 
-Using an import filter will significantly improve efficiency if you're working with large datasets:
+Using an import filter improves efficiency when working with large datasets:
 
-* Import filters are defined at the collection level and allow you to retrieve only the relevant documents you need rather than the entire dataset.
-The import filter helps determine which documents can be copied by Sync Gateway.
-It looks at the application's needs and applies these criteria to all future changes.
+* You define import filters at the collection level to retrieve only the relevant documents you need rather than the entire dataset.
+The import filter determines which documents Sync Gateway can import, evaluating the application's requirements and applying these criteria to all future changes.
 
-* By reducing the amount of data that needs to be processed, an import filter will improve the performance of your queries and analysis.
-It's worth noting that Sync Gateway imports all documents by default, so it's generally a good idea to use an import filter unless you have a strong reason not to.
+* By reducing the amount of data to process, an import filter improves the performance of your queries and analysis.
+Sync Gateway imports all documents by default, so use an import filter unless you have specific requirements otherwise.
 
-See: {import-filter--xref} for more.
+For more information, see {import-filter--xref}.
 
-== Function Provision
+[#lbl-set-import-filter]
+== Set database import filter
 
-Use the {rest-api-admin--xref--database-configuration} Admin Rest API endpoint xref:rest-api:rest_api_admin.adoc#tag/Database-Configuration/operation/post_db-_config[POST /{db}/_config] to provision an import filter for a database using the `application/javascript` mime type.
+Configure an import filter to control which documents are imported from Couchbase Server to Sync Gateway.
 
-If you are using legacy configuration, you need to include it in your configuration file.
-See: {configuration-properties-legacy--xref--databases-import-filter}.
+For complete endpoint details, including header parameters (such as `If-Match` for optimistic concurrency control) and body parameters, see {rest-api-admin--xref--import-filter} in the Admin REST API.
 
-== Configuration
+=== Provisioning Methods
 
-NOTE: You need Couchbase Lite 3.1+ and Sync Gateway 3.1+ to use `custom` Scopes and Collections. +
-If you're using Capella App Services or Sync Gateway releases that are older than version 3.1, you won't be able to access `custom` Scopes and Collections.
-To use Couchbase Lite 3.1+ with these older versions, you can use the `default` Collection as a backup option.
+You can provision an import filter using:
 
-The configuration settings described here are provisioned through the xref:rest-api:rest-api-admin.adoc[Database Configuration] endpoints.
+* **Admin REST API** (Sync Gateway 3.0+): Use the {rest-api-admin--xref--import-filter} endpoint with the `application/javascript` mime type.
+* **Legacy Configuration**: Include the import filter in your configuration file.
+For more information, see {configuration-properties-legacy--xref--databases-import-filter}.
+
+=== Configuration Structure
+
+NOTE: Custom scopes and collections require Couchbase Lite 3.1 or later and Sync Gateway 3.1 or later. +
+Capella App Services and Sync Gateway releases earlier than version 3.1 do not support custom scopes and collections.
+When using Couchbase Lite 3.1 or later with earlier Sync Gateway versions, use the default collection as an alternative.
+
+The configuration settings described here are provisioned through the {rest-api-admin--xref--database-configuration} endpoints.
 
 [source,JSON]
 ----
@@ -47,7 +54,7 @@ The configuration settings described here are provisioned through the xref:rest-
       "scopename...": {
          "collections": {
             "collectionname...": {
-               "import_filter": "function(doc) { if (doc.type != 'mobile') { return false; } return true; }",
+               "import_filter": "function(doc) { if (doc.type != 'mobile') { return false } return true }",
             }
          }
       }
@@ -56,7 +63,7 @@ The configuration settings described here are provisioned through the xref:rest-
 }
 ----
 
-For more information, see xref:configuration:configuration-schema-database.adoc#DatabaseConfig[Sync Gateway Configuration Schema].
+For more information, see xref:configuration:configuration-schema-database.adoc#DatabaseConfig[Database Configuration Schema].
 
 [cols="2", options="header"]
 |===
@@ -72,17 +79,22 @@ For more information, see xref:configuration:configuration-schema-database.adoc#
 | Represents the name of each collection within a scope.
 
 |import_filter
-|Used to decide if a document should be imported. It checks the type property of the document. If it is not 'mobile', the function returns false, otherwise, it returns true.
+|Determines whether to import a document.
+The function checks the document's type property.
+If it's not 'mobile', the function returns false, otherwise it returns true.
 
 |===
 
-[#ex-config]
+=== Example
+
+.Configure import filter
 ====
+This example demonstrates how to configure an import filter for a Sync Gateway database.
 
 [{tabs}]
 =====
 
-API::
+Admin REST API::
 +
 --
 
@@ -93,8 +105,7 @@ include::{example-cfg}[tag="import-filter-config"]
 
 --
 
-+
-Legacy::
+Legacy Configuration::
 +
 --
 [source,json]
@@ -106,36 +117,29 @@ include::{example-cfg}[tag="import-filter-config-legacy"]
 =====
 ====
 
-include::ROOT:partial$static_restapi/admin/index.adoc[tags=put_keyspace-_config-import_filter,leveloffset=+1]
-
 [#_Import_filter]
 == Schema
 
-This section shows Sync Gateway's import control configuration settings in schema format for convenience in constructing JSON models for use in the Admin REST API.
+This section describes Sync Gateway's import filter configuration in schema format to assist with constructing JSON models for use with the Admin REST API.
 
-The configuration settings described here are provisioned through {rest-api-admin--xref--access-control} endpoints.
+The configuration settings are provisioned through the {rest-api-admin--xref--database-configuration} endpoints.
 
 [[_import_filter_model]]
 === Import Filter Model
 
-The `import_filter` controls whether a document written to the Couchbase Server bucket should be made available to Couchbase Mobile clients (that is, whether it ought to be imported).
+The `import_filter` determines whether to make a document written to the Couchbase Server bucket available to Couchbase Mobile clients (whether to import it).
 
-You should provision the filter as a Javascript function in the request body of a call to the Admin Rest API endpoint `put {db}/_config/import_filter`.
+You should provision the filter as a JavaScript function in the request body of a call to the Admin Rest API endpoint `PUT {db}/_config/import_filter`.
 
 Set the header's content type to `content-Type: application/javascript`.
 
-The function takes the document body as parameter and is expected to return a boolean to indicate whether the document should be imported.
+The function takes the document body as parameter and returns a boolean to indicate whether to import the document.
 
-If you do not provide a filter function then no filter will be applied and ALL documents will be imported.
+If you do not provide a filter function, Sync Gateway imports all documents.
 
-__Type__ : string
+*Type*: string
 
-[#HTTP_Error]
-== Errors
 
-This section shows possible error responses returned by the Admin REST API.
-
-include::ROOT:partial$static_restapi/admin/index.adoc[tags=HTTP_Error]
 
 // BEGIN -- DO NOT EDIT
 include::ROOT:partial$block-related-content-api.adoc[]
