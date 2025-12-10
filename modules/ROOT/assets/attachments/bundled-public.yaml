@@ -51,7 +51,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: &ref_3
+        schema: &ref_6
           type: string
         example: db1
         description: The name of the database to run the operation against.
@@ -61,101 +61,33 @@ paths:
       responses:
         '200':
           description: Properties associated with a user session
-          content: &ref_74
-            application/json:
-              schema:
-                type: object
-                properties: &ref_62
-                  authentication_handlers:
-                    description: The ways authentication can be established to authenticate as the user.
-                    type: array
-                    items:
-                      type: string
-                  ok:
-                    type: boolean
-                  userCtx:
-                    type: object
-                    properties:
-                      channels:
-                        description: |
-                          A map of the channels the user has access to and the sequence number each channel was created at.
-
-                          The key is the channel name and the value is the sequence number.
-                        type: object
-                      name:
-                        description: The name of the user.
-                        type: string
-                        nullable: true
-                title: User Session Information
-        '404':
-          description: Resource could not be found
-          content: &ref_2
+          content: &ref_76
             application/json:
               schema:
                 type: object
                 properties: &ref_0
-                  error:
-                    description: The error name.
-                    type: string
-                  reason:
-                    description: The error description.
-                    type: string
-                required: &ref_1
-                  - error
-                  - reason
-                title: HTTP-Error
-              example:
-                error: not_found
-                reason: no such database "invalid-db"
-      tags:
-        - Session
-      operationId: get_db-_session
-    post:
-      summary: Create a new user session
-      description: |-
-        Generates a login session for the user based on the credentials provided in the request body or if that fails (due to invalid credentials or none provided at all), generates the new session for the currently authenticated user instead. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
-
-        If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
-      requestBody:
-        description: The body can depend on if using the Public or Admin APIs.
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  description: User name to generate the session for.
-                  type: string
-                password:
-                  description: Password of the user to generate the session for.
-                  type: string
-      responses:
-        '200':
-          description: Session created successfully. Returned body is dependant on if using Public or Admin APIs
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
                   authentication_handlers:
-                    description: Used for CouchDB compatability. Always contains "default" and "cookie".
+                    description: The ways authentication can be established to authenticate as a user. Used for CouchDB compatibility. Always contains "default" and "cookie".
                     type: array
-                    items:
-                      type: string
-                      enum:
-                        - default
+                    enum:
+                      - - default
                         - cookie
+                    default:
+                      - default
+                      - cookie
                   ok:
-                    description: Used for CouchDB compatability. Always true.
+                    description: Used for CouchDB compatibility. Always true.
                     type: boolean
-                    default: true
+                    enum:
+                      - true
                   userCtx:
                     type: object
                     properties:
                       channels:
-                        description: A map of the channels the user is in along with the sequence number the user was granted access.
+                        description: A map of the channels in the default collection that the user is in along with the sequence number the user was granted access. This does not include inherited channels through roles.
                         type: object
                         additionalProperties:
+                          x-additionalPropertiesName: channelName
                           type: number
                           minimum: 1
                           description: The sequence number the user was granted access.
@@ -170,22 +102,90 @@ paths:
                     required:
                       - channels
                       - name
-                required:
+                required: &ref_1
                   - authentication_handlers
                   - ok
                   - userCtx
-        '400':
-          description: Origin is not in the approved list of allowed origins
-          content: &ref_45
+                title: User Session Information
+        '401':
+          description: User does not have access to resource, or resource does not exist
+          content: &ref_4
             application/json:
               schema:
                 type: object
-                properties: *ref_0
-                required: *ref_1
+                properties: &ref_2
+                  error:
+                    description: The error name.
+                    type: string
+                  reason:
+                    description: The error description.
+                    type: string
+                required: &ref_3
+                  - error
+                  - reason
                 title: HTTP-Error
-        '404':
-          description: Resource could not be found
-          content: *ref_2
+      tags:
+        - Session
+      operationId: get_db-_session
+    post:
+      summary: Create a new user session
+      description: |-
+        Generates a login session for the user based on the credentials provided in the request body or if that fails (due to invalid credentials or none provided at all), generates the new session for the currently authenticated user instead. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
+
+        If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
+      parameters:
+        - name: one_time
+          description: Sets the session to only be valid for a single authentication. This session will expire in 5 minutes if not used.
+          in: query
+          schema:
+            type: boolean
+      requestBody:
+        description: When name and password are included in the request body, the session will be created for the specified user.  Otherwise the session will be created for the authenticated user making the request.
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              title: User Credentials
+              properties:
+                name:
+                  description: User name to generate the session for. Omit this value to generate a session for the authenticated user.
+                  type: string
+                password:
+                  description: Password of the user to generate the session for. Omit this value to generate a session for the authenticated user.
+                  type: string
+      responses:
+        '200':
+          description: Session created successfully. Returned body is dependant on if using Public or Admin APIs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties: *ref_0
+                    required: *ref_1
+                    title: User Session Information
+                  - type: object
+                    properties:
+                      one_time_session_id:
+                        description: The id of a single use session if `one_time=true` query parameter was used.
+                        type: string
+                        example: c5af80a039db4ed9d2b6865576b6999935282689
+        '400':
+          description: Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
+          content: &ref_5
+            application/json:
+              schema:
+                type: object
+                properties: *ref_2
+                required: *ref_3
+                title: HTTP-Error
+              example:
+                error: Bad Request
+                reason: No CORS
+        '401':
+          description: User does not have access to resource, or resource does not exist
+          content: *ref_4
       tags:
         - Session
       operationId: post_db-_session
@@ -194,15 +194,28 @@ paths:
       description: |-
         Invalidates the session for the currently authenticated user and removes their session cookie.
 
-        If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+        If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
       responses:
         '200':
           description: Successfully removed session (logged out)
         '400':
-          description: Bad Request
+          description: Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
+          content: *ref_5
+        '401':
+          description: User does not have access to resource, or resource does not exist
+          content: *ref_4
         '404':
-          description: Resource could not be found
-          content: *ref_2
+          description: Return if session not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: *ref_2
+                required: *ref_3
+                title: HTTP-Error
+              example:
+                error: not_found
+                reason: no session
       tags:
         - Session
       operationId: delete_db-_session
@@ -211,7 +224,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     get:
@@ -262,13 +275,13 @@ paths:
                     allOf:
                       - description: The state of the database.
                         type: string
-                        enum: &ref_63
+                        enum: &ref_65
                           - Online
                           - Offline
                           - Starting
                           - Stopping
                           - Resyncing
-                        x-enumDescriptions: &ref_64
+                        x-enumDescriptions: &ref_66
                           Online: The database is online and available for use.
                           Offline: The database is offline, resync and other offline only endpoints are allowed.
                           Starting: The database is in the process of going online.
@@ -280,7 +293,16 @@ paths:
                     example: 995618a6a6cc9ac79731bd13240e19b5
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: &ref_7
+            application/json:
+              schema:
+                type: object
+                properties: *ref_2
+                required: *ref_3
+                title: HTTP-Error
+              example:
+                error: not_found
+                reason: no such database "invalid-db"
       tags:
         - Database Management
       operationId: get_db-
@@ -292,7 +314,7 @@ paths:
           description: Database exists
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Database Management
       operationId: head_db-
@@ -307,7 +329,7 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: &ref_67
+                properties: &ref_69
                   ADMIN:
                     description: '`true` if the request is from the Admin API - otherwise omitted.'
                     type: boolean
@@ -320,7 +342,7 @@ paths:
                     allOf:
                       - description: Product vendor
                         type: object
-                        properties: &ref_65
+                        properties: &ref_67
                           name:
                             description: Product name
                             type: string
@@ -331,7 +353,7 @@ paths:
                               Omitted if `api.hide_product_version=true`
                             type: string
                             example: 3.1
-                        required: &ref_66
+                        required: &ref_68
                           - name
                         title: Vendor
                   version:
@@ -346,7 +368,7 @@ paths:
                       `true` if the sync gateway node is running in persistent config mode.
                     type: boolean
                     example: true
-                required: &ref_68
+                required: &ref_70
                   - couchdb
                   - vendor
       tags:
@@ -381,9 +403,9 @@ paths:
       - name: keyspace
         in: path
         required: true
-        schema: &ref_6
+        schema: &ref_10
           type: string
-        examples: &ref_7
+        examples: &ref_11
           default:
             summary: Default scope and collection
             value: db1
@@ -412,7 +434,7 @@ paths:
         - name: roundtrip
           in: query
           required: false
-          schema: &ref_8
+          schema: &ref_12
             type: boolean
           description: Block until document has been received by change cache
       requestBody:
@@ -422,7 +444,7 @@ paths:
               description: The configurable Sync Gateway properties of a document.
               type: object
               additionalProperties: true
-              properties: &ref_11
+              properties: &ref_15
                 _id:
                   description: The ID of the document.
                   type: string
@@ -479,7 +501,7 @@ paths:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: &ref_12
+                properties: &ref_16
                   id:
                     description: The ID of the document.
                     type: string
@@ -492,40 +514,40 @@ paths:
                   cv:
                     description: The CV of the document.
                     type: string
-                required: &ref_13
+                required: &ref_17
                   - id
                   - ok
                   - rev
                 title: New-revision
         '400':
           description: There was a problem with your request
-          content: &ref_14
+          content: &ref_18
             application/json:
               schema:
                 type: object
-                properties: *ref_0
-                required: *ref_1
+                properties: *ref_2
+                required: *ref_3
                 title: HTTP-Error
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '409':
           description: Resource already exists under that name
-          content: &ref_15
+          content: &ref_19
             application/json:
               schema:
                 type: object
-                properties: *ref_0
-                required: *ref_1
+                properties: *ref_2
+                required: *ref_3
                 title: HTTP-Error
         '415':
           description: Invalid content type
-          content: &ref_16
+          content: &ref_20
             application/json:
               schema:
                 type: object
-                properties: *ref_0
-                required: *ref_1
+                properties: *ref_2
+                required: *ref_3
                 title: HTTP-Error
       tags:
         - Document
@@ -536,13 +558,13 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
       - name: ddoc
         in: path
         required: true
-        schema: &ref_5
+        schema: &ref_9
           type: string
         description: The design document name.
     get:
@@ -559,7 +581,7 @@ paths:
               schema:
                 description: Properties of a design document
                 type: object
-                properties: &ref_4
+                properties: &ref_8
                   language:
                     type: string
                   views:
@@ -588,7 +610,7 @@ paths:
           description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Unsupported
       operationId: get_db-_design-ddoc
@@ -604,7 +626,7 @@ paths:
             schema:
               description: Properties of a design document
               type: object
-              properties: *ref_4
+              properties: *ref_8
       responses:
         '200':
           description: Design document changes successfully
@@ -612,7 +634,7 @@ paths:
           description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Unsupported
       operationId: put_db-_design-ddoc
@@ -629,7 +651,7 @@ paths:
           description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Unsupported
       operationId: delete_db-_design-ddoc
@@ -641,7 +663,7 @@ paths:
           description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Unsupported
       description: |-
@@ -656,18 +678,18 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
       - name: ddoc
         in: path
         required: true
-        schema: *ref_5
+        schema: *ref_9
         description: The design document name.
       - name: view
         in: path
         required: true
-        schema: &ref_46
+        schema: &ref_49
           type: string
         description: The view to target.
     get:
@@ -681,67 +703,67 @@ paths:
           in: query
           required: false
           description: Indicates whether the specified end key should be included in the result.
-          schema: &ref_47
+          schema: &ref_50
             type: boolean
         - name: descending
           in: query
           required: false
           description: Return documents in descending order.
-          schema: &ref_48
+          schema: &ref_51
             type: boolean
         - name: include_docs
           in: query
           required: false
           description: Only works when using Couchbase Server 3.0 and earlier. Indicates whether to include the full content of the documents in the response.
-          schema: &ref_49
+          schema: &ref_52
             type: boolean
         - name: reduce
           in: query
           required: false
           description: Whether to execute a reduce function on the response or not.
-          schema: &ref_50
+          schema: &ref_53
             type: boolean
         - name: group
           in: query
           required: false
           description: Group the results using the reduce function to a group or single row.
-          schema: &ref_51
+          schema: &ref_54
             type: boolean
         - name: skip
           in: query
           required: false
           description: Skip the specified number of documents before starting to return results.
-          schema: &ref_52
+          schema: &ref_55
             type: integer
         - name: limit
           in: query
           required: false
           description: Return only the specified number of documents
-          schema: &ref_53
+          schema: &ref_56
             type: integer
         - name: group_level
           in: query
           required: false
           description: Specify the group level to be used.
-          schema: &ref_54
+          schema: &ref_57
             type: integer
         - name: startkey_docid
           in: query
           required: false
           description: Return documents starting with the specified document identifier.
-          schema: &ref_55
+          schema: &ref_58
             type: string
         - name: endkey_docid
           in: query
           required: false
           description: Stop returning records when the specified document identifier is reached.
-          schema: &ref_56
+          schema: &ref_59
             type: string
         - name: stale
           in: query
           required: false
           description: Allow the results from a stale view to be used, without triggering a rebuild of all views within the encompassing design document.
-          schema: &ref_57
+          schema: &ref_60
             type: string
             enum:
               - ok
@@ -749,25 +771,25 @@ paths:
         - name: startkey
           in: query
           required: false
-          schema: &ref_29
+          schema: &ref_33
             type: string
           description: Return records starting with the specified key.
         - name: endkey
           in: query
           required: false
-          schema: &ref_30
+          schema: &ref_34
             type: string
           description: Stop returning records when this key is reached.
         - name: key
           in: query
           required: false
           description: Return only the document that matches the specified key.
-          schema: &ref_58
+          schema: &ref_61
             type: string
         - name: keys
           in: query
           required: false
-          schema: &ref_28
+          schema: &ref_32
             type: array
             items:
               type: string
@@ -811,7 +833,7 @@ paths:
           description: Forbidden
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Unsupported
       operationId: get_db-_design-ddoc-_view-view
@@ -820,8 +842,8 @@ paths:
       - name: keyspace
         in: path
         required: true
-        schema: *ref_6
-        examples: *ref_7
+        schema: *ref_10
+        examples: *ref_11
         description: |-
           The keyspace to run the operation against.
 
@@ -829,7 +851,7 @@ paths:
       - name: docid
         in: path
         required: true
-        schema: &ref_25
+        schema: &ref_29
           type: string
         example: doc1
         description: The document ID to run the operation against.
@@ -840,14 +862,14 @@ paths:
         - name: rev
           in: query
           required: false
-          schema: &ref_10
+          schema: &ref_14
             type: string
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
         - name: open_revs
           in: query
           required: false
-          schema: &ref_19
+          schema: &ref_23
             type: array
             items:
               type: string
@@ -855,13 +877,13 @@ paths:
         - name: show_exp
           in: query
           required: false
-          schema: &ref_20
+          schema: &ref_24
             type: boolean
           description: Whether to show the expiry property (`_exp`) in the response.
         - name: revs_from
           in: query
           required: false
-          schema: &ref_21
+          schema: &ref_25
             type: array
             items:
               type: string
@@ -869,7 +891,7 @@ paths:
         - name: atts_since
           in: query
           required: false
-          schema: &ref_22
+          schema: &ref_26
             type: array
             items:
               type: string
@@ -877,19 +899,19 @@ paths:
         - name: revs_limit
           in: query
           required: false
-          schema: &ref_23
+          schema: &ref_27
             type: integer
           description: Maximum amount of revisions to return for each document.
         - name: attachments
           in: query
           required: false
-          schema: &ref_24
+          schema: &ref_28
             type: boolean
           description: Include attachment bodies in response.
         - name: replicator2
           in: query
           required: false
-          schema: &ref_9
+          schema: &ref_13
             type: boolean
           description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
       responses:
@@ -927,24 +949,24 @@ paths:
             Document ID is not in an allowed format therefore is invalid.
 
             This could be because it is over 250 characters or is prefixed with an underscore ("_").
-          content: &ref_18
+          content: &ref_22
             application/json:
               schema:
                 type: object
-                properties: *ref_0
-                required: *ref_1
+                properties: *ref_2
+                required: *ref_3
                 title: HTTP-Error
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '501':
           description: Not Implemented. It is likely this error was caused due to trying to use an enterprise-only feature on the community edition.
           content:
             application/json:
               schema:
                 type: object
-                properties: *ref_0
-                required: *ref_1
+                properties: *ref_2
+                required: *ref_3
                 title: HTTP-Error
       tags:
         - Document
@@ -963,30 +985,30 @@ paths:
         - name: roundtrip
           in: query
           required: false
-          schema: *ref_8
+          schema: *ref_12
           description: Block until document has been received by change cache
         - name: replicator2
           in: query
           required: false
-          schema: *ref_9
+          schema: *ref_13
           description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
         - name: new_edits
           in: query
           required: false
-          schema: &ref_59
+          schema: &ref_62
             type: boolean
             default: true
           description: Setting this to false indicates that the request body is an already-existing revision that should be directly inserted into the database, instead of a modification to apply to the current document. This mode is used for replication.  This option must be used in conjunction with the `_revisions` property in the request body.
         - name: rev
           in: query
           required: false
-          schema: *ref_10
+          schema: *ref_14
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
         - name: If-Match
           in: header
           required: false
-          schema: &ref_17
+          schema: &ref_21
             type: string
           description: An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
       requestBody:
@@ -996,7 +1018,7 @@ paths:
               description: The configurable Sync Gateway properties of a document.
               type: object
               additionalProperties: true
-              properties: *ref_11
+              properties: *ref_15
       responses:
         '201':
           description: Created
@@ -1010,21 +1032,21 @@ paths:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: *ref_12
-                required: *ref_13
+                properties: *ref_16
+                required: *ref_17
                 title: New-revision
         '400':
           description: There was a problem with your request
-          content: *ref_14
+          content: *ref_18
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '409':
           description: Resource already exists under that name
-          content: *ref_15
+          content: *ref_19
         '415':
           description: Invalid content type
-          content: *ref_16
+          content: *ref_20
       tags:
         - Document
       operationId: put_keyspace-docid
@@ -1038,31 +1060,31 @@ paths:
         - name: rev
           in: query
           required: false
-          schema: *ref_10
+          schema: *ref_14
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
         - name: If-Match
           in: header
           required: false
-          schema: *ref_17
+          schema: *ref_21
           description: An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
       responses:
         '200':
           description: New revision created successfully
-          content: &ref_75
+          content: &ref_77
             application/json:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: *ref_12
-                required: *ref_13
+                properties: *ref_16
+                required: *ref_17
                 title: New-revision
         '400':
           description: There was a problem with your request
-          content: *ref_14
+          content: *ref_18
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document
       operationId: delete_keyspace-docid
@@ -1075,10 +1097,10 @@ paths:
             Document ID is not in an allowed format therefore is invalid.
 
             This could be because it is over 250 characters or is prefixed with an underscore ("_").
-          content: *ref_18
+          content: *ref_22
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document
       summary: Check if a document exists
@@ -1086,43 +1108,43 @@ paths:
         - name: rev
           in: query
           required: false
-          schema: *ref_10
+          schema: *ref_14
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
         - name: open_revs
           in: query
           required: false
-          schema: *ref_19
+          schema: *ref_23
           description: 'Option to fetch specified revisions of the document. The value can be all to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=["rev1", "rev2"]). Only leaf revision bodies that haven''t been pruned are guaranteed to be returned. If this option is specified the response will be in multipart format. Use the `Accept: application/json` request header to get the result as a JSON object.'
         - name: show_exp
           in: query
           required: false
-          schema: *ref_20
+          schema: *ref_24
           description: Whether to show the expiry property (`_exp`) in the response.
         - name: revs_from
           in: query
           required: false
-          schema: *ref_21
+          schema: *ref_25
           description: Trim the revision history to stop at the first revision in the provided list. If no match is found, the revisions will be trimmed to the `revs_limit`.
         - name: atts_since
           in: query
           required: false
-          schema: *ref_22
+          schema: *ref_26
           description: Include attachments only since specified revisions. Excludes the attachments for the specified revisions. Only gets used if `attachments=true`.
         - name: revs_limit
           in: query
           required: false
-          schema: *ref_23
+          schema: *ref_27
           description: Maximum amount of revisions to return for each document.
         - name: attachments
           in: query
           required: false
-          schema: *ref_24
+          schema: *ref_28
           description: Include attachment bodies in response.
         - name: replicator2
           in: query
           required: false
-          schema: *ref_9
+          schema: *ref_13
           description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
       description: Return a status code based on if the document exists or not.
       operationId: head_keyspace-docid
@@ -1131,8 +1153,8 @@ paths:
       - name: keyspace
         in: path
         required: true
-        schema: *ref_6
-        examples: *ref_7
+        schema: *ref_10
+        examples: *ref_11
         description: |-
           The keyspace to run the operation against.
 
@@ -1140,7 +1162,7 @@ paths:
       - name: docid
         in: path
         required: true
-        schema: *ref_25
+        schema: *ref_29
         example: doc1
         description: The document ID to run the operation against.
       - name: attach
@@ -1161,7 +1183,7 @@ paths:
         - name: rev
           in: query
           required: false
-          schema: *ref_10
+          schema: *ref_14
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
         - name: content_encoding
@@ -1198,7 +1220,7 @@ paths:
           description: Partial attachment content returned
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '416':
           description: Requested range exceeds content length
       tags:
@@ -1249,15 +1271,15 @@ paths:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: *ref_12
-                required: *ref_13
+                properties: *ref_16
+                required: *ref_17
                 title: New-revision
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '409':
           description: Resource already exists under that name
-          content: *ref_15
+          content: *ref_19
       tags:
         - Document Attachment
       operationId: put_keyspace-docid-attach
@@ -1276,7 +1298,7 @@ paths:
               description: The attachment digest.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document Attachment
       summary: Check if attachment exists
@@ -1285,7 +1307,7 @@ paths:
         - name: rev
           in: query
           required: false
-          schema: *ref_10
+          schema: *ref_14
           example: 2-5145e1086bb8d1d71a531e9f6b543c58
           description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
       operationId: head_keyspace-docid-attach
@@ -1319,15 +1341,15 @@ paths:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: *ref_12
-                required: *ref_13
+                properties: *ref_16
+                required: *ref_17
                 title: New-revision
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '409':
           description: Resource already exists under that name
-          content: *ref_15
+          content: *ref_19
       tags:
         - Document Attachment
       operationId: delete_keyspace-docid-attach
@@ -1336,8 +1358,8 @@ paths:
       - name: keyspace
         in: path
         required: true
-        schema: *ref_6
-        examples: *ref_7
+        schema: *ref_10
+        examples: *ref_11
         description: |-
           The keyspace to run the operation against.
 
@@ -1377,7 +1399,7 @@ paths:
         - name: include_docs
           in: query
           required: false
-          schema: &ref_27
+          schema: &ref_31
             type: boolean
           description: Include the body associated with each document.
         - name: revocations
@@ -1445,12 +1467,12 @@ paths:
       responses:
         '200':
           description: Successfully returned the changes feed
-          content: &ref_26
+          content: &ref_30
             application/json:
               schema:
                 description: Properties of a changes feed
                 type: object
-                properties: &ref_69
+                properties: &ref_71
                   results:
                     type: array
                     items:
@@ -1486,10 +1508,10 @@ paths:
                     type: string
         '400':
           description: There was a problem with your request
-          content: *ref_14
+          content: *ref_18
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document
       operationId: get_keyspace-_changes
@@ -1541,13 +1563,13 @@ paths:
       responses:
         '200':
           description: Successfully returned the changes feed
-          content: *ref_26
+          content: *ref_30
         '400':
           description: There was a problem with your request
-          content: *ref_14
+          content: *ref_18
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document
       operationId: post_keyspace-_changes
@@ -1556,8 +1578,8 @@ paths:
       - name: keyspace
         in: path
         required: true
-        schema: *ref_6
-        examples: *ref_7
+        schema: *ref_10
+        examples: *ref_11
         description: |-
           The keyspace to run the operation against.
 
@@ -1573,57 +1595,57 @@ paths:
         - name: include_docs
           in: query
           required: false
-          schema: *ref_27
+          schema: *ref_31
           description: Include the body associated with each document.
         - name: channels
           in: query
           required: false
-          schema: &ref_31
+          schema: &ref_35
             type: boolean
           description: Include the channels each document is part of that the calling user also has access too.
         - name: access
           in: query
           required: false
-          schema: &ref_32
+          schema: &ref_36
             type: boolean
           description: Include what user/roles that each document grants access too.
         - name: revs
           in: query
           required: false
-          schema: &ref_33
+          schema: &ref_37
             type: boolean
           description: Include all the revisions for each document under the `_revisions` property.
         - name: update_seq
           in: query
           required: false
-          schema: &ref_34
+          schema: &ref_38
             type: boolean
           description: Include the document sequence number `update_seq` property for each document.
         - name: keys
           in: query
           required: false
-          schema: *ref_28
+          schema: *ref_32
           description: An array of document ID strings to filter by.
         - name: startkey
           in: query
           required: false
-          schema: *ref_29
+          schema: *ref_33
           description: Return records starting with the specified key.
         - name: endkey
           in: query
           required: false
-          schema: *ref_30
+          schema: *ref_34
           description: Stop returning records when this key is reached.
         - name: limit
           in: query
           required: false
-          schema: &ref_35
+          schema: &ref_39
             type: number
           description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
       responses:
         '200':
           description: Operation ran successfully
-          content: &ref_36
+          content: &ref_40
             application/json:
               schema:
                 type: object
@@ -1655,19 +1677,19 @@ paths:
                   - update_seq
         '400':
           description: There was a problem with your request
-          content: *ref_14
+          content: *ref_18
         '403':
           description: This API endpoint has been disabled by the administrator.
           content:
             application/json:
               schema:
                 type: object
-                properties: *ref_0
-                required: *ref_1
+                properties: *ref_2
+                required: *ref_3
                 title: HTTP-Error
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document
       operationId: get_keyspace-_all_docs
@@ -1682,42 +1704,42 @@ paths:
         - name: include_docs
           in: query
           required: false
-          schema: *ref_27
+          schema: *ref_31
           description: Include the body associated with each document.
         - name: channels
           in: query
           required: false
-          schema: *ref_31
+          schema: *ref_35
           description: Include the channels each document is part of that the calling user also has access too.
         - name: access
           in: query
           required: false
-          schema: *ref_32
+          schema: *ref_36
           description: Include what user/roles that each document grants access too.
         - name: revs
           in: query
           required: false
-          schema: *ref_33
+          schema: *ref_37
           description: Include all the revisions for each document under the `_revisions` property.
         - name: update_seq
           in: query
           required: false
-          schema: *ref_34
+          schema: *ref_38
           description: Include the document sequence number `update_seq` property for each document.
         - name: startkey
           in: query
           required: false
-          schema: *ref_29
+          schema: *ref_33
           description: Return records starting with the specified key.
         - name: endkey
           in: query
           required: false
-          schema: *ref_30
+          schema: *ref_34
           description: Stop returning records when this key is reached.
         - name: limit
           in: query
           required: false
-          schema: *ref_35
+          schema: *ref_39
           description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
       requestBody:
         content:
@@ -1735,22 +1757,22 @@ paths:
       responses:
         '200':
           description: Operation ran successfully
-          content: *ref_36
+          content: *ref_40
         '400':
           description: There was a problem with your request
-          content: *ref_14
+          content: *ref_18
         '403':
           description: This API endpoint has been disabled by the administrator.
           content:
             application/json:
               schema:
                 type: object
-                properties: *ref_0
-                required: *ref_1
+                properties: *ref_2
+                required: *ref_3
                 title: HTTP-Error
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document
       operationId: post_keyspace-_all_docs
@@ -1759,8 +1781,8 @@ paths:
       - name: keyspace
         in: path
         required: true
-        schema: *ref_6
-        examples: *ref_7
+        schema: *ref_10
+        examples: *ref_11
         description: |-
           The keyspace to run the operation against.
 
@@ -1791,7 +1813,7 @@ paths:
                     description: The configurable Sync Gateway properties of a document.
                     type: object
                     additionalProperties: true
-                    properties: *ref_11
+                    properties: *ref_15
               required:
                 - docs
             example:
@@ -1860,10 +1882,10 @@ paths:
                       status: 409
         '400':
           description: There was a problem with your request
-          content: *ref_14
+          content: *ref_18
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document
       operationId: post_keyspace-_bulk_docs
@@ -1872,8 +1894,8 @@ paths:
       - name: keyspace
         in: path
         required: true
-        schema: *ref_6
-        examples: *ref_7
+        schema: *ref_10
+        examples: *ref_11
         description: |-
           The keyspace to run the operation against.
 
@@ -1898,7 +1920,7 @@ paths:
         - name: revs
           in: query
           required: false
-          schema: *ref_33
+          schema: *ref_37
           description: Include all the revisions for each document under the `_revisions` property.
         - name: revs_limit
           in: query
@@ -1945,7 +1967,7 @@ paths:
           description: Bad Request
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document
       operationId: post_keyspace-_bulk_get
@@ -1954,8 +1976,8 @@ paths:
       - name: keyspace
         in: path
         required: true
-        schema: *ref_6
-        examples: *ref_7
+        schema: *ref_10
+        examples: *ref_11
         description: |-
           The keyspace to run the operation against.
 
@@ -1977,10 +1999,10 @@ paths:
           description: Successfully found local document
         '400':
           description: There was a problem with your request
-          content: *ref_14
+          content: *ref_18
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document
       operationId: get_keyspace-_local-docid
@@ -2008,15 +2030,15 @@ paths:
               schema:
                 description: Properties returned when a new document revision is created
                 type: object
-                properties: *ref_12
-                required: *ref_13
+                properties: *ref_16
+                required: *ref_17
                 title: New-revision
         '400':
           description: There was a problem with your request
-          content: *ref_14
+          content: *ref_18
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '409':
           description: A conflict would result from updating this document revision.
       tags:
@@ -2040,10 +2062,10 @@ paths:
           description: Successfully removed the local document.
         '400':
           description: There was a problem with your request
-          content: *ref_14
+          content: *ref_18
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '409':
           description: A revision ID conflict would result from deleting this document revision.
       tags:
@@ -2055,10 +2077,10 @@ paths:
           description: Document exists
         '400':
           description: There was a problem with your request
-          content: *ref_14
+          content: *ref_18
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document
       summary: Check if local document exists
@@ -2072,8 +2094,8 @@ paths:
       - name: keyspace
         in: path
         required: true
-        schema: *ref_6
-        examples: *ref_7
+        schema: *ref_10
+        examples: *ref_11
         description: |-
           The keyspace to run the operation against.
 
@@ -2116,7 +2138,7 @@ paths:
                           type: string
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Document
       operationId: post_keyspace-_revs_diff
@@ -2125,7 +2147,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     get:
@@ -2135,13 +2157,13 @@ paths:
         - name: provider
           in: query
           required: false
-          schema: &ref_37
+          schema: &ref_41
             type: string
           description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
         - name: offline
           in: query
           required: false
-          schema: &ref_38
+          schema: &ref_42
             type: string
           description: If true, the OpenID Connect provider is requested to confirm with the user the permissions requested and refresh the OIDC token. To do this, access_type=offline and prompt=consent is set on the redirection link.
       responses:
@@ -2156,7 +2178,7 @@ paths:
           description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '500':
           description: Unable to connect and validate with the OpenID Connect provider requested
       tags:
@@ -2167,7 +2189,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     get:
@@ -2177,12 +2199,12 @@ paths:
         - name: provider
           in: query
           required: false
-          schema: *ref_37
+          schema: *ref_41
           description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
         - name: offline
           in: query
           required: false
-          schema: *ref_38
+          schema: *ref_42
           description: If true, the OpenID Connect provider is requested to confirm with the user the permissions requested and refresh the OIDC token. To do this, access_type=offline and prompt=consent is set on the redirection link.
       responses:
         '400':
@@ -2196,7 +2218,7 @@ paths:
               description: The OpenID Connect authentication URL.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '500':
           description: Unable to connect and validate with the OpenID Connect provider requested
       tags:
@@ -2207,7 +2229,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     get:
@@ -2222,28 +2244,28 @@ paths:
         - name: code
           in: query
           required: true
-          schema: &ref_60
+          schema: &ref_63
             type: string
           description: The OpenID Connect authentication code.
         - name: provider
           in: query
           required: false
-          schema: *ref_37
+          schema: *ref_41
           description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
         - name: state
           in: query
           required: false
-          schema: &ref_61
+          schema: &ref_64
             type: string
           description: The OpenID Connect state to verify against the state cookie. This is used to prevent cross-site request forgery (CSRF). This is not required if `disable_callback_state=true` for the provider config (NOT recommended).
       responses:
         '200':
           description: Successfully authenticated with OpenID Connect.
-          content: &ref_39
+          content: &ref_43
             application/json:
               schema:
                 type: object
-                properties: &ref_70
+                properties: &ref_72
                   id_token:
                     description: The OpenID Connect ID token
                     type: string
@@ -2272,7 +2294,7 @@ paths:
           description: An error was received from the OpenID Connect provider. This means the error query parameter was filled.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '500':
           description: A problem occurred in regards to the token
           content:
@@ -2292,7 +2314,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     get:
@@ -2308,17 +2330,17 @@ paths:
         - name: provider
           in: query
           required: false
-          schema: *ref_37
+          schema: *ref_41
           description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
       responses:
         '200':
           description: Successfully authenticated with OpenID Connect.
-          content: *ref_39
+          content: *ref_43
         '400':
           description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '500':
           description: Unable to connect and validate with the OpenID Connect provider requested
       tags:
@@ -2330,7 +2352,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     get:
@@ -2375,7 +2397,7 @@ paths:
           description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Unsupported
       operationId: get_db-_oidc_testing-.well-known-openid-configuration
@@ -2385,7 +2407,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     get:
@@ -2395,7 +2417,7 @@ paths:
         - name: scope
           in: query
           required: true
-          schema: &ref_40
+          schema: &ref_44
             type: string
           description: The OpenID Connect authentication scope.
       responses:
@@ -2403,26 +2425,26 @@ paths:
           description: OK
         '400':
           description: A validation error occurred with the scope.
-          content: &ref_41
+          content: &ref_45
             application/json:
               schema:
                 type: object
-                properties: *ref_0
-                required: *ref_1
+                properties: *ref_2
+                required: *ref_3
                 title: HTTP-Error
         '403':
           description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '500':
           description: An error occurred.
-          content: &ref_42
+          content: &ref_46
             application/json:
               schema:
                 type: object
-                properties: *ref_0
-                required: *ref_1
+                properties: *ref_2
+                required: *ref_3
                 title: HTTP-Error
       tags:
         - Unsupported
@@ -2434,22 +2456,22 @@ paths:
         - name: scope
           in: query
           required: true
-          schema: *ref_40
+          schema: *ref_44
           description: The OpenID Connect authentication scope.
       responses:
         '200':
           description: OK
         '400':
           description: A validation error occurred with the scope.
-          content: *ref_41
+          content: *ref_45
         '403':
           description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '500':
           description: An error occurred.
-          content: *ref_42
+          content: *ref_46
       tags:
         - Unsupported
       operationId: post_db-_oidc_testing-authorize
@@ -2459,7 +2481,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     post:
@@ -2485,12 +2507,12 @@ paths:
       responses:
         '200':
           description: Properties expected back from an OpenID Connect provider after successful authentication
-          content: &ref_76
+          content: &ref_78
             application/json:
               schema:
                 description: Properties expected back from an OpenID Connect provider after successful authentication
                 type: object
-                properties: &ref_71
+                properties: &ref_73
                   access_token:
                     type: string
                   token_type:
@@ -2508,7 +2530,7 @@ paths:
           description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Unsupported
       operationId: post_db-_oidc_testing-token
@@ -2518,7 +2540,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     get:
@@ -2559,7 +2581,7 @@ paths:
           description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '500':
           description: An error occurred while getting the private RSA key
           content:
@@ -2580,7 +2602,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     get:
@@ -2590,13 +2612,13 @@ paths:
         - name: redirect_uri
           in: query
           required: false
-          schema: &ref_43
+          schema: &ref_47
             type: string
           description: The Sync Gateway OpenID Connect callback URL.
         - name: scope
           in: query
           required: true
-          schema: *ref_40
+          schema: *ref_44
           description: The OpenID Connect authentication scope.
         - name: username
           in: query
@@ -2621,7 +2643,7 @@ paths:
       responses:
         '302':
           description: Redirecting to Sync Gateway OpenID Connect callback URL
-          headers: &ref_44
+          headers: &ref_48
             Location:
               schema:
                 type: string
@@ -2630,7 +2652,7 @@ paths:
           description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Unsupported
       operationId: get_db-_oidc_testing-authenticate
@@ -2641,20 +2663,20 @@ paths:
         - name: redirect_uri
           in: query
           required: false
-          schema: *ref_43
+          schema: *ref_47
           description: The Sync Gateway OpenID Connect callback URL.
         - name: scope
           in: query
           required: true
-          schema: *ref_40
+          schema: *ref_44
           description: The OpenID Connect authentication scope.
       requestBody:
-        content: &ref_77
+        content: &ref_79
           application/json:
             schema:
               description: Properties passed from the OpenID Connect mock login page to the handler
               type: object
-              properties: &ref_72
+              properties: &ref_74
                 username:
                   type: string
                 tokenttl:
@@ -2663,7 +2685,7 @@ paths:
                   type: string
                 authenticated:
                   type: string
-              required: &ref_73
+              required: &ref_75
                 - username
                 - tokenttl
                 - identity-token-formats
@@ -2672,12 +2694,12 @@ paths:
       responses:
         '302':
           description: Redirecting to Sync Gateway OpenID Connect callback URL
-          headers: *ref_44
+          headers: *ref_48
         '403':
           description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
       tags:
         - Unsupported
       operationId: post_db-_oidc_testing-authenticate
@@ -2686,7 +2708,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     get:
@@ -2707,15 +2729,15 @@ paths:
           description: Upgraded to a web socket connection
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '426':
           description: Cannot upgrade connection to a web socket connection
           content:
             application/json:
               schema:
                 type: object
-                properties: *ref_0
-                required: *ref_1
+                properties: *ref_2
+                required: *ref_3
                 title: HTTP-Error
               example:
                 error: Upgrade Required
@@ -2748,7 +2770,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     post:
@@ -2756,7 +2778,7 @@ paths:
       description: |-
         Creates a new session based on a Facebook user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
 
-        If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+        If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
       requestBody:
         content:
           application/json:
@@ -2772,8 +2794,8 @@ paths:
         '200':
           description: Session created successfully
         '400':
-          description: Origin is not in the approved list of allowed origins
-          content: *ref_45
+          description: Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
+          content: *ref_5
         '401':
           description: Received error from Facebook verifier
           content:
@@ -2787,7 +2809,7 @@ paths:
                     type: string
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '502':
           description: Received invalid response from the Facebook verifier
           content:
@@ -2820,7 +2842,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     post:
@@ -2828,7 +2850,7 @@ paths:
       description: |-
         Creates a new session based on a Google user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
 
-        If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+        If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
       requestBody:
         content:
           application/json:
@@ -2844,8 +2866,8 @@ paths:
         '200':
           description: Session created successfully
         '400':
-          description: Origin is not in the approved list of allowed origins
-          content: *ref_45
+          description: Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
+          content: *ref_5
         '401':
           description: Received error from Google token verifier or invalid application ID in the config
           content:
@@ -2859,7 +2881,7 @@ paths:
                     type: string
         '404':
           description: Resource could not be found
-          content: *ref_2
+          content: *ref_7
         '502':
           description: Received invalid response from the Google token verifier
           content:
@@ -2882,7 +2904,7 @@ paths:
       - name: db
         in: path
         required: true
-        schema: *ref_3
+        schema: *ref_6
         example: db1
         description: The name of the database to run the operation against.
     post:
@@ -2920,15 +2942,15 @@ components:
       name: db
       in: path
       required: true
-      schema: *ref_3
+      schema: *ref_6
       example: db1
       description: The name of the database to run the operation against.
     keyspace:
       name: keyspace
       in: path
       required: true
-      schema: *ref_6
-      examples: *ref_7
+      schema: *ref_10
+      examples: *ref_11
       description: |-
         The keyspace to run the operation against.
 
@@ -2937,327 +2959,331 @@ components:
       name: roundtrip
       in: query
       required: false
-      schema: *ref_8
+      schema: *ref_12
       description: Block until document has been received by change cache
     ddoc:
       name: ddoc
       in: path
       required: true
-      schema: *ref_5
+      schema: *ref_9
       description: The design document name.
     view:
       name: view
       in: path
       required: true
-      schema: *ref_46
+      schema: *ref_49
       description: The view to target.
     inclusive_end:
       name: inclusive_end
       in: query
       required: false
       description: Indicates whether the specified end key should be included in the result.
-      schema: *ref_47
+      schema: *ref_50
     descending:
       name: descending
       in: query
       required: false
       description: Return documents in descending order.
-      schema: *ref_48
+      schema: *ref_51
     include_docs-cbs3:
       name: include_docs
       in: query
       required: false
       description: Only works when using Couchbase Server 3.0 and earlier. Indicates whether to include the full content of the documents in the response.
-      schema: *ref_49
+      schema: *ref_52
     reduce:
       name: reduce
       in: query
       required: false
       description: Whether to execute a reduce function on the response or not.
-      schema: *ref_50
+      schema: *ref_53
     group:
       name: group
       in: query
       required: false
       description: Group the results using the reduce function to a group or single row.
-      schema: *ref_51
+      schema: *ref_54
     skip:
       name: skip
       in: query
       required: false
       description: Skip the specified number of documents before starting to return results.
-      schema: *ref_52
+      schema: *ref_55
     limit:
       name: limit
       in: query
       required: false
       description: Return only the specified number of documents
-      schema: *ref_53
+      schema: *ref_56
     group_level:
       name: group_level
       in: query
       required: false
       description: Specify the group level to be used.
-      schema: *ref_54
+      schema: *ref_57
     startkey_docid:
       name: startkey_docid
       in: query
       required: false
       description: Return documents starting with the specified document identifier.
-      schema: *ref_55
+      schema: *ref_58
     endkey_docid:
       name: endkey_docid
       in: query
       required: false
       description: Stop returning records when the specified document identifier is reached.
-      schema: *ref_56
+      schema: *ref_59
     stale:
       name: stale
       in: query
       required: false
       description: Allow the results from a stale view to be used, without triggering a rebuild of all views within the encompassing design document.
-      schema: *ref_57
+      schema: *ref_60
     startkey:
       name: startkey
       in: query
       required: false
-      schema: *ref_29
+      schema: *ref_33
       description: Return records starting with the specified key.
     endkey:
       name: endkey
       in: query
       required: false
-      schema: *ref_30
+      schema: *ref_34
       description: Stop returning records when this key is reached.
     key:
       name: key
       in: query
       required: false
       description: Return only the document that matches the specified key.
-      schema: *ref_58
+      schema: *ref_61
     keys:
       name: keys
       in: query
       required: false
-      schema: *ref_28
+      schema: *ref_32
       description: An array of document ID strings to filter by.
     docid:
       name: docid
       in: path
       required: true
-      schema: *ref_25
+      schema: *ref_29
       example: doc1
       description: The document ID to run the operation against.
     rev:
       name: rev
       in: query
       required: false
-      schema: *ref_10
+      schema: *ref_14
       example: 2-5145e1086bb8d1d71a531e9f6b543c58
       description: The document revision to target. This can be a RevTree ID or a CV (Current Version) ID. If this is a CV value, ensure the query parameter is URL encoded (`+`->`%2B`, `@`->`%40`, etc.)
     open_revs:
       name: open_revs
       in: query
       required: false
-      schema: *ref_19
+      schema: *ref_23
       description: 'Option to fetch specified revisions of the document. The value can be all to fetch all leaf revisions or an array of revision numbers (i.e. open_revs=["rev1", "rev2"]). Only leaf revision bodies that haven''t been pruned are guaranteed to be returned. If this option is specified the response will be in multipart format. Use the `Accept: application/json` request header to get the result as a JSON object.'
     show_exp:
       name: show_exp
       in: query
       required: false
-      schema: *ref_20
+      schema: *ref_24
       description: Whether to show the expiry property (`_exp`) in the response.
     revs_from:
       name: revs_from
       in: query
       required: false
-      schema: *ref_21
+      schema: *ref_25
       description: Trim the revision history to stop at the first revision in the provided list. If no match is found, the revisions will be trimmed to the `revs_limit`.
     atts_since:
       name: atts_since
       in: query
       required: false
-      schema: *ref_22
+      schema: *ref_26
       description: Include attachments only since specified revisions. Excludes the attachments for the specified revisions. Only gets used if `attachments=true`.
     revs_limit:
       name: revs_limit
       in: query
       required: false
-      schema: *ref_23
+      schema: *ref_27
       description: Maximum amount of revisions to return for each document.
     includeAttachments:
       name: attachments
       in: query
       required: false
-      schema: *ref_24
+      schema: *ref_28
       description: Include attachment bodies in response.
     replicator2:
       name: replicator2
       in: query
       required: false
-      schema: *ref_9
+      schema: *ref_13
       description: Returns the document with the required properties for replication. This is an enterprise-edition only feature.
     new_edits:
       name: new_edits
       in: query
       required: false
-      schema: *ref_59
+      schema: *ref_62
       description: Setting this to false indicates that the request body is an already-existing revision that should be directly inserted into the database, instead of a modification to apply to the current document. This mode is used for replication.  This option must be used in conjunction with the `_revisions` property in the request body.
     Document-If-Match:
       name: If-Match
       in: header
       required: false
-      schema: *ref_17
+      schema: *ref_21
       description: An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
     include_docs:
       name: include_docs
       in: query
       required: false
-      schema: *ref_27
+      schema: *ref_31
       description: Include the body associated with each document.
     Include-channels:
       name: channels
       in: query
       required: false
-      schema: *ref_31
+      schema: *ref_35
       description: Include the channels each document is part of that the calling user also has access too.
     include-access:
       name: access
       in: query
       required: false
-      schema: *ref_32
+      schema: *ref_36
       description: Include what user/roles that each document grants access too.
     include-revs:
       name: revs
       in: query
       required: false
-      schema: *ref_33
+      schema: *ref_37
       description: Include all the revisions for each document under the `_revisions` property.
     include-seqs:
       name: update_seq
       in: query
       required: false
-      schema: *ref_34
+      schema: *ref_38
       description: Include the document sequence number `update_seq` property for each document.
     limit-result-rows:
       name: limit
       in: query
       required: false
-      schema: *ref_35
+      schema: *ref_39
       description: This limits the number of result rows returned. Using a value of `0` has the same effect as the value `1`.
     provider:
       name: provider
       in: query
       required: false
-      schema: *ref_37
+      schema: *ref_41
       description: The OpenID Connect provider to use for authentication.  The list of providers are defined in the Sync Gateway config. If left empty, the default provider will be used.
     offline:
       name: offline
       in: query
       required: false
-      schema: *ref_38
+      schema: *ref_42
       description: If true, the OpenID Connect provider is requested to confirm with the user the permissions requested and refresh the OIDC token. To do this, access_type=offline and prompt=consent is set on the redirection link.
     oidc-code:
       name: code
       in: query
       required: true
-      schema: *ref_60
+      schema: *ref_63
       description: The OpenID Connect authentication code.
     oidc-state:
       name: state
       in: query
       required: false
-      schema: *ref_61
+      schema: *ref_64
       description: The OpenID Connect state to verify against the state cookie. This is used to prevent cross-site request forgery (CSRF). This is not required if `disable_callback_state=true` for the provider config (NOT recommended).
     oidc-scope:
       name: scope
       in: query
       required: true
-      schema: *ref_40
+      schema: *ref_44
       description: The OpenID Connect authentication scope.
     oidc-redirect_uri:
       name: redirect_uri
       in: query
       required: false
-      schema: *ref_43
+      schema: *ref_47
       description: The Sync Gateway OpenID Connect callback URL.
   schemas:
     User-session-information:
       type: object
-      properties: *ref_62
+      properties: *ref_0
+      required: *ref_1
       title: User Session Information
     HTTP-Error:
       type: object
-      properties: *ref_0
-      required: *ref_1
+      properties: *ref_2
+      required: *ref_3
       title: HTTP-Error
     DatabaseState:
       description: The state of the database.
       type: string
-      enum: *ref_63
-      x-enumDescriptions: *ref_64
+      enum: *ref_65
+      x-enumDescriptions: *ref_66
     Vendor:
       description: Product vendor
       type: object
-      properties: *ref_65
-      required: *ref_66
+      properties: *ref_67
+      required: *ref_68
       title: Vendor
     NodeInfo:
       type: object
-      properties: *ref_67
-      required: *ref_68
+      properties: *ref_69
+      required: *ref_70
     Document:
       description: The configurable Sync Gateway properties of a document.
       type: object
       additionalProperties: true
-      properties: *ref_11
+      properties: *ref_15
     New-revision:
       description: Properties returned when a new document revision is created
       type: object
-      properties: *ref_12
-      required: *ref_13
+      properties: *ref_16
+      required: *ref_17
       title: New-revision
     Design-doc:
       description: Properties of a design document
       type: object
-      properties: *ref_4
+      properties: *ref_8
     Changes-feed:
       description: Properties of a changes feed
       type: object
-      properties: *ref_69
+      properties: *ref_71
     OIDC-callback:
       type: object
-      properties: *ref_70
+      properties: *ref_72
       title: OpenID Connect callback properties
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
       type: object
-      properties: *ref_71
+      properties: *ref_73
       title: OIDC-token
     OIDC-login-page-handler:
       description: Properties passed from the OpenID Connect mock login page to the handler
       type: object
-      properties: *ref_72
-      required: *ref_73
+      properties: *ref_74
+      required: *ref_75
   responses:
     User-session-information:
       description: Properties associated with a user session
-      content: *ref_74
+      content: *ref_76
+    Unauthorized:
+      description: User does not have access to resource, or resource does not exist
+      content: *ref_4
+    Invalid-CORS-LoginOrigin:
+      description: Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
+      content: *ref_5
     Not-found:
       description: Resource could not be found
-      content: *ref_2
-    Invalid-CORS:
-      description: Origin is not in the approved list of allowed origins
-      content: *ref_45
+      content: *ref_7
     request-problem:
       description: There was a problem with your request
-      content: *ref_14
+      content: *ref_18
     Conflict:
       description: Resource already exists under that name
-      content: *ref_15
+      content: *ref_19
     Invalid-content-type:
       description: Invalid content type
-      content: *ref_16
+      content: *ref_20
     ddoc-forbidden:
       description: Forbidden access possibly due to not using the Admin API or the design document is a built-in Sync Gateway one.
     invalid-doc-id:
@@ -3265,38 +3291,38 @@ components:
         Document ID is not in an allowed format therefore is invalid.
 
         This could be because it is over 250 characters or is prefixed with an underscore ("_").
-      content: *ref_18
+      content: *ref_22
     New-revision:
       description: New revision created successfully
-      content: *ref_75
+      content: *ref_77
     changes-feed:
       description: Successfully returned the changes feed
-      content: *ref_26
+      content: *ref_30
     all-docs:
       description: Operation ran successfully
-      content: *ref_36
+      content: *ref_40
     OIDC-invalid-provider:
       description: 'The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. '
     OIDC-connection:
       description: Unable to connect and validate with the OpenID Connect provider requested
     OIDC-callback:
       description: Successfully authenticated with OpenID Connect.
-      content: *ref_39
+      content: *ref_43
     OIDC-test-provider-disabled:
       description: The OpenID Connect unsupported config option `oidc_test_provider` is not enabled. To use this endpoint, this option must be enabled.
     OIDC-invalid-scope:
       description: A validation error occurred with the scope.
-      content: *ref_41
+      content: *ref_45
     OIDC-testing-internal-error:
       description: An error occurred.
-      content: *ref_42
+      content: *ref_46
     OIDC-token:
       description: Properties expected back from an OpenID Connect provider after successful authentication
-      content: *ref_76
+      content: *ref_78
     OIDC-testing-redirect:
       description: Redirecting to Sync Gateway OpenID Connect callback URL
-      headers: *ref_44
+      headers: *ref_48
   requestBodies:
     OIDC-login-page-handler:
-      content: *ref_77
+      content: *ref_79
       description: Properties passed from the OpenID Connect mock login page to the handler
