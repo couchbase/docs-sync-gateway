@@ -23,8 +23,8 @@ include::ROOT:partial$_show_page_header_block.adoc[]
 
 The _Sync Function_ computes both the document routing to channels and the user access to channels at document write time.
 
-If you change the Sync Function, Sync Gateway needs to reprocess all existing documents in the bucket to recalculate the routing and access assignments.
-A resync operation does this reprocessing.
+If the Sync Function is changed, Sync Gateway needs to reprocess all existing documents in the bucket to recalculate the routing and access assignments.
+This reprocessing is done through a resync operation.
 
 === When to Use Resync
 
@@ -34,83 +34,69 @@ You need to run a resync operation when:
 * You have changed access control rules in the Sync Function.
 * You want the changes to apply to all existing documents in the database.
 
-You'll not need to run the resync operation if either:
+You won't need to run the resync operation if either:
 
 * The modifications to the Sync Function only impact write security, and not routing/access.
-* You only want changes to channel/access rules to apply to documents written after you made the change.
+* You only want changes to channel/access rules to apply to documents written after the change was made.
 
 === Resync API
 
 The Admin REST API provides a {resync_api_post} endpoint that enables you to start or stop a resync operation.
-Starting the resync initiates the reprocessing of every document in the database.
+Starting the resync will initiate the reprocessing of every document in the database.
 
-The resync operation runs asynchronously.
+The resync operation is run asynchronously.
 Use {resync_api_get} to monitor the current status of a resync operation.
 
-IMPORTANT: When using nonpersistent (legacy) configuration, the resync action is carried out **only** on the node that the POST is made to.
-It is not cross-node aware.
-In a multi-node cluster, the resync must only run on 1 node.
-Starting resync on more than 1 node results in multiple instances running, with undefined system behavior.
-When using persistent configuration (default since Sync Gateway 3.0), resync operations work across all nodes automatically.
+IMPORTANT: The resync action is carried out **only** on the node that the POST is made to. It is not cross-node aware. In a multi-node cluster, the resync must only be run on one node. Starting resync on more than one node will result in multiple instances running, with undefined system behavior.
 
-NOTE: There's also a 'support-only' option to regenerate sequences while resyncing.
+NOTE: There is also a 'support-only' option to regenerate sequences whilst resyncing.
 
 
 == Update Sync Function and Resync
 
 This section describes how to update your Sync Function and perform a full resync of your database.
 
-IMPORTANT: This is an expensive operation because the new function must process every document in the database.
-The database cannot accept requests until resync is complete because Sync Gateway cannot determine any user's full access privileges until it scans all documents.
-Therefore, the Sync Function update results in application downtime while the database is offline.
+IMPORTANT: This is an expensive operation because it requires every document in the database to be processed by the new function. The database cannot accept requests until resync is complete because no user's full access privileges are known until all documents have been scanned. Therefore, the Sync Function update will result in application downtime whilst the database is offline.
 
 [{tabs}]
 ====
 Persistent Configuration::
 +
-Use this method when Couchbase Server stores your Sync Gateway configuration (default since Sync Gateway 3.0).
+Use this method when your Sync Gateway configuration is stored in Couchbase Server (recommended).
 +
 .Prerequisites
 +
-* The database is online.
+* The database is currently online.
 +
 .Procedure
 +
 . Update the configuration file of the Sync Gateway instance.
 . Restart Sync Gateway.
-. xref:database-offline.adoc#_persistent_configuration[Take the database offline] using `PUT /{db}/_config` with `{"offline": true}` (can use Load Balancer).
-+
-This updates the database configuration persisted in the bucket, and all nodes will go offline.
-. Run resync using {resync_api_post} (you can call this on any node or through Load Balancer).
+. xref:database-offline.adoc#_persistent_configuration[Take the database offline] using `POST /{db}/_config` with `{"offline": true}` (can use Load Balancer).
+. Run resync using {resync_api_post}.
 . Monitor resync status using {resync_api_get}.
 +
-The message body of the response contains the number of changes that resync made.
-. xref:database-offline.adoc#_persistent_configuration_2[Bring the database back online] using `PUT /{db}/_config` with `{"offline": false}` (can use Load Balancer).
-+
-This updates the database configuration persisted in the bucket, and all nodes go online.
+The message body of the response contains the number of changes that were made as a result of calling resync.
+. xref:database-offline.adoc#_persistent_configuration_2[Bring the database back online] using `POST /{db}/_config` with `{"offline": false}` (can use Load Balancer).
 
 Non-Persistent Configuration::
 +
-Use this method when local config files store your Sync Gateway configuration (legacy mode).
+Use this method when your Sync Gateway configuration is stored in local config files (legacy mode).
 +
 .Prerequisites
 +
-* The database is online.
+* The database is currently online.
 +
 .Procedure
 +
 . Update the configuration file on all nodes.
 . Restart Sync Gateway.
 . xref:database-offline.adoc#_non_persistent_configuration[Take the database offline] by calling `POST /{db}/_offline` on each node individually (do not use Load Balancer).
-+
-This modifies the state on the current node only.
-. Run resync using {resync_api_post} on a single node only (do not use Load Balancer).
+. Run resync using {resync_api_post}.
 . Monitor resync status using {resync_api_get}.
 +
-The message body of the response contains the number of changes that resync made.
+The message body of the response contains the number of changes that were made as a result of calling resync.
 . xref:database-offline.adoc#_non_persistent_configuration_2[Bring the database back online] by calling `POST /{db}/_online` on each node individually (do not use Load Balancer).
-+
-This modifies the state on the current node only.
 ====
 
 
@@ -121,25 +107,25 @@ This section covers important considerations when running a resync operation.
 === Resync Context
 
 When running a resync operation, the context in the Sync Function is the admin user.
-For that reason, calling the methods `requireUser`, `requireAccess`, and `requireRole` always succeeds.
-You may use those functions in production to govern write operations.
+For that reason, calling the methods `requireUser`, `requireAccess`, and `requireRole` will always succeed.
+It is very likely that you are using those functions in production to govern write operations.
 But in a resync operation, all the documents are already written to the database.
-For that reason, it's recommended to use resync for changing the assignment to channels only (i.e. reads).
+For that reason, it is recommended to use resync for changing the assignment to channels only (i.e. reads).
 
 === Revoking Access
 
-If you change the sync function to revoke a user's access to a document, the access only takes effect once you save a new revision to that document on Sync Gateway.
+If you change the sync function to revoke a user's access to a document, the access will only take effect once a new revision to that document is saved on Sync Gateway.
 Running a resync operation does not revoke access to that document.
 
 === Maintaining Availability During Resync
 
-If you need to verify access to the database during a Sync function update and resync, you can create a read-only backup of the Sync Gateway's bucket beforehand, then run a secondary Sync Gateway on the backup bucket in read-only mode.
+If you need to ensure access to the database during a Sync function update and resync, you can create a read-only backup of the Sync Gateway's bucket beforehand, then run a secondary Sync Gateway on the backup bucket, in read-only mode.
 Once you detect the resync is complete, switch back to the main Sync Gateway and bucket.
 
 === Monitoring Resync Status
 
-Resync runs asynchronously.
-Monitor its status with {resync_api_get}.
+Resync is run asynchronously.
+Monitor its status using {resync_api_get}.
 
 
 include::ROOT:partial$block-related-content-sync.adoc[]
