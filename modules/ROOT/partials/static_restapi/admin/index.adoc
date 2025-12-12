@@ -1139,7 +1139,7 @@ CAUTION: This operation is deprecated, and will be removed in a future release.
 --
 Creates a new session based on a Facebook user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
 
-If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
 --
 
 
@@ -1263,7 +1263,7 @@ a|
 | 400
 a| [markdown]
 --
-Origin is not in the approved list of allowed origins
+Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
 --
 a| xref:HTTP_Error[]
 
@@ -1379,7 +1379,7 @@ CAUTION: This operation is deprecated, and will be removed in a future release.
 --
 Creates a new session based on a Google user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
 
-If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
 --
 
 
@@ -1503,7 +1503,7 @@ a|
 | 400
 a| [markdown]
 --
-Origin is not in the approved list of allowed origins
+Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
 --
 a| xref:HTTP_Error[]
 
@@ -27020,10 +27020,10 @@ Session created successfully. Returned body is dependant on if using Public or A
 a| xref:post_db__session_200_response[]
 
 
-| 400
+| 401
 a| [markdown]
 --
-Origin is not in the approved list of allowed origins
+User does not have access to resource, or resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -27031,7 +27031,7 @@ a| xref:HTTP_Error[]
 | 404
 a| [markdown]
 --
-Resource could not be found
+Return if database does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -31565,7 +31565,7 @@ endif::[]
 [#models]
 = Definitions
 
-:count-models: 178
+:count-models: 179
 
 :leveloffset: +1
 
@@ -31583,6 +31583,7 @@ xref:All_replications[]
 xref:Attachment_Migration_status[]
 xref:audit_event_verbose[]
 xref:Audit_logging_config[]
+xref:CORS[]
 xref:Changes-feed[]
 xref:Collection_config[]
 xref:Compact_status[]
@@ -32181,6 +32182,113 @@ a¦ Big Decimal
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/Audit_logging_config/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/CORS/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#CORS]
+= Cors Configuration
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/CORS/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::CORS[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*headers* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of allowed headers. These headers will be added the `Access-Control-Allow-Headers` response to a valid CORS request.
+
+A recommended minimum set of values should be `["Accept-Encoding", "Authorization", "Content-Type", "If-Match"]`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+a¦ 
+*login_origin* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of allowed origins to apply to public `/{db}/_session` API.
+
+To use cors on `/{db}/_session`, the domain must be present in both `login_origin` and `origin`.
+
+If configured, `Authorization` must be included in headers.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+a¦ 
+*max_age* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Value for `Access-Control-Maximum-Age`. Uses 0 by default.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*origin* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of allowed origins for the public API. The request `Origin` header is checked against these values. If successful the `Origin` header is returned in the HTTP response header as `Access-Control-Allow-Origin`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+|===
+
+//end::CORS[]
+
+
+
+
+// markup not found, no include::{specDir}definitions/CORS/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/CORS/definition-after.adoc[opts=optional]
 
 
 
@@ -35654,69 +35762,15 @@ endif::collapse-models[]
 // markup not found, no include::{specDir}definitions/Database_config_cors/definition-begin.adoc[opts=optional]
 
 
-.icon:brackets-curly[fw] Object
+.icon:bars[fw] Composite Schema
 {blank}
 
-//tag::Database_config_cors[]
+All of the following:
 
-ifdef::model-descriptions[]
-//tag::desc-Database_config_cors[]
-CORS configuration for this database; if present, overrides server's config.
-//end::desc-Database_config_cors[]
-endif::model-descriptions[]
+* xref:Object[]
 
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
 
-a¦ 
-*headers* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed headers
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*login_origin* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed login origins
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*origin* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed origins, use ['*'] to allow access from everywhere
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-|===
-
-//end::Database_config_cors[]
+* Object
 
 
 
@@ -37501,6 +37555,22 @@ Enable self-signed certificates for external JavaScript load.
 [%hardbreaks]
 {blank}
 a¦ Boolean
+
+
+a¦ 
+*same_site_cookie* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Override the session cookie SameSite behavior. By default, a session cookie will have SameSite:None if CORS is enabled, and will have no SameSite attribute if CORS is not enabled.  Setting this property to`Default` will omit the SameSite attribute from the cookie.
+--
+
+[%hardbreaks]
+*Values:* `"Default"`, `"Lax"`, `"None"`, `"Strict"`
+{blank}
+a¦ String
 
 
 a¦ 
@@ -48120,79 +48190,15 @@ endif::collapse-models[]
 // markup not found, no include::{specDir}definitions/Startup_config_api_cors/definition-begin.adoc[opts=optional]
 
 
-.icon:brackets-curly[fw] Object
+.icon:bars[fw] Composite Schema
 {blank}
 
-//tag::Startup_config_api_cors[]
+All of the following:
+
+* Object
 
 
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*headers* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed headers
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*login_origin* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed login origins
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*max_age* +
-_optional_
-a¦ 
-
-[markdown]
---
-Maximum age of the CORS Options request
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*origin* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed origins, use ['*'] to allow access from everywhere
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-|===
-
-//end::Startup_config_api_cors[]
+* xref:Object[]
 
 
 
@@ -52046,26 +52052,28 @@ endif::collapse-models[]
 
 a¦ 
 *authentication_handlers* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
 --
-The ways authentication can be established to authenticate as the user.
+The ways authentication can be established to authenticate as a user. Used for CouchDB compatibility. Always contains "default" and "cookie".
 --
 
 [%hardbreaks]
+*Values:* `[&quot;default&quot;,&quot;cookie&quot;]`
 {blank}
 a¦ String
  array
 
 a¦ 
 *ok* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
 --
+Used for CouchDB compatibility. Always true.
 --
 
 [%hardbreaks]
@@ -52075,7 +52083,7 @@ a¦ Boolean
 
 a¦ 
 *userCtx* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
@@ -52131,25 +52139,22 @@ endif::collapse-models[]
 
 a¦ 
 *channels* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
 --
-A map of the channels the user has access to and the sequence number each channel was created at.
-
-The key is the channel name and the value is the sequence number.
-
+A map of the channels in the default collection that the user is in along with the sequence number the user was granted access. This does not include inherited channels through roles.
 --
 
 [%hardbreaks]
 {blank}
-a¦ Object
+a¦ xref:Map[]
 
 
 a¦ 
 *name* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
@@ -52158,6 +52163,7 @@ The name of the user.
 --
 
 [%hardbreaks]
+*Minimum length:* `1`
 {blank}
 a¦ String
 
