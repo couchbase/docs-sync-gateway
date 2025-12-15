@@ -34,11 +34,27 @@ TIP: See: {compatibility--xref} for version compatibility information.
 
 Couchbase Server's {server-eventing--xref} feature provides a framework to operate on changes to data in real time.
 
-Here we provide details on how {server-eventing--xref} relates to data changes in the Couchbase Mobile ecosystem.
+This page provides details on how {server-eventing--xref} relates to data changes in the Couchbase Mobile ecosystem.
 
 == Using Eventing - Server 7.6.3+
 
 include::ROOT:partial$block-caveats.adoc[tags=eventing-mixed-mode]
+
+[IMPORTANT]
+--
+Sync Gateway must be running with {configuration-overview--xref} enabled to support compatibility with Eventing.
+
+Databases created via file-based configuration (when running with `-disable_persistent_config`) are not recorded in the Couchbase Server registry.
+Without registry records, Eventing cannot:
+
+* Detect Sync Gateway databases to prevent deployment conflicts
+* Prevent duplicate mutations when processing document changes
+
+Persistent configuration is:
+
+* The *only* option available on Capella
+* The default and *recommended* configuration mode for on-premises deployments since Sync Gateway 3.0
+--
 
 Sync Gateway 3.2.0 and later supports interoperability with Eventing from Couchbase Server version 7.6.3+.
 You can use Eventing to handle data changes that happen when applications interact and to integrate with other Couchbase services such as Data, Query and Full Text Search.
@@ -55,7 +71,7 @@ For Sync Gateway versions that write import XATTRs:
 
 * Eventing now prevents duplicate mutations with the opt-in `import_mutation_aware` boolean flag.
 
-NOTE: If the `import_mutation_aware` flag is set to `true`, the performance of the Eventing function drops. 
+NOTE: If the `import_mutation_aware` flag is set to `true`, the performance of the Eventing function drops.
 This happens because every mutation processed by Eventing requires a Sub-Document operation to maintain a cursor or state for any function that shares a Sync Gateway endpoint.
 
 The procedure to enable Sync Gateway support for an Eventing function is as follows:
