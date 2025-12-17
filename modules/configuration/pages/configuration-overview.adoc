@@ -32,23 +32,26 @@ include::ROOT:partial$_show_page_header_block.adoc[]
 It enables simpler, more agile configuration updates and encompasses:
 
 * *Bootstrap Startup* +
-A minimal configuration file is used to bootstrap a {sgw} node and attach it to its Couchbase Server cluster; these files and their settings are node-specific -- see the {configuration-schema-bootstrap--xref}
+Use a minimal configuration file to bootstrap a {sgw} node and attach it to its Couchbase Server cluster; these files and their settings are node-specific -- see the {configuration-schema-bootstrap--xref}
 
 * *Dynamic Configuration* +
 The ability to make remote in-flight configuration changes to database settings, access-control policies and inter-{sgw} replications, enables simpler and more agile maintenance.
 
 * *Cluster-aware Updates* +
-Configuration changes made to a node through the API endpoints are propagated to other {sgw} nodes belonging to the same cluster (or to a user-defined subset of nodes) -- <<lbl-config-grp>>
+Configuration changes made to a node through the API endpoints propagate to other {sgw} nodes belonging to the same cluster (or to a user-defined subset of nodes) -- <<lbl-config-grp>>
 
 * *Persistent Updates* +
-Any database changes made using the API endpoints are persisted and survive {sgw} node restarts (this does not apply when running in file-based configuration mode).
+Any database changes made using the API endpoints persist and survive {sgw} node restarts (this does not apply when running in file-based configuration mode).
++
+NOTE: Using {sgw} with Couchbase Server's {server-eventing--xref} feature requires persistent configuration.
+Databases created via file-based configuration are not recorded in the registry and Eventing cannot detect them for compatibility checks -- see {server-compatibility-eventing--xref}.
 
 * *Secure REST API* +
 by default the REST API requires authentication and authorization using Couchbase Server RBAC-user credentials -- see {secure-sgw-access--xref}.
 This can be disabled for test purposes only.
 
 * *Automatic upgrade path* +
-Your existing legacy Pre-3.0 configuration files will (optionally) be automatically converted, on start-up, to the new format for {ec}.
+Your existing legacy Pre-3.0 configuration files are optionally converted automatically on start-up to the new format for {ec}.
 
 
 == Workflow
@@ -59,16 +62,16 @@ In the {ec-te} ecosphere you provide a minimal bootstrap configuration to get Sy
 image::ROOT:persistent-config.png[,750]
 
 . Set up a user for the Admin REST API on Couchbase Server +
-Alternatively, you can disable authentication of REST API user(s) -- for test purposes *only*
+You can turn off authentication of REST API users for test purposes *only*
 
 . Provide a {sgw--xref}{configuration-schema-bootstrap--page}[bootstrap configuration file], in JSON format, which defines the {sgw} node's run time behavior.
 This configuration is node-specific.
 Any changes require a {sgw} restart.
 
 . Add or amend configuration items in-flight using the Admin Rest API. +
-All changes are persisted across {sgw} restarts.
-Auto restarts will be initiated for ny change that requires one.
-You will need to configure and maintain:
+All changes persist across {sgw} restarts.
+{sgw} initiates auto restarts for any change that requires one.
+You'll need to configure and maintain:
 
 .. Databases +
 Use the Admin REST API endpoint {sgw--xref}{configuration-schema-database--page}[Database Configuration] endpoints to add required databases.
@@ -89,7 +92,7 @@ Use the {sgw--xref}{configuration-schema--isgr--page}[inter-{sgw} replication] e
 include::ROOT:partial$block-caveats.adoc[tags=disable-persistent-config]
 
 This ensures you can use the {configuration-properties-legacy--xref}.
-Note that no Admin REST API changes are persisted across {sgw} restarts.
+NOTE: no Admin REST API changes persist across {sgw} restarts.
 
 
 == Key Terms
@@ -108,7 +111,7 @@ Note that no Admin REST API changes are persisted across {sgw} restarts.
 
 |{sgw-t} Config Group
 |A group of {sgw} nodes within a {sgw} cluster sharing common configuration.
-Each node in the group will continue to have node-specific config.
+Each node in the group continues to have node-specific config.
 
 // |Static
 // |In a configuration context, this term is used to identify changes requiring a {sgw} node restart to take effect.
@@ -189,11 +192,11 @@ You can group {sgw} nodes into homogenous clusters using the `Config-Group-ID` p
 This defines the database configuration group to which a node belongs.
 
 All nodes in a group share the same database configuration.
-Changes made from one node are propagated to other nodes in the group automatically.
+Changes made from 1 node propagate automatically to other nodes in the group.
 
 All nodes in a cluster belong, by default, to a common shared group `default`.
 
-If you move a {sgw} node to a new group, it will inherit the configuration associated with that group.
+If you move a {sgw} node to a new group, it inherits the configuration associated with that group.
 This applies also if you move a group (back) into the `default` group.
 
 
