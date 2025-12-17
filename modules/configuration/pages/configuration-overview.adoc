@@ -41,14 +41,17 @@ The ability to make remote in-flight configuration changes to database settings,
 {sgw} propagates configuration changes made to a node through the API endpoints to other nodes belonging to the same cluster (or to a user-defined subset of nodes) -- <<lbl-config-grp>>
 
 * *Persistent Updates* +
-Any database changes made using the API endpoints are persisted and survive {sgw} node restarts (this does not apply when running in file-based configuration mode).
+Any database changes made using the API endpoints persist and survive {sgw} node restarts (this does not apply when running in file-based configuration mode).
++
+NOTE: Using {sgw} with Couchbase Server's {server-eventing--xref} feature requires persistent configuration.
+Databases created via file-based configuration are not recorded in the registry and Eventing cannot detect them for compatibility checks -- see {server-compatibility-eventing--xref}.
 
 * *Secure REST API* +
 by default the REST API requires authentication and authorization using Couchbase Server RBAC-user credentials -- see {secure-sgw-access--xref}.
 This can be disabled for test purposes only.
 
 * *Automatic upgrade path* +
-Your existing legacy Pre-3.0 configuration files (optionally) are automatically converted, on start-up, to the new format for {ec}.
+Your existing legacy Pre-3.0 configuration files are optionally converted automatically on start-up to the new format for {ec}.
 
 
 == Workflow
@@ -59,15 +62,15 @@ In the {ec-te} ecosphere you provide a minimal bootstrap configuration to get Sy
 image::ROOT:persistent-config.png[,750]
 
 . Set up a user for the Admin REST API on Couchbase Server +
-Or turn off authentication of REST API users -- for test purposes *only*
+You can turn off authentication of REST API users for test purposes *only*
 
 . Provide a {sgw--xref}{configuration-schema-bootstrap--page}[bootstrap configuration file], in JSON format, which defines the {sgw} node's run time behavior.
 This configuration is node-specific.
 Any changes require a {sgw} restart.
 
 . Add or amend configuration items in-flight using the Admin Rest API. +
-{sgw} persists all changes across restarts.
-{sgw} automatically initiates restarts for any change that requires one.
+All changes persist across {sgw} restarts.
+{sgw} initiates auto restarts for any change that requires one.
 You'll need to configure and maintain:
 
 .. Databases +
