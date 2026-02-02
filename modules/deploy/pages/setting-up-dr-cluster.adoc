@@ -120,9 +120,14 @@ The optional optimization step confirms that there is no downtime during the act
 .Set Up
 To set up and maintain a disaster recovery cluster - see: <<fig-dr-diff-regn-setup>>:
 
-. [*Optional step -- for optimization*] Start Sync Gateway with `offline: true` in the Disaster Recovery cluster to asynchronously create indexes.
-If you skip this test, you'll incur latency when you switch Sync Gateway to the Disaster Recovery cluster and Sync Gateway rebuilds its indexes.
-. [*Critical step*] Turn off *all* the Sync Gateways in the Disaster Recovery cluster.
+. [*Optional step -- for optimization*] Initialize Sync Gateway indexes on the Disaster Recovery cluster:
+.. Configure Sync Gateway to point to the Disaster Recovery cluster.
+.. Start the database in offline mode (`offline: true` in the database configuration) to build indexes asynchronously.
+.. Once indexes are created, shut down Sync Gateway on the Disaster Recovery cluster.
++
+This pre-initialization allows XDCR to maintain the indexes in the background during normal operations, reducing latency during disaster recovery activation.
+If you skip this step, you'll incur latency when switching to the Disaster Recovery cluster as Sync Gateway rebuilds its indexes from scratch.
+. [*Critical step*] Ensure *all* Sync Gateways in the Disaster Recovery cluster remain offline.
 . Start the *unidirectional* XDCR from the Primary cluster to the Disaster Recovery cluster.
 
 [#fig-dr-diff-regn-setup]
