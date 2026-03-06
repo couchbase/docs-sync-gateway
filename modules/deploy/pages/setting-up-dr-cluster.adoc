@@ -88,6 +88,12 @@ It includes an optional optimization step, which confirms that there is no downt
 To set up and maintain a disaster recovery cluster:
 
 . Connect Sync Gateway to your Primary cluster.
+. [*Optional step -- for optimization*] Pre-initialize Sync Gateway indexes on the Disaster Recovery cluster:
+.. Temporarily reconfigure the Sync Gateway cluster to connect to the Disaster Recovery cluster with the database in offline mode (`offline: true` in the database configuration) so that indexes are built asynchronously.
+.. After the indexes are created, reconfigure the Sync Gateway cluster to connect back to the Primary cluster.
++
+Creating all indexes beforehand reduces switching costs.
+If you skip this step, you'll incur latency when Sync Gateway switches to the Disaster Recovery cluster and Sync Gateway rebuilds its indexes.
 . Start the *unidirectional* XDCR from the Primary cluster to the Disaster Recovery cluster.
 
 [#fig-dr-same-regn]
