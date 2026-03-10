@@ -23,16 +23,141 @@ include::ROOT:partial$_show_page_header_block.adoc[]
 
 == Introduction
 
+To get the most out of Sync Gateway, you may need to tune OS-level parameters that control the maximum number of open file descriptors.
+This directly affects the maximum number of *sockets* Sync Gateway can have open, and therefore the maximum number of endpoints it can support.
 
-To get the most out of Sync Gateway, it may be necessary to tune a few parameters of the OS.
+[IMPORTANT]
+====
+*Deployment scope:* The instructions in this page apply to Sync Gateway installed directly on a host OS (for example, a bare-metal server or virtual machine). +
 
-Raising the maximum number of file descriptors available to Sync Gateway is important because it directly affects the maximum number of *sockets* the Sync Gateway can have open, and therefore the maximum number of endpoints that the Sync Gateway can support.
+If you are running Sync Gateway in a *container environment* (Docker, Kubernetes, or similar), the host-level `ulimit` and `sysctl` steps described here do not apply in the same way.
+See <<container-environments>> for guidance.
+====
 
-The instructions here are geared towards CentOS deployments.
+The host-level instructions below are geared towards CentOS deployments but are broadly applicable to other Linux distributions.
+
+
+[#container-environments]
+== Container Environments
+
+In a container environment, the host OS controls the upper bound on file descriptors, but each container gets its own `ulimit` set by the container runtime at startup — not by the host-level `/etc/security/limits.conf` or `sysctl` configuration.
+This means your Infra or Platform team, rather than the application team, typically owns this configuration.
+
+File descriptor limits for Sync Gateway scale with the number of connected clients.
+There is no single fixed minimum, but the default OS limit of `1024` is insufficient for any production deployment.
+The recommended starting value for `nofile` (maximum open files) is `250000`, which provides headroom for high client concurrency.
+
+[NOTE]
+====
+The exact value your deployment needs depends on your expected peak concurrent client connections and the resources available on the host.
+Start with `250000` and adjust based on observed behavior.
+If you continue to see `too many open files` errors after raising the limit, see <<tcp-keepalive-params>> for additional tuning options.
+====
+
+
+=== Docker
+
+Docker containers use the *lesser* of two limits: the per-container `--ulimit` flag passed at runtime, and the Docker daemon's own default `ulimit` configuration.
+If the Docker daemon is configured with a low default (for example, `65535`), passing a higher value via `--ulimit` on `docker run` has no effect.
+Both values must be raised together to achieve the desired limit.
+
+*Step 1: Configure the Docker daemon default ulimit.*
+
+Edit or create `/etc/docker/daemon.json` on the host:
+
+[source,json]
+----
+{
+  "default-ulimits": {
+    "nofile": {
+      "Name": "nofile",
+      "Hard": 250000,
+      "Soft": 250000
+    }
+  }
+}
+----
+
+Restart the Docker daemon to apply the change:
+
+[source,bash]
+----
+$ sudo systemctl restart docker
+----
+
+*Step 2: Pass the `--ulimit` flag when starting the Sync Gateway container.*
+
+[source,bash]
+----
+docker run -d \
+  --ulimit nofile=250000:250000 \ // <.>
+  --name sync-gateway \
+  -p 4984:4984 -p 4985:4985 \
+  couchbase/sync-gateway
+----
+<.> Sets both the soft and hard `nofile` limit to 250,000 for this container.
+The `--ulimit` flag requires Docker 1.6 or later.
+
+Verify the effective limit inside the running container:
+
+[source,bash]
+----
+docker exec sync-gateway sh -c "ulimit -n"
+----
+
+The output should be `250000`.
+If it is lower, check the Docker daemon configuration and ensure the daemon was restarted after editing `daemon.json`.
+
+
+=== Kubernetes
+
+Kubernetes does not expose a direct `ulimit` field in the Pod spec.
+The `nofile` limit for containers is inherited from the node's container runtime configuration (containerd or CRI-O).
+To raise the limit, you have two options:
+
+. *Configure the container runtime on each node* — edit the runtime configuration (for example, containerd's `config.toml`) to raise `DefaultRlimits` for `NOFILE`.
+. *Use a privileged init container via a DaemonSet* — set the limit at the node level before the Sync Gateway pod starts.
+
+Work with your Infra or Platform team to determine which approach fits your cluster policy.
+The required changes depend on your runtime, distribution, and cluster security policy, and are therefore outside the scope of Couchbase documentation.
+
+[TIP]
+====
+After applying changes, verify the effective limit from inside the running pod:
+
+[source,bash]
+----
+kubectl exec <sync-gateway-pod> -- sh -c "ulimit -n"
+----
+====
+
+
+=== Sync Gateway `max_file_descriptors` Setting
+
+Regardless of whether you are running on a host or in a container, configure the `max_file_descriptors` parameter in the Sync Gateway bootstrap configuration to match the limit set at the OS or container runtime level.
+
+See {bootstrap-schema--xref--max-file-descriptors} and <<ex-max-file-desc-container>>.
+
+[#ex-max-file-desc-container]
+.Set `max_file_descriptors` to match the container ulimit
+====
+[source,json]
+----
+{
+  "max_file_descriptors": 250000 // <.>
+}
+----
+<.> Set this to the same value as your container's `nofile` ulimit.
+Default is `5000`.
+====
+
+[NOTE]
+====
+Setting `max_file_descriptors` higher than the OS or container `nofile` limit has no effect — Sync Gateway cannot exceed the limit imposed by the runtime.
+====
 
 
 == Operating System File Descriptor Limits
-
 
 Increase the max number of file descriptors available to *all processes*.
 
@@ -57,8 +182,7 @@ $ sysctl -p // <.>
 
 == Sync Gateway File Descriptor Limits
 
-
-Configure the maximum number of open files descriptors in Sync Gateway in line with the above changes.
+Configure the maximum number of open file descriptors in Sync Gateway in line with the above changes.
 
 See the {bootstrap-schema--xref--max-file-descriptors} and <<ex-max-file-desc>>.
 
@@ -68,18 +192,15 @@ See the {bootstrap-schema--xref--max-file-descriptors} and <<ex-max-file-desc>>.
 [source,json]
 ----
 {
-  ...
-  "max_file_descriptors:": 250000, <.>
-  ...
+  "max_file_descriptors": 250000 // <.>
 }
 ----
-
 <.> Default = 5000
 ====
 
 
+[#service-fd-limits]
 == Service File Descriptor Limits
-
 
 For systemd config::
 
@@ -87,23 +208,29 @@ The `/usr/lib/systemd/system/sync_gateway.service` has a hardcoded limit specifi
 +
 To increase that, edit the `/sync_gateway.service` file to your desired value and restart the service.
 
+
+[#process-fd-limits]
 == Process File Descriptor Limits
 
-If you are running Sync Gateway outside of _systemd_, use the following instructions.
+[NOTE]
+====
+This section applies only to *host-based* Sync Gateway deployments running outside of systemd.
+For container environments, see <<container-environments>>.
+For systemd deployments, see <<service-fd-limits>>.
+====
 
 TIP: If you are using systemd, you can skip this section.
 
 . Increase the *ulimit* setting for max number of file descriptors available to a single process.
-For example, setting it to 250K will allow the Sync Gateway to have 250K connections open at any given time, and leave 250K remaining file descriptors available for the rest of the processes on the machine.
-These settings are just an example, you will probably want to tune them for your own particular use case.
+For example, setting it to 250K will allow Sync Gateway to have 250K connections open at any given time, and leave 250K remaining file descriptors available for the rest of the processes on the machine.
+These settings are an example — tune them for your own use case.
 +
 [source,bash]
 ----
 $ ulimit -n 250000
 ----
 
-. To persist the ulimit change across reboots, add the following lines to: +
- `/etc/security/limits.conf`.
+. To persist the ulimit change across reboots, add the following lines to `/etc/security/limits.conf`:
 +
 [source,bash]
 ----
@@ -111,7 +238,7 @@ $ ulimit -n 250000
 * hard nofile 250000
 ----
 
-. Verify your changes by running the following commands.
+. Verify your changes by running the following commands:
 +
 [source,bash]
 ----
@@ -124,6 +251,7 @@ The output value of both commands above should be `250000`.
 See also: https://glassonionblog.wordpress.com/2013/01/27/increase-ulimit-and-file-descriptors-limit/[Increasing ulimit and file descriptors limit on Linux]
 
 
+[#tcp-keepalive-params]
 == TCP Keepalive Parameters
 
 If you have already raised the maximum number of file descriptors available to Sync Gateway, but you are still seeing "too many open files" errors, you may need to tune the TCP Keepalive parameters.
@@ -143,13 +271,13 @@ If you are seeing "too many open files" errors, you can count the number of esta
 $ lsof -p <sync_gw_pid> | grep -i established | wc -l
 ----
 
-If the value returned is near your max file descriptor limit, then you can either try increasing the max file descriptor limit even higher, or tuning the TCP Keepalive parameters to reduce the amount of time that dead peers will cause a socket to be held open on their behalf.
+If the value returned is near your max file descriptor limit, you can either try increasing the max file descriptor limit even further, or tune the TCP Keepalive parameters to reduce the amount of time that dead peers hold a socket open on their behalf.
 
 
 [[_linux_instructions_centos_1]]
 === Linux Instructions (CentOS)
 
-Tuning the TCP Keepalive settings is not without its downsides -- it will increase the amount of overall network traffic on your system, because the tcp/ip stack will be sending more frequent Keepalive packets in order to detect dead peers faster.
+Tuning the TCP Keepalive settings is not without its downsides -- it will increase the amount of overall network traffic on your system, because the tcp/ip stack will be sending more frequent keepalive packets in order to detect dead peers faster.
 
 The following settings will reduce the amount of time that dead peer connections hang around from approximately 2 hours down to approximately 30 minutes.
 Add the following lines to your `/etc/sysctl.conf` file:
@@ -163,7 +291,7 @@ net.ipv4.tcp_keepalive_probes = 20
 
 This translates to:
 
-. The keepalive routines wait initially for 10 minutes (600 secs) before sending the first keepalive probe
+. The keepalive routines wait initially for 10 minutes (600 secs) before sending the first keepalive probe.
 . Resend the probe every minute (60 seconds).
 . If no ACK response is received for 20 consecutive times, the connection is marked as broken.
 
