@@ -87,10 +87,13 @@ It includes an optional optimization step, which confirms that there is no downt
 .Set Up
 To set up and maintain a disaster recovery cluster:
 
-. [*Optional step -- for optimization*] Start Sync Gateway with `offline: true` in the Disaster Recovery cluster to asynchronously create indexes.
-Creating all indexes beforehand reduces switching costs. +
-If you skip this test, you'll incur latency when Sync Gateway switches to the Disaster Recovery cluster and Sync Gateway rebuilds its indexes.
 . Connect Sync Gateway to your Primary cluster.
+. [*Optional step -- for optimization*] Pre-initialize Sync Gateway indexes on the Disaster Recovery cluster:
+.. Temporarily reconfigure the Sync Gateway cluster to connect to the Disaster Recovery cluster with the database in offline mode (`offline: true` in the database configuration) so that indexes are built asynchronously.
+.. After the indexes are created, reconfigure the Sync Gateway cluster to connect back to the Primary cluster.
++
+Creating all indexes beforehand reduces switching costs.
+If you skip this step, you'll incur latency when Sync Gateway switches to the Disaster Recovery cluster and Sync Gateway rebuilds its indexes.
 . Start the *unidirectional* XDCR from the Primary cluster to the Disaster Recovery cluster.
 
 [#fig-dr-same-regn]
@@ -101,9 +104,8 @@ image::ROOT:{image-sgw-xdcr-dr-same-regn-setup}[,{std-image-size}]
 When you're ready to switch to Disaster Recovery operations:
 
 . Stop the replication (XDCR) from the Primary cluster to Disaster Recovery cluster.
-. *After you stop XDCR:* Switch the Load Balancer to point to the Sync Gateway on the Disaster Recovery cluster.
-This approach keeps the deployment of Sync Gateway at only 1 end of the XDCR replication.
-. Promote the Disaster Recovery cluster to Primary and the *old* Primary to Disaster Recovery.
+. Reconfigure the Sync Gateway cluster to connect to the Disaster Recovery cluster instead of the Primary cluster.
+. Make the Disaster Recovery cluster the *new* Primary and the *old* Primary the *new* Disaster Recovery.
 . Flush all replicated buckets in the Primary cluster as a precaution against any spurious writes that enter the Primary cluster and XDCR fails to replicate when you stop it.
 . Reverse the XDCR to replicate from the newly promoted Primary to the old Primary to set up a new Backup.
 
@@ -124,9 +126,14 @@ The optional optimization step confirms that there is no downtime during the act
 .Set Up
 To set up and maintain a disaster recovery cluster - see: <<fig-dr-diff-regn-setup>>:
 
-. [*Optional step -- for optimization*] Start Sync Gateway with `offline: true` in the Disaster Recovery cluster to asynchronously create indexes.
-If you skip this test, you'll incur latency when you switch Sync Gateway to the Disaster Recovery cluster and Sync Gateway rebuilds its indexes.
-. [*Critical step*] Turn off *all* the Sync Gateways in the Disaster Recovery cluster.
+. [*Optional step -- for optimization*] Initialize Sync Gateway indexes on the Disaster Recovery cluster:
+.. Configure Sync Gateway to point to the Disaster Recovery cluster.
+.. Start the database in offline mode (`offline: true` in the database configuration) to build indexes asynchronously.
+.. Once indexes are created, shut down Sync Gateway on the Disaster Recovery cluster.
++
+This pre-initialization allows XDCR to maintain the indexes in the background during normal operations, reducing latency during disaster recovery activation.
+If you skip this step, you'll incur latency when switching to the Disaster Recovery cluster as Sync Gateway rebuilds its indexes from scratch.
+. [*Critical step*] Ensure *all* Sync Gateways in the Disaster Recovery cluster remain offline.
 . Start the *unidirectional* XDCR from the Primary cluster to the Disaster Recovery cluster.
 
 [#fig-dr-diff-regn-setup]
