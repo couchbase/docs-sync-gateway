@@ -26,12 +26,10 @@ include::ROOT:partial$_show_page_header_block.adoc[]
 To get the most out of Sync Gateway, you may need to tune OS-level parameters that control the maximum number of open file descriptors.
 This directly affects the maximum number of *sockets* Sync Gateway can have open, and therefore the maximum number of endpoints it can support.
 
-[IMPORTANT]
+[NOTE]
 ====
-*Deployment scope:* The instructions in this page apply to Sync Gateway installed directly on a host OS (for example, a bare-metal server or virtual machine). +
-
-If you are running Sync Gateway in a *container environment* (Docker, Kubernetes, or similar), the host-level `ulimit` and `sysctl` steps described here do not apply in the same way.
-See <<container-environments>> for guidance.
+The host-level instructions on this page apply to Sync Gateway installed directly on a host OS (for example, a bare-metal server or virtual machine).
+For container environments (Docker, Kubernetes, or similar), see <<container-environments>>.
 ====
 
 The host-level instructions below are geared towards CentOS deployments but are broadly applicable to other Linux distributions.
@@ -57,35 +55,7 @@ If you continue to see `too many open files` errors after raising the limit, see
 
 === Docker
 
-Docker containers use the *lesser* of two limits: the per-container `--ulimit` flag passed at runtime, and the Docker daemon's own default `ulimit` configuration.
-If the Docker daemon is configured with a low default (for example, `65535`), passing a higher value via `--ulimit` on `docker run` has no effect.
-Both values must be raised together to achieve the desired limit.
-
-*Step 1: Configure the Docker daemon default ulimit.*
-
-Edit or create `/etc/docker/daemon.json` on the host:
-
-[source,json]
-----
-{
-  "default-ulimits": {
-    "nofile": {
-      "Name": "nofile",
-      "Hard": 250000,
-      "Soft": 250000
-    }
-  }
-}
-----
-
-Restart the Docker daemon to apply the change:
-
-[source,bash]
-----
-$ sudo systemctl restart docker
-----
-
-*Step 2: Pass the `--ulimit` flag when starting the Sync Gateway container.*
+Pass the `--ulimit` flag when starting the Sync Gateway container to set the `nofile` limit for that container:
 
 [source,bash]
 ----
@@ -106,7 +76,6 @@ docker exec sync-gateway sh -c "ulimit -n"
 ----
 
 The output should be `250000`.
-If it is lower, check the Docker daemon configuration and ensure the daemon was restarted after editing `daemon.json`.
 
 
 === Kubernetes
@@ -129,31 +98,6 @@ After applying changes, verify the effective limit from inside the running pod:
 ----
 kubectl exec <sync-gateway-pod> -- sh -c "ulimit -n"
 ----
-====
-
-
-=== Sync Gateway `max_file_descriptors` Setting
-
-Regardless of whether you are running on a host or in a container, configure the `max_file_descriptors` parameter in the Sync Gateway bootstrap configuration to match the limit set at the OS or container runtime level.
-
-See {bootstrap-schema--xref--max-file-descriptors} and <<ex-max-file-desc-container>>.
-
-[#ex-max-file-desc-container]
-.Set `max_file_descriptors` to match the container ulimit
-====
-[source,json]
-----
-{
-  "max_file_descriptors": 250000 // <.>
-}
-----
-<.> Set this to the same value as your container's `nofile` ulimit.
-Default is `5000`.
-====
-
-[NOTE]
-====
-Setting `max_file_descriptors` higher than the OS or container `nofile` limit has no effect — Sync Gateway cannot exceed the limit imposed by the runtime.
 ====
 
 
@@ -195,7 +139,8 @@ See the {bootstrap-schema--xref--max-file-descriptors} and <<ex-max-file-desc>>.
   "max_file_descriptors": 250000 // <.>
 }
 ----
-<.> Default = 5000
+<.> Default = 5000.
+Setting `max_file_descriptors` higher than the OS or container `nofile` limit has no effect -- Sync Gateway cannot exceed the limit imposed by the runtime.
 ====
 
 
@@ -219,7 +164,7 @@ For container environments, see <<container-environments>>.
 For systemd deployments, see <<service-fd-limits>>.
 ====
 
-TIP: If you are using systemd, you can skip this section.
+TIP: If you're using systemd, you can skip this section.
 
 . Increase the *ulimit* setting for max number of file descriptors available to a single process.
 For example, setting it to 250K will allow Sync Gateway to have 250K connections open at any given time, and leave 250K remaining file descriptors available for the rest of the processes on the machine.
