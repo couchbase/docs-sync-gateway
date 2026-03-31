@@ -1139,7 +1139,7 @@ CAUTION: This operation is deprecated, and will be removed in a future release.
 --
 Creates a new session based on a Facebook user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
 
-If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
 --
 
 
@@ -1263,7 +1263,7 @@ a|
 | 400
 a| [markdown]
 --
-Origin is not in the approved list of allowed origins
+Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
 --
 a| xref:HTTP_Error[]
 
@@ -1379,7 +1379,7 @@ CAUTION: This operation is deprecated, and will be removed in a future release.
 --
 Creates a new session based on a Google user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
 
-If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
 --
 
 
@@ -1503,7 +1503,7 @@ a|
 | 400
 a| [markdown]
 --
-Origin is not in the approved list of allowed origins
+Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
 --
 a| xref:HTTP_Error[]
 
@@ -11084,11 +11084,10 @@ a¦
 
 [markdown]
 --
-The interval (in milliseconds) to send an empty line (CRLF) in the response. This is to help prevent gateways from deciding the socket is idle and therefore closing it. This is only applicable to `feed=longpoll` or `feed=continuous`. This will override any timeouts to keep the feed alive indefinitely. Setting to 0 results in no heartbeat. The maximum heartbeat can be set in the server replication configuration.
+The interval (in milliseconds) to send an empty line (CRLF) in the response. This is to help prevent gateways from deciding the socket is idle and therefore closing it. This is only applicable to `feed=longpoll` or `feed=continuous`. This will override any timeouts to keep the feed alive indefinitely. Setting to 0 results in no heartbeat. The maximum heartbeat can be set in the server replication configuration. If heartbeat is non zero, it must be at least 25000 milliseconds.
 --
 
 [%hardbreaks]
-*Minimum:* `25000`
 {blank}
 
 a¦ Integer
@@ -14730,7 +14729,7 @@ Purge request body
 [%hardbreaks]
 {blank}
 
-a¦ xref:PostKeyspacePurgeRequest[]
+a¦ xref:Map[]
 
 
 
@@ -26117,10 +26116,10 @@ Session created successfully. Returned body is dependant on if using Public or A
 a| xref:post_db__session_200_response[]
 
 
-| 400
+| 401
 a| [markdown]
 --
-Origin is not in the approved list of allowed origins
+User does not have access to resource, or resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -26128,7 +26127,7 @@ a| xref:HTTP_Error[]
 | 404
 a| [markdown]
 --
-Resource could not be found
+Return if database does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -30662,7 +30661,7 @@ endif::[]
 [#models]
 = Definitions
 
-:count-models: 171
+:count-models: 175
 
 :leveloffset: +1
 
@@ -30679,6 +30678,7 @@ endif::collapse-models[]
 xref:All_replications[]
 xref:audit_event_verbose[]
 xref:Audit_logging_config[]
+xref:CORS[]
 xref:Changes-feed[]
 xref:Collection_config[]
 xref:Compact_status[]
@@ -30696,6 +30696,8 @@ xref:Database_config_cache_rev_cache[]
 xref:Database_config_cors[]
 xref:Database_config_delta_sync[]
 xref:Database_config_event_handlers[]
+xref:Database_config_event_handlers_document_changed[]
+xref:Database_config_event_handlers_document_changed_allOf_options[]
 xref:Database_config_local_jwt_value[]
 xref:Database_config_local_jwt_value_keys_inner[]
 xref:Database_config_logging[]
@@ -30720,7 +30722,6 @@ xref:Document[]
 xref:Event_config[]
 xref:ExpVars[]
 xref:get___200_response[]
-xref:get___200_response_vendor[]
 xref:get__all_dbs_200_response[]
 xref:get_db__200_response[]
 xref:get_db__config_audit_200_response[]
@@ -30758,6 +30759,9 @@ xref:get_keyspace__raw_docid_200_response__sync_history[]
 xref:get__sgcollect_info_200_response[]
 xref:get__stats_200_response[]
 xref:HTTP_Error[]
+ifdef::enum-definitions[]
+xref:ISGRReplicationState[]
+endif::enum-definitions[]
 xref:Log_rotation_config[]
 xref:Logging-config[]
 xref:New_revision[]
@@ -30782,7 +30786,6 @@ xref:post_keyspace__bulk_get_request[]
 xref:post_keyspace__bulk_get_request_docs_inner[]
 xref:post_keyspace__changes_request[]
 xref:post_keyspace__purge_200_response[]
-xref:post_keyspace__purge_request[]
 xref:post_keyspace__request[]
 xref:post_keyspace__request__attachments_value[]
 xref:post_keyspace__request__revisions[]
@@ -30839,6 +30842,7 @@ xref:Status_1_databases_value_cluster[]
 xref:Status_1_databases_value_cluster_nodes[]
 xref:Status_1_databases_value_cluster_nodes_node_uuid[]
 xref:Status_1_databases_value_cluster_replication[]
+xref:Status_1_vendor[]
 xref:User[]
 xref:User_1[]
 xref:User_1_collection_access_value_value[]
@@ -30846,6 +30850,7 @@ xref:User_2[]
 xref:User_configurable_replication_properties[]
 xref:User_Session_Information[]
 xref:User_Session_Information_userCtx[]
+xref:Vendor[]
 xref:Verbose[]
 xref:Verbose_disabled_users_inner[]
 xref:Verbose_inner[]
@@ -31117,6 +31122,113 @@ a¦ Big Decimal
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/Audit_logging_config/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/CORS/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#CORS]
+= Cors Configuration
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/CORS/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::CORS[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*headers* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of allowed headers. These headers will be added the `Access-Control-Allow-Headers` response to a valid CORS request.
+
+A recommended minimum set of values should be `["Accept-Encoding", "Authorization", "Content-Type", "If-Match"]`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+a¦ 
+*login_origin* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of allowed origins to apply to public `/{db}/_session` API.
+
+To use cors on `/{db}/_session`, the domain must be present in both `login_origin` and `origin`.
+
+If configured, `Authorization` must be included in headers.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+a¦ 
+*max_age* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Value for `Access-Control-Maximum-Age`. Uses 0 by default.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+
+a¦ 
+*origin* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of allowed origins for the public API. The request `Origin` header is checked against these values. If successful the `Origin` header is returned in the HTTP response header as `Access-Control-Allow-Origin`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+|===
+
+//end::CORS[]
+
+
+
+
+// markup not found, no include::{specDir}definitions/CORS/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/CORS/definition-after.adoc[opts=optional]
 
 
 
@@ -32055,7 +32167,7 @@ a¦
 --
 The maximum depth a document's revision tree can grow too.
 
-The minimum is `20` if conflicts are allowed and 0 if not. It is not recommended to go below `100` when conflicts are allowed.
+The minimum is `20` if conflicts are allowed and 0 if not. It is not recommended to go below `100` when conflicts are allowed. The default is `100` if conflicts are allowed and `50` if not.
 --
 
 [%hardbreaks]
@@ -32071,9 +32183,9 @@ a¦
 
 [markdown]
 --
-If true, documents will be imported in to Sync Gateway from the bucket when requested. Documents will be ran through the set `import_filter` if any is set.
+If true, documents will be imported in to Sync Gateway from the bucket in the background. Documents will be ran through the set `import_filter` if any is set.
 
-The default value depends on the edition of Sync Gateway being used. If the edition is the Community Edition, then this will default to `false` or else in the Enterprise Edition, it will default to `true`.
+The default value depends on the edition of Sync Gateway being used. If the edition is the Community Edition, then this will default to `false` or else in the Enterprise Edition, it will default to `true`. This value requires `enable_shared_bucket_access=true`.
 
 This can also be set to the string `continuous` which maps to true.
 --
@@ -32100,6 +32212,8 @@ Each partition is processed by an independent function that runs simultaneously 
 --
 
 [%hardbreaks]
+*Minimum:* `1`
+*Maximum:* `1024`
 {blank}
 a¦ Big Decimal
 
@@ -32605,7 +32719,9 @@ a¦
 
 [markdown]
 --
-The key to use for the user xattr that will be accessible from the sync function. IF empty, the feature will be disabled.
+The key to use for the user xattr that will be accessible from the sync function. If empty, the feature will be disabled.
+
+This is an Enterprise Edition feature only.
 --
 
 [%hardbreaks]
@@ -32670,6 +32786,23 @@ a¦
 Set to true to allow the database to be suspended.
 
 Defaults to true when running in serverless mode otherwise defaults to false.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*changes_request_plus* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Sets the default value of `request_plus` for one-shot/non-continuous changes feeds, which when true, ensures all valid documents written prior to the request being issued are included in the response. Setting this option at the database level is required to ensure Couchbase Lite utilizes this changes feed mode.
+
+This also sets the default value of query param `request_plus` for [GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or `request_plus` for [POST /{keyspace}/_changes](#operation/post_keyspace-_changes).
 --
 
 [%hardbreaks]
@@ -33195,7 +33328,7 @@ a¦
 --
 The maximum depth a document's revision tree can grow too.
 
-The minimum is `20` if conflicts are allowed and 0 if not. It is not recommended to go below `100` when conflicts are allowed.
+The minimum is `20` if conflicts are allowed and 0 if not. It is not recommended to go below `100` when conflicts are allowed. The default is `100` if conflicts are allowed and `50` if not.
 --
 
 [%hardbreaks]
@@ -33211,9 +33344,9 @@ a¦
 
 [markdown]
 --
-If true, documents will be imported in to Sync Gateway from the bucket when requested. Documents will be ran through the set `import_filter` if any is set.
+If true, documents will be imported in to Sync Gateway from the bucket in the background. Documents will be ran through the set `import_filter` if any is set.
 
-The default value depends on the edition of Sync Gateway being used. If the edition is the Community Edition, then this will default to `false` or else in the Enterprise Edition, it will default to `true`.
+The default value depends on the edition of Sync Gateway being used. If the edition is the Community Edition, then this will default to `false` or else in the Enterprise Edition, it will default to `true`. This value requires `enable_shared_bucket_access=true`.
 
 This can also be set to the string `continuous` which maps to true.
 --
@@ -33240,6 +33373,8 @@ Each partition is processed by an independent function that runs simultaneously 
 --
 
 [%hardbreaks]
+*Minimum:* `1`
+*Maximum:* `1024`
 {blank}
 a¦ Big Decimal
 
@@ -33745,7 +33880,9 @@ a¦
 
 [markdown]
 --
-The key to use for the user xattr that will be accessible from the sync function. IF empty, the feature will be disabled.
+The key to use for the user xattr that will be accessible from the sync function. If empty, the feature will be disabled.
+
+This is an Enterprise Edition feature only.
 --
 
 [%hardbreaks]
@@ -33810,6 +33947,23 @@ a¦
 Set to true to allow the database to be suspended.
 
 Defaults to true when running in serverless mode otherwise defaults to false.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+a¦ 
+*changes_request_plus* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Sets the default value of `request_plus` for one-shot/non-continuous changes feeds, which when true, ensures all valid documents written prior to the request being issued are included in the response. Setting this option at the database level is required to ensure Couchbase Lite utilizes this changes feed mode.
+
+This also sets the default value of query param `request_plus` for [GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or `request_plus` for [POST /{keyspace}/_changes](#operation/post_keyspace-_changes).
 --
 
 [%hardbreaks]
@@ -34318,7 +34472,7 @@ you may find that the capacity stat (revision_cache_num_items) will climb to the
 
 [%hardbreaks]
 {blank}
-a¦ String
+a¦ Integer
 
 
 a¦ 
@@ -34351,7 +34505,7 @@ The number of shards the revision cache should be split into.
 
 [%hardbreaks]
 {blank}
-a¦ String
+a¦ Integer
 
 
 |===
@@ -34385,69 +34539,15 @@ endif::collapse-models[]
 // markup not found, no include::{specDir}definitions/Database_config_cors/definition-begin.adoc[opts=optional]
 
 
-.icon:brackets-curly[fw] Object
+.icon:bars[fw] Composite Schema
 {blank}
 
-//tag::Database_config_cors[]
+All of the following:
 
-ifdef::model-descriptions[]
-//tag::desc-Database_config_cors[]
-CORS configuration for this database; if present, overrides server's config.
-//end::desc-Database_config_cors[]
-endif::model-descriptions[]
+* xref:Object[]
 
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
 
-a¦ 
-*origin* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed origins, use ['*'] to allow access from everywhere
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*login_origin* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed login origins
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*headers* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed headers
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-|===
-
-//end::Database_config_cors[]
+* Object
 
 
 
@@ -34610,12 +34710,12 @@ a¦
 
 [markdown]
 --
-include::index.adoc[tag=desc-Event_config, opts=optional]
+include::index.adoc[tag=desc-Database_config_event_handlers_document_changed, opts=optional]
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:Event_config[]
+a¦ xref:Database_config_event_handlers_document_changed[]
 
 
 a¦ 
@@ -34646,6 +34746,104 @@ a¦ xref:Event_config[]
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/Database_config_event_handlers/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_event_handlers_document_changed/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Database_config_event_handlers_document_changed]
+= DatabaseConfigEventHandlersDocumentChanged
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Database_config_event_handlers_document_changed/definition-begin.adoc[opts=optional]
+
+
+.icon:bars[fw] Composite Schema
+{blank}
+
+All of the following:
+
+* xref:Object[]
+
+
+* xref:Object[]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_event_handlers_document_changed/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Database_config_event_handlers_document_changed/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_event_handlers_document_changed_allOf_options/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Database_config_event_handlers_document_changed_allOf_options]
+= DatabaseConfigEventHandlersDocumentChangedAllOfOptions
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Database_config_event_handlers_document_changed_allOf_options/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::Database_config_event_handlers_document_changed_allOf_options[]
+
+ifdef::model-descriptions[]
+//tag::desc-Database_config_event_handlers_document_changed_allOf_options[]
+Options for the document changed event.
+//end::desc-Database_config_event_handlers_document_changed_allOf_options[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*winning_rev_only* +
+_optional_
+a¦ 
+
+[markdown]
+--
+If true, only the winning revision of the document will be sent to the webhook.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+
+|===
+
+//end::Database_config_event_handlers_document_changed_allOf_options[]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Database_config_event_handlers_document_changed_allOf_options/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Database_config_event_handlers_document_changed_allOf_options/definition-after.adoc[opts=optional]
 
 
 
@@ -36811,21 +37009,6 @@ The amount of time (in seconds) to attempt connect to the webhook before giving 
 a¦ Big Decimal
 
 
-a¦ 
-*options* +
-_optional_
-a¦ 
-
-[markdown]
---
-The options for the event.
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Map[]
-
-
 |===
 
 //end::Event_config[]
@@ -37050,12 +37233,12 @@ a¦
 
 [markdown]
 --
-include::index.adoc[tag=desc-get___200_response_vendor, opts=optional]
+include::index.adoc[tag=desc-Status_1_vendor, opts=optional]
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:get___200_response_vendor[]
+a¦ xref:Status_1_vendor[]
 
 
 a¦ 
@@ -37103,83 +37286,6 @@ a¦ Boolean
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/get___200_response/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/get___200_response_vendor/definition-before.adoc[opts=optional]
-
-
-ifdef::collapse-models[]
-[discrete]
-endif::collapse-models[]
-[#get___200_response_vendor]
-= Get200ResponseVendor
-
-:leveloffset: +1
-
-// markup not found, no include::{specDir}definitions/get___200_response_vendor/definition-begin.adoc[opts=optional]
-
-
-.icon:brackets-curly[fw] Object
-{blank}
-
-//tag::get___200_response_vendor[]
-
-ifdef::model-descriptions[]
-//tag::desc-get___200_response_vendor[]
-Product vendor
-//end::desc-get___200_response_vendor[]
-endif::model-descriptions[]
-
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*name* +
-_required_
-a¦ 
-
-[markdown]
---
-Product name
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*version* +
-_optional_
-a¦ 
-
-[markdown]
---
-API version.
-Omitted if `api.hide_product_version=true`
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-|===
-
-//end::get___200_response_vendor[]
-
-
-
-
-// markup not found, no include::{specDir}definitions/get___200_response_vendor/definition-end.adoc[opts=optional]
-
-
-:leveloffset: -1
-
-// markup not found, no include::{specDir}definitions/get___200_response_vendor/definition-after.adoc[opts=optional]
 
 
 
@@ -37383,6 +37489,21 @@ Unique server identifier.
 [%hardbreaks]
 {blank}
 a¦ String
+
+
+a¦ 
+*require_resync* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Indicates whether the database requires resync before it can be brought online.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
 
 
 a¦ 
@@ -40968,6 +41089,24 @@ a¦ String
 // markup not found, no include::{specDir}definitions/HTTP_Error/definition-after.adoc[opts=optional]
 
 
+ifdef::enum-definitions[]
+[#ISGRReplicationState]
+= Replication Status
+
+.icon:menu[fw] Enumeration
+{blank}
+
+//tag::desc-ISGRReplicationState[]
+This is the state that the replicator is in or that trying to transition in to.
+//end::desc-ISGRReplicationState[]
+
+.Schema
+//tag::type-ISGRReplicationState[]
+String
+
+
+//end::type-ISGRReplicationState[]
+endif::enum-definitions[]
 
 
 // markup not found, no include::{specDir}definitions/Log_rotation_config/definition-before.adoc[opts=optional]
@@ -41432,12 +41571,12 @@ a¦
 
 [markdown]
 --
-include::index.adoc[tag=desc-get___200_response_vendor, opts=optional]
+include::index.adoc[tag=desc-Status_1_vendor, opts=optional]
 --
 
 [%hardbreaks]
 {blank}
-a¦ xref:get___200_response_vendor[]
+a¦ xref:Status_1_vendor[]
 
 
 a¦ 
@@ -42628,7 +42767,7 @@ a¦
 
 [markdown]
 --
-Time until the session expires. Uses default value of 24 hours if left blank.
+Time until the session expires. Uses default value of 24 hours if left blank. This value must be greater or equal to 1.
 --
 
 [%hardbreaks]
@@ -43207,7 +43346,7 @@ When true, ensures all valid documents written prior to the request being issued
 
 [%hardbreaks]
 {blank}
-a¦ String
+a¦ Boolean
 
 
 |===
@@ -43279,80 +43418,6 @@ a¦ xref:Map[]
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/post_keyspace__purge_200_response/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/post_keyspace__purge_request/definition-before.adoc[opts=optional]
-
-
-ifdef::collapse-models[]
-[discrete]
-endif::collapse-models[]
-[#post_keyspace__purge_request]
-= PostKeyspacePurgeRequest
-
-:leveloffset: +1
-
-// markup not found, no include::{specDir}definitions/post_keyspace__purge_request/definition-begin.adoc[opts=optional]
-
-
-.icon:brackets-curly[fw] Object
-{blank}
-
-//tag::post_keyspace__purge_request[]
-
-
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*doc_id* +
-_optional_
-a¦ 
-
-[markdown]
---
-The document ID to purge. The array must only be 1 element which is `*`.
-
-All revisions will be permanently removed for that document.
---
-
-[%hardbreaks]
-*Values:* `*`
-{blank}
-a¦ String
- array
-
-a¦ 
-_additional +
-property_
-a¦ 
-
-[markdown]
---
---
-
-[%hardbreaks]
-*Values:* `*`
-{blank}
-a¦ String
- array
-
-|===
-
-//end::post_keyspace__purge_request[]
-
-
-
-
-// markup not found, no include::{specDir}definitions/post_keyspace__purge_request/definition-end.adoc[opts=optional]
-
-
-:leveloffset: -1
-
-// markup not found, no include::{specDir}definitions/post_keyspace__purge_request/definition-after.adoc[opts=optional]
 
 
 
@@ -44383,52 +44448,7 @@ a¦
 --
 This is the endpoint of the database for the remote Sync Gateway that is the subject of this replication's `push`, `pull`, or `pushAndPull` action.
 
-Typically this would include the URI, port, and database name. For example, `http://localhost:4985/db`.
-
-How this remote is used depends on the `direction` of the replication:
-* `pull` - this replicator _pulls_ changes from the `remote`
-* `push` - this replicator _pushes_ changes to this `remote`
-* `pushAndPull` - this replicator _pushes_ changes to this `remote`, while also pulling receiving changes
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*username* +
-_optional_
-a¦ 
-
-[markdown]
---
-**This has been deprecated in favour of `remote_username`.**
-
-This is the username to use to authenticate with the remote.
-
-This can only be used for a pull replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*password* +
-_optional_
-a¦ 
-
-[markdown]
---
-**This has been deprecated in favour of `remote_password`.**
-
-This is the password to use to authenticate with the remote.
-
-This password will be redacted in the replication config.
-
-This can only be used for a pull replication.
+Typically this would include the URI, port, and database name. For example, `https://localhost:4985/db`.
 --
 
 [%hardbreaks]
@@ -44444,8 +44464,6 @@ a¦
 [markdown]
 --
 The username to use to authenticate with the remote.
-
-This can only be used for a pull replication.
 --
 
 [%hardbreaks]
@@ -44460,11 +44478,7 @@ a¦
 
 [markdown]
 --
-The password to use to authenticate with the remote.
-
-This password will be redacted in the replication config.
-
-This can only be used for a pull replication.
+The password to use to authenticate with the remote. This password will be redacted in the replication config.
 --
 
 [%hardbreaks]
@@ -44480,13 +44494,6 @@ a¦
 [markdown]
 --
 This specifies which direction the replication will be replicating with the `remote` replicator.
-
-The directions are:
-* `pull` - changes are pulled from the remote database
-* `push` - changes are pushed to the remote database
-* `pushAndPull` - changes are both push-to and pulled-from the remote database
-
-Replications created prior to Sync Gateway 2.8 derive their `direction` from the source/target URL of the replication.
 --
 
 [%hardbreaks]
@@ -44505,17 +44512,6 @@ a¦
 This defines what conflict resolution policy Sync Gateway should use to apply when resolving conflicting revisions.
 
 Changing this is an Enterprise Edition only feature.
-
-**Behaviour**
-* *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
-  - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
-* *localWins* - This will result in local revisions always being the winner in any conflict.
-* *remoteWins* - This will result in remote revisions always being the winner in any conflict.
-* *custom* - This will result in conflicts going through your own custom conflict resolver. You must provide this logic as a Javascript function in the `custom_conflict_resolver` parameter. This is an Enterprise Edition only feature.
-
-
-Note: replications created prior to Sync Gateway 2.8 will default to `default`.
 --
 
 [%hardbreaks]
@@ -44532,29 +44528,27 @@ a¦
 [markdown]
 --
 This specifies the Javascript function to use to resolve conflicts between conflicting revisions.
- 
+
 This **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.
 
 The Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:
-* `LocalDocument` - The local document. This contains the document ID under the `_id` key.
-* `RemoteDocument` - The remote document
+  * `LocalDocument` - The local document. This contains the document ID under the `_id` key.
+  * `RemoteDocument` - The remote document
 The function should return the new document's body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.
 
 Example:
-```
-"custom_conflict_resolver":\`
-	function(conflict) {
-		console.log("Doc ID: "+conflict.LocalDocument._id);
-		console.log("Full remote doc: "+JSON.stringify(conflict.RemoteDocument));
-		return conflict.RemoteDocument;
-	}
-\`
+
+```javascript
+function(conflict) {
+  console.log("Doc ID: "+conflict.LocalDocument._id);
+  console.log("Full remote doc: "+JSON.stringify(conflict.RemoteDocument));
+  return conflict.RemoteDocument;
+}
 ```
 
 Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
 
 This is an Enterprise Edition only feature.
-
 --
 
 [%hardbreaks]
@@ -44586,13 +44580,9 @@ a¦
 
 [markdown]
 --
-This will turn on delta- sync for the replication. This works in conjunction with the database level setting `delta_sync.enabled`
+This will turn on delta-sync for the replication. In order to enable delta-sync for a replication, the database level setting `delta_sync.enabled` must also be set to true.
 
-If set to true, delta-sync will be used as long as both databases involved in the replication have delta-sync enabled. If a database does not have delta-sync enabled, then the replication will run without delta-sync.
-
-Replications created prior to Sync Gateway 2.8 must have delta-sync disabled.
-
-Enabling this is an Enterprise Edition only feature.
+Using delta-sync is an Enterprise Edition only feature.
 --
 
 [%hardbreaks]
@@ -44665,15 +44655,11 @@ a¦
 
 [markdown]
 --
-This defines whether to filter documents by their channels or not.
-
-If set to `sync_gateway/bychannel` then a **pull** replication will be limited to a specific set of channels specified by the `query_params.channels` property.
-
-This only can be used with pull replications.
+This defines whether to filter documents.
 --
 
 [%hardbreaks]
-*Values:* `"sync_gateway/bychannel"`
+*Values:* `"sync_gateway/bychannel"`, `""`
 {blank}
 a¦ String
 
@@ -44688,7 +44674,7 @@ a¦
 This is a set of key/value pairs used in the query string of the replication.
 
 If `filters=sync_gateway/bychannel` then this can be used to set the channels to filter by in a pull replication. To do this, set the `channels` key to a string array of the channels to filter by. For example:
-```
+```json
 "filter":"sync_gateway/bychannel",
 "query_params": {
   "channels":["chanUser1"]
@@ -44755,7 +44741,7 @@ a¦
 
 [markdown]
 --
-If true, the replicator will run with collections, and will replicate all collections, unless otherwise limited by `keyspace_map`.
+If true, the replicator will run with collections, and will replicate all collections, unless otherwise limited by `collections_local`.
 
 If false, the replicator will only replicate the default collection.
 --
@@ -44800,6 +44786,40 @@ The same index is used for both `collections_remote` and `collections_local`, an
 {blank}
 a¦ String
  array
+
+a¦ 
+*username* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**This has been deprecated in favour of `remote_username`.**
+
+This is the username to use to authenticate with the remote.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*password* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**This has been deprecated in favour of `remote_password`.**
+
+This is the password to use to authenticate with the remote. This password will be redacted in the replication config.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
 
 |===
 
@@ -44832,501 +44852,18 @@ endif::collapse-models[]
 // markup not found, no include::{specDir}definitions/Replication_1/definition-begin.adoc[opts=optional]
 
 
-.icon:brackets-curly[fw] Object
+.icon:bars[fw] Composite Schema
 {blank}
 
-//tag::Replication_1[]
+All of the following:
 
-ifdef::model-descriptions[]
-//tag::desc-Replication_1[]
-Properties of a replication
-//end::desc-Replication_1[]
-endif::model-descriptions[]
+* xref:Object[]
 
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
 
-a¦ 
-*replication_id* +
-_optional_
-a¦ 
+* xref:Object[]
 
-[markdown]
---
-This is the ID of the replication.
 
-When creating a new replication using a POST request, this will be set to a random UUID if not explicitly set.
-
-When the replication ID is specified in the URL, this must be set to the same replication ID if specifying it at all.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is the endpoint of the database for the remote Sync Gateway that is the subject of this replication's `push`, `pull`, or `pushAndPull` action.
-
-Typically this would include the URI, port, and database name. For example, `http://localhost:4985/db`.
-
-How this remote is used depends on the `direction` of the replication:
-* `pull` - this replicator _pulls_ changes from the `remote`
-* `push` - this replicator _pushes_ changes to this `remote`
-* `pushAndPull` - this replicator _pushes_ changes to this `remote`, while also pulling receiving changes
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*username* +
-_optional_
-a¦ 
-
-[markdown]
---
-**This has been deprecated in favour of `remote_username`.**
-
-This is the username to use to authenticate with the remote.
-
-This can only be used for a pull replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*password* +
-_optional_
-a¦ 
-
-[markdown]
---
-**This has been deprecated in favour of `remote_password`.**
-
-This is the password to use to authenticate with the remote.
-
-This password will be redacted in the replication config.
-
-This can only be used for a pull replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote_username* +
-_optional_
-a¦ 
-
-[markdown]
---
-The username to use to authenticate with the remote.
-
-This can only be used for a pull replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote_password* +
-_optional_
-a¦ 
-
-[markdown]
---
-The password to use to authenticate with the remote.
-
-This password will be redacted in the replication config.
-
-This can only be used for a pull replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*direction* +
-_optional_
-a¦ 
-
-[markdown]
---
-This specifies which direction the replication will be replicating with the `remote` replicator.
-
-The directions are:
-* `pull` - changes are pulled from the remote database
-* `push` - changes are pushed to the remote database
-* `pushAndPull` - changes are both push-to and pulled-from the remote database
-
-Replications created prior to Sync Gateway 2.8 derive their `direction` from the source/target URL of the replication.
---
-
-[%hardbreaks]
-*Values:* `"push"`, `"pull"`, `"pushAndPull"`
-{blank}
-a¦ String
-
-
-a¦ 
-*conflict_resolution_type* +
-_optional_
-a¦ 
-
-[markdown]
---
-This defines what conflict resolution policy Sync Gateway should use to apply when resolving conflicting revisions.
-
-Changing this is an Enterprise Edition only feature.
-
-**Behaviour**
-* *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
-  - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
-* *localWins* - This will result in local revisions always being the winner in any conflict.
-* *remoteWins* - This will result in remote revisions always being the winner in any conflict.
-* *custom* - This will result in conflicts going through your own custom conflict resolver. You must provide this logic as a Javascript function in the `custom_conflict_resolver` parameter. This is an Enterprise Edition only feature.
-
-
-Note: replications created prior to Sync Gateway 2.8 will default to `default`.
---
-
-[%hardbreaks]
-*Values:* `"default"`, `"remoteWins"`, `"localWins"`, `"custom"`
-{blank}
-a¦ String
-
-
-a¦ 
-*custom_conflict_resolver* +
-_optional_
-a¦ 
-
-[markdown]
---
-This specifies the Javascript function to use to resolve conflicts between conflicting revisions.
- 
-This **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.
-
-The Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:
-* `LocalDocument` - The local document. This contains the document ID under the `_id` key.
-* `RemoteDocument` - The remote document
-The function should return the new document's body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.
-
-Example:
-```
-"custom_conflict_resolver":\`
-	function(conflict) {
-		console.log("Doc ID: "+conflict.LocalDocument._id);
-		console.log("Full remote doc: "+JSON.stringify(conflict.RemoteDocument));
-		return conflict.RemoteDocument;
-	}
-\`
-```
-
-Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
-
-This is an Enterprise Edition only feature.
-
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*purge_on_removal* +
-_optional_
-a¦ 
-
-[markdown]
---
-Specifies whether to purge a document if the remote user loses access to all of the channels on the document when attempting to pull it from the remote.
-
-If false, documents will not be replicated and not be purged when the user loses access.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*enable_delta_sync* +
-_optional_
-a¦ 
-
-[markdown]
---
-This will turn on delta- sync for the replication. This works in conjunction with the database level setting `delta_sync.enabled`
-
-If set to true, delta-sync will be used as long as both databases involved in the replication have delta-sync enabled. If a database does not have delta-sync enabled, then the replication will run without delta-sync.
-
-Replications created prior to Sync Gateway 2.8 must have delta-sync disabled.
-
-Enabling this is an Enterprise Edition only feature.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*max_backoff_time* +
-_optional_
-a¦ 
-
-[markdown]
---
-Specifies the maximum time-period (in minutes) that Sync Gateway will attempt to reconnect to a lost or unreachable remote.
-
-When a disconnection happens, Sync Gateway will do an exponential backoff up to this specified value. When this value is met, it will attempt to reconnect indefinitely every `max_backoff_time` minutes.
-
-If this is set to 0, Sync Gateway will do the normal exponential backoff after the disconnect happens but then attempting 10 minutes and stop the replication.
-
-Note: this defaults to 5 minutes for replications created prior to Sync Gateway 2.8.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*initial_state* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is what state to start the replication in when creating a new replication.
-
-This allows you to control if the replication starts in a `stopped` start or `running` state.
-
-Replications prior to Sync Gateway 2.8 will run in the default state `running`.
---
-
-[%hardbreaks]
-*Values:* `"running"`, `"stopped"`
-{blank}
-a¦ String
-
-
-a¦ 
-*continuous* +
-_optional_
-a¦ 
-
-[markdown]
---
-If true, changes will be immediately synced when they happen. This is known as a continuous replication.
-
-If false, all changes will be synced until they have been processed. The replication will then cease and not process any future changes (unless started again by the user). This is known as a one-shot replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*filter* +
-_optional_
-a¦ 
-
-[markdown]
---
-This defines whether to filter documents by their channels or not.
-
-If set to `sync_gateway/bychannel` then a **pull** replication will be limited to a specific set of channels specified by the `query_params.channels` property.
-
-This only can be used with pull replications.
---
-
-[%hardbreaks]
-*Values:* `"sync_gateway/bychannel"`
-{blank}
-a¦ String
-
-
-a¦ 
-*query_params* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is a set of key/value pairs used in the query string of the replication.
-
-If `filters=sync_gateway/bychannel` then this can be used to set the channels to filter by in a pull replication. To do this, set the `channels` key to a string array of the channels to filter by. For example:
-```
-"filter":"sync_gateway/bychannel",
-"query_params": {
-  "channels":["chanUser1"]
-},
-```
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*adhoc* +
-_optional_
-a¦ 
-
-[markdown]
---
-Set to true to run the replication as an adhoc replication instead of a persistent one.
-
-This means that the replication will only last the period of the replication until the status is changed to `stopped` and then it will be removed automatically. It will also be removed if Sync Gateway restarts or if removed due to user action.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*batch_size* +
-_optional_
-a¦ 
-
-[markdown]
---
-The amount of changes to be sent in one batch of replications. Changing this is an Enterprise Edition only feature.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*run_as* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is used if you want to specify a user to run the replication as. This means that the replication will only be able to replicate what the user  access to what the user has access to.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*collections_enabled* +
-_optional_
-a¦ 
-
-[markdown]
---
-If true, the replicator will run with collections, and will replicate all collections, unless otherwise limited by `keyspace_map`.
-
-If false, the replicator will only replicate the default collection.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*collections_local* +
-_optional_
-a¦ 
-
-[markdown]
---
-Limits the set of collections replicated to those listed in this array.
-
-The replication will use all collections defined on the database if this list is empty.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*collections_remote* +
-_optional_
-a¦ 
-
-[markdown]
---
-Remaps the local collection name to the one specified in this array when replicating with the remote.
-
-If only a subset of collections need remapping, elements in this array can be specified as `null` to preserve the local collection name.
-
-The same index is used for both `collections_remote` and `collections_local`, and both arrays must be the same length.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*assigned_node* +
-_optional_
-a¦ 
-
-[markdown]
---
-The unique ID of the node assigned to the replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*target_state* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is the state that the replicator is in or that trying to transition in to.
---
-
-[%hardbreaks]
-*Values:* `"running"`, `"stopped"`, `"resetting"`, `"error"`, `"starting"`, `"reconnecting"`
-{blank}
-a¦ String
-
-
-|===
-
-//end::Replication_1[]
+* xref:Object[]
 
 
 
@@ -45402,11 +44939,11 @@ a¦
 
 [markdown]
 --
-The status of the replication.
+This is the state that the replicator is in or that trying to transition in to.
 --
 
 [%hardbreaks]
-*Values:* `"stopped"`, `"running"`, `"reconnecting"`, `"resetting"`, `"error"`, `"starting"`
+*Values:* `"running"`, `"stopped"`, `"resetting"`, `"error"`, `"starting"`, `"reconnecting"`
 {blank}
 a¦ String
 
@@ -45559,7 +45096,7 @@ a¦ Integer
 
 
 a¦ 
-*docs_write_failures* +
+*doc_write_failures* +
 _optional_
 a¦ 
 
@@ -45574,7 +45111,7 @@ a¦ Integer
 
 
 a¦ 
-*docs_write_conflicts* +
+*doc_write_conflicts* +
 _optional_
 a¦ 
 
@@ -45801,501 +45338,18 @@ endif::collapse-models[]
 // markup not found, no include::{specDir}definitions/Retrieved-replication/definition-begin.adoc[opts=optional]
 
 
-.icon:brackets-curly[fw] Object
+.icon:bars[fw] Composite Schema
 {blank}
 
-//tag::Retrieved-replication[]
+All of the following:
 
-ifdef::model-descriptions[]
-//tag::desc-Retrieved-replication[]
-Properties of a replication
-//end::desc-Retrieved-replication[]
-endif::model-descriptions[]
+* xref:Object[]
 
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
 
-a¦ 
-*replication_id* +
-_optional_
-a¦ 
+* xref:Object[]
 
-[markdown]
---
-This is the ID of the replication.
 
-When creating a new replication using a POST request, this will be set to a random UUID if not explicitly set.
-
-When the replication ID is specified in the URL, this must be set to the same replication ID if specifying it at all.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is the endpoint of the database for the remote Sync Gateway that is the subject of this replication's `push`, `pull`, or `pushAndPull` action.
-
-Typically this would include the URI, port, and database name. For example, `http://localhost:4985/db`.
-
-How this remote is used depends on the `direction` of the replication:
-* `pull` - this replicator _pulls_ changes from the `remote`
-* `push` - this replicator _pushes_ changes to this `remote`
-* `pushAndPull` - this replicator _pushes_ changes to this `remote`, while also pulling receiving changes
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*username* +
-_optional_
-a¦ 
-
-[markdown]
---
-**This has been deprecated in favour of `remote_username`.**
-
-This is the username to use to authenticate with the remote.
-
-This can only be used for a pull replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*password* +
-_optional_
-a¦ 
-
-[markdown]
---
-**This has been deprecated in favour of `remote_password`.**
-
-This is the password to use to authenticate with the remote.
-
-This password will be redacted in the replication config.
-
-This can only be used for a pull replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote_username* +
-_optional_
-a¦ 
-
-[markdown]
---
-The username to use to authenticate with the remote.
-
-This can only be used for a pull replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*remote_password* +
-_optional_
-a¦ 
-
-[markdown]
---
-The password to use to authenticate with the remote.
-
-This password will be redacted in the replication config.
-
-This can only be used for a pull replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*direction* +
-_optional_
-a¦ 
-
-[markdown]
---
-This specifies which direction the replication will be replicating with the `remote` replicator.
-
-The directions are:
-* `pull` - changes are pulled from the remote database
-* `push` - changes are pushed to the remote database
-* `pushAndPull` - changes are both push-to and pulled-from the remote database
-
-Replications created prior to Sync Gateway 2.8 derive their `direction` from the source/target URL of the replication.
---
-
-[%hardbreaks]
-*Values:* `"push"`, `"pull"`, `"pushAndPull"`
-{blank}
-a¦ String
-
-
-a¦ 
-*conflict_resolution_type* +
-_optional_
-a¦ 
-
-[markdown]
---
-This defines what conflict resolution policy Sync Gateway should use to apply when resolving conflicting revisions.
-
-Changing this is an Enterprise Edition only feature.
-
-**Behaviour**
-* *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
-  - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
-* *localWins* - This will result in local revisions always being the winner in any conflict.
-* *remoteWins* - This will result in remote revisions always being the winner in any conflict.
-* *custom* - This will result in conflicts going through your own custom conflict resolver. You must provide this logic as a Javascript function in the `custom_conflict_resolver` parameter. This is an Enterprise Edition only feature.
-
-
-Note: replications created prior to Sync Gateway 2.8 will default to `default`.
---
-
-[%hardbreaks]
-*Values:* `"default"`, `"remoteWins"`, `"localWins"`, `"custom"`
-{blank}
-a¦ String
-
-
-a¦ 
-*custom_conflict_resolver* +
-_optional_
-a¦ 
-
-[markdown]
---
-This specifies the Javascript function to use to resolve conflicts between conflicting revisions.
- 
-This **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.
-
-The Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:
-* `LocalDocument` - The local document. This contains the document ID under the `_id` key.
-* `RemoteDocument` - The remote document
-The function should return the new document's body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.
-
-Example:
-```
-"custom_conflict_resolver":\`
-	function(conflict) {
-		console.log("Doc ID: "+conflict.LocalDocument._id);
-		console.log("Full remote doc: "+JSON.stringify(conflict.RemoteDocument));
-		return conflict.RemoteDocument;
-	}
-\`
-```
-
-Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
-
-This is an Enterprise Edition only feature.
-
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*purge_on_removal* +
-_optional_
-a¦ 
-
-[markdown]
---
-Specifies whether to purge a document if the remote user loses access to all of the channels on the document when attempting to pull it from the remote.
-
-If false, documents will not be replicated and not be purged when the user loses access.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*enable_delta_sync* +
-_optional_
-a¦ 
-
-[markdown]
---
-This will turn on delta- sync for the replication. This works in conjunction with the database level setting `delta_sync.enabled`
-
-If set to true, delta-sync will be used as long as both databases involved in the replication have delta-sync enabled. If a database does not have delta-sync enabled, then the replication will run without delta-sync.
-
-Replications created prior to Sync Gateway 2.8 must have delta-sync disabled.
-
-Enabling this is an Enterprise Edition only feature.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*max_backoff_time* +
-_optional_
-a¦ 
-
-[markdown]
---
-Specifies the maximum time-period (in minutes) that Sync Gateway will attempt to reconnect to a lost or unreachable remote.
-
-When a disconnection happens, Sync Gateway will do an exponential backoff up to this specified value. When this value is met, it will attempt to reconnect indefinitely every `max_backoff_time` minutes.
-
-If this is set to 0, Sync Gateway will do the normal exponential backoff after the disconnect happens but then attempting 10 minutes and stop the replication.
-
-Note: this defaults to 5 minutes for replications created prior to Sync Gateway 2.8.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*initial_state* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is what state to start the replication in when creating a new replication.
-
-This allows you to control if the replication starts in a `stopped` start or `running` state.
-
-Replications prior to Sync Gateway 2.8 will run in the default state `running`.
---
-
-[%hardbreaks]
-*Values:* `"running"`, `"stopped"`
-{blank}
-a¦ String
-
-
-a¦ 
-*continuous* +
-_optional_
-a¦ 
-
-[markdown]
---
-If true, changes will be immediately synced when they happen. This is known as a continuous replication.
-
-If false, all changes will be synced until they have been processed. The replication will then cease and not process any future changes (unless started again by the user). This is known as a one-shot replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*filter* +
-_optional_
-a¦ 
-
-[markdown]
---
-This defines whether to filter documents by their channels or not.
-
-If set to `sync_gateway/bychannel` then a **pull** replication will be limited to a specific set of channels specified by the `query_params.channels` property.
-
-This only can be used with pull replications.
---
-
-[%hardbreaks]
-*Values:* `"sync_gateway/bychannel"`
-{blank}
-a¦ String
-
-
-a¦ 
-*query_params* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is a set of key/value pairs used in the query string of the replication.
-
-If `filters=sync_gateway/bychannel` then this can be used to set the channels to filter by in a pull replication. To do this, set the `channels` key to a string array of the channels to filter by. For example:
-```
-"filter":"sync_gateway/bychannel",
-"query_params": {
-  "channels":["chanUser1"]
-},
-```
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*adhoc* +
-_optional_
-a¦ 
-
-[markdown]
---
-Set to true to run the replication as an adhoc replication instead of a persistent one.
-
-This means that the replication will only last the period of the replication until the status is changed to `stopped` and then it will be removed automatically. It will also be removed if Sync Gateway restarts or if removed due to user action.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*batch_size* +
-_optional_
-a¦ 
-
-[markdown]
---
-The amount of changes to be sent in one batch of replications. Changing this is an Enterprise Edition only feature.
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-a¦ 
-*run_as* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is used if you want to specify a user to run the replication as. This means that the replication will only be able to replicate what the user  access to what the user has access to.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*collections_enabled* +
-_optional_
-a¦ 
-
-[markdown]
---
-If true, the replicator will run with collections, and will replicate all collections, unless otherwise limited by `keyspace_map`.
-
-If false, the replicator will only replicate the default collection.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*collections_local* +
-_optional_
-a¦ 
-
-[markdown]
---
-Limits the set of collections replicated to those listed in this array.
-
-The replication will use all collections defined on the database if this list is empty.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*collections_remote* +
-_optional_
-a¦ 
-
-[markdown]
---
-Remaps the local collection name to the one specified in this array when replicating with the remote.
-
-If only a subset of collections need remapping, elements in this array can be specified as `null` to preserve the local collection name.
-
-The same index is used for both `collections_remote` and `collections_local`, and both arrays must be the same length.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*assigned_node* +
-_optional_
-a¦ 
-
-[markdown]
---
-The unique ID of the node assigned to the replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*target_state* +
-_optional_
-a¦ 
-
-[markdown]
---
-This is the state that the replicator is in or that trying to transition in to.
---
-
-[%hardbreaks]
-*Values:* `"running"`, `"stopped"`, `"resetting"`, `"error"`, `"starting"`, `"reconnecting"`
-{blank}
-a¦ String
-
-
-|===
-
-//end::Retrieved-replication[]
+* xref:Object[]
 
 
 
@@ -47679,79 +46733,15 @@ endif::collapse-models[]
 // markup not found, no include::{specDir}definitions/Startup_config_api_cors/definition-begin.adoc[opts=optional]
 
 
-.icon:brackets-curly[fw] Object
+.icon:bars[fw] Composite Schema
 {blank}
 
-//tag::Startup_config_api_cors[]
+All of the following:
+
+* Object
 
 
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*origin* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed origins, use ['*'] to allow access from everywhere
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*login_origin* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed login origins
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*headers* +
-_optional_
-a¦ 
-
-[markdown]
---
-List of allowed headers
---
-
-[%hardbreaks]
-{blank}
-a¦ String
- array
-
-a¦ 
-*max_age* +
-_optional_
-a¦ 
-
-[markdown]
---
-Maximum age of the CORS Options request
---
-
-[%hardbreaks]
-{blank}
-a¦ Integer
-
-
-|===
-
-//end::Startup_config_api_cors[]
+* xref:Object[]
 
 
 
@@ -49663,6 +48653,21 @@ Blank if `api.hide_product_version=true` in the startup configuration.
 a¦ String
 
 
+a¦ 
+*vendor* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Status_1_vendor, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Status_1_vendor[]
+
+
 |===
 
 //end::Status[]
@@ -49734,6 +48739,21 @@ Blank if `api.hide_product_version=true` in the startup configuration.
 [%hardbreaks]
 {blank}
 a¦ String
+
+
+a¦ 
+*vendor* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Status_1_vendor, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Status_1_vendor[]
 
 
 |===
@@ -49811,6 +48831,21 @@ The server unique identifier.
 [%hardbreaks]
 {blank}
 a¦ String
+
+
+a¦ 
+*require_resync* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Indicates whether the database requires resync before it can be brought online.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
 
 
 a¦ 
@@ -49898,6 +48933,21 @@ endif::collapse-models[]
 [cols="25,55,20",separator=¦]
 |===
 ¦ Property ¦ ¦ Schema
+
+a¦ 
+*cluster_uuid* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The cluster unique identifier.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
 
 a¦ 
 *replication* +
@@ -50140,6 +49190,40 @@ a¦ xref:Replication_1[]
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/Status_1_databases_value_cluster_replication/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Status_1_vendor/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Status_1_vendor]
+= Status1Vendor
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Status_1_vendor/definition-begin.adoc[opts=optional]
+
+
+.icon:bars[fw] Composite Schema
+{blank}
+
+All of the following:
+
+* xref:Object[]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Status_1_vendor/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Status_1_vendor/definition-after.adoc[opts=optional]
 
 
 
@@ -51062,52 +50146,7 @@ a¦
 --
 This is the endpoint of the database for the remote Sync Gateway that is the subject of this replication's `push`, `pull`, or `pushAndPull` action.
 
-Typically this would include the URI, port, and database name. For example, `http://localhost:4985/db`.
-
-How this remote is used depends on the `direction` of the replication:
-* `pull` - this replicator _pulls_ changes from the `remote`
-* `push` - this replicator _pushes_ changes to this `remote`
-* `pushAndPull` - this replicator _pushes_ changes to this `remote`, while also pulling receiving changes
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*username* +
-_optional_
-a¦ 
-
-[markdown]
---
-**This has been deprecated in favour of `remote_username`.**
-
-This is the username to use to authenticate with the remote.
-
-This can only be used for a pull replication.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*password* +
-_optional_
-a¦ 
-
-[markdown]
---
-**This has been deprecated in favour of `remote_password`.**
-
-This is the password to use to authenticate with the remote.
-
-This password will be redacted in the replication config.
-
-This can only be used for a pull replication.
+Typically this would include the URI, port, and database name. For example, `https://localhost:4985/db`.
 --
 
 [%hardbreaks]
@@ -51123,8 +50162,6 @@ a¦
 [markdown]
 --
 The username to use to authenticate with the remote.
-
-This can only be used for a pull replication.
 --
 
 [%hardbreaks]
@@ -51139,11 +50176,7 @@ a¦
 
 [markdown]
 --
-The password to use to authenticate with the remote.
-
-This password will be redacted in the replication config.
-
-This can only be used for a pull replication.
+The password to use to authenticate with the remote. This password will be redacted in the replication config.
 --
 
 [%hardbreaks]
@@ -51159,13 +50192,6 @@ a¦
 [markdown]
 --
 This specifies which direction the replication will be replicating with the `remote` replicator.
-
-The directions are:
-* `pull` - changes are pulled from the remote database
-* `push` - changes are pushed to the remote database
-* `pushAndPull` - changes are both push-to and pulled-from the remote database
-
-Replications created prior to Sync Gateway 2.8 derive their `direction` from the source/target URL of the replication.
 --
 
 [%hardbreaks]
@@ -51184,17 +50210,6 @@ a¦
 This defines what conflict resolution policy Sync Gateway should use to apply when resolving conflicting revisions.
 
 Changing this is an Enterprise Edition only feature.
-
-**Behaviour**
-* *default* - In priority order, this will cause
-  - Deletes to always win (the delete with the longest revision history wins if both revisions are deletes)
-  - The revision with the longest revision history to win. This means the the revision with the most changes and therefore the highest revision ID will win.
-* *localWins* - This will result in local revisions always being the winner in any conflict.
-* *remoteWins* - This will result in remote revisions always being the winner in any conflict.
-* *custom* - This will result in conflicts going through your own custom conflict resolver. You must provide this logic as a Javascript function in the `custom_conflict_resolver` parameter. This is an Enterprise Edition only feature.
-
-
-Note: replications created prior to Sync Gateway 2.8 will default to `default`.
 --
 
 [%hardbreaks]
@@ -51211,29 +50226,27 @@ a¦
 [markdown]
 --
 This specifies the Javascript function to use to resolve conflicts between conflicting revisions.
- 
+
 This **must** be used when `conflict_resolution_type=custom`. This property will be ignored when `conflict_resolution_type` is not `custom`.
 
 The Javascript function to provide this property should be in backticks (like the sync function). The function takes 1 parameter which is a struct that represents the conflict. This struct has 2 properties:
-* `LocalDocument` - The local document. This contains the document ID under the `_id` key.
-* `RemoteDocument` - The remote document
+  * `LocalDocument` - The local document. This contains the document ID under the `_id` key.
+  * `RemoteDocument` - The remote document
 The function should return the new document's body. This can be the winning revision (for example, `return conflict.LocalDocument`), a new body, or `nil` to resolve as a delete.
 
 Example:
-```
-"custom_conflict_resolver":\`
-	function(conflict) {
-		console.log("Doc ID: "+conflict.LocalDocument._id);
-		console.log("Full remote doc: "+JSON.stringify(conflict.RemoteDocument));
-		return conflict.RemoteDocument;
-	}
-\`
+
+```javascript
+function(conflict) {
+  console.log("Doc ID: "+conflict.LocalDocument._id);
+  console.log("Full remote doc: "+JSON.stringify(conflict.RemoteDocument));
+  return conflict.RemoteDocument;
+}
 ```
 
 Using complex `custom_conflict_resolver` functions can noticeably degrade performance. Use a built-in resolver whenever possible.
 
 This is an Enterprise Edition only feature.
-
 --
 
 [%hardbreaks]
@@ -51265,13 +50278,9 @@ a¦
 
 [markdown]
 --
-This will turn on delta- sync for the replication. This works in conjunction with the database level setting `delta_sync.enabled`
+This will turn on delta-sync for the replication. In order to enable delta-sync for a replication, the database level setting `delta_sync.enabled` must also be set to true.
 
-If set to true, delta-sync will be used as long as both databases involved in the replication have delta-sync enabled. If a database does not have delta-sync enabled, then the replication will run without delta-sync.
-
-Replications created prior to Sync Gateway 2.8 must have delta-sync disabled.
-
-Enabling this is an Enterprise Edition only feature.
+Using delta-sync is an Enterprise Edition only feature.
 --
 
 [%hardbreaks]
@@ -51344,15 +50353,11 @@ a¦
 
 [markdown]
 --
-This defines whether to filter documents by their channels or not.
-
-If set to `sync_gateway/bychannel` then a **pull** replication will be limited to a specific set of channels specified by the `query_params.channels` property.
-
-This only can be used with pull replications.
+This defines whether to filter documents.
 --
 
 [%hardbreaks]
-*Values:* `"sync_gateway/bychannel"`
+*Values:* `"sync_gateway/bychannel"`, `""`
 {blank}
 a¦ String
 
@@ -51367,7 +50372,7 @@ a¦
 This is a set of key/value pairs used in the query string of the replication.
 
 If `filters=sync_gateway/bychannel` then this can be used to set the channels to filter by in a pull replication. To do this, set the `channels` key to a string array of the channels to filter by. For example:
-```
+```json
 "filter":"sync_gateway/bychannel",
 "query_params": {
   "channels":["chanUser1"]
@@ -51434,7 +50439,7 @@ a¦
 
 [markdown]
 --
-If true, the replicator will run with collections, and will replicate all collections, unless otherwise limited by `keyspace_map`.
+If true, the replicator will run with collections, and will replicate all collections, unless otherwise limited by `collections_local`.
 
 If false, the replicator will only replicate the default collection.
 --
@@ -51480,6 +50485,40 @@ The same index is used for both `collections_remote` and `collections_local`, an
 a¦ String
  array
 
+a¦ 
+*username* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**This has been deprecated in favour of `remote_username`.**
+
+This is the username to use to authenticate with the remote.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*password* +
+_optional_
+a¦ 
+
+[markdown]
+--
+**This has been deprecated in favour of `remote_password`.**
+
+This is the password to use to authenticate with the remote. This password will be redacted in the replication config.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
 |===
 
 //end::User_configurable_replication_properties[]
@@ -51523,26 +50562,28 @@ endif::collapse-models[]
 
 a¦ 
 *authentication_handlers* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
 --
-The ways authentication can be established to authenticate as the user.
+The ways authentication can be established to authenticate as a user. Used for CouchDB compatibility. Always contains "default" and "cookie".
 --
 
 [%hardbreaks]
+*Values:* `[&quot;default&quot;,&quot;cookie&quot;]`
 {blank}
 a¦ String
  array
 
 a¦ 
 *ok* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
 --
+Used for CouchDB compatibility. Always true.
 --
 
 [%hardbreaks]
@@ -51552,7 +50593,7 @@ a¦ Boolean
 
 a¦ 
 *userCtx* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
@@ -51608,25 +50649,22 @@ endif::collapse-models[]
 
 a¦ 
 *channels* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
 --
-A map of the channels the user has access to and the sequence number each channel was created at.
-
-The key is the channel name and the value is the sequence number.
-
+A map of the channels in the default collection that the user is in along with the sequence number the user was granted access. This does not include inherited channels through roles.
 --
 
 [%hardbreaks]
 {blank}
-a¦ Object
+a¦ xref:Map[]
 
 
 a¦ 
 *name* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
@@ -51635,6 +50673,7 @@ The name of the user.
 --
 
 [%hardbreaks]
+*Minimum length:* `1`
 {blank}
 a¦ String
 
@@ -51652,6 +50691,83 @@ a¦ String
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/User_Session_Information_userCtx/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Vendor/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Vendor]
+= Vendor
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Vendor/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::Vendor[]
+
+ifdef::model-descriptions[]
+//tag::desc-Vendor[]
+Product vendor
+//end::desc-Vendor[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*name* +
+_required_
+a¦ 
+
+[markdown]
+--
+Product name
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+API version.
+Omitted if `api.hide_product_version=true`
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+|===
+
+//end::Vendor[]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Vendor/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Vendor/definition-after.adoc[opts=optional]
 
 
 

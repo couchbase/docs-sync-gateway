@@ -1,5 +1,6 @@
 openapi: 3.0.3
 info:
+  version: '3.2'
   title: Sync Gateway Public REST API
   description: >-
     # Introduction
@@ -9,7 +10,6 @@ info:
     Couchbase Server.
 
     The Sync Gateway Public REST API is used for client replication.
-  version: '3.3'
   license:
     name: Business Source License 1.1 (BSL)
     url: 'https://github.com/couchbase/sync_gateway/blob/master/LICENSE'
@@ -75,110 +75,32 @@ paths:
                   authentication_handlers:
                     description: >-
                       The ways authentication can be established to authenticate
-                      as the user.
+                      as a user. Used for CouchDB compatibility. Always contains
+                      "default" and "cookie".
                     type: array
-                    items:
-                      type: string
-                  ok:
-                    type: boolean
-                  userCtx:
-                    type: object
-                    properties:
-                      channels:
-                        description: >
-                          A map of the channels the user has access to and the
-                          sequence number each channel was created at.
-
-
-                          The key is the channel name and the value is the
-                          sequence number.
-                        type: object
-                      name:
-                        description: The name of the user.
-                        type: string
-                        nullable: true
-                title: User Session Information
-        '404':
-          description: Resource could not be found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    description: The error name.
-                    type: string
-                  reason:
-                    description: The error description.
-                    type: string
-                required:
-                  - error
-                  - reason
-                title: HTTP-Error
-              example:
-                error: not_found
-                reason: no such database "invalid-db"
-    post:
-      summary: Create a new user session
-      description: >-
-        Generates a login session for the user based on the credentials provided
-        in the request body or if that fails (due to invalid credentials or none
-        provided at all), generates the new session for the currently
-        authenticated user instead. On a successful session creation, a session
-        cookie is stored to keep the user authenticated for future API calls.
-
-
-        If CORS is enabled, the origin must match an allowed login origin
-        otherwise an error will be returned.
-      requestBody:
-        description: The body can depend on if using the Public or Admin APIs.
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  description: User name to generate the session for.
-                  type: string
-                password:
-                  description: Password of the user to generate the session for.
-                  type: string
-      operationId: post_db-_session
-      tags:
-        - Session
-      responses:
-        '200':
-          description: >-
-            Session created successfully. Returned body is dependant on if using
-            Public or Admin APIs
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  authentication_handlers:
-                    description: >-
-                      Used for CouchDB compatability. Always contains "default"
-                      and "cookie".
-                    type: array
-                    items:
-                      type: string
-                      enum:
-                        - default
+                    enum:
+                      - - default
                         - cookie
+                    default:
+                      - default
+                      - cookie
                   ok:
-                    description: Used for CouchDB compatability. Always true.
+                    description: Used for CouchDB compatibility. Always true.
                     type: boolean
-                    default: true
+                    enum:
+                      - true
                   userCtx:
                     type: object
                     properties:
                       channels:
                         description: >-
-                          A map of the channels the user is in along with the
-                          sequence number the user was granted access.
+                          A map of the channels in the default collection that
+                          the user is in along with the sequence number the user
+                          was granted access. This does not include inherited
+                          channels through roles.
                         type: object
                         additionalProperties:
+                          x-additionalPropertiesName: channelName
                           type: number
                           minimum: 1
                           description: The sequence number the user was granted access.
@@ -197,8 +119,9 @@ paths:
                   - authentication_handlers
                   - ok
                   - userCtx
-        '400':
-          description: Origin is not in the approved list of allowed origins
+                title: User Session Information
+        '401':
+          description: 'User does not have access to resource, or resource does not exist'
           content:
             application/json:
               schema:
@@ -214,8 +137,123 @@ paths:
                   - error
                   - reason
                 title: HTTP-Error
-        '404':
-          description: Resource could not be found
+    post:
+      summary: Create a new user session
+      operationId: post_db-_session
+      tags:
+        - Session
+      description: >-
+        Generates a login session for the user based on the credentials provided
+        in the request body or if that fails (due to invalid credentials or none
+        provided at all), generates the new session for the currently
+        authenticated user instead. On a successful session creation, a session
+        cookie is stored to keep the user authenticated for future API calls.
+
+
+        If `Origin` header is passed to this endpoint, the `Origin` header must
+        match both the `cors.login_origin` and `cors.origin` configuration
+        options.
+      parameters:
+        - name: one_time
+          description: >-
+            Sets the session to only be valid for a single authentication. This
+            session will expire in 5 minutes if not used.
+          in: query
+          schema:
+            type: boolean
+      requestBody:
+        description: >-
+          When name and password are included in the request body, the session
+          will be created for the specified user.  Otherwise the session will be
+          created for the authenticated user making the request.
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              title: User Credentials
+              properties:
+                name:
+                  description: >-
+                    User name to generate the session for. Omit this value to
+                    generate a session for the authenticated user.
+                  type: string
+                password:
+                  description: >-
+                    Password of the user to generate the session for. Omit this
+                    value to generate a session for the authenticated user.
+                  type: string
+      responses:
+        '200':
+          description: >-
+            Session created successfully. Returned body is dependant on if using
+            Public or Admin APIs
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      authentication_handlers:
+                        description: >-
+                          The ways authentication can be established to
+                          authenticate as a user. Used for CouchDB
+                          compatibility. Always contains "default" and "cookie".
+                        type: array
+                        enum:
+                          - - default
+                            - cookie
+                        default:
+                          - default
+                          - cookie
+                      ok:
+                        description: Used for CouchDB compatibility. Always true.
+                        type: boolean
+                        enum:
+                          - true
+                      userCtx:
+                        type: object
+                        properties:
+                          channels:
+                            description: >-
+                              A map of the channels in the default collection
+                              that the user is in along with the sequence number
+                              the user was granted access. This does not include
+                              inherited channels through roles.
+                            type: object
+                            additionalProperties:
+                              x-additionalPropertiesName: channelName
+                              type: number
+                              minimum: 1
+                              description: The sequence number the user was granted access.
+                              title: sequence number
+                            example:
+                              '!': 1
+                              channelA: 2
+                          name:
+                            description: The name of the user.
+                            type: string
+                            minLength: 1
+                        required:
+                          - channels
+                          - name
+                    required:
+                      - authentication_handlers
+                      - ok
+                      - userCtx
+                    title: User Session Information
+                  - type: object
+                    properties:
+                      one_time_session_id:
+                        description: >-
+                          The id of a single use session if `one_time=true`
+                          query parameter was used.
+                        type: string
+                        example: c5af80a039db4ed9d2b6865576b6999935282689
+        '400':
+          description: >-
+            Value of `Origin` is not in the approved list of allowed origins in
+            `LoginOrigin` of Sync Gateway bootstrap or database configuration.
           content:
             application/json:
               schema:
@@ -232,8 +270,25 @@ paths:
                   - reason
                 title: HTTP-Error
               example:
-                error: not_found
-                reason: no such database "invalid-db"
+                error: Bad Request
+                reason: No CORS
+        '401':
+          description: 'User does not have access to resource, or resource does not exist'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    description: The error name.
+                    type: string
+                  reason:
+                    description: The error description.
+                    type: string
+                required:
+                  - error
+                  - reason
+                title: HTTP-Error
     delete:
       summary: Log out
       operationId: delete_db-_session
@@ -244,15 +299,53 @@ paths:
         their session cookie.
 
 
-        If CORS is enabled, the origin must match an allowed login origin
-        otherwise an error will be returned.
+        If `Origin` header is passed to this endpoint, the `Origin` header must
+        match both the `cors.login_origin` and `cors.origin` configuration
+        options.
       responses:
         '200':
           description: Successfully removed session (logged out)
         '400':
-          description: Bad Request
+          description: >-
+            Value of `Origin` is not in the approved list of allowed origins in
+            `LoginOrigin` of Sync Gateway bootstrap or database configuration.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    description: The error name.
+                    type: string
+                  reason:
+                    description: The error description.
+                    type: string
+                required:
+                  - error
+                  - reason
+                title: HTTP-Error
+              example:
+                error: Bad Request
+                reason: No CORS
+        '401':
+          description: 'User does not have access to resource, or resource does not exist'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    description: The error name.
+                    type: string
+                  reason:
+                    description: The error description.
+                    type: string
+                required:
+                  - error
+                  - reason
+                title: HTTP-Error
         '404':
-          description: Resource could not be found
+          description: Return if session not found.
           content:
             application/json:
               schema:
@@ -270,7 +363,7 @@ paths:
                 title: HTTP-Error
               example:
                 error: not_found
-                reason: no such database "invalid-db"
+                reason: no session
   '/{db}/':
     parameters:
       - name: db
@@ -2551,16 +2644,7 @@ paths:
       operationId: get_keyspace-_all_docs
       tags:
         - Document
-      description: >-
-        Returns all documents in the database based on the specified parameters.
-
-
-        This endpoint is not recommended for larger datasets or production
-        workloads.
-
-        [GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or [POST
-        /{keyspace}/_bulk_get](#operation/post_keyspace-_bulk_get) have more
-        efficient implementations and should be used instead.
+      description: Returns all documents in the database based on the specified parameters.
       parameters:
         - name: include_docs
           in: query
@@ -2674,23 +2758,6 @@ paths:
                   - error
                   - reason
                 title: HTTP-Error
-        '403':
-          description: This API endpoint has been disabled by the administrator.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    description: The error name.
-                    type: string
-                  reason:
-                    description: The error description.
-                    type: string
-                required:
-                  - error
-                  - reason
-                title: HTTP-Error
         '404':
           description: Resource could not be found
           content:
@@ -2716,16 +2783,7 @@ paths:
       operationId: post_keyspace-_all_docs
       tags:
         - Document
-      description: >-
-        Returns all documents in the database based on the specified parameters.
-
-
-        This endpoint is not recommended for larger datasets or production
-        workloads.
-
-        [GET /{keyspace}/_changes](#operation/get_keyspace-_changes) or [POST
-        /{keyspace}/_bulk_get](#operation/post_keyspace-_bulk_get) have more
-        efficient implementations and should be used instead.
+      description: Returns all documents in the database based on the specified parameters.
       parameters:
         - name: include_docs
           in: query
@@ -2829,23 +2887,6 @@ paths:
                   - update_seq
         '400':
           description: There was a problem with your request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    description: The error name.
-                    type: string
-                  reason:
-                    description: The error description.
-                    type: string
-                required:
-                  - error
-                  - reason
-                title: HTTP-Error
-        '403':
-          description: This API endpoint has been disabled by the administrator.
           content:
             application/json:
               schema:
@@ -4682,8 +4723,9 @@ paths:
         future API calls.
 
 
-        If CORS is enabled, the origin must match an allowed login origin
-        otherwise an error will be returned.
+        If `Origin` header is passed to this endpoint, the `Origin` header must
+        match both the `cors.login_origin` and `cors.origin` configuration
+        options.
       requestBody:
         content:
           application/json:
@@ -4699,7 +4741,9 @@ paths:
         '200':
           description: Session created successfully
         '400':
-          description: Origin is not in the approved list of allowed origins
+          description: >-
+            Value of `Origin` is not in the approved list of allowed origins in
+            `LoginOrigin` of Sync Gateway bootstrap or database configuration.
           content:
             application/json:
               schema:
@@ -4715,6 +4759,9 @@ paths:
                   - error
                   - reason
                 title: HTTP-Error
+              example:
+                error: Bad Request
+                reason: No CORS
         '401':
           description: Received error from Facebook verifier
           content:
@@ -4790,8 +4837,9 @@ paths:
         future API calls.
 
 
-        If CORS is enabled, the origin must match an allowed login origin
-        otherwise an error will be returned.
+        If `Origin` header is passed to this endpoint, the `Origin` header must
+        match both the `cors.login_origin` and `cors.origin` configuration
+        options.
       requestBody:
         content:
           application/json:
@@ -4807,7 +4855,9 @@ paths:
         '200':
           description: Session created successfully
         '400':
-          description: Origin is not in the approved list of allowed origins
+          description: >-
+            Value of `Origin` is not in the approved list of allowed origins in
+            `LoginOrigin` of Sync Gateway bootstrap or database configuration.
           content:
             application/json:
               schema:
@@ -4823,6 +4873,9 @@ paths:
                   - error
                   - reason
                 title: HTTP-Error
+              example:
+                error: Bad Request
+                reason: No CORS
         '401':
           description: >-
             Received error from Google token verifier or invalid application ID
@@ -5305,29 +5358,50 @@ components:
       properties:
         authentication_handlers:
           description: >-
-            The ways authentication can be established to authenticate as the
-            user.
+            The ways authentication can be established to authenticate as a
+            user. Used for CouchDB compatibility. Always contains "default" and
+            "cookie".
           type: array
-          items:
-            type: string
+          enum:
+            - - default
+              - cookie
+          default:
+            - default
+            - cookie
         ok:
+          description: Used for CouchDB compatibility. Always true.
           type: boolean
+          enum:
+            - true
         userCtx:
           type: object
           properties:
             channels:
-              description: >
-                A map of the channels the user has access to and the sequence
-                number each channel was created at.
-
-
-                The key is the channel name and the value is the sequence
-                number.
+              description: >-
+                A map of the channels in the default collection that the user is
+                in along with the sequence number the user was granted access.
+                This does not include inherited channels through roles.
               type: object
+              additionalProperties:
+                x-additionalPropertiesName: channelName
+                type: number
+                minimum: 1
+                description: The sequence number the user was granted access.
+                title: sequence number
+              example:
+                '!': 1
+                channelA: 2
             name:
               description: The name of the user.
               type: string
-              nullable: true
+              minLength: 1
+          required:
+            - channels
+            - name
+      required:
+        - authentication_handlers
+        - ok
+        - userCtx
       title: User Session Information
     HTTP-Error:
       type: object
@@ -5636,29 +5710,90 @@ components:
               authentication_handlers:
                 description: >-
                   The ways authentication can be established to authenticate as
-                  the user.
+                  a user. Used for CouchDB compatibility. Always contains
+                  "default" and "cookie".
                 type: array
-                items:
-                  type: string
+                enum:
+                  - - default
+                    - cookie
+                default:
+                  - default
+                  - cookie
               ok:
+                description: Used for CouchDB compatibility. Always true.
                 type: boolean
+                enum:
+                  - true
               userCtx:
                 type: object
                 properties:
                   channels:
-                    description: >
-                      A map of the channels the user has access to and the
-                      sequence number each channel was created at.
-
-
-                      The key is the channel name and the value is the sequence
-                      number.
+                    description: >-
+                      A map of the channels in the default collection that the
+                      user is in along with the sequence number the user was
+                      granted access. This does not include inherited channels
+                      through roles.
                     type: object
+                    additionalProperties:
+                      x-additionalPropertiesName: channelName
+                      type: number
+                      minimum: 1
+                      description: The sequence number the user was granted access.
+                      title: sequence number
+                    example:
+                      '!': 1
+                      channelA: 2
                   name:
                     description: The name of the user.
                     type: string
-                    nullable: true
+                    minLength: 1
+                required:
+                  - channels
+                  - name
+            required:
+              - authentication_handlers
+              - ok
+              - userCtx
             title: User Session Information
+    Unauthorized:
+      description: 'User does not have access to resource, or resource does not exist'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                description: The error name.
+                type: string
+              reason:
+                description: The error description.
+                type: string
+            required:
+              - error
+              - reason
+            title: HTTP-Error
+    Invalid-CORS-LoginOrigin:
+      description: >-
+        Value of `Origin` is not in the approved list of allowed origins in
+        `LoginOrigin` of Sync Gateway bootstrap or database configuration.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                description: The error name.
+                type: string
+              reason:
+                description: The error description.
+                type: string
+            required:
+              - error
+              - reason
+            title: HTTP-Error
+          example:
+            error: Bad Request
+            reason: No CORS
     Not-found:
       description: Resource could not be found
       content:
@@ -5679,23 +5814,6 @@ components:
           example:
             error: not_found
             reason: no such database "invalid-db"
-    Invalid-CORS:
-      description: Origin is not in the approved list of allowed origins
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                description: The error name.
-                type: string
-              reason:
-                description: The error description.
-                type: string
-            required:
-              - error
-              - reason
-            title: HTTP-Error
     request-problem:
       description: There was a problem with your request
       content:
