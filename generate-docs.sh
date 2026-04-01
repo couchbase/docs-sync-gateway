@@ -47,8 +47,6 @@ from_entries |
   "${PATH_TO_METRICS}/metrics_metadata.json" \
  > "${PATH_TO_ASSETS}/metrics_metadata.json"
 
-cd modules/ROOT
-
 generate() {
     WHAT=$1
 
