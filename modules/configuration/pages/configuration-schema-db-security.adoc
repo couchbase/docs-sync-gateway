@@ -1,0 +1,183 @@
+= Database Security
+:page-aliases: ROOT:configuration-schema-db-security.adoc
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-content: Reference
+:description: Using Sync Gateway's Admin REST API to configure users and roles
+
+:ouroffsetlevel: +1
+
+// BEGIN -- DO NOT EDIT
+include::ROOT:partial$_set_page_context.adoc[]
+
+
+:param-abstract!: Introducing the use of user and role endpoints for the administration of Sync Gateway users.
+:param-related!:
+:param-topic-group: configuration
+include::ROOT:partial$_show_page_header_block.adoc[]
+
+// END -- DO NOT EDIT
+
+include::ROOT:partial$static_restapi/css.adoc[]
+
+include::ROOT:partial$block-caveats.adoc[tags="legacy-config-equivalents"]
+
+== Introduction
+
+Use the Admin REST API `_user` and `_role` endpoints to provision and manage {sgw} users through persistent configuration changes.
+
+This page introduces the <<put_db-_role-name,Create or Update a Role>> and <<put_db-_user-name,Create or Update a User>> endpoints for convenience -- see {rest-api-admin--xref--database-security} for a full description of the endpoints available.
+
+It also includes a JSON-data model, you can use to build your request bodies. See: <<lbl-schema>>
+
+include::ROOT:partial$static_restapi/admin/index.adoc[tags=put_db-_role-name,leveloffset=+1]
+
+=== Example
+
+====
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://127.0.0.1:4985/travel25/_role/newrole' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \ // <.>
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "newrole",
+    "admin_channels": ["newrolechannel"]
+}'
+
+----
+
+--
+
+HTTP::
++
+--
+
+[source, bash]
+----
+
+PUT /travel25/_role/newrole HTTP/1.1 // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk // <.>
+Content-Type: application/json
+Content-Length: 67
+
+{
+    "name": "newrole",
+    "admin_channels": ["newrolechannel"]
+}
+
+----
+
+--
+
+=====
+
+<.> Add role `newrole` to the `travel25` database
+<.> Use Basic Auth to authenticate to an existing RBAC user
+
+====
+
+
+
+include::ROOT:partial$static_restapi/admin/index.adoc[tags=put_db-_user-name,leveloffset=+1]
+
+=== Example
+
+====
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+curl --location --request PUT 'http://127.0.0.1:4985/travel25/_user/newuser' \ // <.>
+--header 'Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "password": "pass",
+    "admin_channels": ["newrole"]
+}
+'
+
+----
+
+--
+
+HTTP::
++
+--
+[source, bash]
+----
+
+PUT /travel25/_user/newuser HTTP/1.1 // <.>
+Host: 127.0.0.1:4985
+Authorization: Basic c3luY19nYXRld2F5OnBhc3N3b3Jk
+Content-Type: application/json
+Content-Length: 63
+
+{
+    "password": "pass",
+    "admin_channels": ["newrole"]
+}
+
+----
+--
+
+=====
+
+<.> Add user `newuser` to the `travel25` database
+
+====
+
+[#lbl-schema]
+== Schema
+
+This section shows Sync Gateway's database security configuration settings in schema format for convenience in constructing JSON models for use in the Admin REST API.
+
+The configuration settings described here are provisioned through the Admin REST API -- see as shown in {rest-api-admin--xref--database-security}.
+
+[#Role2]
+=== Role
+
+[template,ROOT:attachment$bundled-admin.yaml,  partials="ROOT:partial$json_ui_listing.hbs"]
+--
+{{#each-openapi components.schemas.Role }}
+{{> json_ui_listing}}
+{{/each-openapi}}
+--
+
+[#User2]
+=== User
+
+[template,ROOT:attachment$bundled-admin.yaml,  partials="ROOT:partial$json_ui_listing.hbs"]
+--
+{{#each-openapi components.schemas.User }}
+{{> json_ui_listing}}
+{{/each-openapi}}
+--
+
+[#HTTP_Error]
+== Errors
+
+This section shows possible error responses returned by the Admin REST API.
+
+include::ROOT:partial$static_restapi/admin/index.adoc[tags=HTTP_Error]
+
+// BEGIN -- DO NOT EDIT
+include::ROOT:partial$block-related-content-api.adoc[]
+
+// END -- DO NOT EDIT

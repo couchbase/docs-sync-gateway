@@ -1,0 +1,95 @@
+// BEGIN how-to -- HOW-TO CREATE A ROLE
+// Parameters -- use-topic-header -- to show the topic heading (optional)
+ifdef::include-related[]
+
+_Related Concepts_: {roles--xref}
+
+endif::[]
+
+
+== Provisioning
+
+
+The creation of roles is optional.
+It depends on the use case whether there is a need to logically group users.
+
+You can create and-or manage roles using the following options
+
+* Admin REST API: +
+Roles are created via the Sync Gateway Admin REST API -- see: {rest-api-admin--xref}.
+
+* File-based Configuration Properties footnote:[Prior to Release 3.0]
++
+*Note* To use this option in v3.x, you must use the `-disable_persistent_config` CLI option.
++
+Configure roles in the xref:configuration:configuration-properties-legacy.adoc[Legacy Configuration Properties] file.
+
+
+*Note* that removing a role effectively revokes access to the channel that role is associated with and may mean users will lose access to required documents.
+
+
+[ex-crt-role]
+.How to Create a Role
+====
+
+[{tabs}]
+=====
+
+Admin REST API::
++
+--
+
+NOTE: This is the default recommended option starting 3.0..
+
+Create a new role using the {rest-api-admin-role-post--xref} endpoint.
+
+[source,bash]
+----
+$ curl -vX POST "http://localhost:4985/mydatabase/_roles/" -H
+"accept: application/json" -H "Content-Type: application/json" -d
+'{"name": "Edge1", "collection_acces": {"scopename": {"collectionname": {"admin_channels": ["channel1", "channel3"]]}}}}' // <.>
+----
+<.> Here we add the Edge1 role which grants channel access to channel1 and channel3 in scope scopename and collection collectionname.
+
+--
+
+File-based Configuration Properties::
++
+--
+
+include::ROOT:partial$block-caveats.adoc[tags=disable-persistent-cinfig]
+
+Create roles by hardcoding them in the {configuration-properties-legacy--xref}.
+This method is convenient for testing and to get started.
+It is recommended to use the *REST API* for production systems.
+
+[source,json]
+----
+{
+  "databases": {
+    "mydatabase": {
+      "roles": { // <.>
+        "Edge1": {
+          "collection_access": {
+            "scopename": {
+              "collectionname": {
+                "admin_channels": ["channel1", "channel3"] // <.>
+              }
+            }
+          }
+	},
+        "Edge2": {"admin_channels": ["channel2", "channel3"]},
+        "GUEST": {"disabled": true}
+      }
+    }
+  }
+}
+----
+<.> {configuration-schema-database--pfx--db}-users[databases.$db.users]
+<.> Here we add the Edge1 role.
+--
+
+=====
+====
+
+// END how-to -- HOW-TO CREATE A ROLE

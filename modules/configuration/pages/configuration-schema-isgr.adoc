@@ -1,0 +1,131 @@
+= Inter-Sync{nbsp}Gateway Replication Configuration
+:page-aliases: ROOT:configuration-schema-isgr.adoc
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:page-content: Reference
+:description: Using Sync Gateway's Admin REST API to configure and manage inter-Sync{nbsp}Gateway replications
+
+
+include::ROOT:partial$_set_page_context.adoc[]
+
+
+:param-abstract!:
+:param-related!:
+:param-topic-group: configuration
+include::ROOT:partial$_show_page_header_block.adoc[]
+// END -- DO NOT EDIT
+
+include::ROOT:partial$static_restapi/css.adoc[]
+
+include::ROOT:partial$block-caveats.adoc[tags="legacy-config-equivalents"]
+
+
+== Introduction
+
+Sync Gateway 3.0 and later uses the Admin REST API to provision persistent configuration changes.
+This page introduces the <<put_db-_replication-replicationid,Add or Update a Replication>> endpoint for convenience -- see {rest-api-admin--xref--replication} for a full description of the endpoints available.
+
+.Using CA Certificates
+****
+Required CA certificates must be added to the system certificate pool.
+
+On Linux, this is done using one of the following methods:
+
+* Adding the location of the certificate to `SSL_CERT_FILE` environment variable,
+* Placing the certificate in a location pointed to by the `SSL_CERT_DIR` environment variable.
+* Using one of the system-dependent locations https://go.dev/src/crypto/x509/root_linux.go[listed in this file].
+
+For Windows-based systems, add CA certificate files to the system root certificate store.
+****
+
+
+include::ROOT:partial$static_restapi/admin/index.adoc[tags=put_db-_replication-replicationid,leveloffset=+1]
+
+== Example
+
+====
+
+[{tabs}]
+=====
+
+Curl::
++
+--
+
+[source, bash]
+----
+
+curl --location --request PUT 'http://localhost:4985/db1-local/_replication/db1-rep-id1 '\
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "direction": "push",
+  "purge_on_removal": false,
+  "remote": "http://user1:password1@example.com:4984/db1-remote",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+    "channels":["channel.user1"]
+  },
+  "continuous": false
+  }'
+
+----
+
+--
+
+HTTP::
++
+--
+
+[source, http]
+----
+
+PUT /db1-local/_replication/db1-rep-id1 HTTP/1.1
+Host: localhost:4985
+Content-Type: application/json
+Content-Length: 235
+
+{"direction": "push",
+  "purge_on_removal":false,
+  "remote": "http://user1:password1@example.com:4984/db1-remote",
+  "filter":"sync_gateway/bychannel",
+  "query_params": {
+    "channels":["channel.user1"]
+  },
+  "continuous": false
+}
+
+----
+--
+
+=====
+
+====
+
+
+[#UserConfigurableReplicationProperties]
+== Schema
+
+This section shows Sync Gateway's replication configuration settings in schema format for convenience in constructing JSON models for use in the Admin REST API.
+
+The configuration settings described here are provisioned through the {rest-api-admin--xref--replication} endpoints.
+
+
+[template,ROOT:attachment$bundled-admin.yaml,  partials="ROOT:partial$json_ui_listing.hbs"]
+--
+{{#each-openapi components.schemas.Replication}}
+{{> json_ui_listing}}
+{{/each-openapi}}
+--
+
+[#HTTP_Error]
+== Errors
+
+This section shows possible error responses returned by the Admin REST API.
+
+include::ROOT:partial$static_restapi/admin/index.adoc[tags=HTTP_Error]
+
+// BEGIN -- DO NOT EDIT
+include::ROOT:partial$block-related-content-api.adoc[]
+
+// END -- DO NOT EDIT
