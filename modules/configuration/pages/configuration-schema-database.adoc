@@ -24,8 +24,13 @@ include::ROOT:partial$block-caveats.adoc[tags="legacy-config-equivalents"]
 From {sgw-te} 3.0 you can use the Admin REST API to provision persistent configuration changes.
 This content introduces the <<put_db-,Create Database>> and <<post_db-_config,Configure Database>> endpoints for convenience -- see {rest-api-admin--xref--database-configuration} for a full description of the endpoints available.
 
+
 NOTE: You can define 1 custom scope per database with up to 1000 custom collections.
-If you don't specify a custom scope and collection, any documents you create will be saved in the default scope and collection.
+If you do not specify a custom scope and collection, Sync Gateway saves any documents you create in the default scope and collection.
+
+Database and user creation times increase with the number of collections you configure.
+User creation initializes access control for all associated collections, while database creation initializes Sync Gateway indexes (`sg_` prefixed) for new collections.
+
 
 [#lbl-create-db]
 include::ROOT:partial$static_restapi/admin/index.adoc[tags="put_db-",leveloffset=+1]
@@ -83,7 +88,6 @@ Content-Length: 44
 <.> Point to the Couchbase Server bucket called `todo`
 
 ====
-
 
 [#lbl-configure-db]
 include::ROOT:partial$static_restapi/admin/index.adoc[tags="post_db-_config",leveloffset=+1]
