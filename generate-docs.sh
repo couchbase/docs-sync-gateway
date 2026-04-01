@@ -58,7 +58,7 @@ generate() {
         --output "${PATH_TO_TEMP}/${WHAT}.bundle.yaml"
 
     # Get the bundled spec, apply the OpenAPI overlay,
-    # and output to the temporary bld folder.
+    # and output to the attachments folder.
     npx openapi-overlays-js \
         --openapi "${PATH_TO_TEMP}/${WHAT}.bundle.yaml" \
         --overlay "${PATH_TO_ASSETS}/_${WHAT}.overlay.yaml" \
