@@ -1136,7 +1136,7 @@ CAUTION: This operation is deprecated, and will be removed in a future release.
 --
 Creates a new session based on a Facebook user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
 
-If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
 --
 
 
@@ -1260,7 +1260,7 @@ a|
 | 400
 a| [markdown]
 --
-Origin is not in the approved list of allowed origins
+Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
 --
 a| xref:HTTP_Error[]
 
@@ -1376,7 +1376,7 @@ CAUTION: This operation is deprecated, and will be removed in a future release.
 --
 Creates a new session based on a Google user. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
 
-If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
 --
 
 
@@ -1500,7 +1500,7 @@ a|
 | 400
 a| [markdown]
 --
-Origin is not in the approved list of allowed origins
+Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
 --
 a| xref:HTTP_Error[]
 
@@ -3452,11 +3452,10 @@ a¦
 
 [markdown]
 --
-The interval (in milliseconds) to send an empty line (CRLF) in the response. This is to help prevent gateways from deciding the socket is idle and therefore closing it. This is only applicable to `feed=longpoll` or `feed=continuous`. This will override any timeouts to keep the feed alive indefinitely. Setting to 0 results in no heartbeat. The maximum heartbeat can be set in the server replication configuration.
+The interval (in milliseconds) to send an empty line (CRLF) in the response. This is to help prevent gateways from deciding the socket is idle and therefore closing it. This is only applicable to `feed=longpoll` or `feed=continuous`. This will override any timeouts to keep the feed alive indefinitely. Setting to 0 results in no heartbeat. The maximum heartbeat can be set in the server replication configuration. If heartbeat is non zero, it must be at least 25000 milliseconds.
 --
 
 [%hardbreaks]
-*Minimum:* `25000`
 {blank}
 
 a¦ Integer
@@ -8782,7 +8781,7 @@ DELETE /{db}/_session
 --
 Invalidates the session for the currently authenticated user and removes their session cookie.
 
-If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
 --
 
 
@@ -8878,13 +8877,23 @@ a|
 | 400
 a| [markdown]
 --
-Bad Request
+Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
 --
-a| 
+a| xref:HTTP_Error[]
+
+
+| 401
+a| [markdown]
+--
+User does not have access to resource, or resource does not exist
+--
+a| xref:HTTP_Error[]
+
+
 | 404
 a| [markdown]
 --
-Resource could not be found
+Return if session not found.
 --
 a| xref:HTTP_Error[]
 
@@ -9060,10 +9069,10 @@ Properties associated with a user session
 a| xref:User_Session_Information[]
 
 
-| 404
+| 401
 a| [markdown]
 --
-Resource could not be found
+User does not have access to resource, or resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -9146,7 +9155,7 @@ POST /{db}/_session
 --
 Generates a login session for the user based on the credentials provided in the request body or if that fails (due to invalid credentials or none provided at all), generates the new session for the currently authenticated user instead. On a successful session creation, a session cookie is stored to keep the user authenticated for future API calls.
 
-If CORS is enabled, the origin must match an allowed login origin otherwise an error will be returned.
+If `Origin` header is passed to this endpoint, the `Origin` header must match both the `cors.login_origin` and `cors.origin` configuration options.
 --
 
 
@@ -9205,6 +9214,31 @@ a¦ String
 
 |===
 
+[#post_db-_session-query]
+= Query Parameters
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *one_time* +
+_optional_
+a¦ 
+
+
+[markdown]
+--
+Sets the session to only be valid for a single authentication. This session will expire in 5 minutes if not used.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ Boolean
+
+
+
+|===
 
 
 
@@ -9222,13 +9256,13 @@ a¦
 
 [markdown]
 --
-The body can depend on if using the Public or Admin APIs.
+When name and password are included in the request body, the session will be created for the specified user.  Otherwise the session will be created for the authenticated user making the request.
 --
 
 [%hardbreaks]
 {blank}
 
-a¦ xref:PostDbSessionRequest[]
+a¦ xref:UserCredentials[]
 
 
 
@@ -9272,15 +9306,15 @@ a| xref:post_db__session_200_response[]
 | 400
 a| [markdown]
 --
-Origin is not in the approved list of allowed origins
+Value of `Origin` is not in the approved list of allowed origins in `LoginOrigin` of Sync Gateway bootstrap or database configuration.
 --
 a| xref:HTTP_Error[]
 
 
-| 404
+| 401
 a| [markdown]
 --
-Resource could not be found
+User does not have access to resource, or resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -12349,8 +12383,6 @@ xref:post_db__google_request[]
 xref:post_db__oidc_testing_authenticate_request[]
 xref:post_db__oidc_testing_token_request[]
 xref:post_db__session_200_response[]
-xref:post_db__session_200_response_userCtx[]
-xref:post_db__session_request[]
 xref:post_keyspace__all_docs_request[]
 xref:post_keyspace__bulk_docs_201_response_inner[]
 xref:post_keyspace__bulk_docs_request[]
@@ -12364,8 +12396,10 @@ xref:post_keyspace__revs_diff_200_response[]
 xref:post_keyspace__revs_diff_200_response_docid[]
 xref:post_keyspace__revs_diff_request[]
 xref:put_keyspace__local_docid_request[]
+xref:User_Credentials[]
 xref:User_Session_Information[]
 xref:User_Session_Information_userCtx[]
+xref:Vendor[]
 endif::[]
 
 
@@ -12836,55 +12870,12 @@ endif::collapse-models[]
 // markup not found, no include::{specDir}definitions/get___200_response_vendor/definition-begin.adoc[opts=optional]
 
 
-.icon:brackets-curly[fw] Object
+.icon:bars[fw] Composite Schema
 {blank}
 
-//tag::get___200_response_vendor[]
+All of the following:
 
-ifdef::model-descriptions[]
-//tag::desc-get___200_response_vendor[]
-Product vendor
-//end::desc-get___200_response_vendor[]
-endif::model-descriptions[]
-
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*name* +
-_required_
-a¦ 
-
-[markdown]
---
-Product name
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*version* +
-_optional_
-a¦ 
-
-[markdown]
---
-API version.
-Omitted if `api.hide_product_version=true`
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-|===
-
-//end::get___200_response_vendor[]
+* xref:Object[]
 
 
 
@@ -15720,65 +15711,15 @@ endif::collapse-models[]
 // markup not found, no include::{specDir}definitions/post_db__session_200_response/definition-begin.adoc[opts=optional]
 
 
-.icon:brackets-curly[fw] Object
+.icon:bars[fw] Composite Schema
 {blank}
 
-//tag::post_db__session_200_response[]
+All of the following:
+
+* xref:Object[]
 
 
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*authentication_handlers* +
-_required_
-a¦ 
-
-[markdown]
---
-Used for CouchDB compatability. Always contains "default" and "cookie".
---
-
-[%hardbreaks]
-*Values:* `default`, `cookie`
-{blank}
-a¦ String
- array
-
-a¦ 
-*ok* +
-_required_
-a¦ 
-
-[markdown]
---
-Used for CouchDB compatability. Always true.
---
-
-[%hardbreaks]
-{blank}
-a¦ Boolean
-
-
-a¦ 
-*userCtx* +
-_required_
-a¦ 
-
-[markdown]
---
-include::index.adoc[tag=desc-post_db__session_200_response_userCtx, opts=optional]
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:post_db__session_200_response_userCtx[]
-
-
-|===
-
-//end::post_db__session_200_response[]
+* xref:Object[]
 
 
 
@@ -15789,149 +15730,6 @@ a¦ xref:post_db__session_200_response_userCtx[]
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/post_db__session_200_response/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/post_db__session_200_response_userCtx/definition-before.adoc[opts=optional]
-
-
-ifdef::collapse-models[]
-[discrete]
-endif::collapse-models[]
-[#post_db__session_200_response_userCtx]
-= PostDbSession200ResponseUserCtx
-
-:leveloffset: +1
-
-// markup not found, no include::{specDir}definitions/post_db__session_200_response_userCtx/definition-begin.adoc[opts=optional]
-
-
-.icon:brackets-curly[fw] Object
-{blank}
-
-//tag::post_db__session_200_response_userCtx[]
-
-
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*channels* +
-_required_
-a¦ 
-
-[markdown]
---
-A map of the channels the user is in along with the sequence number the user was granted access.
---
-
-[%hardbreaks]
-{blank}
-a¦ xref:Map[]
-
-
-a¦ 
-*name* +
-_required_
-a¦ 
-
-[markdown]
---
-The name of the user.
---
-
-[%hardbreaks]
-*Minimum length:* `1`
-{blank}
-a¦ String
-
-
-|===
-
-//end::post_db__session_200_response_userCtx[]
-
-
-
-
-// markup not found, no include::{specDir}definitions/post_db__session_200_response_userCtx/definition-end.adoc[opts=optional]
-
-
-:leveloffset: -1
-
-// markup not found, no include::{specDir}definitions/post_db__session_200_response_userCtx/definition-after.adoc[opts=optional]
-
-
-
-
-// markup not found, no include::{specDir}definitions/post_db__session_request/definition-before.adoc[opts=optional]
-
-
-ifdef::collapse-models[]
-[discrete]
-endif::collapse-models[]
-[#post_db__session_request]
-= PostDbSessionRequest
-
-:leveloffset: +1
-
-// markup not found, no include::{specDir}definitions/post_db__session_request/definition-begin.adoc[opts=optional]
-
-
-.icon:brackets-curly[fw] Object
-{blank}
-
-//tag::post_db__session_request[]
-
-
-[cols="25,55,20",separator=¦]
-|===
-¦ Property ¦ ¦ Schema
-
-a¦ 
-*name* +
-_optional_
-a¦ 
-
-[markdown]
---
-User name to generate the session for.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-a¦ 
-*password* +
-_optional_
-a¦ 
-
-[markdown]
---
-Password of the user to generate the session for.
---
-
-[%hardbreaks]
-{blank}
-a¦ String
-
-
-|===
-
-//end::post_db__session_request[]
-
-
-
-
-// markup not found, no include::{specDir}definitions/post_db__session_request/definition-end.adoc[opts=optional]
-
-
-:leveloffset: -1
-
-// markup not found, no include::{specDir}definitions/post_db__session_request/definition-after.adoc[opts=optional]
 
 
 
@@ -17037,6 +16835,77 @@ a¦ String
 
 
 
+// markup not found, no include::{specDir}definitions/User_Credentials/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#User_Credentials]
+= User Credentials
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/User_Credentials/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::User_Credentials[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*name* +
+_optional_
+a¦ 
+
+[markdown]
+--
+User name to generate the session for. Omit this value to generate a session for the authenticated user.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*password* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Password of the user to generate the session for. Omit this value to generate a session for the authenticated user.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+|===
+
+//end::User_Credentials[]
+
+
+
+
+// markup not found, no include::{specDir}definitions/User_Credentials/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/User_Credentials/definition-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}definitions/User_Session_Information/definition-before.adoc[opts=optional]
 
 
@@ -17063,26 +16932,28 @@ endif::collapse-models[]
 
 a¦ 
 *authentication_handlers* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
 --
-The ways authentication can be established to authenticate as the user.
+The ways authentication can be established to authenticate as a user. Used for CouchDB compatibility. Always contains "default" and "cookie".
 --
 
 [%hardbreaks]
+*Values:* `[&quot;default&quot;,&quot;cookie&quot;]`
 {blank}
 a¦ String
  array
 
 a¦ 
 *ok* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
 --
+Used for CouchDB compatibility. Always true.
 --
 
 [%hardbreaks]
@@ -17092,7 +16963,7 @@ a¦ Boolean
 
 a¦ 
 *userCtx* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
@@ -17148,25 +17019,22 @@ endif::collapse-models[]
 
 a¦ 
 *channels* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
 --
-A map of the channels the user has access to and the sequence number each channel was created at.
-
-The key is the channel name and the value is the sequence number.
-
+A map of the channels in the default collection that the user is in along with the sequence number the user was granted access. This does not include inherited channels through roles.
 --
 
 [%hardbreaks]
 {blank}
-a¦ Object
+a¦ xref:Map[]
 
 
 a¦ 
 *name* +
-_optional_
+_required_
 a¦ 
 
 [markdown]
@@ -17175,6 +17043,7 @@ The name of the user.
 --
 
 [%hardbreaks]
+*Minimum length:* `1`
 {blank}
 a¦ String
 
@@ -17192,6 +17061,83 @@ a¦ String
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/User_Session_Information_userCtx/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Vendor/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Vendor]
+= Vendor
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Vendor/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::Vendor[]
+
+ifdef::model-descriptions[]
+//tag::desc-Vendor[]
+Product vendor
+//end::desc-Vendor[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*name* +
+_required_
+a¦ 
+
+[markdown]
+--
+Product name
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+a¦ 
+*version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+API version.
+Omitted if `api.hide_product_version=true`
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+
+|===
+
+//end::Vendor[]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Vendor/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Vendor/definition-after.adoc[opts=optional]
 
 
 

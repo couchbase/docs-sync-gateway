@@ -28,10 +28,10 @@ cd ..
 
 PATH_TO_SYNC_GATEWAY="${GIT_ROOT}/sync_gateway"
 
-PATH_TO_BUNDLE="${GIT_ROOT}/modules/ROOT/assets/attachments"
-PATH_TO_OVERLAY="${GIT_ROOT}/modules/ROOT/assets/overlays"
-PATH_TO_TEMP="${GIT_ROOT}/modules/ROOT/assets/bld"
-PATH_TO_STATIC="${GIT_ROOT}"
+PATH_TO_ASSETS="${GIT_ROOT}/modules/ROOT/assets/attachments"
+PATH_TO_PARTIALS="${GIT_ROOT}/modules/ROOT/partials"
+PATH_TO_TEMP="${GIT_ROOT}/modules/ROOT/bld"
+PATH_TO_STATIC="${GIT_ROOT}/modules/ROOT/pages/_partials/static_restapi"
 
 # Create a bld directory to hold temporary files, if it doesn't already exist
 [[ -d "${PATH_TO_TEMP}" ]] || mkdir "${PATH_TO_TEMP}"
@@ -44,8 +44,8 @@ map(.value += {"type": "integer", "format": .value.type}) |
 map(.value |= del(.added, .labels, .unit, .stability, .help)) |
 from_entries |
 {type: "object", properties: .}' \
-  "${PATH_TO_BUNDLE}/metrics_metadata.json" \
-  > "${PATH_TO_TEMP}/metrics_metadata.json"
+  "${PATH_TO_PARTIALS}/metrics_metadata.json" \
+  > "${PATH_TO_ASSETS}/metrics_metadata.json"
 
 cd modules/ROOT
 
@@ -57,20 +57,20 @@ generate() {
         --config "${PATH_TO_SYNC_GATEWAY}/.redocly.yaml" \
         "${WHAT}" \
         --dereferenced \
-        --output "${PATH_TO_BUNDLE}/bundled-${WHAT}.yaml"
+        --output "${PATH_TO_TEMP}/${WHAT}.bundle.yaml"
 
     # Get the bundled spec, apply the OpenAPI overlay,
     # and output to the temporary bld folder.
     npx openapi-overlays-js \
-        --openapi "${PATH_TO_BUNDLE}/bundled-${WHAT}.yaml" \
-        --overlay "${PATH_TO_OVERLAY}/${WHAT}.yaml" \
-        > "${PATH_TO_TEMP}/${WHAT}.yaml"
+        --openapi "${PATH_TO_TEMP}/${WHAT}.bundle.yaml" \
+        --overlay "${PATH_TO_ASSETS}/_${WHAT}.overlay.yaml" \
+        > "${PATH_TO_ASSETS}/${WHAT}.overlaid.yaml"
 
     # Build the reference documentation using the overlaid spec.
     npx @redocly/cli \
       build-docs \
       --config redocly.yaml \
-      "${PATH_TO_TEMP}/${WHAT}.yaml" \
+      "${PATH_TO_ASSETS}/${WHAT}.overlaid.yaml" \
       --output partials/sgw-openapi-$WHAT.html \
       --template partials/redocAll.hbs
 
@@ -78,7 +78,7 @@ generate() {
     npx @openapitools/openapi-generator-cli generate \
         --skip-validate-spec \
         --generator-name asciidoc  \
-        --input-spec "${PATH_TO_TEMP}/${WHAT}.yaml" \
+        --input-spec "${PATH_TO_ASSETS}/${WHAT}.overlaid.yaml" \
         --template-dir "${PATH_TO_STATIC}/templates" \
         --additional-properties skipExamples=true \
         --output "${PATH_TO_STATIC}/${WHAT}"
