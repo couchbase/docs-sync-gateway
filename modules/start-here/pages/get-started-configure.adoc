@@ -1,0 +1,156 @@
+= Configure a Sync Gateway Install
+:page-aliases: ROOT:start/get-started-verify-install.adoc, start-here:get-started-verify-install.adoc
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:Description: pass:q[Configure your _Sync Gateway_ installation; securely sync enterprise data from cloud to edge!]
+:page-type: procedural
+
+
+include::ROOT:partial$_set_page_context.adoc[]
+
+
+// BEGIN - Page Attributes
+:xref--pfx: {sgw--xref}:
+:xref-sgw-bmk-logging-console: xref:{sgw-pg-logging}#lbl-console-logs[Console Logs]
+:xref-sgw-bmk-logging-console-redirect: xref:{sgw-pg-logging}#lbl-log-redirect[Redirect Console Logs]
+:xref-sgw-bmk-logging-continuous: xref:{sgw-pg-logging}#lbl-continuous-logs[Continuous Logging]
+// END - Page Attributes
+
+
+// BEGIN - Page Heading
+:topic-group: Start Here!
+:param-abstract: pass:q,a[This is *Step 3* in the _Start Here!_ topic group. Here you'll configure _{sgw}_ to connect to a _Couchbase Server_ instance and verify that the connection is working.]
+include::ROOT:partial$_show_page_header_block.adoc[]
+// END - Page Heading
+
+
+.Preparatory Steps
+NOTE: Make sure you have read and acted-upon the information and steps in {get-started-prepare--xref} and {get-started-install--xref} before proceeding.
+
+These instructions are for local or server based deployments.
+If you're using a container such as Docker, see this
+https://blog.couchbase.com/using-docker-with-couchbase-mobile/[blog post on using Docker with Couchbase Mobile] for additional details.
+
+
+:param-page: {page-relative-src-path}
+include::ROOT:partial$topic-group-get-started.adoc[]
+
+
+== Introduction
+
+In this step of the Getting Started topic we will configure your {sgw-te} to connect to a {cbs-te} instance and verify that the connection is working.
+
+You'll need to edit the configuration file used in the {get-started-install--xref} step to point to a bucket on your {cbs} -- see <<lbl-config>>.
+
+On completion of this topic you'll have a working {sgw} instance connected to {cbs}.
+You can then continue to {get-started-explore--xref} to add a database, create users, and run a CRUD cycle.
+
+
+[#lbl-config]
+== Bootstrap Sync Gateway
+
+To configure {sgw} to connect to a {cbs}:
+
+. Make sure your {sgw} service stops/unloads
+. Edit the configuration file you used in {get-started-install--xref} and replace the contents with those shown in <<sample-cfg>>.
++
+The configuration points to your {cbs} cluster, which you'll use to verify that you can connect to {cbs} through {sgw}.
+. Make sure you start {cbs}
+. Restart/Load your {sgw} to pick-up the changed configuration
+
+
+[#sample-cfg]
+.Simple Sync Gateway Bootstrap Config
+====
+
+[source, json]
+----
+
+{
+  "bootstrap": {
+    "server": "couchbases://localhost", // <.>
+    "username": "sync_gateway", // <.>
+    "password": "password",
+    "server_tls_skip_verify": true, // <.>
+    "use_tls_server": true // <.>
+  },
+  "logging": { // <.>
+    "console": {
+      "enabled": true,
+      "log_level": "info",
+      "log_keys": ["*"]
+    }
+  }
+}
+
+----
+
+About the Configuration Properties:
+
+<.> Here you'll point to the {cbs} cluster using secure connection.
+Server ships with self-signed certs that work out of the box, as long as `server_tls_skip_verify` is set, as it's below.
+
+<.> Here you'll provide the credentials for the RBAC user that you created on the {cbs} Admin Console -- see {get-started-prepare--config-server--xref}
+
+<.> Here you'll opt to ignore CA Cert verification of the certificate presented by the server; allowing for example use of self-signed certificate.
+The connection is unverified but encrypted.
+
+<.> Optionally, you can choose to run without TLS by setting this value to `false`.
+In that case you should also use the plaintext URI `couchbase://localhost` to connect.
+
+<.> Define your logging requirements. +
+Here you'll set general diagnostic console logs on.
+If you're having issues, for more information, see {logging--xref} for how to tune diagnostics to provide additional troubleshooting help.
+
+====
+
+.Start Sync Gateway
+
+Run the following in a terminal:
+[source, bash]
+----
+bin/sync_gateway -<options> sgwconfig.json // <.>
+----
+<.> Optionally provide any CLI flags you require to use.
+
+== Connect to Sync Gateway
+
+TIP: You can use {xref-sgw-bmk-logging-console} to aid diagnosis of connection issues.
+
+. With {sgw} and {cbs} started, point your browser to the {sgw} url, typically on port 4984, but this can be changed -- see: {rest-api-access--xref}.
++
+So, for example:
++
+[{snippet-header}]
+----
+http://localhost:4984
+----
+
+. Check that you receive a response similar to this:
++
+[{snippet-header}]
+----
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":"{version}"},"version":"Couchbase {sgw}/\{version-full}(376;e2e7d42) EE"}
+----
++
+If there are issues, check the {xref-sgw-bmk-logging-console} for more information.
+Where necessary you can redirect console output to a file -- see: {xref-sgw-bmk-logging-console-redirect}.
+
+TIP: If {sgw} is behind a load balancer, check the websockets configuration -- see {load-balancer--xref}.
+
+
+== Next Steps
+
+Now that you have a configured {sgw} installation connected to {cbs}, continue to {get-started-explore--xref} page, where you'll add a database configuration, create users, and run a CRUD cycle to confirm sync is working end-to-end.
+
+From there, you can explore more complex scenarios with confidence:
+
+* Learn more about {sgw}'s {configuration-schema-bootstrap--xref}
+* Learn how to {sync-with-couchbase-server--xref}
+* Implement access controls -- see: {users--xref}, {roles--xref}, and the {sync-function--xref}
+* Implement secure connectivity -- see: {authentication-users--xref} and {authentication-certs--xref}
+
+// BEGIN -- Page Footer
+include::ROOT:partial$block-related-content-deploy.adoc[]
+// END -- Page Footer
