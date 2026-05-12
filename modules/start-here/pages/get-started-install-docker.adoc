@@ -1,0 +1,204 @@
+= Deploy Sync Gateway with Docker
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:Description: pass:q[Deploy _Sync Gateway_ using Docker; securely sync enterprise data from cloud to edge.]
+:page-type: procedural
+
+
+include::ROOT:partial$_set_page_context.adoc[]
+
+
+// BEGIN -- Page Attributes
+:xref-pfx: {sgw--xref}:
+:xref-sgw-bmk-logging-console: xref:{sgw-pg-logging}#lbl-console-logs[Console Logs]
+// END -- Page Attributes
+
+
+// BEGIN -- Page Heading
+:topic-group: Start Here!
+:param-abstract: pass:q[This is an alternative to the *Install* and *Configure* steps in the _Start Here!_ topic group. It deploys _{sgw}_ and _{cbs}_ using Docker containers.]
+
+include::ROOT:partial$_show_page_header_block.adoc[]
+// END -- Page Heading
+
+.Preparatory Steps
+NOTE: Make sure you have read and acted-upon the information in {get-started-prepare--xref} before proceeding.
+
+:param-page: {page-relative-src-path}
+include::ROOT:partial$topic-group-get-started.adoc[]
+
+
+== Before You Begin
+
+Make sure you have:
+
+* Docker installed on your machine.
+See the https://docs.docker.com/get-docker/[Docker installation guide, window=_blank] for instructions.
+* The bucket name and RBAC credentials from {get-started-prepare--xref}.
+
+
+== Deploy Couchbase Server
+
+=== Create a Docker Network
+
+Create a Docker bridge network so that {cbs-te} and {sgw-te} containers can communicate.
+
+[{snippet-header}]
+----
+docker network create --driver bridge couchbase
+----
+
+=== Run Couchbase Server
+
+Run {cbs} in a Docker container on the `couchbase` network.
+
+[{snippet-header}]
+----
+docker run -d --name cb-server \
+  --network couchbase \
+  -p 8091-8097:8091-8097 \
+  -p 11210-11211:11210-11211 \
+  couchbase/server
+----
+
+=== Configure Couchbase Server
+
+Once {cbs} is running, open the Admin UI at `+http://localhost:8091+` and complete the setup described in {get-started-prepare--xref}, including:
+
+* Creating a cluster
+* Creating a bucket
+* Creating an RBAC user for {sgw}
+
+NOTE: Note the bucket name and RBAC credentials. You will need them in the next step.
+
+
+== Deploy Sync Gateway
+
+=== Create a Configuration File
+
+Create a configuration file named `sync-gateway-config.json` on your local machine.
+
+Replace `<rbac-username>` and `<rbac-password>` with the credentials you set up in {cbs}.
+
+[#sample-cfg]
+.Sync Gateway Bootstrap Config for Docker
+====
+
+[source, json]
+----
+{
+  "bootstrap": {
+    "server": "couchbase://cb-server", // <.>
+    "username": "<rbac-username>", // <.>
+    "password": "<rbac-password>",
+    "use_tls_server": false // <.>
+  },
+  "logging": {
+    "console": {
+      "enabled": true,
+      "log_level": "info",
+      "log_keys": ["*"]
+    }
+  }
+}
+----
+
+<.> Use the {cbs} container name `cb-server` as the hostname.
+Docker resolves this name within the `couchbase` network.
+
+<.> Use the RBAC credentials you created when you configured {cbs}.
+
+<.> TLS is disabled for local development.
+For production deployments, enable TLS and use `couchbases://cb-server` instead.
+
+====
+
+=== Run Sync Gateway
+
+Run {sgw} in a Docker container, mounting the configuration file you created.
+
+Replace `/path/to/sync-gateway-config.json` with the absolute path to the file on your local machine.
+
+[{snippet-header}]
+----
+docker run -d --name sync-gateway \
+  --network couchbase \
+  -p 4984-4985:4984-4985 \
+  -v /path/to/sync-gateway-config.json:/etc/sync_gateway/config.json \
+  couchbase/sync-gateway \
+  /etc/sync_gateway/config.json
+----
+
+NOTE: Port 4985 is the {sgw} Admin port. By default it is only accessible from within the container. Do not expose port 4985 to external traffic in production environments.
+
+
+== Verify the Connection
+
+. Point your browser to the {sgw} public port:
++
+[{snippet-header}]
+----
+http://localhost:4984
+----
+
+. Confirm that you receive a response similar to this:
++
+[{snippet-header}]
+----
+{"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":"{version}"},"version":"Couchbase {sgw}/{version-full} EE"}
+----
++
+If there are issues, select the {xref-sgw-bmk-logging-console} for more information.
+
+
+== Manage Your Containers
+
+=== Stop Containers
+
+[{snippet-header}]
+----
+docker stop sync-gateway
+docker stop cb-server
+----
+
+=== Start Containers
+
+Start {cbs} before {sgw}.
+
+[{snippet-header}]
+----
+docker start cb-server
+docker start sync-gateway
+----
+
+NOTE: If {cbs} is stopped for an extended period, {sgw} loses the connection.
+Restart {sgw} after restarting {cbs}.
+
+=== Update the Sync Gateway Configuration
+
+To update the {sgw} configuration, stop and remove the container, then re-run it with the updated configuration file.
+
+[{snippet-header}]
+----
+docker stop sync-gateway
+docker rm sync-gateway
+----
+
+Then repeat <<run-sync-gateway>>.
+
+
+== Next Steps
+
+Now that you have {sgw} running in Docker, continue to {get-started-explore--xref} to add a database configuration, create users, and run a CRUD cycle to confirm sync is working end-to-end.
+
+From there, you can explore more complex scenarios:
+
+* Learn more about {sgw}'s {configuration-schema-bootstrap--xref}
+* Learn how to {sync-with-couchbase-server--xref}
+* Implement access controls -- see: {users--xref}, {roles--xref}, and the {sync-function--xref}
+
+
+// BEGIN -- Page Footer
+include::ROOT:partial$block-related-content-deploy.adoc[]
+// END -- Page Footer
