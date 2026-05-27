@@ -1,0 +1,221 @@
+= Cluster Compatibility Version
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:page-content: procedural
+:description: Use the cluster compatibility version to perform a rolling upgrade of Sync Gateway 4.1 without downtime and with a safe rollback path.
+
+include::ROOT:partial$_set_page_context.adoc[]
+
+:param-abstract:
+:topic-group: Application Deployment
+:param-related: {release-notes--xref} | {compatibility--xref}
+include::ROOT:partial$_show_page_header_block.adoc[]
+
+
+== Overview
+
+The cluster compatibility version is a cluster-wide value that {sgw} uses to coordinate behaviour across nodes running different versions during a rolling upgrade.
+
+Introduced in Sync Gateway 4.1, the cluster compatibility version lets you:
+
+* Perform a rolling upgrade without downtime or reduction in cluster capacity.
+* Preserve a safe rollback path during the upgrade window.
+* Ensure that new cluster-wide features activate only after all nodes reach the new version.
+
+NOTE: Downgrading after the full cluster has been upgraded is not supported.
+The cluster compatibility version mechanism provides a rollback path only while at least one node is still on the previous version.
+
+
+== How the Cluster Compatibility Version Works
+
+Without a freeze, the cluster compatibility version is always the minimum version across all live nodes in the cluster.
+As you upgrade nodes one by one, the minimum advances when older nodes are replaced.
+
+{sgw} uses the compatibility version to gate cluster-wide feature activation.
+Features that could cause incompatibilities with older nodes remain inactive until the compatibility version reaches the version that introduced them.
+Node-local features, such as revision caching and import processing, activate immediately on each upgraded node regardless of the compatibility version.
+
+On a homogeneous cluster where all nodes run the same version, the compatibility version equals that version.
+The value is not present in the API response immediately after startup before any node has registered.
+
+
+== About the Freeze
+
+Freezing pins the cluster compatibility version at its current value, regardless of which nodes you subsequently upgrade.
+While the version is frozen, upgrading a node does not advance the reported compatibility version.
+
+This preserves the option to roll back any upgraded node to the previous version without data loss or invasive data operations such as bucket flushing or backup and restore.
+
+Use the freeze when you want a safe rollback window during the upgrade.
+It is optional.
+If you do not need a rollback path, you can upgrade without freezing.
+
+[IMPORTANT]
+====
+A freeze persists across node restarts.
+It is cluster-wide and stored in the cluster, not in node memory.
+You must unfreeze manually by calling the unfreeze endpoint.
+The freeze does not clear automatically when all nodes reach the new version.
+====
+
+
+== Upgrade with Cluster Compatibility Version (Safe Rollback Path)
+
+Use this procedure when you want to preserve the option to roll back during the upgrade.
+
+=== Prerequisites
+
+* All nodes are running {sgw} 4.0 or later.
+* You have Admin REST API access to the cluster.
+* See xref:ROOT:rolling-upgrade.adoc[Rolling Upgrade] for version requirements and the node upgrade procedure.
+
+=== Procedure
+
+.Step 1: Check the current cluster compatibility version
+
+Call xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/get__cluster_compat_version[GET /_cluster_compat_version] to confirm the current state before starting.
+
+[source,bash]
+----
+GET /_cluster_compat_version
+----
+
+Example response on a homogeneous 4.0 cluster:
+
+[source,json]
+----
+{
+  "cluster_compat_version": "4.0",
+  "nodes": {
+    "node1-uid": "4.0",
+    "node2-uid": "4.0",
+    "node3-uid": "4.0"
+  }
+}
+----
+
+.Step 2: Freeze the cluster compatibility version
+
+Call xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/post__cluster_compat_version_freeze[POST /_cluster_compat_version/freeze] to pin the version before upgrading any node.
+
+[source,bash]
+----
+POST /_cluster_compat_version/freeze
+----
+
+Example response:
+
+[source,json]
+----
+{
+  "cluster_compat_version": "4.0",
+  "nodes": {
+    "node1-uid": "4.0",
+    "node2-uid": "4.0",
+    "node3-uid": "4.0"
+  },
+  "frozen_cluster_compat_version": "4.0"
+}
+----
+
+The presence of `frozen_cluster_compat_version` in the response confirms the freeze is active.
+
+.Step 3: Upgrade each node
+
+For each node in the cluster, follow the steps in xref:ROOT:rolling-upgrade.adoc[Rolling Upgrade].
+
+While the freeze is in effect, `cluster_compat_version` remains pinned at the frozen value even as nodes come online at the new version.
+Call xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/get__cluster_compat_version[GET /_cluster_compat_version] at any time to confirm the freeze is still active and to check the individual version of each node.
+
+.Step 4: Verify all nodes are on the new version
+
+Call xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/get__cluster_compat_version[GET /_cluster_compat_version] and confirm all nodes in the `nodes` map show the new version.
+
+[source,json]
+----
+{
+  "cluster_compat_version": "4.0",
+  "nodes": {
+    "node1-uid": "4.1",
+    "node2-uid": "4.1",
+    "node3-uid": "4.1"
+  },
+  "frozen_cluster_compat_version": "4.0"
+}
+----
+
+.Step 5: Unfreeze to commit the upgrade
+
+Call xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/post__cluster_compat_version_unfreeze[POST /_cluster_compat_version/unfreeze] to clear the freeze.
+
+[source,bash]
+----
+POST /_cluster_compat_version/unfreeze
+----
+
+Example response after a successful unfreeze:
+
+[source,json]
+----
+{
+  "cluster_compat_version": "4.1",
+  "nodes": {
+    "node1-uid": "4.1",
+    "node2-uid": "4.1",
+    "node3-uid": "4.1"
+  }
+}
+----
+
+The absence of `frozen_cluster_compat_version` confirms the freeze has cleared.
+The `cluster_compat_version` advances to `4.1` and new cluster-wide features introduced in 4.1 become active.
+
+[NOTE]
+====
+If the unfreeze does not fully apply, the endpoint returns a 503 with the current state.
+The `cluster_compat_version` may still be held back.
+Retry the unfreeze request.
+====
+
+
+== Rolling Back During an Upgrade
+
+If you discover an issue after upgrading some nodes and the freeze is in effect, you can roll back the upgraded nodes to the previous version.
+
+. Downgrade the affected nodes to the previous {sgw} version using the same rolling process: remove from load balancer, downgrade, restart, verify, re-add.
+. The `cluster_compat_version` remains pinned at the frozen value throughout.
+. Once all nodes are back on the previous version, call xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/post__cluster_compat_version_unfreeze[POST /_cluster_compat_version/unfreeze] to clear the freeze.
+
+[IMPORTANT]
+====
+Rollback is only possible while the freeze is in effect and at least one node is still on the previous version.
+Downgrading after calling unfreeze and completing the full cluster upgrade is not supported.
+====
+
+
+== API Reference
+
+[cols="1,3"]
+|===
+| Endpoint | Description
+
+| xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/get__cluster_compat_version[GET /_cluster_compat_version]
+| Returns the current cluster compatibility version, the version of each registered node, and the frozen value if a freeze is active.
+
+| xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/post__cluster_compat_version_freeze[POST /_cluster_compat_version/freeze]
+| Pins the cluster compatibility version at its current value.
+The freeze persists across node restarts.
+
+| xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/post__cluster_compat_version_unfreeze[POST /_cluster_compat_version/unfreeze]
+| Clears the pinned version.
+The compatibility version resumes tracking the minimum across live nodes.
+Returns 503 if the unfreeze did not fully apply; retry the request.
+|===
+
+Required {sgw} RBAC role: Sync Gateway Dev Ops.
+
+
+include::ROOT:partial$block-related-content-deploy.adoc[]
+
+// END -- PAGE -- cluster-compatibility-version.adoc

@@ -1,0 +1,161 @@
+= Rolling Upgrade
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:page-content: procedural
+:description: Step-by-step procedures for performing a rolling upgrade of a Sync Gateway cluster for each supported version.
+
+include::ROOT:partial$_set_page_context.adoc[]
+
+:param-abstract:
+:topic-group: Application Deployment
+:param-related: {get-started-prepare--xref} | {release-notes--xref}
+include::ROOT:partial$_show_page_header_block.adoc[]
+
+
+== About Rolling Upgrades
+
+A rolling upgrade is the recommended method to upgrade a {sgw} cluster.
+You upgrade nodes one at a time while the cluster continues serving traffic, avoiding downtime.
+
+At a high level, a rolling upgrade consists of the following steps:
+
+. Remove the node from the load balancer or stop HTTP traffic to the node.
+. Run the upgrade on that node.
+. Re-add the node to the load balancer or resume traffic to the node.
+
+Repeat these steps for each node in the {sgw} cluster.
+
+[NOTE]
+====
+{sgw} 4.1 introduces cluster compatibility version, which lets you perform a rolling upgrade with a safe rollback path and without reducing cluster capacity.
+See xref:ROOT:cluster-compatibility-version.adoc[Cluster Compatibility Version].
+====
+
+
+== Upgrade to {sgw} 4.1
+
+=== Prerequisites
+
+. Verify your Couchbase Server cluster is running 7.6.0 or later.
+Bi-directional XDCR features require 7.6.6 or later.
+. Verify all Couchbase Server nodes are operational before starting the {sgw} upgrade.
+. Check your existing {sgw} configuration files and remove any unsupported settings:
++
+--
+* `shared_bucket_access=false`
+* `allow_conflicts=true`
+* `enable_star_channel=false`
+--
++
+Databases configured with these settings do not start on {sgw} 4.1.
+
+=== Procedure
+
+For each node in the cluster, repeat the following steps:
+
+. Remove the node from the load balancer or stop HTTP traffic to the node.
+. Install {sgw} 4.1 on the node.
+. Start the {sgw} service.
+. Verify the node is healthy using the xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/get_-[GET /] endpoint on the Admin REST API.
+. Verify all databases on the node are online.
+. Re-add the node to the load balancer or resume HTTP traffic to the node.
+
+NOTE: Downgrading from {sgw} 4.1 to an earlier version is not supported after the full cluster has been upgraded.
+If you require a rollback path during the upgrade window, use xref:ROOT:cluster-compatibility-version.adoc[Cluster Compatibility Version] before starting.
+
+
+== Upgrade to {sgw} 4.0
+
+=== Prerequisites
+
+. Verify your Couchbase Server cluster is running 7.6.0 or later.
+Bi-directional XDCR features require 7.6.6 or later.
+. Verify all Couchbase Server nodes are operational before starting the {sgw} upgrade.
+. Check your existing {sgw} configuration files and remove any unsupported settings:
++
+--
+* `shared_bucket_access=false`
+* `allow_conflicts=true`
+* `enable_star_channel=false`
+--
++
+Databases configured with these settings do not start on {sgw} 4.0.
+
+=== Procedure
+
+For each node in the cluster, repeat the following steps:
+
+. Remove the node from the load balancer or stop HTTP traffic to the node.
+. Update the configuration file if it contains any unsupported settings listed in the prerequisites.
+. Install {sgw} 4.0 on the node.
+. Start the {sgw} service.
+. Verify the node is healthy using the xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/get_-[GET /] endpoint on the Admin REST API.
+. Verify all databases on the node are online.
+. Re-add the node to the load balancer or resume HTTP traffic to the node.
+
+NOTE: Downgrading from {sgw} 4.0 to earlier versions is not supported.
+
+
+== Upgrade to {sgw} 3.1
+
+=== About Persistent Configuration
+
+{sgw} 3.1 uses Persistent Configuration as its default operational mode.
+When you start a {sgw} 3.1 node with an existing configuration file, {sgw-t} automatically converts the configuration to the persistent format.
+
+[CAUTION]
+====
+Migration to the 3.x Persistent Configuration is a one-way process.
+You cannot downgrade to a previous version after upgrading to 3.1.
+====
+
+Before starting the upgrade, confirm the following:
+
+* {sgw-t} has write access to the directory containing the existing configuration file.
+{sgw-t} creates a backup of the existing configuration before writing the upgraded version.
+* If your configuration file contains multiple databases, all `server` fields used to connect to Couchbase Server must match.
+{sgw-t} uses the first set of credentials for the bootstrap configuration.
++
+NOTE: {sgw-t} cannot automatically upgrade configurations with multiple distinct `server` fields.
+You must create the bootstrap configuration manually in this case.
+
+Consider the following before starting:
+
+* Configuration groups: most deployments use the default group.
+If you require custom node groupings, add the `bootstrap_group_id` value to your configuration file before startup.
+See {bootstrap-schema--xref--bootstrap-group-id}.
+* TLS: {sgw} 3.0 and later enables secure TLS connections to Couchbase Server by default.
+To use a non-secure connection in a test environment, set {bootstrap-schema--xref--bootstrap-use-tls-server} to `false`.
+See {secure-sgw-access--xref}.
+* Admin API authentication: Secure Administration requires Couchbase Server RBAC users for Admin and Metrics API access.
+Configure the appropriate users before upgrading.
+See {rest-api-access--xref}.
+
+=== Procedure
+
+. Start a {sgw} 3.1 node using your existing configuration properties file.
++
+{sgw-t} takes the appropriate upgrade path based on the current configuration state:
++
+[cols="1a,2a,2a", options="header"]
+|===
+| Configuration status | Inference | Outcome
+
+| No configuration exists
+| This is the first node in the default group, or with this group ID, to start.
+| {sgw-s} uses the configuration file to derive and persist a configuration for this node.
+
+| Configuration exists in the server bucket
+| A node in the default group, or with this group ID, has already started.
+| {sgw-s} ignores the configuration file and uses the configuration associated with the default group or group ID provided.
+|===
+
+. Verify the node is healthy using the xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/get_-[GET /] endpoint on the Admin REST API.
+. Re-add the node to the load balancer or resume traffic to the node.
+. Repeat for each remaining node in the cluster.
+
+
+include::ROOT:partial$block-related-content-deploy.adoc[]
+
+// END -- PAGE -- rolling-upgrade.adoc
