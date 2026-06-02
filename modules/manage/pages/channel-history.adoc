@@ -1,0 +1,316 @@
+= Channel History Management
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:page-content: procedural
+:description: Remove historical channel entries from document and user metadata in Sync Gateway 4.1 to reduce metadata bloat and prevent unnecessary revocations.
+
+include::ROOT:partial$_set_page_context.adoc[]
+
+:param-abstract:
+:topic-group: Manage
+:param-related: {release-notes--xref}
+include::ROOT:partial$_show_page_header_block.adoc[]
+
+
+== Overview
+
+{sgw} tracks channel assignments for both documents and users in internal metadata.
+This history accumulates over time and is retained indefinitely by default.
+
+In high-churn deployments where documents and users frequently enter and leave channels, this history can grow large enough to cause two problems:
+
+* *Metadata bloat:* Document `_sync` attributes and user documents grow continuously, increasing storage overhead and degrading performance.
+* *Unnecessary revocations:* When a Couchbase Lite client performs a zero-checkpoint (clear-start) replication, such as after an app reinstall or checkpoint rollback, {sgw} replays the full channel history. Old revocation entries in that history are re-sent to the client even for channels that are no longer relevant.
+
+{sgw} 4.1 introduces Admin REST API endpoints that let administrators selectively remove historical channel entries from documents and users.
+This is a Phase 1 implementation designed for power users who are willing to manage the process manually.
+Both operations are non-destructive to document content and do not interrupt active replications.
+
+[NOTE]
+====
+Phase 2 automated compaction is not available in {sgw} 4.1.
+====
+
+
+== Document Channel History
+
+=== About Document Channel History
+
+{sgw} stores channel assignment history in the `_sync` extended attribute (xattr) of each document.
+This history tracks which channels a document has been assigned to and when it left each channel, using database sequence numbers rather than timestamps.
+
+Each time a document is assigned to a channel and then removed, a new entry is added to its channel history.
+For documents that move through many channels over time, this history grows without bound.
+
+You can remove inactive channel history entries older than a specified sequence number.
+If you use the current database head sequence, all inactive channel history is removed.
+If the document no longer belongs to any active channels after the operation, {sgw} removes the `_sync` attribute from the document entirely.
+
+The operation removes only historical entries.
+It does not affect the document body, active channel assignments, or ongoing replications.
+
+
+=== Identify a Safe Sequence Boundary
+
+Before pruning, identify the sequence number to use as the boundary.
+All inactive channel history entries with sequences below this number are removed.
+
+To get the current database head sequence, call `GET /{db}/` and read the `update_seq` field from the response:
+
+[source,bash]
+----
+GET /{db}/
+----
+
+[source,json]
+----
+{
+  "db_name": "db",
+  "update_seq": 98765,
+  ...
+}
+----
+
+Use the `update_seq` value as the `seq` parameter to perform a deep clean of all historical channel entries for the targeted documents.
+
+[NOTE]
+====
+Choose the sequence boundary carefully.
+Any inactive channel history at or before the sequence you provide is permanently removed.
+This operation cannot be undone.
+====
+
+
+=== Retrieve Document Channel History
+
+Before compacting, retrieve the current inactive channel history for a document to confirm what will be removed.
+
+*Endpoint:* `GET /{keyspace}/_history`
+
+*Required RBAC roles:* Sync Gateway Application, Sync Gateway Application Read Only
+
+[cols="1,3"]
+|===
+| Query parameter | Description
+
+| `doc_id` (required)
+| The document ID whose channel history you want to retrieve.
+
+| `seq` (required)
+| The sequence number threshold.
+All inactive channels with history entries for sequences before this number are returned.
+|===
+
+*Example request:*
+
+[source,bash]
+----
+GET /mydb/_history?doc_id=order-12345&seq=98765
+----
+
+*Example response:*
+
+[source,json]
+----
+{
+  "channels": [
+    "orders-2023",
+    "orders-archived"
+  ]
+}
+----
+
+The response lists the inactive channels that would be removed by a compact operation using the same sequence value.
+
+For the full API reference, see xref:ROOT:rest_api_admin_static.adoc#tag/Document/operation/get_keyspace-_history[GET /{keyspace}/_history].
+
+
+=== Compact Document Channel History
+
+Remove inactive channel history entries from one or more documents older than a specified sequence number.
+
+*Endpoint:* `POST /{keyspace}/_history/compact`
+
+*Required RBAC roles:* Sync Gateway Application
+
+[cols="1,3"]
+|===
+| Request body field | Description
+
+| `doc_ids` (required)
+| Array of document IDs whose inactive channel history should be removed.
+
+| `seq` (required)
+| Sequence number boundary.
+All inactive channel history entries with sequences earlier than this value are removed from the specified documents.
+|===
+
+*Example request:*
+
+[source,bash]
+----
+POST /mydb/_history/compact
+----
+
+[source,json]
+----
+{
+  "doc_ids": [
+    "order-12345",
+    "order-67890"
+  ],
+  "seq": 98765
+}
+----
+
+*Example response:*
+
+[source,json]
+----
+{
+  "order-12345": [
+    "orders-2023",
+    "orders-archived"
+  ],
+  "order-67890": [
+    "orders-2023"
+  ]
+}
+----
+
+The response maps each document ID to the list of channels that were removed.
+If a document ID has an empty array, no channels were pruned for that document at the specified sequence boundary.
+
+For the full API reference, see xref:ROOT:rest_api_admin_static.adoc#tag/Document/operation/post_keyspace-_history_compact[POST /{keyspace}/_history/compact].
+
+
+== User Channel History
+
+=== About User Channel History
+
+{sgw} maintains a history of channel access grants and revocations for each user.
+In deployments where channels are frequently granted and revoked, this history grows indefinitely in the user's metadata document.
+
+The operational impact is specific to zero-checkpoint replications.
+When a Couchbase Lite client performs a clear-start replication, such as after an app reinstall or a checkpoint rollback, {sgw} replays the user's full channel history.
+Old revocation entries in that history are re-sent to the client for channels that are no longer relevant, causing {sgw} to perform unnecessary work and potentially triggering conflict resolution on the client.
+
+Selectively removing channel entries from the history prevents {sgw} from sending revocations for those channels during future zero-checkpoint replications.
+The operation does not affect the user's current channel access, does not modify underlying documents, and does not interrupt active continuous replications.
+
+
+=== Retrieve User Channel History
+
+Before compacting, retrieve the current channel access history for a user to confirm which channels are recorded.
+
+*Endpoint:* `GET /{db}/_user/{name}/_history`
+
+*Required RBAC roles:* Sync Gateway Architect, Sync Gateway Application, Sync Gateway Application Read Only
+
+*Example request:*
+
+[source,bash]
+----
+GET /mydb/_user/alice/_history
+----
+
+*Example response:*
+
+[source,json]
+----
+{
+  "channels": {
+    "inventory": {
+      "default": [
+        "warehouse-east",
+        "warehouse-west-2023",
+        "warehouse-archived"
+      ]
+    }
+  }
+}
+----
+
+The response shows all channel history entries organised by scope and collection.
+
+For the full API reference, see xref:ROOT:rest_api_admin_static.adoc#tag/Database-Security/operation/get_db-_user-name-_history[GET /{db}/_user/{name}/_history].
+
+
+=== Compact User Channel History
+
+Remove specific channel entries from a user's channel access history.
+
+*Endpoint:* `POST /{db}/_user/{name}/_history/compact`
+
+*Required RBAC roles:* Sync Gateway Architect, Sync Gateway Application
+
+Provide the channels you want to remove, organised by scope and collection.
+
+*Example request:*
+
+[source,bash]
+----
+POST /mydb/_user/alice/_history/compact
+----
+
+[source,json]
+----
+{
+  "channels": {
+    "inventory": {
+      "default": [
+        "warehouse-west-2023",
+        "warehouse-archived"
+      ]
+    }
+  }
+}
+----
+
+*Example response:*
+
+[source,json]
+----
+{
+  "channels": {
+    "inventory": {
+      "default": [
+        "warehouse-west-2023",
+        "warehouse-archived"
+      ]
+    }
+  }
+}
+----
+
+The response confirms the channels that were removed from the user's history.
+
+For the full API reference, see xref:ROOT:rest_api_admin_static.adoc#tag/Database-Security/operation/post_db-_user-name-_history_compact[POST /{db}/_user/{name}/_history/compact].
+
+
+== API Reference Summary
+
+[cols="1,1,3"]
+|===
+| Endpoint | Method | Description
+
+| `/{keyspace}/_history`
+| GET
+| Retrieve inactive channel history entries for a document before a specified sequence.
+
+| `/{keyspace}/_history/compact`
+| POST
+| Remove inactive channel history entries from one or more documents older than a specified sequence.
+
+| `/{db}/_user/{name}/_history`
+| GET
+| Retrieve the full channel access history for a user.
+
+| `/{db}/_user/{name}/_history/compact`
+| POST
+| Remove specific channel entries from a user's channel access history.
+|===
+
+
+include::ROOT:partial$block-related-content-api.adoc[]
