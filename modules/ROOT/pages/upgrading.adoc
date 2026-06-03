@@ -2,38 +2,20 @@
 // BEGIN PAGE DEFINITION
 //  LOCATION modules/ROOT/pages/
 //  PURPOSE:
-//    This is a standard content presentations page.
-//    Its name/title identify the content/topic
-//  PARAMETERS:
-//    None
-//  INCLUSION USAGE --
-//    This module uses attributes from:
-//    - /modules/ROOT/pages/_partials/_define_page_index.adoc -- xref page links
-//
-//    This module uses these inclusions:
-//    - /modules/ROOT/pages/_partials/_set_page_context.adoc -- std attribute environment
-//    - /modules/ROOT/pages/_partials/_show_page_header_block.adoc --  std text block for page header content
-//    - /modules/ROOT/pages/_partials/block-related-content-deploy.adoc --  std text block for page footer content
-//    - modules/ROOT/assets/images -- .png/.jpeg images
-//  INCLUSION USAGE
+//    Overview page for the Upgrade section.
+//    Summarises upgrade paths and requirements for each supported version.
+//    Detailed procedures are in rolling-upgrade.adoc.
+//    Cluster compatibility version feature is in cluster-compatibility-version.adoc.
 // END PAGE DEFINITION
-= Upgrading Sync Gateway
+= Upgrade Sync Gateway
 :page-aliases: advance/deploy/upgrade.adoc, upgrade.adoc
 ifdef::show_edition[:page-edition: {release}]
 ifdef::prerelease[:page-status: {prerelease}]
 :page-role:
 :page-content: procedural
-:page-status: Sync Gateway 4.0
-:description: This page documents various implementation details and functionalities to consider when performing an upgrade to Sync Gateway {page-component-version}.
+:description: Overview of upgrade paths, version requirements, and supported approaches for upgrading Sync Gateway.
 
 include::ROOT:partial$_set_page_context.adoc[]
-
-:sc1title: Continue with SG Replicate (no conflict resolution)
-:sc2title: Continue with SG Replicate (custom conflict resolution)
-:sc3title: Change to SGR-Replicate 2.0 (default conflict resolution)
-:sc4title: Change to SGR-Replicate 2.0 (custom conflict resolution)
-
-:xref-sgw-bmk-get-started-prepare-cfg-svr: xref:{get-started-prepare--page}#configure-server.html[Configure Server for Sync Gateway]
 
 :param-abstract:
 :topic-group: Application Deployment
@@ -41,261 +23,83 @@ include::ROOT:partial$_set_page_context.adoc[]
 include::ROOT:partial$_show_page_header_block.adoc[]
 
 
-== Upgrade Approaches
+== Overview
+
+This section covers upgrading {sgw} to a new version.
+Use the pages in this section based on what you need to do:
+
+* xref:ROOT:rolling-upgrade.adoc[Rolling Upgrade] -- Step-by-step procedures for upgrading a {sgw} cluster node by node, including version-specific requirements.
+* xref:ROOT:cluster-compatibility-version.adoc[Cluster Compatibility Version] -- How to use the cluster compatibility version mechanism introduced in {sgw} 4.1 to upgrade without downtime and with a safe rollback path.
+* xref:ROOT:migrate-metadata-system-collection.adoc[Migrate Metadata to System Collection] -- How to opt in to moving {sgw} internal metadata from the default collection to the system collection in {sgw} 4.1.
+
+For compatibility information, see the {compatibility--xref}.
 
 
-A rolling upgrade is the recommended method to upgrade a Sync Gateway cluster.
-At a high level, a rolling upgrade consists of the following steps:
+== Upgrade Requirements by Version
 
-. The load balancer configuration stops any HTTP traffic to the node you're upgrading.
+=== {sgw} 4.1
 
-. The upgrade runs on the given node.
+[cols="1,2"]
+|===
+| Requirement | Detail
 
-. The load balancer configuration resumes traffic to the upgraded node.
+| Couchbase Server
+| 7.6.0 or later. 7.6.6 or later required for bi-directional XDCR features.
 
-Those steps are then repeated for each node in the {sgw} cluster.
-
-
-== Upgrade to 4.0
-
-=== Upgrade Requirements
-
-. Couchbase Server 7.6.6 or later for bi-directional XDCR features.
-. `shared_bucket_access=false` is no longer supported - databases do not start with `shared_bucket_access=false`.
-. `allow_conflicts=true` no longer supported - databases do not start with this setting.
-. `enable_star_channel=false` is no longer supported - databases do not start with this setting.
-
-NOTE: As with all major version upgrades, downgrading from 4.0 to earlier versions is not supported.
-
-==== Process
-
-.Prerequisites
-
-. Upgrade Couchbase Server cluster to 7.6.0 or later and verify all server nodes are operational.
-. Test Sync Gateway connectivity with existing version to verify compatibility.
-
-.Step 1
-
-. Remove a node from the load balancer or stop traffic to the node.
-. Update the configuration file, if using unsupported settings:
-- Remove `shared_bucket_access=false`.
-- Remove `allow_conflicts=true`.
-- Remove `enable_star_channel=false`.
-. Install Sync Gateway 4.0
-. Start the Sync Gateway service.
-. Verify node health via xref:rest-api:rest_api_public.adoc#tag/Server/operation/get_-[REST API].
-
-.Step 2
-
-. Verify all databases are online.
-. Re-add the node to the load balancer or resume traffic to the node.
-
-== Upgrade to 3.1
+| Unsupported settings
+| The following settings are not supported and must be removed from your configuration before upgrading: +
+`shared_bucket_access=false` +
+`allow_conflicts=true` +
+`enable_star_channel=false`
+| Metadata migration (optional)
+| {sgw} 4.1 introduces an opt-in migration that moves internal metadata from the default collection to the system collection.
+This is not required for upgrading and is never applied automatically.
+See xref:ROOT:migrate-metadata-system-collection.adoc[Migrate Metadata to System Collection].
+|===
+To preserve a rollback path during the upgrade window, use xref:ROOT:cluster-compatibility-version.adoc[Cluster Compatibility Version].
 
 
-=== Use Persistent Configuration
+=== {sgw} 4.0
 
-The use of 3.x's Persistent Configuration feature is strongly recommended.
-It's the default operational mode when starting {sgw}.
+[cols="1,2"]
+|===
+| Requirement | Detail
 
-The feature provides a smooth upgrade path for existing users by automatically converting their existing configuration files to the new persistent configuration format.
+| Couchbase Server
+| 7.6.0 or later. 7.6.6 or later required for bi-directional XDCR features.
 
-.One Way Upgrade
-[CAUTION]
---
-The migration to 3.x configuration is a ONE WAY process.
-You cannot downgrade to previous versions after upgrading to 3.1.
-To continue using legacy-mode configuration see: <<lbl-3-0-upgrade-opt-out>>
---
-
-==== Considerations
-
-Before commencing your upgrade consider your requirements for
-<<lbl-3-0-config-grps>> although most users find the default group sufficient,
-<<lbl-3-0-config-tls>> and
-<<lbl-3-0-config-adm>>.
-
-You should also:
-
-* Ensure {Sgw-t} has write access to the directory containing the existing configuration (the one you want to convert).
-It backups the existing configuration and write the upgraded configuration.
-
-* Verify that, if your existing configuration has multiple databases, all of the *server* fields used to connect to *Couchbase Server* match. +
-Although the connection credentials used may differ between databases, {sgw-t} only uses the *first* set of credentials for the bootstrap configuration file.
-+
-
-NOTE: Sync Gateway cannot automatically upgrade configurations that have multiple distinct server fields within the configuration file, and you'll need to manually create their own bootstrap configuration.
-
-
-==== Process
-
-Just start a {sgw} node using your existing configuration properties file.
-
-On starting, {sgw-t} takes the appropriate upgrade path as shown in <<tbl-enhancedcfg>>.
-
-
-.Upgrade Paths
-[#tbl-enhancedcfg,cols="1a,2a,2a", options="header"]
+| Unsupported settings
+| The following settings are not supported and must be removed from your configuration before upgrading: +
+`shared_bucket_access=false` +
+`allow_conflicts=true` +
+`enable_star_channel=false`
 |===
 
-.>| Configuration Status .>| Inference .>| Outcome
-
-| No configuration exists
-
-| This is first node in the default group or with this *group ID* to start
-
-| {sgw-s} uses the configuration file to derive and persist a configuration for this node.
-
-| Configuration exists in the Server bucket +
-
-| A node in the default group, or with this *group ID*, has already started
-
-| {sgw-s} ignores the configuration file and uses the configuration associated with the default group, or *group ID* provided.
+NOTE: Downgrading from {sgw} 4.0 to earlier versions is not supported.
 
 
+=== {sgw} 3.1
+
+[cols="1,2"]
+|===
+| Requirement | Detail
+
+| Couchbase Server
+| See {compatibility--xref} for the minimum supported Couchbase Server version for {sgw} 3.1.
+
+| Configuration
+| {sgw} 3.1 uses Persistent Configuration by default.
+Upgrading to 3.1 converts existing configuration files to the persistent format automatically.
+This migration is a one-way process.
 |===
 
 
-[#lbl-3-0-config-grps]
-==== Configuration Groups
+== Upgrading Couchbase Server
 
-Whilst the provided default group suffices for most deployments {sgw} does allow for the configuration of more complex node groupings.
-
-Before commencing your upgrade consider your requirements for grouping {sgw} nodes within your {sgw} cluster -- see: {configuration-overview--xref--groups}
-
-If you want the {sgw} to associate with a specific configuration group Id, you must add the `bootstrap_group_id` value to the configuration file prior to startup -- see: {bootstrap-schema--xref--bootstrap-group-id}
-
-Failing to do so may result in the configuration being overridden by one configured on a different {sgw} node that has already started and registered its own configuration.
-
-[#lbl-3-0-config-tls]
-=== Secure Server Connection
-
-Sync Gateway 3.0 enables secure TLS connection to Couchbase Server out-of-the-box.
-
-If you wish to use non-secure connection, perhaps in a test environment, you need to run {sgw} with
-{bootstrap-schema--xref--bootstrap-use-tls-server} set to `false` -- see: {secure-sgw-access--xref}
-
-
-[#lbl-3-0-config-adm]
-==== Secure Administration
-
-Secure Administration is under-pinned by the use of Couchbase Server RBAC-users to authenticate and authorize access to Admin and Metrics API feature.
-This requires you set-up and configure appropriate users -- see: {rest-api-access--xref}.
-
-To opt-out of this, you can configure {bootstrap-schema--xref--api-admin-interface-authentication} and-or {bootstrap-schema--xref--api-metrics-interface-authentication} as `false`
-
-
-== Couchbase Server Upgrade Paths
-
-NOTE: When upgrading your Couchbase Server from 4.x to 5.x, remember to create a Sync Gateway RBAC user on the server -- see: {xref-sgw-bmk-get-started-prepare-cfg-svr} -- and to include the user's credentials username/password in you Sync-Gateway-Config.json file.
-
-All of the different upgrade paths mentioned above assume that you're running a compatible Couchbase Server version -- see {compatibility--xref}.
-
-Three commonly used upgrade approaches exist for Couchbase Server.
-Depending on the one you choose, there may be additional consideration to keep in mind when using Sync Gateway:
-
-[cols="2,1,1,5a"]
-|===
-|Approach|Downtime |Additional Machine Requirements |Impact when using Sync Gateway
-
-|Rolling Online Upgrade
-|None
-|Low
-|*Potential transient connection errors:* The Couchbase Server re-balance operations can result in transient connection errors between Couchbase Server and Sync Gateway, which could result in Sync Gateway performance degradation.
-
-*Potential for unexpected server errors during re-balance:* In-flight ops are lost during a fail-over due to increased potential for errors.
-
-|Upgrade Using Inter-Sync Gateway Replication
-|Small amount during switchover
-|High - duplicate entire cluster
-|Using an XDCR (Cross Data Center Replication) approach incurs some Sync Gateway downtime, but less than other approaches where Sync Gateway is shutdown during the entire Couchbase Server upgrade.
-
-|Offline Upgrade
-|During entire upgrade
-|None
-|
-* Take Sync Gateway offline
-* Upgrade Couchbase Server using any of the options mentioned in the xref:server:install:upgrade.adoc[Upgrading Couchbase Server] documentation.
-* Bring Sync Gateway online
-|===
-
-The XDCR replication must be a *one way* replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster.
-No other writes can happen on the new (target) Couchbase Server cluster other than the writes from the XDCR replication.
-Do not configure any Sync Gateway instances to use the new (target) Couchbase Server cluster until the last step in the process.
-
-. Start XDCR to do a one way replication from the existing (source) Couchbase Server cluster to the new (target) Couchbase Server cluster running the earlier version.
-. Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster.
-. Shutdown Sync Gateway to prevent any new writes from coming in.
-. Wait until the target Couchbase Server has caught up to all the writes in the source Couchbase Server cluster -- this should happen quickly, since it will only be the residual writes in transit before the Sync Gateway shutdown.
-. Reconfigure Sync Gateway to point to the target cluster.
-. Restart Sync Gateway.
-
-Caveats:
-
-* *Small amount of downtime during switchover:* Since there may be writes still in transit after Sync Gateway has been shutdown, there will need to be some downtime until the target Couchbase Server cluster is caught up.
-* *XDCR should be monitored:* Make sure to monitor the XDCR relationship as per xref:server:xdcr:xdcr-intro.adoc[XDCR docs].
-
-== Upgrade to Shared Bucket
-
-=== Implementation notes for XATTRs:
-
-Mobile applications require additional metadata to manage security and replication.
-Sync Gateway has always stored this information in the document body in previous versions.
-Sync Gateway 1.5 utilizes a new feature of Couchbase Server 5.0 called XATTRs (x-attributes) to store that metadata into an external document fragment.
-
-Couchbase documents can have associated JSON objects called extended attributes (xattrs).
-You can associate each document with zero or more extended attributes.
-Three types currently exist (user, system, virtual).
-Mobile Convergence uses a system extended attribute, which has the following characteristics central to convergence:
-
-- System xattrs share lifetime with the document metadata - when you delete a document, the system preserves system xattrs with the tombstone.
-- The system allocates 1MB of storage, independent of the 20MB available for the document
-
-Couchbase Server stores extended attributes as part of the document and replicates them with the document (both intra-cluster replication and XDCR).
-
-You can access extended attributes via the SDKs using the sub-document API, via command-line tools, and via views.
-
-They're also accessible from {sqlpp} in Couchbase Server 5.5 or above with the `().xattrs` property.
-For example, `SELECT meta().xattrs._sync from travel-sample where Meta().id = "user::demo";`.
-
-WARNING: Sync Gateway maintains the sync metadata internally and its structure can change at any time.
-Applications should not use it to drive business logic.
-Sync Gateway does not support the direct {sqlpp} query in production environments.
-
-The xref:rest-api:rest_api_admin.adoc#tag/Document/operation/get_keyspace-_raw-docid[raw]
- endpoint on Sync Gateway's Admin REST API returns both the document and its associated mobile metadata.
-
-
-=== Configuration Changes
-
-|===
-| Before | After
-
-| *Sync Gateway 1.5 or above*
-`shared_bucket_access: false`
-| *Sync Gateway 1.5 or above*
-`shared_bucket_access: true`
-2+a|
-After you restart Sync Gateway with the updated configuration file, Sync Gateway automatically migrates the mobile metadata for existing documents when you set `import_docs` to `true`.
-To enable shared bucket access on incoming documents, set the `import_docs`: `true` property on at least one Sync Gateway node in the cluster.
-
-Enabling shared bucket access on your existing deployment is *not* reversible.
-We recommend testing the upgrade on a staging environment before upgrading the production environment.
-
-The known issue xref:product-notes:release-notes.adoc#2-5-0[CBG-394], means that the upgrade will *require downtime* when enabling shared bucket access on an existing deployment that is running with GSI indexing. This is to allow all documents to migrate, using index-based data requests whilst migration is in progress could result in an incomplete data set being returned (containing only those docs migrated at the time of the request). You are advised to schedule a maintenance window to allow time for migration to complete.
-
-| *Sync Gateway 2.1 to 3.2*
-`num_index_replicas: 2` (or n)
-| *Sync Gateway 3.3 or later*
-`index.num_replicas: 2` (or n)
-2+|
-After you restart Sync Gateway with the updated configuration file, Sync Gateway automatically updates the number of Index Replicas in the Couchbase Server cluster.
-
-As of Sync Gateway 3.3, `num_index_replicas` still works, but this option has been deprecated in favor of `index.num_replicas`.
-|===
+If you also need to upgrade Couchbase Server, refer to the xref:server:install:upgrade.adoc[Upgrading Couchbase Server] documentation for supported approaches.
+When running a Couchbase Server rolling upgrade alongside {sgw}, Server rebalance operations can cause transient connection errors between {sgw} and Couchbase Server.
 
 
 include::ROOT:partial$block-related-content-deploy.adoc[]
 
 // END -- PAGE -- upgrading.adoc
-

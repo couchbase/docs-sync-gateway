@@ -1,0 +1,311 @@
+// BEGIN -- PAGE -- migrate-metadata-system-collection.adoc
+// BEGIN PAGE DEFINITION
+//  LOCATION modules/ROOT/pages/
+//  PURPOSE:
+//    Documents the opt-in metadata migration to the system collection
+//    introduced in SGW 4.1 (IDEA-475, CBG-5221).
+//
+//  ⚠️  REVIEWER NOTE (Fortune - confirm before PR merge):
+//    1. Confirm the minimum Couchbase Server version that supports _system._mobile.
+//       The design doc states opt-in validation rejects the feature if _system._mobile
+//       is unavailable on the bucket, but does not specify the CBS version.
+//       Ask Ben Brooks.
+//    2. API endpoint /{db}/_metadata_migration is Admin-port only (:4985).
+//       Confirm the endpoint has been tagged in the API spec and uptake the tag.
+//    3. Confirm whether configuration schema pages
+//       (configuration-schema-bootstrap.adoc and configuration-schema-database.adoc)
+//       have been updated for the two new use_system_metadata_collection fields.
+//       Those pages are out of scope for this PR but must be tracked.
+//
+// END PAGE DEFINITION
+= Migrate Metadata to System Collection
+ifdef::show_edition[:page-edition: {release}]
+ifdef::prerelease[:page-status: {prerelease}]
+:page-role:
+:page-content: procedural
+:description: Opt in to migrating Sync Gateway internal metadata from the default collection to the system collection in Sync Gateway 4.1.
+
+include::ROOT:partial$_set_page_context.adoc[]
+
+:param-abstract:
+:topic-group: Application Deployment
+:param-related: {release-notes--xref} | {compatibility--xref}
+include::ROOT:partial$_show_page_header_block.adoc[]
+
+
+== Overview
+
+{sgw} stores internal metadata, including user documents, role documents, session documents, replication state, and DCP checkpoints, in the default collection (`_default._default`).
+This couples {sgw}'s internal bookkeeping with customer document data in the same collection.
+
+{sgw} 4.1 introduces an opt-in migration that relocates this metadata to the system collection (`_system._mobile`).
+Migrating provides the following benefits:
+
+* Metadata is isolated from user application data.
+* {sgw} metadata no longer appears alongside user-modifiable documents in the Capella UI.
+* Eventing functions and {sqlpp} queries running against the default collection no longer process {sgw} internal documents.
+
+[IMPORTANT]
+====
+This migration is opt-in and is never applied automatically at upgrade.
+Your existing deployment is unaffected until you enable the feature.
+
+The opt-in configuration flags are one-way.
+Once enabled, the migration cannot be reversed.
+There is no supported path to move metadata back to `_default._default`.
+====
+
+
+== Prerequisites
+
+* {sgw} 4.1 or later on all nodes in the cluster.
+* Couchbase Server version that supports the `_system._mobile` collection.
+// ⚠️ Confirm minimum CBS version with Ben Brooks before publishing.
+* The `_system._mobile` collection must be available on the target bucket.
+{sgw} rejects the opt-in configuration if this collection is unavailable.
+
+
+== How the Migration Works
+
+The migration uses a two-level opt-in: one at the cluster level and one per database.
+
+=== Cluster-level flag
+
+The bootstrap configuration flag `use_system_metadata_collection` acts as the cluster-wide feature gate.
+Enabling it allows individual databases to opt in and enables the dual-collection read behaviour at bootstrap.
+By itself, enabling the cluster flag does not migrate any data.
+
+=== Per-database opt-in
+
+The database configuration field `use_system_metadata_collection` opts an individual database into the migration.
+You can opt in a database even if the cluster flag is not set.
+
+Once you apply the opt-in configuration to a database, {sgw} waits until the configuration is confirmed applied on all nodes in the cluster, then starts the migration automatically.
+You do not need to call any API to trigger the migration.
+
+=== What migrates
+
+The migration relocates the following internal {sgw} metadata from `_default._default` to `_system._mobile`:
+
+* User, role, and email index documents
+* Session documents (TTL is preserved)
+* Replication state and status documents
+* DCP checkpoint documents
+* Background process heartbeat and status documents
+* Database state documents
+* {sgw} configuration documents
+
+The following are not migrated and remain in their existing locations:
+
+* Collection-scoped document data (`_sync:rev:*`, `_sync:att*:*`)
+* Metadata belonging to other databases on the same bucket (sibling databases)
+
+Bucket-level bootstrap documents (`_sync:registry`, database config docs) migrate only after every database on the bucket has completed its migration.
+
+=== Database availability during migration
+
+Databases remain fully available for reads and writes throughout the migration.
+{sgw} uses a dual-collection read strategy during migration: reads go to `_system._mobile` first and fall back to `_default._default` only for keys not yet migrated.
+Writes always go to `_system._mobile` from the moment opt-in is applied.
+
+Once the migration is complete, the fallback read path is disabled.
+Reads consult only `_system._mobile`.
+
+New databases with no existing metadata skip the migration entirely and are marked complete immediately.
+
+
+== Enable the Migration
+
+=== Step 1: Enable the cluster-level flag
+
+Add the following to your {sgw} bootstrap configuration:
+
+[source,json]
+----
+{
+  "bootstrap": {
+    "use_system_metadata_collection": true
+  }
+}
+----
+
+This is a one-way change.
+Once set to `true`, the flag cannot be set back to `false`.
+
+=== Step 2: Opt in each database
+
+Add the following to the database configuration for each database you want to migrate:
+
+[source,json]
+----
+{
+  "use_system_metadata_collection": true
+}
+----
+
+This is also a one-way change per database.
+
+After you apply the database configuration, {sgw} starts the migration automatically once the configuration is confirmed on all nodes.
+No further action is required to start the migration.
+
+
+== Monitor Migration Progress
+
+Use the `GET /{db}/_metadata_migration` endpoint on the Admin REST API to check the status of a migration.
+
+NOTE: This endpoint is available on the Admin port (`:4985`) only.
+
+*Example request:*
+
+[source,bash]
+----
+GET /{db}/_metadata_migration
+----
+
+*Example response:*
+
+[source,json]
+----
+{
+  "status": "running",
+  "migration_id": "a1b2c3d4-...",
+  "docs_processed": 45200,
+  "docs_attempted": 45200,
+  "docs_failed": 0,
+  "docs_out_of_scope": 12,
+  "passes": 2
+}
+----
+
+[cols="1,3"]
+|===
+| Field | Description
+
+| `status`
+| Current migration status: `running`, `completed`, or `error`.
+
+| `migration_id`
+| Unique identifier for this migration run.
+
+| `docs_processed`
+| Number of metadata documents successfully moved to `_system._mobile` in this run.
+
+| `docs_attempted`
+| Total number of documents the migrator has attempted to process.
+
+| `docs_failed`
+| Number of documents that encountered an error during migration.
+A non-zero value means some keys may not have migrated.
+Check `last_error` for details.
+
+| `docs_out_of_scope`
+| Number of keys observed in the fallback collection that belong to other databases or to bucket-level bootstrap documents.
+These are left in place.
+
+| `passes`
+| Number of scan passes the migrator has completed.
+The migration is complete when a pass finds no remaining in-scope keys.
+|===
+
+
+== Manual Migration Controls
+
+The migration starts automatically after opt-in.
+Use the `POST /{db}/_metadata_migration` endpoint to intervene manually if needed.
+
+*Required RBAC role:* Sync Gateway Architect
+
+[cols="1,3"]
+|===
+| Query parameter | Description
+
+| `action`
+| `start` (default) to start or resume the migration, or `stop` to halt it.
+
+| `reset`
+| Set to `true` to discard previous progress and start a fresh migration run.
+|===
+
+*Retry after an error:*
+
+[source,bash]
+----
+POST /{db}/_metadata_migration?action=start
+----
+
+*Stop a running migration:*
+
+[source,bash]
+----
+POST /{db}/_metadata_migration?action=stop
+----
+
+[NOTE]
+====
+A `400` response is returned if the database has not opted in to `use_system_metadata_collection`.
+====
+
+For the full API reference, see xref:ROOT:rest_api_admin_static.adoc#tag/Database-Management/operation/get_db-_metadata_migration[GET /{db}/_metadata_migration].
+
+
+== Prometheus Statistics
+
+{sgw} 4.1 adds seven Prometheus metrics under the `sgw_metadata_migration` subsystem, each labelled per database.
+
+[cols="1,1,3"]
+|===
+| Metric | Type | Description
+
+| `sgw_metadata_migration_docs_scanned_total`
+| Counter
+| Total fallback keys observed across all scan passes.
+
+| `sgw_metadata_migration_docs_migrated`
+| Counter
+| Documents successfully moved or removed from the fallback collection.
+
+| `sgw_metadata_migration_docs_out_of_scope`
+| Gauge
+| Keys in the fallback collection belonging to other databases or bucket-level bootstrap documents on the most recent pass.
+This is a snapshot of the last pass, not a cumulative total.
+
+| `sgw_metadata_migration_docs_unknown_prefix`
+| Gauge
+| Unrecognized keys in the fallback collection on the most recent pass.
+A persistently non-zero value indicates the migration will not complete without intervention.
+Contact Couchbase Support if this value remains non-zero.
+
+| `sgw_metadata_migration_errors`
+| Counter
+| Per-document errors during move or delete operations.
+
+| `sgw_metadata_migration_seq_poison_pill_applied`
+| Counter
+| Number of times this node applied the sequence counter handoff during migration.
+Typically `0` or `1` per migration run.
+
+| `sgw_metadata_migration_passes`
+| Counter
+| Number of scan passes executed.
+|===
+
+For general Prometheus monitoring, see xref:manage:stats-monitoring-prometheus.adoc[Prometheus Monitoring].
+
+
+== Troubleshooting
+
+=== Migration stops without completing
+
+If `status` shows `error` or `docs_unknown_prefix` is persistently non-zero, the migration encountered keys it could not process.
+Use `POST /{db}/_metadata_migration?action=start` to retry.
+If the issue persists, contact Couchbase Support with the output of `GET /{db}/_metadata_migration` and your SGCollect bundle.
+
+=== Migration not starting after opt-in
+
+The migration starts only after the opted-in configuration is confirmed applied on all nodes.
+In a multi-node cluster, verify all nodes have picked up the updated database configuration before expecting the migration to start.
+
+
+include::ROOT:partial$block-related-content-deploy.adoc[]
+
+// END -- PAGE -- migrate-metadata-system-collection.adoc
