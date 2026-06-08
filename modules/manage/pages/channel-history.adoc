@@ -24,13 +24,7 @@ In high-churn deployments where documents and users frequently enter and leave c
 * *Unnecessary revocations:* When a Couchbase Lite client performs a zero-checkpoint (clear-start) replication, such as after an app reinstall or checkpoint rollback, {sgw} replays the full channel history. Old revocation entries in that history are re-sent to the client even for channels that are no longer relevant.
 
 {sgw} 4.1 introduces Admin REST API endpoints that let administrators selectively remove historical channel entries from documents and users.
-This is a Phase 1 implementation designed for power users who are willing to manage the process manually.
 Both operations are non-destructive to document content and do not interrupt active replications.
-
-[NOTE]
-====
-Phase 2 automated compaction is not available in {sgw} 4.1.
-====
 
 
 == Document Channel History
@@ -80,10 +74,10 @@ Any inactive channel history at or before the sequence you provide is permanentl
 This operation cannot be undone.
 ====
 
-
 === Retrieve Document Channel History
 
-Before compacting, retrieve the current inactive channel history for a document to confirm what will be removed.
+Retrieve the channel revocation history for a document to review which channels are recorded and at which sequences the document left each channel.
+Use this information to identify a suitable sequence boundary before compacting, or to select a specific sequence for a partial compact.
 
 *Endpoint:* `GET /{keyspace}/_channel_history/{docid}`
 
@@ -91,14 +85,14 @@ Before compacting, retrieve the current inactive channel history for a document 
 
 [cols="1,3"]
 |===
-| Query parameter | Description
+| Path parameter | Description
 
-| `doc_id` (required)
+| `keyspace` (required)
+| The keyspace to run the operation against.
+A keyspace is a dot-separated string comprised of a database name and, optionally, a named scope and collection.
+
+| `docid` (required)
 | The document ID whose channel history you want to retrieve.
-
-| `seq` (required)
-| The sequence number threshold.
-All inactive channels with history entries for sequences before this number are returned.
 |===
 
 *Example request:*
@@ -117,15 +111,14 @@ GET /mydb/_channel_history/order-12345
     5,
     7
   ],
-  "orders-archived":[7]
+  "orders-archived": [7]
 }
 ----
 
-The response is a JSON object mapping each channel name to an array of sequences at which
-        the document was removed from that channel.
+The response maps each channel name to an array of sequences at which the document was removed from that channel.
+Multiple sequences for a given channel indicate the document left and re-entered that channel more than once.
 
 For the full API reference, see xref:ROOT:rest_api_admin_static.adoc#tag/Document/operation/get_keyspace-_channel_history[GET /{keyspace}/_channel_history/{docid}].
-
 
 === Compact Document Channel History
 
@@ -264,7 +257,7 @@ POST /mydb/_user/alice/_access_history/compact
 [source,json]
 ----
 {
-  "channels": {
+  "compacted_channels": {
     "inventory": {
       "default": [
         "warehouse-west-2023",
@@ -275,7 +268,7 @@ POST /mydb/_user/alice/_access_history/compact
 }
 ----
 
-The response confirms the channels that were removed from the user's history.
+The response confirms the channels removed from the user's history.
 
 For the full API reference, see xref:ROOT:rest_api_admin_static.adoc#tag/Database-Security/operation/post_db-_user-name-_access_history-compact[POST /{db}/_user/{name}/_access_history/compact].
 
