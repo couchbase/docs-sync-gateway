@@ -11,8 +11,18 @@ It describes configuration options and provides example configuration code.
 
 == Understanding Buckets, Scopes, and Collections
 You can define 1 custom scope per database with up to 1000 custom collections.
-If you don’t specify a custom scope and collection, any documents you create saves in the default scope and collection.
+If you don't specify a custom scope and collection, any documents you create saves in the default scope and collection.
 For more information, examples and use cases, see https://www.couchbase.com/blog/scopes-collections-couchbase-mobile/[Scopes and Collections Support in Couchbase Mobile for Edge Applications].
+
+=== The System Collection
+
+{sgw} uses a reserved system collection, `_system._mobile`, to store its internal metadata separately from user application data.
+This collection is owned by {sgw} and is not a user-configurable scope or collection.
+
+From {sgw} 4.1, you can opt in to migrating {sgw} internal metadata from the default collection (`_default._default`) to `_system._mobile`.
+This isolates {sgw} system documents from your application data, prevents metadata from appearing in the Capella UI alongside user documents, and reduces the risk of metadata being processed by eventing functions or {sqlpp} queries.
+
+See xref:ROOT:migrate-metadata-system-collection.adoc[Migrate Metadata to System Collection] for details.
 
 == Configuration Options
 
@@ -186,4 +196,3 @@ This is usually done in databases to organize and group documents based on certa
 | access(doc.userId, channelId)                   | The `access(doc.userId, channelId)` function is called, which grants the user with `doc.userId` access to the channel identified by `channelId`.
 This access control mechanism ensures that only authorized users can view or interact with the documents in the channel.
 |===
-
