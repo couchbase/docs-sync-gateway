@@ -17,7 +17,7 @@ include::ROOT:partial$_show_page_header_block.adoc[]
 
 The cluster compatibility version is a cluster-wide value that {sgw} uses to coordinate behaviour across nodes running different versions during a rolling upgrade.
 
-Introduced in Sync Gateway 4.1, the cluster compatibility version lets you:
+Introduced in {sgw} 4.1, the cluster compatibility version lets you:
 
 * Perform a rolling upgrade without downtime or reduction in cluster capacity.
 * Preserve a safe rollback path during the upgrade window.
@@ -34,7 +34,8 @@ As you upgrade nodes one by one, the minimum advances when older nodes are repla
 
 {sgw} uses the compatibility version to gate cluster-wide feature activation.
 Features that could cause incompatibilities with older nodes remain inactive until the compatibility version reaches the version that introduced them.
-New features that do not depend on metadata shared by other Sync Gateway nodes activate immediately on each upgraded node regardless of the compatibility version. These are considered 'node-local' features, and include areas such as caching, read-only operations, general bug fixes and performance improvements.
+New features that do not depend on metadata shared by other {sgw} nodes activate immediately on each upgraded node regardless of the compatibility version.
+These are considered node-local features, and include areas such as caching, read-only operations, general bug fixes, and performance improvements.
 
 On a homogeneous cluster where all nodes run the same version, the compatibility version equals that version.
 The value is not present in the API response immediately after startup before any node has registered.
@@ -66,7 +67,7 @@ Use this procedure when you want to preserve the option to roll back during the 
 
 === Prerequisites
 
-* All nodes are running {sgw} 4.0 or later.
+* All nodes are running {sgw} 4.1 or later.
 * You have Admin REST API access to the cluster.
 * See xref:ROOT:rolling-upgrade.adoc[Rolling Upgrade] for version requirements and the node upgrade procedure.
 
@@ -81,16 +82,16 @@ Call xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/get__cluster_comp
 GET /_cluster_compat_version
 ----
 
-Example response on a homogeneous 4.0 cluster:
+Example response on a homogeneous 4.1 cluster:
 
 [source,json]
 ----
 {
-  "cluster_compat_version": "4.0",
+  "cluster_compat_version": "4.1",
   "nodes": {
-    "node1-uid": "4.0",
-    "node2-uid": "4.0",
-    "node3-uid": "4.0"
+    "node1-uid": "4.1",
+    "node2-uid": "4.1",
+    "node3-uid": "4.1"
   }
 }
 ----
@@ -109,13 +110,13 @@ Example response:
 [source,json]
 ----
 {
-  "cluster_compat_version": "4.0",
+  "cluster_compat_version": "4.1",
   "nodes": {
-    "node1-uid": "4.0",
-    "node2-uid": "4.0",
-    "node3-uid": "4.0"
+    "node1-uid": "4.1",
+    "node2-uid": "4.1",
+    "node3-uid": "4.1"
   },
-  "frozen_cluster_compat_version": "4.0"
+  "frozen_cluster_compat_version": "4.1"
 }
 ----
 
@@ -135,13 +136,13 @@ Call xref:ROOT:rest_api_admin_static.adoc#tag/Server/operation/get__cluster_comp
 [source,json]
 ----
 {
-  "cluster_compat_version": "4.0",
+  "cluster_compat_version": "4.1",
   "nodes": {
-    "node1-uid": "4.1",
-    "node2-uid": "4.1",
-    "node3-uid": "4.1"
+    "node1-uid": "4.2",
+    "node2-uid": "4.2",
+    "node3-uid": "4.2"
   },
-  "frozen_cluster_compat_version": "4.0"
+  "frozen_cluster_compat_version": "4.1"
 }
 ----
 
@@ -159,17 +160,17 @@ Example response after a successful unfreeze:
 [source,json]
 ----
 {
-  "cluster_compat_version": "4.1",
+  "cluster_compat_version": "4.2",
   "nodes": {
-    "node1-uid": "4.1",
-    "node2-uid": "4.1",
-    "node3-uid": "4.1"
+    "node1-uid": "4.2",
+    "node2-uid": "4.2",
+    "node3-uid": "4.2"
   }
 }
 ----
 
 The absence of `frozen_cluster_compat_version` confirms the freeze has cleared.
-The `cluster_compat_version` advances to `4.1` and new cluster-wide features introduced in 4.1 become active.
+The `cluster_compat_version` advances to `4.2` and new cluster-wide features introduced in 4.2 become active.
 
 [NOTE]
 ====
@@ -218,4 +219,3 @@ Required {sgw} RBAC role: Sync Gateway Dev Ops.
 
 include::ROOT:partial$block-related-content-deploy.adoc[]
 
-// END -- PAGE -- cluster-compatibility-version.adoc
