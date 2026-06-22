@@ -1,12 +1,3 @@
-// BEGIN -- PAGE -- upgrading.adoc
-// BEGIN PAGE DEFINITION
-//  LOCATION modules/ROOT/pages/
-//  PURPOSE:
-//    Overview page for the Upgrade section.
-//    Summarises upgrade paths and requirements for each supported version.
-//    Detailed procedures are in rolling-upgrade.adoc.
-//    Cluster compatibility version feature is in cluster-compatibility-version.adoc.
-// END PAGE DEFINITION
 = Upgrade Sync Gateway
 :page-aliases: advance/deploy/upgrade.adoc, upgrade.adoc
 ifdef::show_edition[:page-edition: {release}]
@@ -30,6 +21,7 @@ Use the pages in this section based on what you need to do:
 
 * xref:ROOT:rolling-upgrade.adoc[Rolling Upgrade] -- Step-by-step procedures for upgrading a {sgw} cluster node by node, including version-specific requirements.
 * xref:ROOT:cluster-compatibility-version.adoc[Cluster Compatibility Version] -- How to use the cluster compatibility version mechanism introduced in {sgw} 4.1 to upgrade without downtime and with a safe rollback path.
+* xref:ROOT:migrate-metadata-system-collection.adoc[Migrate Metadata to System Collection] -- How to opt in to moving {sgw} internal metadata from the default collection to the system collection in {sgw} 4.1.
 
 For compatibility information, see the {compatibility--xref}.
 
@@ -50,6 +42,10 @@ For compatibility information, see the {compatibility--xref}.
 `shared_bucket_access=false` +
 `allow_conflicts=true` +
 `enable_star_channel=false`
+| Metadata migration (optional)
+| {sgw} 4.1 introduces an opt-in migration that moves internal metadata from the default collection to the system collection.
+This is not required for upgrading and is never applied automatically.
+See xref:ROOT:migrate-metadata-system-collection.adoc[Migrate Metadata to System Collection].
 |===
 
 NOTE: Downgrading from {sgw} 4.1 to an earlier version is not supported after the full cluster has been upgraded.
@@ -93,7 +89,7 @@ This migration is a one-way process.
 
 == Upgrading Couchbase Server
 
-If you also need to upgrade Couchbase Server, refer to the xref:server:install:upgrade.adoc[Upgrading Couchbase Server] documentation for supported approaches.
+If you also need to upgrade Couchbase Server, for more information, see the xref:server:install:upgrade.adoc[Upgrading Couchbase Server] documentation for supported approaches.
 When running a Couchbase Server rolling upgrade alongside {sgw}, Server rebalance operations can cause transient connection errors between {sgw} and Couchbase Server.
 
 
