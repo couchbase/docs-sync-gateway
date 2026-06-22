@@ -30,6 +30,9 @@ Migrating provides the following benefits:
 This migration is opt-in and is never applied automatically at upgrade.
 Your existing deployment is unaffected until you enable the feature.
 
+This feature is only supported when all nodes in the cluster have been upgraded to {sgw} 4.1 and the cluster compatibility version is running at 4.1.
+If you are using xref:ROOT:cluster-compatibility-version.adoc[Cluster Compatibility Version] to stage your upgrade, ensure the freeze has been cleared and the compatibility version has advanced to 4.1 before enabling this migration.
+
 The opt-in configuration flags are one-way.
 Once enabled, the migration cannot be reversed.
 There is no supported path to move metadata back to `_default._default`.
@@ -58,7 +61,8 @@ The migration uses a two-level opt-in: one at the cluster level and one per data
 === Cluster-level flag
 
 The bootstrap configuration flag `use_system_metadata_collection` acts as the cluster-wide feature gate.
-Enabling it automatically opts in all databases to use the system metadata collection, and trigger migration.
+Enabling it allows individual databases to opt in and enables the dual-collection read behaviour at bootstrap.
+By itself, enabling the cluster flag does not migrate any data.
 
 === Per-database opt-in
 
@@ -167,7 +171,7 @@ GET /{db}/_metadata_migration
 | Field | Description
 
 | `status`
-| Current migration status: `running`, `completed`, `error`, `stopping`, `stopped`.
+| Current migration status: `running`, `completed`, or `error`.
 
 | `migration_id`
 | Unique identifier for this migration run.
@@ -235,7 +239,7 @@ For the full API reference, see xref:ROOT:rest_api_admin_static.adoc#tag/Databas
 
 == Prometheus Statistics
 
-{sgw} 4.1 adds eight Prometheus metrics under the `sgw_metadata_migration` subsystem, each labelled per database.
+{sgw} 4.1 adds seven Prometheus metrics under the `sgw_metadata_migration` subsystem, each labelled per database.
 
 [cols="1,1,3"]
 |===
@@ -272,10 +276,6 @@ Typically `0` or `1` per migration run.
 | `sgw_metadata_migration_passes`
 | Counter
 | Number of scan passes executed.
-
-| `sgw_metadata_migration_abandoned_runs`
-| Counter
-| Number of migration runs that the manager abandoned after several retry attempts.
 |===
 
 For general Prometheus monitoring, see xref:manage:stats-monitoring-prometheus.adoc[Prometheus Monitoring].
