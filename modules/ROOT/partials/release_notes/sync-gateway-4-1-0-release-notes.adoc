@@ -1,0 +1,55 @@
+[#maint-4-1-0]
+== 4.1.0 -- June 2026
+
+Version 4.1.0 of Sync Gateway delivers the following features and enhancements.
+
+=== Non-Disruptive Rolling Upgrades
+
+{sgw} 4.1 introduces cluster compatibility version, enabling node-by-node upgrades without downtime, with a safe rollback path throughout the upgrade window.
+
+For more information, see xref:ROOT:cluster-compatibility-version.adoc[Cluster Compatibility Version].
+
+=== Distributed Resync
+
+{sgw} 4.1 redesigns resync to distribute work in parallel across all cluster nodes, replacing the previous single-node sequential approach.
+
+For more information, see xref:manage:resync.adoc[Resync].
+
+=== Channel History Management
+
+{sgw} 4.1 introduces Admin REST API endpoints for retrieving and pruning channel history on both user records and documents, reducing metadata bloat and unnecessary revocation messages during zero-checkpoint replications.
+
+For more information, see xref:manage:channel-history.adoc[Channel History Management].
+
+=== Metadata Isolation: Migrate to System Collection
+
+{sgw} 4.1 introduces an opt-in migration that moves {sgw} internal metadata from `_default._default` to `_system._mobile`, isolating it from user application data.
+The migration is never applied automatically at upgrade and cannot be reversed.
+
+For more information, see xref:ROOT:migrate-metadata-system-collection.adoc[Migrate Metadata to System Collection].
+
+For a full overview of new features in this release, see xref:ROOT:whatsnew.adoc[New in {release}].
+
+=== Fixed Issues
+
+* https://jira.issues.couchbase.com/browse/CBG-3214[CBG-3214 -- Unhandled cbgt panic after removing database]
+* https://jira.issues.couchbase.com/browse/CBG-4939[CBG-4939 -- Couchbase Lite 4.0 is allowed to connect to Sync Gateway 3.2.6/3.3.0]
+* https://jira.issues.couchbase.com/browse/CBG-5020[CBG-5020 -- Panic during memory based cache eviction can deadlock revision cache shard]
+* https://jira.issues.couchbase.com/browse/CBG-5051[CBG-5051 -- Non-integer sequence numbers are incorrectly encoded for norev messages for CBL]
+* https://jira.issues.couchbase.com/browse/CBG-5133[CBG-5133 -- Backup revs loaded from bucket in CV pathway incorrectly assigning deleted status to document revision]
+* https://jira.issues.couchbase.com/browse/CBG-5134[CBG-5134 -- Current revision attachments can be loaded when loading backup rev by CV]
+* https://jira.issues.couchbase.com/browse/CBG-5145[CBG-5145 -- Replacement revs never utilized for unfiltered replications]
+* https://jira.issues.couchbase.com/browse/CBG-5381[CBG-5381 -- Resync regenerate sequences will not set _default metadata id when finished]
+* https://jira.issues.couchbase.com/browse/CBG-5436[CBG-5436 -- Subdoc operation failure on multiple channel removal]
+
+=== Enhancements
+
+* https://jira.issues.couchbase.com/browse/CBG-5203[CBG-5203 -- Silently handle cbl-js ping blip requests]
+
+=== Known Issues
+
+None for this release.
+
+=== Deprecations
+
+None for this release.
