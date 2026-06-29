@@ -9,7 +9,7 @@ info:
     Couchbase Server.
 
     The Sync Gateway Public REST API is used for client replication.
-  version: '4.0'
+  version: '4.1'
   license:
     name: Business Source License 1.1 (BSL)
     url: 'https://github.com/couchbase/sync_gateway/blob/master/LICENSE'
@@ -157,7 +157,9 @@ paths:
         - name: one_time
           description: >-
             Sets the session to only be valid for a single authentication. This
-            session will expire in 5 minutes if not used.
+            session will expire in 5 minutes if not used. If this is set the
+            session cookie is only returned in the response body, and not the
+            header.
           in: query
           schema:
             type: boolean
@@ -542,7 +544,7 @@ paths:
                               API version.
                               Omitted if `api.hide_product_version=true`
                             type: string
-                            example: 3.1
+                            example: '3.1'
                         required:
                           - name
                         title: Vendor
@@ -563,6 +565,21 @@ paths:
                       config mode.
                     type: boolean
                     example: true
+                  node_uid:
+                    description: >-
+                      Stable identifier for this Sync Gateway node, derived
+                      deterministically from host
+
+                      fingerprint.
+                    type: string
+                  cluster_compat_version:
+                    description: >-
+                      The minimum cluster compatibility version
+                      (`"major.minor"`) across all nodes in the
+
+                      cluster.
+                    type: string
+                    example: '4.1'
                 required:
                   - couchdb
                   - vendor
@@ -638,15 +655,64 @@ paths:
         content:
           application/json:
             schema:
-              description: The configurable Sync Gateway properties of a document.
+              description: >-
+                A Sync Gateway document. The document body is a JSON object
+                whose top-level fields are the application's own data; Sync
+                Gateway metadata is inlined into the same object using reserved
+                `_`-prefixed field names (`_id`, `_rev`, `_exp`, etc.) listed
+                below. Any top-level field that does not start with `_` is
+                treated as user data and stored verbatim, and field values can
+                be any valid JSON (including nested objects and arrays).
               type: object
-              additionalProperties: true
+              additionalProperties:
+                x-additionalPropertiesName: propertyname
+                description: >-
+                  A user-defined field belonging to the document body. Any JSON
+                  value is permitted. Field names beginning with `_` are
+                  reserved for Sync Gateway metadata.
               properties:
                 _id:
                   description: The ID of the document.
                   type: string
                 _rev:
-                  description: The revision of the document.
+                  description: >-
+                    The ancestor Revision Tree ID of the document, used by Sync
+                    Gateway as an optimistic concurrency control (OCC) value to
+                    detect conflicts when updating an existing document; omit
+                    this field when creating a new document. The value is
+                    typically taken from the `_rev` returned by a prior `GET` of
+                    the document, or from the `ETag` response header.
+
+
+                    For single-document upserts ([PUT
+                    /{keyspace}/{docid}](#operation/put_keyspace-docid)), the
+                    `rev` query parameter and the `If-Match` request header are
+                    alternative OCC sources for the same document; for bulk
+                    upserts ([POST
+                    /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs)),
+                    per-document OCC must be supplied in the doc body via this
+                    field or `_cv`. Clients may supply more than one OCC source
+                    as long as same-type values match exactly; mismatched values
+                    return HTTP 400. Precedence when multiple are present: `rev`
+                    query parameter, then `If-Match` header, then body `_cv`,
+                    then body `_rev`.
+                  type: string
+                _cv:
+                  description: >-
+                    The ancestor Current Version (CV) ID of the document, used
+                    by Sync Gateway as an optimistic concurrency control (OCC)
+                    value to detect conflicts when updating an existing
+                    document; omit this field when creating a new document. The
+                    value is typically taken from the `_cv` returned by a prior
+                    `GET` of the document, or from the `ETag` response header.
+
+
+                    Unlike the `rev` query parameter and `If-Match` header
+                    (which autodetect Revision Tree IDs vs Current Version IDs),
+                    this field must hold a CV. As with `_rev`, this can be
+                    supplied alongside other OCC sources as long as same-type
+                    values match exactly. See `_rev` for the full precedence
+                    order.
                   type: string
                 _exp:
                   description: >-
@@ -677,6 +743,12 @@ paths:
                     tombstone.
                   type: boolean
                 _revisions:
+                  description: >-
+                    Encoded revision history for the document. This field is
+                    used by legacy 1.x REST replication protocol clients and
+                    CouchDB-style API callers to transmit ancestry alongside a
+                    revision. Most upsert/create requests should omit this field
+                    and rely on `_rev` alone.
                   type: object
                   properties:
                     start:
@@ -690,6 +762,12 @@ paths:
                       items:
                         type: string
                 _attachments:
+                  description: >-
+                    Binary attachments associated with the document, keyed by
+                    attachment name. Each entry describes a single attachment
+                    and its inline base64 data. Attachments are stored
+                    separately from the document body but travel with the
+                    document during replication.
                   type: object
                   additionalProperties:
                     x-additionalPropertiesName: attachmentname
@@ -702,6 +780,12 @@ paths:
                       data:
                         description: The data in the attachment in base64.
                         type: string
+            example:
+              foo: bar
+              _attachments:
+                hello.txt:
+                  content_type: text/plain
+                  data: aGVsbG8=
       responses:
         '200':
           description: New document revision created successfully.
@@ -754,8 +838,10 @@ paths:
                   - error
                   - reason
                 title: HTTP-Error
-        '404':
-          description: Resource could not be found
+        '403':
+          description: >-
+            User does not have access to the database resource, or database
+            resource does not exist
           content:
             application/json:
               schema:
@@ -771,9 +857,6 @@ paths:
                   - error
                   - reason
                 title: HTTP-Error
-              example:
-                error: not_found
-                reason: no such database "invalid-db"
         '409':
           description: Resource already exists under that name
           content:
@@ -1500,22 +1583,88 @@ paths:
             type: string
           description: >-
             An optimistic concurrency control (OCC) value used to prevent
-            conflicts. Use the value returned in the ETag response header of the
-            GET request for the resource being updated, or the latest known
-            Revision Tree ID or Current Version of the document.
+            conflicts. The value is typically the `ETag` response header from a
+            prior `GET` of the document, or the latest known Revision Tree ID or
+            Current Version (CV) of the document; the type is autodetected.
+
+
+            The `If-Match` header, the `rev` query parameter, and the `_rev` /
+            `_cv` fields in the request body are alternative OCC sources, listed
+            below. Clients may supply more than one as long as same-type values
+            match exactly; mismatched values return HTTP 400. Precedence when
+            multiple are present: `rev` query parameter, then `If-Match` header,
+            then body `_cv`, then body `_rev`.
+
+
+            - For [PUT /{keyspace}/{docid}](#operation/put_keyspace-docid): any
+            of these OCC sources may be used.
+
+            - For [POST
+            /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs):
+            per-document OCC must be supplied in the doc body via `_rev` or
+            `_cv` (header/query OCC are per-request, not per-document).
       requestBody:
         content:
           application/json:
             schema:
-              description: The configurable Sync Gateway properties of a document.
+              description: >-
+                A Sync Gateway document. The document body is a JSON object
+                whose top-level fields are the application's own data; Sync
+                Gateway metadata is inlined into the same object using reserved
+                `_`-prefixed field names (`_id`, `_rev`, `_exp`, etc.) listed
+                below. Any top-level field that does not start with `_` is
+                treated as user data and stored verbatim, and field values can
+                be any valid JSON (including nested objects and arrays).
               type: object
-              additionalProperties: true
+              additionalProperties:
+                x-additionalPropertiesName: propertyname
+                description: >-
+                  A user-defined field belonging to the document body. Any JSON
+                  value is permitted. Field names beginning with `_` are
+                  reserved for Sync Gateway metadata.
               properties:
                 _id:
                   description: The ID of the document.
                   type: string
                 _rev:
-                  description: The revision of the document.
+                  description: >-
+                    The ancestor Revision Tree ID of the document, used by Sync
+                    Gateway as an optimistic concurrency control (OCC) value to
+                    detect conflicts when updating an existing document; omit
+                    this field when creating a new document. The value is
+                    typically taken from the `_rev` returned by a prior `GET` of
+                    the document, or from the `ETag` response header.
+
+
+                    For single-document upserts ([PUT
+                    /{keyspace}/{docid}](#operation/put_keyspace-docid)), the
+                    `rev` query parameter and the `If-Match` request header are
+                    alternative OCC sources for the same document; for bulk
+                    upserts ([POST
+                    /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs)),
+                    per-document OCC must be supplied in the doc body via this
+                    field or `_cv`. Clients may supply more than one OCC source
+                    as long as same-type values match exactly; mismatched values
+                    return HTTP 400. Precedence when multiple are present: `rev`
+                    query parameter, then `If-Match` header, then body `_cv`,
+                    then body `_rev`.
+                  type: string
+                _cv:
+                  description: >-
+                    The ancestor Current Version (CV) ID of the document, used
+                    by Sync Gateway as an optimistic concurrency control (OCC)
+                    value to detect conflicts when updating an existing
+                    document; omit this field when creating a new document. The
+                    value is typically taken from the `_cv` returned by a prior
+                    `GET` of the document, or from the `ETag` response header.
+
+
+                    Unlike the `rev` query parameter and `If-Match` header
+                    (which autodetect Revision Tree IDs vs Current Version IDs),
+                    this field must hold a CV. As with `_rev`, this can be
+                    supplied alongside other OCC sources as long as same-type
+                    values match exactly. See `_rev` for the full precedence
+                    order.
                   type: string
                 _exp:
                   description: >-
@@ -1546,6 +1695,12 @@ paths:
                     tombstone.
                   type: boolean
                 _revisions:
+                  description: >-
+                    Encoded revision history for the document. This field is
+                    used by legacy 1.x REST replication protocol clients and
+                    CouchDB-style API callers to transmit ancestry alongside a
+                    revision. Most upsert/create requests should omit this field
+                    and rely on `_rev` alone.
                   type: object
                   properties:
                     start:
@@ -1559,6 +1714,12 @@ paths:
                       items:
                         type: string
                 _attachments:
+                  description: >-
+                    Binary attachments associated with the document, keyed by
+                    attachment name. Each entry describes a single attachment
+                    and its inline base64 data. Attachments are stored
+                    separately from the document body but travel with the
+                    document during replication.
                   type: object
                   additionalProperties:
                     x-additionalPropertiesName: attachmentname
@@ -1571,6 +1732,25 @@ paths:
                       data:
                         description: The data in the attachment in base64.
                         type: string
+            examples:
+              RevTreeOCC:
+                summary: Update with RevTree OCC
+                value:
+                  _rev: 1-64d4a1f179db5c1848fe52967b47c166
+                  foo: bar
+                  _attachments:
+                    hello.txt:
+                      content_type: text/plain
+                      data: aGVsbG8=
+              CVOCC:
+                summary: Update with CV OCC
+                value:
+                  _cv: 1@src
+                  foo: bar
+                  _attachments:
+                    hello.txt:
+                      content_type: text/plain
+                      data: aGVsbG8=
       responses:
         '201':
           description: Created
@@ -1705,9 +1885,26 @@ paths:
             type: string
           description: >-
             An optimistic concurrency control (OCC) value used to prevent
-            conflicts. Use the value returned in the ETag response header of the
-            GET request for the resource being updated, or the latest known
-            Revision Tree ID or Current Version of the document.
+            conflicts. The value is typically the `ETag` response header from a
+            prior `GET` of the document, or the latest known Revision Tree ID or
+            Current Version (CV) of the document; the type is autodetected.
+
+
+            The `If-Match` header, the `rev` query parameter, and the `_rev` /
+            `_cv` fields in the request body are alternative OCC sources, listed
+            below. Clients may supply more than one as long as same-type values
+            match exactly; mismatched values return HTTP 400. Precedence when
+            multiple are present: `rev` query parameter, then `If-Match` header,
+            then body `_cv`, then body `_rev`.
+
+
+            - For [PUT /{keyspace}/{docid}](#operation/put_keyspace-docid): any
+            of these OCC sources may be used.
+
+            - For [POST
+            /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs):
+            per-document OCC must be supplied in the doc body via `_rev` or
+            `_cv` (header/query OCC are per-request, not per-document).
       responses:
         '200':
           description: New revision created successfully
@@ -3114,13 +3311,16 @@ paths:
         A doc ID will be generated by Sync Gateway unless `_id` is specified.
 
 
-        To update an existing document, provide the document ID (`_id`) and
-        Revision Tree ID (`_rev`) as well as the new body values.
+        To update an existing document, provide the document ID (`_id`) and an
+        optimistic concurrency control (OCC) value as well as the new body
+        values. The OCC value is either the ancestor Revision Tree ID in `_rev`
+        or the ancestor Current Version (CV) ID in `_cv`. Per-document OCC must
+        be supplied in the doc body — the `If-Match` header and `rev` query
+        parameter are not used by this endpoint.
 
 
-        To delete an existing document, provide the document ID (`_id`),
-        Revision Tree ID (`_rev`), and set the deletion flag (`_deleted`) to
-        true.
+        To delete an existing document, provide the document ID (`_id`), an OCC
+        value (`_rev` or `_cv`), and set the deletion flag (`_deleted`) to true.
       requestBody:
         content:
           application/json:
@@ -3136,15 +3336,67 @@ paths:
                 docs:
                   type: array
                   items:
-                    description: The configurable Sync Gateway properties of a document.
+                    description: >-
+                      A Sync Gateway document. The document body is a JSON
+                      object whose top-level fields are the application's own
+                      data; Sync Gateway metadata is inlined into the same
+                      object using reserved `_`-prefixed field names (`_id`,
+                      `_rev`, `_exp`, etc.) listed below. Any top-level field
+                      that does not start with `_` is treated as user data and
+                      stored verbatim, and field values can be any valid JSON
+                      (including nested objects and arrays).
                     type: object
-                    additionalProperties: true
+                    additionalProperties:
+                      x-additionalPropertiesName: propertyname
+                      description: >-
+                        A user-defined field belonging to the document body. Any
+                        JSON value is permitted. Field names beginning with `_`
+                        are reserved for Sync Gateway metadata.
                     properties:
                       _id:
                         description: The ID of the document.
                         type: string
                       _rev:
-                        description: The revision of the document.
+                        description: >-
+                          The ancestor Revision Tree ID of the document, used by
+                          Sync Gateway as an optimistic concurrency control
+                          (OCC) value to detect conflicts when updating an
+                          existing document; omit this field when creating a new
+                          document. The value is typically taken from the `_rev`
+                          returned by a prior `GET` of the document, or from the
+                          `ETag` response header.
+
+
+                          For single-document upserts ([PUT
+                          /{keyspace}/{docid}](#operation/put_keyspace-docid)),
+                          the `rev` query parameter and the `If-Match` request
+                          header are alternative OCC sources for the same
+                          document; for bulk upserts ([POST
+                          /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs)),
+                          per-document OCC must be supplied in the doc body via
+                          this field or `_cv`. Clients may supply more than one
+                          OCC source as long as same-type values match exactly;
+                          mismatched values return HTTP 400. Precedence when
+                          multiple are present: `rev` query parameter, then
+                          `If-Match` header, then body `_cv`, then body `_rev`.
+                        type: string
+                      _cv:
+                        description: >-
+                          The ancestor Current Version (CV) ID of the document,
+                          used by Sync Gateway as an optimistic concurrency
+                          control (OCC) value to detect conflicts when updating
+                          an existing document; omit this field when creating a
+                          new document. The value is typically taken from the
+                          `_cv` returned by a prior `GET` of the document, or
+                          from the `ETag` response header.
+
+
+                          Unlike the `rev` query parameter and `If-Match` header
+                          (which autodetect Revision Tree IDs vs Current Version
+                          IDs), this field must hold a CV. As with `_rev`, this
+                          can be supplied alongside other OCC sources as long as
+                          same-type values match exactly. See `_rev` for the
+                          full precedence order.
                         type: string
                       _exp:
                         description: >-
@@ -3178,6 +3430,13 @@ paths:
                           it is a tombstone.
                         type: boolean
                       _revisions:
+                        description: >-
+                          Encoded revision history for the document. This field
+                          is used by legacy 1.x REST replication protocol
+                          clients and CouchDB-style API callers to transmit
+                          ancestry alongside a revision. Most upsert/create
+                          requests should omit this field and rely on `_rev`
+                          alone.
                         type: object
                         properties:
                           start:
@@ -3191,6 +3450,12 @@ paths:
                             items:
                               type: string
                       _attachments:
+                        description: >-
+                          Binary attachments associated with the document, keyed
+                          by attachment name. Each entry describes a single
+                          attachment and its inline base64 data. Attachments are
+                          stored separately from the document body but travel
+                          with the document during replication.
                         type: object
                         additionalProperties:
                           x-additionalPropertiesName: attachmentname
@@ -5411,9 +5676,26 @@ components:
         type: string
       description: >-
         An optimistic concurrency control (OCC) value used to prevent conflicts.
-        Use the value returned in the ETag response header of the GET request
-        for the resource being updated, or the latest known Revision Tree ID or
-        Current Version of the document.
+        The value is typically the `ETag` response header from a prior `GET` of
+        the document, or the latest known Revision Tree ID or Current Version
+        (CV) of the document; the type is autodetected.
+
+
+        The `If-Match` header, the `rev` query parameter, and the `_rev` / `_cv`
+        fields in the request body are alternative OCC sources, listed below.
+        Clients may supply more than one as long as same-type values match
+        exactly; mismatched values return HTTP 400. Precedence when multiple are
+        present: `rev` query parameter, then `If-Match` header, then body `_cv`,
+        then body `_rev`.
+
+
+        - For [PUT /{keyspace}/{docid}](#operation/put_keyspace-docid): any of
+        these OCC sources may be used.
+
+        - For [POST
+        /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs):
+        per-document OCC must be supplied in the doc body via `_rev` or `_cv`
+        (header/query OCC are per-request, not per-document).
     include_docs:
       name: include_docs
       in: query
@@ -5612,7 +5894,7 @@ components:
             API version.
             Omitted if `api.hide_product_version=true`
           type: string
-          example: 3.1
+          example: '3.1'
       required:
         - name
       title: Vendor
@@ -5641,7 +5923,7 @@ components:
                     API version.
                     Omitted if `api.hide_product_version=true`
                   type: string
-                  example: 3.1
+                  example: '3.1'
               required:
                 - name
               title: Vendor
@@ -5662,19 +5944,80 @@ components:
             mode.
           type: boolean
           example: true
+        node_uid:
+          description: >-
+            Stable identifier for this Sync Gateway node, derived
+            deterministically from host
+
+            fingerprint.
+          type: string
+        cluster_compat_version:
+          description: >-
+            The minimum cluster compatibility version (`"major.minor"`) across
+            all nodes in the
+
+            cluster.
+          type: string
+          example: '4.1'
       required:
         - couchdb
         - vendor
     Document:
-      description: The configurable Sync Gateway properties of a document.
+      description: >-
+        A Sync Gateway document. The document body is a JSON object whose
+        top-level fields are the application's own data; Sync Gateway metadata
+        is inlined into the same object using reserved `_`-prefixed field names
+        (`_id`, `_rev`, `_exp`, etc.) listed below. Any top-level field that
+        does not start with `_` is treated as user data and stored verbatim, and
+        field values can be any valid JSON (including nested objects and
+        arrays).
       type: object
-      additionalProperties: true
+      additionalProperties:
+        x-additionalPropertiesName: propertyname
+        description: >-
+          A user-defined field belonging to the document body. Any JSON value is
+          permitted. Field names beginning with `_` are reserved for Sync
+          Gateway metadata.
       properties:
         _id:
           description: The ID of the document.
           type: string
         _rev:
-          description: The revision of the document.
+          description: >-
+            The ancestor Revision Tree ID of the document, used by Sync Gateway
+            as an optimistic concurrency control (OCC) value to detect conflicts
+            when updating an existing document; omit this field when creating a
+            new document. The value is typically taken from the `_rev` returned
+            by a prior `GET` of the document, or from the `ETag` response
+            header.
+
+
+            For single-document upserts ([PUT
+            /{keyspace}/{docid}](#operation/put_keyspace-docid)), the `rev`
+            query parameter and the `If-Match` request header are alternative
+            OCC sources for the same document; for bulk upserts ([POST
+            /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs)),
+            per-document OCC must be supplied in the doc body via this field or
+            `_cv`. Clients may supply more than one OCC source as long as
+            same-type values match exactly; mismatched values return HTTP 400.
+            Precedence when multiple are present: `rev` query parameter, then
+            `If-Match` header, then body `_cv`, then body `_rev`.
+          type: string
+        _cv:
+          description: >-
+            The ancestor Current Version (CV) ID of the document, used by Sync
+            Gateway as an optimistic concurrency control (OCC) value to detect
+            conflicts when updating an existing document; omit this field when
+            creating a new document. The value is typically taken from the `_cv`
+            returned by a prior `GET` of the document, or from the `ETag`
+            response header.
+
+
+            Unlike the `rev` query parameter and `If-Match` header (which
+            autodetect Revision Tree IDs vs Current Version IDs), this field
+            must hold a CV. As with `_rev`, this can be supplied alongside other
+            OCC sources as long as same-type values match exactly. See `_rev`
+            for the full precedence order.
           type: string
         _exp:
           description: >-
@@ -5704,6 +6047,12 @@ components:
             tombstone.
           type: boolean
         _revisions:
+          description: >-
+            Encoded revision history for the document. This field is used by
+            legacy 1.x REST replication protocol clients and CouchDB-style API
+            callers to transmit ancestry alongside a revision. Most
+            upsert/create requests should omit this field and rely on `_rev`
+            alone.
           type: object
           properties:
             start:
@@ -5717,6 +6066,11 @@ components:
               items:
                 type: string
         _attachments:
+          description: >-
+            Binary attachments associated with the document, keyed by attachment
+            name. Each entry describes a single attachment and its inline base64
+            data. Attachments are stored separately from the document body but
+            travel with the document during replication.
           type: object
           additionalProperties:
             x-additionalPropertiesName: attachmentname
@@ -6001,6 +6355,25 @@ components:
             reason: no such database "invalid-db"
     request-problem:
       description: There was a problem with your request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                description: The error name.
+                type: string
+              reason:
+                description: The error description.
+                type: string
+            required:
+              - error
+              - reason
+            title: HTTP-Error
+    Unauthorized-database:
+      description: >-
+        User does not have access to the database resource, or database resource
+        does not exist
       content:
         application/json:
           schema:
