@@ -27,7 +27,7 @@ DO NOT EDIT! See https://github.com/GIT_USER_ID/GIT_REPO_ID
 [discrete#version]
 = Version information
 [%hardbreaks]
-__Version__ : 4.0
+__Version__ : 4.1
 
 [discrete#host]
 = Host information
@@ -300,6 +300,13 @@ a| [markdown]
 The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. 
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -560,6 +567,13 @@ a| [markdown]
 An error was received from the OpenID Connect provider. This means the error query parameter was filled.
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -784,6 +798,13 @@ a| [markdown]
 Successfully connected with the OpenID Connect provider so now the client can login.
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -1008,6 +1029,13 @@ a| [markdown]
 The provider provided is not defined in the Sync Gateway config. If no provided was specified then there is no default provider set. 
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -1230,10 +1258,10 @@ Received error from Facebook verifier
 --
 a| xref:get_db__oidc_callback_500_response[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -1460,10 +1488,10 @@ Received error from Google token verifier or invalid application ID in the confi
 --
 a| xref:get_db__oidc_callback_500_response[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -1708,10 +1736,10 @@ a| [markdown]
 Successfully deleted the import filter
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -1880,7 +1908,12 @@ a¦
 
 [markdown]
 --
-An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
+An optimistic concurrency control (OCC) value used to prevent conflicts. The value is typically the `ETag` response header from a prior `GET` of the document, or the latest known Revision Tree ID or Current Version (CV) of the document; the type is autodetected.
+
+The `If-Match` header, the `rev` query parameter, and the `_rev` / `_cv` fields in the request body are alternative OCC sources, listed below. Clients may supply more than one as long as same-type values match exactly; mismatched values return HTTP 400. Precedence when multiple are present: `rev` query parameter, then `If-Match` header, then body `_cv`, then body `_rev`.
+
+- For [PUT /{keyspace}/{docid}](#operation/put_keyspace-docid): any of these OCC sources may be used.
+- For [POST /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs): per-document OCC must be supplied in the doc body via `_rev` or `_cv` (header/query OCC are per-request, not per-document).
 --
 
 [%hardbreaks]
@@ -1924,10 +1957,10 @@ a| [markdown]
 Successfully reset the sync function
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -2177,10 +2210,10 @@ Successfully retrieved database configuration
 --
 a| xref:Database_config[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -2393,10 +2426,10 @@ Successfully retrieved database configuration
 --
 a| xref:get_db__config_audit_200_response[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -2576,10 +2609,10 @@ Successfully retrieved the import filter
 --
 a| String
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -2759,10 +2792,10 @@ Successfully retrieved the sync function
 --
 a| String
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -2995,12 +3028,13 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Not Found
+User does not have access to the database resource, or database resource does not exist
 --
-a| 
+a| xref:HTTP_Error[]
+
 | 412
 a| [markdown]
 --
@@ -3236,12 +3270,13 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Not Found
+User does not have access to the database resource, or database resource does not exist
 --
-a| 
+a| xref:HTTP_Error[]
+
 
 |===
 
@@ -3494,10 +3529,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -3713,10 +3748,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -3971,10 +4006,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -4236,10 +4271,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -4318,12 +4353,14 @@ xref:get_db-[]
 xref:get_db-_attachment_migration[]
 xref:get_db-_compact[]
 xref:get_db-_index_init[]
+xref:get_db-_metadata_migration[]
 xref:get_db-_resync[]
 xref:head_db-[]
 xref:post_db-_attachment_migration[]
 xref:post_db-_compact[]
 xref:post_db-_ensure_full_commit[]
 xref:post_db-_index_init[]
+xref:post_db-_metadata_migration[]
 xref:post_db-_offline[]
 xref:post_db-_online[]
 xref:post_db-_resync[]
@@ -4460,10 +4497,10 @@ Successfully removed the database
 --
 a| Object
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -4816,10 +4853,10 @@ Successfully returned database information
 --
 a| xref:get_db__200_response[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -5001,10 +5038,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -5212,10 +5249,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -5390,10 +5427,10 @@ successfully retrieved the most recent index initialization
 --
 a| xref:IndexInitStatus_1[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -5438,6 +5475,198 @@ a| xref:HTTP_Error[]
 
 
 //end::get_db-_index_init[]
+
+
+//tag::get_db-_metadata_migration[]
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-before.adoc[opts=optional]
+
+
+[#get_db-_metadata_migration]
+= Get the status of the most recent metadata migration operation
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-begin.adoc[opts=optional]
+
+
+....
+GET /{db}/_metadata_migration
+....
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-description-before.adoc[opts=optional]
+
+
+[#get_db-_metadata_migration-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+This will retrieve the current status of the most recent metadata migration operation for the database.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Architect
+--
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-description-end.adoc[opts=optional]
+
+
+
+[#get_db-_metadata_migration-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-parameters-before.adoc[opts=optional]
+
+
+[#get_db-_metadata_migration-parameters]
+= Parameters
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-parameters-begin.adoc[opts=optional]
+
+
+[#get_db-_metadata_migration-path]
+= Path Parameters
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *db* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+|===
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-parameters-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-responses-before.adoc[opts=optional]
+
+
+[#get_db-_metadata_migration-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+Metadata migration status retrieved successfully.
+--
+a| xref:Metadata_Migration_status[]
+
+| 400
+a| [markdown]
+--
+There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
+| 404
+a| [markdown]
+--
+Metadata migration manager is not initialized for this database.
+--
+a| xref:HTTP_Error[]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}get_db-_metadata_migration/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}get_db-_metadata_migration/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get_db-_metadata_migration/operation-after.adoc[opts=optional]
+
+
+//end::get_db-_metadata_migration[]
 
 
 //tag::get_db-_resync[]
@@ -5568,10 +5797,10 @@ successfully retrieved the most recent resync operation status
 --
 a| xref:Resync_status[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -5745,10 +5974,10 @@ a| [markdown]
 Database exists
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -5970,10 +6199,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -6243,10 +6472,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -6709,6 +6938,248 @@ a| xref:HTTP_Error[]
 //end::post_db-_index_init[]
 
 
+//tag::post_db-_metadata_migration[]
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-before.adoc[opts=optional]
+
+
+[#post_db-_metadata_migration]
+= Manage a metadata migration operation
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-begin.adoc[opts=optional]
+
+
+....
+POST /{db}/_metadata_migration
+....
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-description-before.adoc[opts=optional]
+
+
+[#post_db-_metadata_migration-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+This allows a metadata migration operation to be started on the database, or to stop an existing running metadata migration operation.
+
+Metadata migration moves a database's `_sync:`-rooted metadata from the legacy `_default._default` keyspace into the `_system._mobile` collection. It is normally armed automatically the moment all nodes in the cluster have applied the database configuration that opts into the system metadata collection — this endpoint is provided for operators that need to drive the lifecycle directly (e.g. retry after a give-up, stop a runaway migration).
+
+Metadata migration is a single-node process and only one node in the cluster can be running it at a time. Other nodes contend for a cluster-wide heartbeat lock.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Architect
+--
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-description-end.adoc[opts=optional]
+
+
+
+[#post_db-_metadata_migration-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-parameters-before.adoc[opts=optional]
+
+
+[#post_db-_metadata_migration-parameters]
+= Parameters
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-parameters-begin.adoc[opts=optional]
+
+
+[#post_db-_metadata_migration-path]
+= Path Parameters
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *db* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+|===
+
+[#post_db-_metadata_migration-query]
+= Query Parameters
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *action* +
+_optional_
+a¦ 
+
+
+[markdown]
+--
+Defines whether a metadata migration operation is being started or stopped.
+--
+
+[%hardbreaks]
+*Values:* `&quot;start&quot;`, `&quot;stop&quot;`
+{blank}
+
+a¦ String
+
+a¦ *reset* +
+_optional_
+a¦ 
+
+
+[markdown]
+--
+This forces a fresh metadata migration start instead of trying to resume the previous failed migration operation.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ Boolean
+
+|===
+
+
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-parameters-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-responses-before.adoc[opts=optional]
+
+
+[#post_db-_metadata_migration-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+Started or stopped metadata migration operation successfully.
+--
+a| xref:Metadata_Migration_status[]
+
+| 400
+a| [markdown]
+--
+There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
+| 404
+a| [markdown]
+--
+Metadata migration manager is not initialized for this database.
+--
+a| xref:HTTP_Error[]
+
+| 503
+a| [markdown]
+--
+Cannot start metadata migration due to another migration operation still running.
+--
+a| xref:HTTP_Error[]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}post_db-_metadata_migration/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}post_db-_metadata_migration/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post_db-_metadata_migration/operation-after.adoc[opts=optional]
+
+
+//end::post_db-_metadata_migration[]
+
+
 //tag::post_db-_offline[]
 
 
@@ -6742,9 +7213,9 @@ POST /{db}/_offline
 
 [markdown]
 --
-This will take the database offline on this node only. Actions can be taken without disrupting current operations ungracefully or having the restart the Sync Gateway instance.
+Transition the state of the database to offline. This database will no longer accept traffic and only maintenance operations can be performed. This operation blocks until all REST traffic is idle.
 
-If using persistent config, call [POST /{db}/_config](#operation/post_db-_config) with `{"offline": true}` to set the database to offline.
+If using persistent config this will affect all Sync Gateway nodes, otherwise this is operation is local to the node.
 
 This will not take the backing Couchbase Server bucket offline.
 
@@ -6848,10 +7319,10 @@ a| [markdown]
 Database has been taken offline successfully
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -6938,9 +7409,9 @@ POST /{db}/_online
 
 [markdown]
 --
-This will bring the database online on this node only so the Public and full Admin REST API requests can be served.
+Transition the state of the database to online.
 
-If using persistent config, call [POST /{db}/_config](#operation/post_db-_config) with `{"offline": false}` to set the database to online.
+If using persistent config this will affect all Sync Gateway nodes, otherwise this operation is local to the node.
 
 Bringing a database online will:
 * Close the database connection to the backing Couchbase Server bucket.
@@ -7069,10 +7540,10 @@ a| [markdown]
 Database will be brought online immediately or with the specified delay
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -7343,6 +7814,13 @@ a| [markdown]
 successfully changed the status of the resync operation
 --
 a| xref:Resync_status[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
 
 | 503
 a| [markdown]
@@ -7679,10 +8157,12 @@ xref:get_db-_role-[]
 xref:get_db-_role-name[]
 xref:get_db-_user-[]
 xref:get_db-_user-name[]
+xref:get_db-_user-name-_history[]
 xref:head_db-_role-name[]
 xref:head_db-_user-name[]
 xref:post_db-_role-[]
 xref:post_db-_user-[]
+xref:post_db-_user-name-_history-compact[]
 xref:put_db-_role-name[]
 xref:put_db-_user-name[]
 
@@ -7830,6 +8310,13 @@ a| [markdown]
 OK
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -8023,6 +8510,13 @@ a| [markdown]
 User deleted successfully
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -8227,6 +8721,13 @@ Roles retrieved successfully
 a| String
  array
 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -8421,6 +8922,13 @@ a| [markdown]
 Properties associated with a role
 --
 a| xref:Role_2[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
 
 | 404
 a| [markdown]
@@ -8641,6 +9149,13 @@ Users retrieved successfully
 a| String
  array
 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -8836,6 +9351,13 @@ Properties associated with a user
 --
 a| xref:User_1[]
 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -8884,6 +9406,208 @@ a| xref:HTTP_Error[]
 
 
 //end::get_db-_user-name[]
+
+
+//tag::get_db-_user-name-_history[]
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-before.adoc[opts=optional]
+
+
+[#get_db-_user-name-_history]
+= Get user&#39;s channel history information
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-begin.adoc[opts=optional]
+
+
+....
+GET /{db}/_user/{name}/_access_history
+....
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-description-before.adoc[opts=optional]
+
+
+[#get_db-_user-name-_history-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+Retrieve the channel history of the specified user.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Architect
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+--
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-description-end.adoc[opts=optional]
+
+
+
+[#get_db-_user-name-_history-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-parameters-before.adoc[opts=optional]
+
+
+[#get_db-_user-name-_history-parameters]
+= Parameters
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-parameters-begin.adoc[opts=optional]
+
+
+[#get_db-_user-name-_history-path]
+= Path Parameters
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *db* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+a¦ *name* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The name of the user.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+|===
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-parameters-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-responses-before.adoc[opts=optional]
+
+
+[#get_db-_user-name-_history-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+User channel history information retrieved successfully
+--
+a| xref:UserHistory_1[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
+| 404
+a| [markdown]
+--
+Resource could not be found
+--
+a| xref:HTTP_Error[]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}get_db-_user-name-_history/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}get_db-_user-name-_history/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get_db-_user-name-_history/operation-after.adoc[opts=optional]
+
+
+//end::get_db-_user-name-_history[]
 
 
 //tag::head_db-_role-name[]
@@ -9030,6 +9754,13 @@ a| [markdown]
 Role exists
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -9127,6 +9858,9 @@ Required Sync Gateway RBAC roles:
 
 
 
+[#head_db-_user-name-produces]
+.Produces
+* application/json
 
 :leveloffset: -1
 
@@ -9221,6 +9955,13 @@ a| [markdown]
 User exists
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -9424,10 +10165,10 @@ a| [markdown]
 New role created successfully
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -9635,10 +10376,10 @@ a| [markdown]
 New user created successfully
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -9690,6 +10431,240 @@ a| xref:HTTP_Error[]
 
 
 //end::post_db-_user-[]
+
+
+//tag::post_db-_user-name-_history-compact[]
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-before.adoc[opts=optional]
+
+
+[#post_db-_user-name-_history-compact]
+= Compact user&#39;s channel history
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-begin.adoc[opts=optional]
+
+
+....
+POST /{db}/_user/{name}/_access_history/compact
+....
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-description-before.adoc[opts=optional]
+
+
+[#post_db-_user-name-_history-compact-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+Remove specified channels from a user's channel history.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Architect
+* Sync Gateway Application
+--
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-description-end.adoc[opts=optional]
+
+
+[#post_db-_user-name-_history-compact-consumes]
+.Consumes
+* application/json
+
+[#post_db-_user-name-_history-compact-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-parameters-before.adoc[opts=optional]
+
+
+[#post_db-_user-name-_history-compact-parameters]
+= Parameters
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-parameters-begin.adoc[opts=optional]
+
+
+[#post_db-_user-name-_history-compact-path]
+= Path Parameters
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *db* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The name of the database to run the operation against.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+a¦ *name* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The name of the user.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+|===
+
+
+
+
+[#post_db-_user-name-_history-compact-body]
+= Body Parameter
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *Body* +
+_optional_
+a¦ 
+
+
+[markdown]
+--
+Channels to be compacted from the user
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ xref:UserHistory1[]
+
+|===
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-parameters-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-responses-before.adoc[opts=optional]
+
+
+[#post_db-_user-name-_history-compact-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+Channels compacted successfully from user
+--
+a| xref:CompactedUserHistory_1[]
+
+| 400
+a| [markdown]
+--
+Bad request. Invalid channel names or malformed request body.
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
+| 404
+a| [markdown]
+--
+Resource could not be found
+--
+a| xref:HTTP_Error[]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}post_db-_user-name-_history-compact/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}post_db-_user-name-_history-compact/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post_db-_user-name-_history-compact/operation-after.adoc[opts=optional]
+
+
+//end::post_db-_user-name-_history-compact[]
 
 
 //tag::put_db-_role-name[]
@@ -9867,10 +10842,10 @@ a| [markdown]
 Created
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -10092,10 +11067,10 @@ a| [markdown]
 New user created
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -10166,6 +11141,7 @@ xref:delete_keyspace-docid-attach[]
 xref:delete_keyspace-_local-docid[]
 xref:get_keyspace-_all_docs[]
 xref:get_keyspace-_changes[]
+xref:get_keyspace-_channel_history[]
 xref:get_keyspace-docid[]
 xref:get_keyspace-docid-attach[]
 xref:get_keyspace-_local-docid[]
@@ -10178,6 +11154,7 @@ xref:post_keyspace-_all_docs[]
 xref:post_keyspace-_bulk_docs[]
 xref:post_keyspace-_bulk_get[]
 xref:post_keyspace-_changes[]
+xref:post_keyspace-_history-compact[]
 xref:post_keyspace-_purge[]
 xref:post_keyspace-_revs_diff[]
 xref:put_keyspace-docid[]
@@ -10333,7 +11310,12 @@ a¦
 
 [markdown]
 --
-An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
+An optimistic concurrency control (OCC) value used to prevent conflicts. The value is typically the `ETag` response header from a prior `GET` of the document, or the latest known Revision Tree ID or Current Version (CV) of the document; the type is autodetected.
+
+The `If-Match` header, the `rev` query parameter, and the `_rev` / `_cv` fields in the request body are alternative OCC sources, listed below. Clients may supply more than one as long as same-type values match exactly; mismatched values return HTTP 400. Precedence when multiple are present: `rev` query parameter, then `If-Match` header, then body `_cv`, then body `_rev`.
+
+- For [PUT /{keyspace}/{docid}](#operation/put_keyspace-docid): any of these OCC sources may be used.
+- For [POST /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs): per-document OCC must be supplied in the doc body via `_rev` or `_cv` (header/query OCC are per-request, not per-document).
 --
 
 [%hardbreaks]
@@ -10382,6 +11364,13 @@ a| xref:New_revision[]
 a| [markdown]
 --
 There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -10639,6 +11628,13 @@ Attachment removed from the document successfully
 --
 a| xref:New_revision[]
 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -10869,6 +11865,13 @@ a|
 a| [markdown]
 --
 There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -11213,10 +12216,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -11628,6 +12631,13 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -11676,6 +12686,216 @@ a| xref:HTTP_Error[]
 
 
 //end::get_keyspace-_changes[]
+
+
+//tag::get_keyspace-_channel_history[]
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-before.adoc[opts=optional]
+
+
+[#get_keyspace-_channel_history]
+= Get Channel History of Document
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-begin.adoc[opts=optional]
+
+
+....
+GET /{keyspace}/_channel_history/{docid}
+....
+
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-description-before.adoc[opts=optional]
+
+
+[#get_keyspace-_channel_history-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+Returns the channel revocation history for the specified document as a map of channel
+names to the array of sequences at which the document was removed from each channel. Only channels
+that have been revoked at least once are included; channels the document is currently
+assigned may be included if they were previously revoked.
+
+Multiple sequences for a given channel indicate that the document has lost access to that channel
+more than once — each sequence represents a point in time at which the document was removed from
+the channel.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Application
+* Sync Gateway Application Read Only
+--
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-description-end.adoc[opts=optional]
+
+
+
+[#get_keyspace-_channel_history-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-parameters-before.adoc[opts=optional]
+
+
+[#get_keyspace-_channel_history-parameters]
+= Parameters
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-parameters-begin.adoc[opts=optional]
+
+
+[#get_keyspace-_channel_history-path]
+= Path Parameters
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *keyspace* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The keyspace to run the operation against.
+
+A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+a¦ *docid* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The document ID to run the operation against.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+|===
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-parameters-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-responses-before.adoc[opts=optional]
+
+
+[#get_keyspace-_channel_history-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+Successfully retrieved the channel revocation history for the specified document. Returns a JSON object mapping each channel name to an array of sequences at which the document was removed from that channel.
+--
+a| xref:Map[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
+| 404
+a| [markdown]
+--
+Document not found.
+--
+a| xref:HTTP_Error[]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}get_keyspace-_channel_history/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}get_keyspace-_channel_history/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get_keyspace-_channel_history/operation-after.adoc[opts=optional]
+
+
+//end::get_keyspace-_channel_history[]
 
 
 //tag::get_keyspace-docid[]
@@ -11959,6 +13179,13 @@ a| xref:get_keyspace_docid_200_response[]
 a| [markdown]
 --
 Document ID is not in an allowed format therefore is invalid.  This could be because it is over 250 characters or is prefixed with an underscore (\"_\").
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -12265,6 +13492,13 @@ a| [markdown]
 Partial attachment content returned
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -12472,6 +13706,13 @@ a|
 a| [markdown]
 --
 There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -12730,6 +13971,13 @@ a| xref:get_keyspace__raw_docid_200_response[]
 a| [markdown]
 --
 There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -13066,6 +14314,13 @@ Document ID is not in an allowed format therefore is invalid.  This could be bec
 --
 a| xref:HTTP_Error[]
 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -13299,6 +14554,13 @@ a| [markdown]
 The document exists and the attachment exists on the document.
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -13500,6 +14762,13 @@ a|
 a| [markdown]
 --
 There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -13739,10 +15008,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -14098,10 +15367,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -14185,9 +15454,9 @@ This will allow multiple documented to be created, updated or deleted in bulk.
 
 To create a new document, simply add the body in an object under `docs`. A doc ID will be generated by Sync Gateway unless `_id` is specified.
 
-To update an existing document, provide the document ID (`_id`) and Revision Tree ID (`_rev`) as well as the new body values.
+To update an existing document, provide the document ID (`_id`) and an optimistic concurrency control (OCC) value as well as the new body values. The OCC value is either the ancestor Revision Tree ID in `_rev` or the ancestor Current Version (CV) ID in `_cv`. Per-document OCC must be supplied in the doc body — the `If-Match` header and `rev` query parameter are not used by this endpoint.
 
-To delete an existing document, provide the document ID (`_id`), Revision Tree ID (`_rev`), and set the deletion flag (`_deleted`) to true.
+To delete an existing document, provide the document ID (`_id`), an OCC value (`_rev` or `_cv`), and set the deletion flag (`_deleted`) to true.
 
 Required Sync Gateway RBAC roles:
 
@@ -14318,10 +15587,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -14628,10 +15897,10 @@ a| [markdown]
 Bad Request
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -14844,10 +16113,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -14892,6 +16161,238 @@ a| xref:HTTP_Error[]
 
 
 //end::post_keyspace-_changes[]
+
+
+//tag::post_keyspace-_history-compact[]
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-before.adoc[opts=optional]
+
+
+[#post_keyspace-_history-compact]
+= Compact Channel History of Document
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-begin.adoc[opts=optional]
+
+
+....
+POST /{keyspace}/_channel_history/{docid}/compact
+....
+
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-description-before.adoc[opts=optional]
+
+
+[#post_keyspace-_history-compact-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+Compacts channel history for a specified document.  Channel history older than the specified sequence will be removed.
+
+This endpoint removes all channel entries (for sequences before the specified sequence number where the document left the channel),
+effectively cleaning up historical channel membership information while preserving active channels and recent changes.
+This can be useful for reducing metadata size for documents that frequently gain and lose access to channels.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Application
+--
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-description-end.adoc[opts=optional]
+
+
+[#post_keyspace-_history-compact-consumes]
+.Consumes
+* application/json
+
+[#post_keyspace-_history-compact-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-parameters-before.adoc[opts=optional]
+
+
+[#post_keyspace-_history-compact-parameters]
+= Parameters
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-parameters-begin.adoc[opts=optional]
+
+
+[#post_keyspace-_history-compact-path]
+= Path Parameters
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *keyspace* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The keyspace to run the operation against.
+
+A keyspace is a dot-separated string, comprised of a database name, and optionally a named scope and collection.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+a¦ *docid* +
+_required_
+a¦ 
+
+
+[markdown]
+--
+The document ID to run the operation against.
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ String
+
+|===
+
+
+
+
+[#post_keyspace-_history-compact-body]
+= Body Parameter
+
+[cols="20,60,20",separator=¦]
+|===
+¦ Name ¦ Description ¦ Schema
+
+a¦ *Body* +
+_optional_
+a¦ 
+
+
+[markdown]
+--
+
+--
+
+[%hardbreaks]
+{blank}
+
+a¦ xref:PostKeyspaceHistoryCompactRequest[]
+
+|===
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-parameters-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-responses-before.adoc[opts=optional]
+
+
+[#post_keyspace-_history-compact-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+Successfully compacted channel history from the specified document. Returns a list of channels that were compacted.  If the response has an empty array, it means either no channels were compacted.
+--
+a| xref:Map[]
+
+| 400
+a| [markdown]
+--
+Bad request. This could be due to invalid request parameters such as invalid seq value.
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}post_keyspace-_history-compact/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}post_keyspace-_history-compact/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post_keyspace-_history-compact/operation-after.adoc[opts=optional]
+
+
+//end::post_keyspace-_history-compact[]
 
 
 //tag::post_keyspace-_purge[]
@@ -15059,10 +16560,10 @@ Bad request. This could be due to the documents listed in the request body not h
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -15264,6 +16765,13 @@ a| [markdown]
 Comparisons successful
 --
 a| xref:post_keyspace__revs_diff_200_response[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
 
 | 404
 a| [markdown]
@@ -15515,7 +17023,12 @@ a¦
 
 [markdown]
 --
-An optimistic concurrency control (OCC) value used to prevent conflicts. Use the value returned in the ETag response header of the GET request for the resource being updated, or the latest known Revision Tree ID or Current Version of the document.
+An optimistic concurrency control (OCC) value used to prevent conflicts. The value is typically the `ETag` response header from a prior `GET` of the document, or the latest known Revision Tree ID or Current Version (CV) of the document; the type is autodetected.
+
+The `If-Match` header, the `rev` query parameter, and the `_rev` / `_cv` fields in the request body are alternative OCC sources, listed below. Clients may supply more than one as long as same-type values match exactly; mismatched values return HTTP 400. Precedence when multiple are present: `rev` query parameter, then `If-Match` header, then body `_cv`, then body `_rev`.
+
+- For [PUT /{keyspace}/{docid}](#operation/put_keyspace-docid): any of these OCC sources may be used.
+- For [POST /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs): per-document OCC must be supplied in the doc body via `_rev` or `_cv` (header/query OCC are per-request, not per-document).
 --
 
 [%hardbreaks]
@@ -15587,6 +17100,13 @@ a| xref:New_revision[]
 a| [markdown]
 --
 There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -15905,6 +17425,13 @@ Attachment added to new or existing document successfully
 --
 a| xref:New_revision[]
 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -16142,10 +17669,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -16309,7 +17836,7 @@ Required Sync Gateway RBAC roles:
 | 200
 a| [markdown]
 --
-Successfully returned statistics. For details, see [JSON Metrics](stats-monitoring-json.html).
+Successfully returned statistics. For details, see [JSON Metrics](../manage/stats-monitoring-json.html).
 --
 a| xref:get__expvar_200_response[]
 
@@ -20491,6 +22018,13 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -20692,10 +22226,10 @@ a| [markdown]
 Upgraded to a web socket connection
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -20877,10 +22411,10 @@ Retrieved replication configurations successfully. The `assigned_node` fields wi
 --
 a| xref:All_replications[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -21069,6 +22603,13 @@ a| [markdown]
 Successfully retrieved the replication configuration
 --
 a| xref:Replication_1[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
 
 | 404
 a| [markdown]
@@ -21321,6 +22862,13 @@ a| xref:Replication_status[]
 a| [markdown]
 --
 There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -21680,6 +23228,9 @@ Required Sync Gateway RBAC roles:
 
 
 
+[#head_db-_replication-replicationid-produces]
+.Produces
+* application/json
 
 :leveloffset: -1
 
@@ -21774,6 +23325,13 @@ a| [markdown]
 Replication exists
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -22258,10 +23816,10 @@ There was a problem with your request
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -22490,6 +24048,13 @@ a|
 a| [markdown]
 --
 There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -22793,12 +24358,16 @@ endif::[]
 [%hardbreaks]
 xref:delete__sgcollect_info[]
 xref:get_-[]
+xref:get__cluster_compat_version[]
+xref:get__cluster_info[]
 xref:get__config[]
 xref:get__logging[]
 xref:get__ping[]
 xref:get__sgcollect_info[]
 xref:get__status[]
 xref:head_-[]
+xref:post__cluster_compat_version_freeze[]
+xref:post__cluster_compat_version_unfreeze[]
 xref:post__logging[]
 xref:post__post_upgrade[]
 xref:post__sgcollect_info[]
@@ -23069,6 +24638,294 @@ a| xref:get___200_response[]
 
 
 //end::get_-[]
+
+
+//tag::get__cluster_compat_version[]
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-before.adoc[opts=optional]
+
+
+[#get__cluster_compat_version]
+= Get the cluster compatibility version state
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-begin.adoc[opts=optional]
+
+
+....
+GET /_cluster_compat_version
+....
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-description-before.adoc[opts=optional]
+
+
+[#get__cluster_compat_version-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+Returns the cluster-wide cluster compatibility version, the per-node versions registered
+in the cluster, and the frozen value if a freeze is currently in effect.
+
+Without a freeze, `cluster_compat_version` is the minimum across all live nodes. With a
+freeze, `cluster_compat_version` is pinned to `frozen_cluster_compat_version`. The
+presence of `frozen_cluster_compat_version` in the response indicates that a freeze is set.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Dev Ops
+--
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-description-end.adoc[opts=optional]
+
+
+
+[#get__cluster_compat_version-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-parameters-before.adoc[opts=optional]
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-responses-before.adoc[opts=optional]
+
+
+[#get__cluster_compat_version-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+Returned the cluster compatibility version state successfully
+--
+a| xref:Cluster_Compatibility_Version_State[]
+
+| 403
+a| [markdown]
+--
+User does not have access to resource, or resource does not exist
+--
+a| xref:HTTP_Error[]
+
+| 503
+a| [markdown]
+--
+Cluster compatibility version tracking is not enabled on this node
+--
+a| xref:HTTP_Error[]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}get__cluster_compat_version/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}get__cluster_compat_version/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get__cluster_compat_version/operation-after.adoc[opts=optional]
+
+
+//end::get__cluster_compat_version[]
+
+
+//tag::get__cluster_info[]
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-before.adoc[opts=optional]
+
+
+[#get__cluster_info]
+= Get the cluster information
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-begin.adoc[opts=optional]
+
+
+....
+GET /_cluster_info
+....
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-description-before.adoc[opts=optional]
+
+
+[#get__cluster_info-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+This will retrieve information about the Sync Gateway cluster's buckets.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Dev Ops
+--
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-description-end.adoc[opts=optional]
+
+
+
+[#get__cluster_info-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-parameters-before.adoc[opts=optional]
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-responses-before.adoc[opts=optional]
+
+
+[#get__cluster_info-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+Returned the cluster information successfully
+--
+a| xref:get__cluster_info_200_response[]
+
+| 400
+a| [markdown]
+--
+There was a problem with your request
+--
+a| xref:HTTP_Error[]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}get__cluster_info/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}get__cluster_info/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/get__cluster_info/operation-after.adoc[opts=optional]
+
+
+//end::get__cluster_info[]
 
 
 //tag::get__config[]
@@ -23914,6 +25771,323 @@ a|
 
 
 //end::head_-[]
+
+
+//tag::post__cluster_compat_version_freeze[]
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-before.adoc[opts=optional]
+
+
+[#post__cluster_compat_version_freeze]
+= Freeze the cluster compatibility version at its current value
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-begin.adoc[opts=optional]
+
+
+....
+POST /_cluster_compat_version/freeze
+....
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-description-before.adoc[opts=optional]
+
+
+[#post__cluster_compat_version_freeze-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+Captures the current cluster compatibility version and pins the cluster to this version.
+
+While frozen, subsequent node upgrades will not advance the reported `cluster_compat_version`, preserving the option to roll a node back to the prior major/minor.
+
+Returns success only if every tracked bucket accepts the freeze.
+If one or more buckets fail to accept it, a `503` is returned with the current state — the cluster compatibility version may still be partially pinned, and the request should be retried.
+
+To clear the pinned version, call `POST /_cluster_compat_version/unfreeze`.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Dev Ops
+--
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-description-end.adoc[opts=optional]
+
+
+
+[#post__cluster_compat_version_freeze-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-parameters-before.adoc[opts=optional]
+
+
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-responses-before.adoc[opts=optional]
+
+
+[#post__cluster_compat_version_freeze-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+Cluster compatibility version has been frozen
+--
+a| xref:Cluster_Compatibility_Version_State[]
+
+| 403
+a| [markdown]
+--
+User does not have access to resource, or resource does not exist
+--
+a| xref:HTTP_Error[]
+
+| 500
+a| [markdown]
+--
+An unexpected error occurred while freezing the cluster compatibility version
+--
+a| xref:HTTP_Error[]
+
+| 503
+a| [markdown]
+--
+The freeze could not be fully applied. Possible reasons:   * Cluster compatibility version tracking is not enabled on this node.   * The cluster compatibility version has not yet been computed (e.g. immediately after startup).   * No tracked bucket registries.   * One or more tracked buckets did not accept the freeze (partial failure). In this case the response body is a `ClusterCompatVersionState` describing the version (if any) that is currently pinned, so the admin can see what did take effect.
+--
+a| xref:post__cluster_compat_version_freeze_503_response[]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}post__cluster_compat_version_freeze/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}post__cluster_compat_version_freeze/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_freeze/operation-after.adoc[opts=optional]
+
+
+//end::post__cluster_compat_version_freeze[]
+
+
+//tag::post__cluster_compat_version_unfreeze[]
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-before.adoc[opts=optional]
+
+
+[#post__cluster_compat_version_unfreeze]
+= Clear the cluster compatibility version freeze
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-begin.adoc[opts=optional]
+
+
+....
+POST /_cluster_compat_version/unfreeze
+....
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-description-before.adoc[opts=optional]
+
+
+[#post__cluster_compat_version_unfreeze-description]
+= Description
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-description-begin.adoc[opts=optional]
+
+
+[markdown]
+--
+Clears any pinned cluster compatibility version previously frozen via `POST /_cluster_compat_version/freeze`.
+
+The reported `cluster_compat_version` will resume tracking the live-node minimum and may immediately advance if all nodes have been upgraded since the freeze was set.
+
+Returns success only if the cluster is fully unfrozen.
+If any part of the cluster remains frozen after the request, a `503` is returned with the current state -
+the cluster compatibility version may still be held back, and the request should be retried.
+
+Required Sync Gateway RBAC roles:
+
+* Sync Gateway Dev Ops
+--
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-description-end.adoc[opts=optional]
+
+
+
+[#post__cluster_compat_version_unfreeze-produces]
+.Produces
+* application/json
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-description-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-parameters-before.adoc[opts=optional]
+
+
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-parameters-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-responses-before.adoc[opts=optional]
+
+
+[#post__cluster_compat_version_unfreeze-responses]
+= Responses
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-responses-begin.adoc[opts=optional]
+
+
+[cols="20,60,20"]
+|===
+| HTTP Code | Description | Schema
+
+| 200
+a| [markdown]
+--
+Cluster compatibility version freeze has been cleared
+--
+a| xref:Cluster_Compatibility_Version_State[]
+
+| 403
+a| [markdown]
+--
+User does not have access to resource, or resource does not exist
+--
+a| xref:HTTP_Error[]
+
+| 500
+a| [markdown]
+--
+An unexpected error occurred while clearing the cluster compatibility version freeze
+--
+a| xref:HTTP_Error[]
+
+| 503
+a| [markdown]
+--
+The unfreeze did not fully apply. The cluster compatibility version may still be held back and the request should be retried. The response body is either a `ClusterCompatVersionState` showing the residual freeze, or an `HTTP-Error` when cluster compatibility version tracking is not enabled on this node, or when the unfreeze partially failed and the residual freeze state could not be verified.
+--
+a| xref:post__cluster_compat_version_unfreeze_503_response[]
+
+
+|===
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-responses-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-responses-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-security-before.adoc[opts=optional]
+
+
+
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-security-after.adoc[opts=optional]
+
+
+
+// markup not found, no include::{snippetDir}post__cluster_compat_version_unfreeze/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}post__cluster_compat_version_unfreeze/http-response.adoc[opts=optional]
+
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-end.adoc[opts=optional]
+
+:leveloffset: -1
+
+
+// markup not found, no include::{specDir}paths/post__cluster_compat_version_unfreeze/operation-after.adoc[opts=optional]
+
+
+//end::post__cluster_compat_version_unfreeze[]
 
 
 //tag::post__logging[]
@@ -25079,6 +27253,13 @@ a| [markdown]
 Successfully removed the user session
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -25274,6 +27455,13 @@ a| [markdown]
 User now has no sessions
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -25482,6 +27670,13 @@ a| [markdown]
 Session has been successfully removed as the user was associated with the session
 --
 a| 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -25655,6 +27850,13 @@ a| [markdown]
 Properties associated with a user session
 --
 a| xref:User_Session_Information[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
 
 | 404
 a| [markdown]
@@ -25850,6 +28052,13 @@ a| [markdown]
 Properties associated with a user session
 --
 a| xref:User_Session_Information[]
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
 
 | 404
 a| [markdown]
@@ -26065,10 +28274,10 @@ User does not have access to resource, or resource does not exist
 --
 a| xref:HTTP_Error[]
 
-| 404
+| 403
 a| [markdown]
 --
-Return if database does not exist
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -27154,6 +29363,13 @@ a| [markdown]
 Retrieved view successfully
 --
 a| String
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
 
 | 404
 a| [markdown]
@@ -28681,6 +30897,13 @@ Successfully got all documents in the channel
 --
 a| String
 
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
+
 | 404
 a| [markdown]
 --
@@ -28883,6 +31106,13 @@ a| [markdown]
 Found document
 --
 a| String
+
+| 403
+a| [markdown]
+--
+User does not have access to the database resource, or database resource does not exist
+--
+a| xref:HTTP_Error[]
 
 | 404
 a| [markdown]
@@ -29170,7 +31400,7 @@ POST /{db}/_flush
 --
 **This is unsupported**
 
-This will purge *all* documents.
+This will purge *all* documents and remove any other database that is backed by this bucket.
 
 The bucket will only be flushed if the unsupported database configuration option `enable_couchbase_bucket_flush` is set.
 
@@ -29266,10 +31496,10 @@ a| [markdown]
 Successfully flushed the bucket
 --
 a| 
-| 404
+| 403
 a| [markdown]
 --
-Resource could not be found
+User does not have access to the database resource, or database resource does not exist
 --
 a| xref:HTTP_Error[]
 
@@ -30408,7 +32638,7 @@ endif::[]
 [#models]
 = Definitions
 
-:count-models: 179
+:count-models: 217
 
 :leveloffset: +1
 
@@ -30426,10 +32656,17 @@ xref:All_replications[]
 xref:Attachment_Migration_status[]
 xref:audit_event_verbose[]
 xref:Audit_logging_config[]
+xref:BootstrapMigrationStatus[]
+xref:BucketInfo[]
 xref:CORS[]
 xref:Changes-feed[]
+xref:ClusterCompatVersionState[]
+xref:Cluster_Compatibility_Version_State[]
+xref:ClusterInfo[]
 xref:Collection_config[]
 xref:Compact_status[]
+xref:CompactedUserHistory[]
+xref:CompactedUserHistory_1[]
 xref:Console-logging-config[]
 xref:Console-logging-keys-level[]
 xref:Credentials_config[]
@@ -30463,6 +32700,8 @@ xref:Database_config_unsupported_api_endpoints[]
 xref:Database_config_unsupported_oidc_test_provider[]
 xref:Database_config_unsupported_user_views[]
 xref:Database_config_unsupported_warning_thresholds[]
+xref:DatabaseError[]
+xref:DatabaseMigrationStatus[]
 ifdef::enum-definitions[]
 xref:DatabaseState[]
 endif::enum-definitions[]
@@ -30471,8 +32710,22 @@ xref:Design-doc[]
 xref:Document[]
 xref:Event_config[]
 xref:ExpVars[]
+xref:GatewayRegistry[]
 xref:get___200_response[]
 xref:get__all_dbs_200_response[]
+xref:get__cluster_info_200_response[]
+xref:get__cluster_info_200_response_buckets_value[]
+xref:get__cluster_info_200_response_buckets_value_migration_status[]
+xref:get__cluster_info_200_response_buckets_value_migration_status_allOf_bootstrap[]
+xref:get__cluster_info_200_response_buckets_value_migration_status_allOf_databases_value[]
+xref:get__cluster_info_200_response_buckets_value_registry[]
+xref:get__cluster_info_200_response_buckets_value_registry_config_groups_value[]
+xref:get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value[]
+xref:get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version[]
+xref:get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_scopes_value[]
+xref:get__cluster_info_200_response_buckets_value_registry_frozen_cluster_compat_version[]
+xref:get__cluster_info_200_response_buckets_value_registry_nodes_value[]
+xref:get__cluster_info_200_response_buckets_value_registry_pre_ccv_aware_nodes_value[]
 xref:get_db__200_response[]
 xref:get_db__config_audit_200_response[]
 xref:get_db__design_ddoc_200_response[]
@@ -30515,12 +32768,15 @@ xref:IndexInitStatus_1_settings[]
 xref:IndexSettings[]
 xref:Log_rotation_config[]
 xref:Logging-config[]
+xref:Metadata_Migration_status[]
 xref:New_revision[]
 xref:NodeInfo[]
 xref:OIDC-callback[]
 xref:OIDC-login-page-handler[]
 xref:OIDC_token[]
 xref:OpenID_Connect_callback_properties[]
+xref:post__cluster_compat_version_freeze_503_response[]
+xref:post__cluster_compat_version_unfreeze_503_response[]
 xref:post_db__ensure_full_commit_201_response[]
 xref:post_db__facebook_request[]
 xref:post_db__google_request[]
@@ -30536,6 +32792,7 @@ xref:post_keyspace__bulk_docs_request[]
 xref:post_keyspace__bulk_get_request[]
 xref:post_keyspace__bulk_get_request_docs_inner[]
 xref:post_keyspace__changes_request[]
+xref:post_keyspace__history_compact_request[]
 xref:post_keyspace__purge_200_response[]
 xref:post_keyspace__request[]
 xref:post_keyspace__request__attachments_value[]
@@ -30549,6 +32806,13 @@ xref:post__profile_profilename_request[]
 xref:post__sgcollect_info_200_response[]
 xref:post__sgcollect_info_request[]
 xref:put_keyspace__local_docid_request[]
+xref:RegistryConfigGroup[]
+xref:RegistryDatabase[]
+xref:RegistryDatabaseVersion[]
+xref:RegistryFrozenClusterCompatVersion[]
+xref:RegistryNode[]
+xref:RegistryPreCCVAwareNode[]
+xref:RegistryScope[]
 xref:Replication[]
 xref:Replication_1[]
 xref:Replication_status[]
@@ -30594,17 +32858,21 @@ xref:Status_1_databases_value_cluster[]
 xref:Status_1_databases_value_cluster_nodes[]
 xref:Status_1_databases_value_cluster_nodes_node_uuid[]
 xref:Status_1_databases_value_cluster_replication[]
+xref:Status_1_runtime[]
 xref:Status_1_vendor[]
 xref:User[]
 xref:User_1[]
 xref:User_1_collection_access_value_value[]
 xref:User_2[]
 xref:User_configurable_replication_properties[]
+xref:UserHistory[]
+xref:UserHistory_1[]
 xref:User_Session_Information[]
 xref:User_Session_Information_userCtx[]
 xref:Vendor[]
 xref:Verbose[]
 xref:Verbose_inner[]
+xref:Verbose_inner_database_error[]
 endif::[]
 
 
@@ -31010,6 +33278,210 @@ a¦ Big Decimal
 
 
 
+// markup not found, no include::{specDir}definitions/BootstrapMigrationStatus/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#BootstrapMigrationStatus]
+= BootstrapMigrationStatus
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/BootstrapMigrationStatus/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::BootstrapMigrationStatus[]
+
+ifdef::model-descriptions[]
+//tag::desc-BootstrapMigrationStatus[]
+Bucket-global bootstrap migration state covering `_sync:registry`, `_sync:dbconfig:*`, and
+cbgt cfg documents. `attempts` and `last_attempted_at` are observability fields written by
+every node that runs the migration loop, so operators can distinguish "no one has tried" from
+repeated failure.
+//end::desc-BootstrapMigrationStatus[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*state* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Bucket-level bootstrap state. Transitions from `pending` to `complete` only after every
+per-database entry is complete; it never reports `in_progress`.
+--
+
+[%hardbreaks]
+*Values:* `"pending"`, `"complete"`
+{blank}
+a¦ String
+
+a¦ 
+*completed_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the bootstrap migration reached the complete state.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+a¦ 
+*last_attempted_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the migration loop most recently ran on this bucket, regardless of outcome.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+a¦ 
+*attempts* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Number of times the migration loop has run on this bucket.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+|===
+
+//end::BootstrapMigrationStatus[]
+
+
+
+// markup not found, no include::{specDir}definitions/BootstrapMigrationStatus/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/BootstrapMigrationStatus/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/BucketInfo/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#BucketInfo]
+= BucketInfo
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/BucketInfo/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::BucketInfo[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*registry* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-get__cluster_info_200_response_buckets_value_registry, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:get__cluster_info_200_response_buckets_value_registry[]
+
+a¦ 
+*migration_status* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-get__cluster_info_200_response_buckets_value_migration_status, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:get__cluster_info_200_response_buckets_value_migration_status[]
+
+a¦ 
+*enable_cross_cluster_versioning* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Indicates if cross-cluster versioning is enabled for this bucket.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+a¦ 
+*bootstrap_target* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Cached location of this bucket's bootstrap documents (registry, dbconfig, cbgt cfg) on
+this node. Omitted when the target has not yet been resolved on this node.
+--
+
+[%hardbreaks]
+*Values:* `"_system._mobile"`, `"_default._default"`, `"unknown"`
+{blank}
+a¦ String
+
+|===
+
+//end::BucketInfo[]
+
+
+
+// markup not found, no include::{specDir}definitions/BucketInfo/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/BucketInfo/definition-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}definitions/CORS/definition-before.adoc[opts=optional]
 
 
@@ -31185,6 +33657,334 @@ a¦ String
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/Changes-feed/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/ClusterCompatVersionState/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#ClusterCompatVersionState]
+= Cluster Compatibility Version State
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/ClusterCompatVersionState/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::ClusterCompatVersionState[]
+
+ifdef::model-descriptions[]
+//tag::desc-ClusterCompatVersionState[]
+Cluster compatibility version state.
+
+Without a freeze, `cluster_compat_version` is the minimum version across all live nodes
+in the cluster, and advances automatically as nodes are upgraded.
+
+A freeze pins `cluster_compat_version` to the value captured at the time of the freeze,
+preventing it from advancing as nodes upgrade. This preserves the option to roll a node
+back to the prior major/minor before committing to the upgrade.
+
+The presence of `frozen_cluster_compat_version` indicates that a frozen version is currently set;
+its absence indicates no version has been frozen.
+//end::desc-ClusterCompatVersionState[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*cluster_compat_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+A Sync Gateway cluster compatibility version, represented as a `"major.minor"` string (e.g. `"4.1"`).
+
+This is the minimum version across all nodes in the cluster and is used to gate new metadata formats
+until all nodes have been upgraded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*nodes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Per-node cluster compatibility versions, keyed by node UID. Includes every node
+currently registered in any tracked bucket registry.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*pre_ccv_aware_nodes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Pre-CCV-aware Sync Gateway peers observed via side-channels (cbgt NodeDefs for
+sharded import, SGRCluster.Nodes for ISGR), keyed by pre-CCV-aware peer UUID. Each
+peer's value is its observed cluster compatibility version (major.minor) — the
+observer parses the side-channel's full build version and stores major.minor
+only, since CCV decisions don't depend on higher precision. When the side-channel
+didn't carry a version, a conservative pre-SGNode-Version fallback (4.0) is
+substituted at observation time. Peers below the cluster's HWM are reported here
+for operator visibility but do not roll cluster_compat_version back below HWM —
+that case represents an unsupported downgrade. Omitted when no pre-CCV-aware peers
+are currently observed.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*frozen_cluster_compat_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+A Sync Gateway cluster compatibility version, represented as a `"major.minor"` string (e.g. `"4.1"`).
+
+This is the minimum version across all nodes in the cluster and is used to gate new metadata formats
+until all nodes have been upgraded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+|===
+
+//end::ClusterCompatVersionState[]
+
+
+
+// markup not found, no include::{specDir}definitions/ClusterCompatVersionState/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/ClusterCompatVersionState/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Cluster_Compatibility_Version_State/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Cluster_Compatibility_Version_State]
+= Cluster Compatibility Version State
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Cluster_Compatibility_Version_State/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::Cluster_Compatibility_Version_State[]
+
+ifdef::model-descriptions[]
+//tag::desc-Cluster_Compatibility_Version_State[]
+Cluster compatibility version state.
+
+Without a freeze, `cluster_compat_version` is the minimum version across all live nodes
+in the cluster, and advances automatically as nodes are upgraded.
+
+A freeze pins `cluster_compat_version` to the value captured at the time of the freeze,
+preventing it from advancing as nodes upgrade. This preserves the option to roll a node
+back to the prior major/minor before committing to the upgrade.
+
+The presence of `frozen_cluster_compat_version` indicates that a frozen version is currently set;
+its absence indicates no version has been frozen.
+//end::desc-Cluster_Compatibility_Version_State[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*cluster_compat_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+A Sync Gateway cluster compatibility version, represented as a `"major.minor"` string (e.g. `"4.1"`).
+
+This is the minimum version across all nodes in the cluster and is used to gate new metadata formats
+until all nodes have been upgraded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*nodes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Per-node cluster compatibility versions, keyed by node UID. Includes every node
+currently registered in any tracked bucket registry.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*pre_ccv_aware_nodes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Pre-CCV-aware Sync Gateway peers observed via side-channels (cbgt NodeDefs for
+sharded import, SGRCluster.Nodes for ISGR), keyed by pre-CCV-aware peer UUID. Each
+peer's value is its observed cluster compatibility version (major.minor) — the
+observer parses the side-channel's full build version and stores major.minor
+only, since CCV decisions don't depend on higher precision. When the side-channel
+didn't carry a version, a conservative pre-SGNode-Version fallback (4.0) is
+substituted at observation time. Peers below the cluster's HWM are reported here
+for operator visibility but do not roll cluster_compat_version back below HWM —
+that case represents an unsupported downgrade. Omitted when no pre-CCV-aware peers
+are currently observed.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*frozen_cluster_compat_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+A Sync Gateway cluster compatibility version, represented as a `"major.minor"` string (e.g. `"4.1"`).
+
+This is the minimum version across all nodes in the cluster and is used to gate new metadata formats
+until all nodes have been upgraded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+|===
+
+//end::Cluster_Compatibility_Version_State[]
+
+
+
+// markup not found, no include::{specDir}definitions/Cluster_Compatibility_Version_State/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Cluster_Compatibility_Version_State/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/ClusterInfo/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#ClusterInfo]
+= ClusterInfo
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/ClusterInfo/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::ClusterInfo[]
+
+ifdef::model-descriptions[]
+//tag::desc-ClusterInfo[]
+Cluster information returned by `/_cluster_info`. Per-node version data is exposed via
+each bucket's `registry.nodes`; aggregated cluster compatibility is available from `/_status`.
+//end::desc-ClusterInfo[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*legacy_config* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Indicates if the server is using legacy (non persistent) configuration.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+a¦ 
+*buckets* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of bucket names to bucket information.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+|===
+
+//end::ClusterInfo[]
+
+
+
+// markup not found, no include::{specDir}definitions/ClusterInfo/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/ClusterInfo/definition-after.adoc[opts=optional]
 
 
 
@@ -31445,6 +34245,124 @@ a¦ String
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/Compact_status/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/CompactedUserHistory/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#CompactedUserHistory]
+= CompactedUserHistory
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/CompactedUserHistory/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::CompactedUserHistory[]
+
+ifdef::model-descriptions[]
+//tag::desc-CompactedUserHistory[]
+User channel history organized by scope and collection.
+//end::desc-CompactedUserHistory[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*compacted_channels* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Channel history organized by scope and collection.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+|===
+
+//end::CompactedUserHistory[]
+
+
+
+// markup not found, no include::{specDir}definitions/CompactedUserHistory/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/CompactedUserHistory/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/CompactedUserHistory_1/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#CompactedUserHistory_1]
+= CompactedUserHistory
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/CompactedUserHistory_1/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::CompactedUserHistory_1[]
+
+ifdef::model-descriptions[]
+//tag::desc-CompactedUserHistory_1[]
+User channel history organized by scope and collection.
+//end::desc-CompactedUserHistory_1[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*compacted_channels* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Channel history organized by scope and collection.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+|===
+
+//end::CompactedUserHistory_1[]
+
+
+
+// markup not found, no include::{specDir}definitions/CompactedUserHistory_1/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/CompactedUserHistory_1/definition-after.adoc[opts=optional]
 
 
 
@@ -34367,6 +37285,21 @@ you may find that the capacity stat (revision_cache_num_items) will climb to the
 {blank}
 a¦ Integer
 
+a¦ 
+*insert_on_write* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Whether to insert revisions into the revision cache when documents are written to the database.
+If false, only revisions read from the database will be cached.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
 |===
 
 //end::Database_config_cache_rev_cache[]
@@ -36112,6 +39045,22 @@ Enable self-signed certificates for external JavaScript load.
 a¦ Boolean
 
 a¦ 
+*resync_partitions* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Number of partitions to use for distributed DCP resync. Maximum number is the number of vBuckets for the backing bucket.
+--
+
+[%hardbreaks]
+*Minimum:* `1`
+*Maximum:* `1024`
+{blank}
+a¦ Integer
+
+a¦ 
 *same_site_cookie* +
 _optional_
 a¦ 
@@ -36456,6 +39405,168 @@ a¦ Big Decimal
 // markup not found, no include::{specDir}definitions/Database_config_unsupported_warning_thresholds/definition-after.adoc[opts=optional]
 
 
+
+
+// markup not found, no include::{specDir}definitions/DatabaseError/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#DatabaseError]
+= DatabaseError
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/DatabaseError/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::DatabaseError[]
+
+ifdef::model-descriptions[]
+//tag::desc-DatabaseError[]
+An error that occurred during database startup.
+//end::desc-DatabaseError[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*error_message* +
+_optional_
+a¦ 
+
+[markdown]
+--
+A human-readable description of the error.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*error_code* +
+_optional_
+a¦ 
+
+[markdown]
+--
+A numeric code identifying the type of error.
+--
+
+[%hardbreaks]
+*Values:* `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, `10`, `11`
+{blank}
+a¦ Integer
+
+|===
+
+//end::DatabaseError[]
+
+
+
+// markup not found, no include::{specDir}definitions/DatabaseError/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/DatabaseError/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/DatabaseMigrationStatus/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#DatabaseMigrationStatus]
+= DatabaseMigrationStatus
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/DatabaseMigrationStatus/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::DatabaseMigrationStatus[]
+
+ifdef::model-descriptions[]
+//tag::desc-DatabaseMigrationStatus[]
+Per-database entry in the bucket migration status document.
+//end::desc-DatabaseMigrationStatus[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*state* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Per-database migration state.
+--
+
+[%hardbreaks]
+*Values:* `"pending"`, `"in_progress"`, `"complete"`
+{blank}
+a¦ String
+
+a¦ 
+*started_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the per-database migration was first observed in progress.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+a¦ 
+*completed_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the per-database migration reached the complete state.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+|===
+
+//end::DatabaseMigrationStatus[]
+
+
+
+// markup not found, no include::{specDir}definitions/DatabaseMigrationStatus/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/DatabaseMigrationStatus/definition-after.adoc[opts=optional]
+
+
 ifdef::enum-definitions[]
 [#DatabaseState]
 = DatabaseState
@@ -36634,7 +39745,7 @@ endif::collapse-models[]
 
 ifdef::model-descriptions[]
 //tag::desc-Document[]
-The configurable Sync Gateway properties of a document.
+A Sync Gateway document. The document body is a JSON object whose top-level fields are the application's own data; Sync Gateway metadata is inlined into the same object using reserved `_`-prefixed field names (`_id`, `_rev`, `_exp`, etc.) listed below. Any top-level field that does not start with `_` is treated as user data and stored verbatim, and field values can be any valid JSON (including nested objects and arrays).
 //end::desc-Document[]
 endif::model-descriptions[]
 
@@ -36663,7 +39774,25 @@ a¦
 
 [markdown]
 --
-The revision of the document.
+The ancestor Revision Tree ID of the document, used by Sync Gateway as an optimistic concurrency control (OCC) value to detect conflicts when updating an existing document; omit this field when creating a new document. The value is typically taken from the `_rev` returned by a prior `GET` of the document, or from the `ETag` response header.
+
+For single-document upserts ([PUT /{keyspace}/{docid}](#operation/put_keyspace-docid)), the `rev` query parameter and the `If-Match` request header are alternative OCC sources for the same document; for bulk upserts ([POST /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs)), per-document OCC must be supplied in the doc body via this field or `_cv`. Clients may supply more than one OCC source as long as same-type values match exactly; mismatched values return HTTP 400. Precedence when multiple are present: `rev` query parameter, then `If-Match` header, then body `_cv`, then body `_rev`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*_cv* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The ancestor Current Version (CV) ID of the document, used by Sync Gateway as an optimistic concurrency control (OCC) value to detect conflicts when updating an existing document; omit this field when creating a new document. The value is typically taken from the `_cv` returned by a prior `GET` of the document, or from the `ETag` response header.
+
+Unlike the `rev` query parameter and `If-Match` header (which autodetect Revision Tree IDs vs Current Version IDs), this field must hold a CV. As with `_rev`, this can be supplied alongside other OCC sources as long as same-type values match exactly. See `_rev` for the full precedence order.
 --
 
 [%hardbreaks]
@@ -36721,6 +39850,7 @@ a¦
 
 [markdown]
 --
+Binary attachments associated with the document, keyed by attachment name. Each entry describes a single attachment and its inline base64 data. Attachments are stored separately from the document body but travel with the document during replication.
 --
 
 [%hardbreaks]
@@ -36734,6 +39864,7 @@ a¦
 
 [markdown]
 --
+A user-defined field belonging to the document body. Any JSON value is permitted. Field names beginning with `_` are reserved for Sync Gateway metadata.
 --
 
 [%hardbreaks]
@@ -36991,6 +40122,184 @@ a¦ xref:get__expvar_200_response_syncgateway[]
 
 
 
+// markup not found, no include::{specDir}definitions/GatewayRegistry/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#GatewayRegistry]
+= GatewayRegistry
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/GatewayRegistry/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::GatewayRegistry[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Registry version. This is not the Sync Gateway version number.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*config_groups* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of config groups, keyed by config group ID
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*sg_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Latest full Sync Gateway build version that wrote to the registry. Diagnostic-only —
+cluster compatibility / downgrade decisions key off `cluster_compat_version_hwm`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*cluster_compat_version_hwm* +
+_optional_
+a¦ 
+
+[markdown]
+--
+A Sync Gateway cluster compatibility version, represented as a `"major.minor"` string (e.g. `"4.1"`).
+
+This is the minimum version across all nodes in the cluster and is used to gate new metadata formats
+until all nodes have been upgraded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*updated_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the registry was last updated
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+a¦ 
+*created_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the registry was created
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+a¦ 
+*nodes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of node UID to that node's version registration. Populated by Sync Gateway nodes
+that have a database loaded on this bucket; used to compute the cluster compatibility
+version. Omitted on registries written by older Sync Gateway versions that did not
+track per-node versions.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*frozen_cluster_compat_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-get__cluster_info_200_response_buckets_value_registry_frozen_cluster_compat_version, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:get__cluster_info_200_response_buckets_value_registry_frozen_cluster_compat_version[]
+
+a¦ 
+*pre_ccv_aware_nodes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of pre-CCV-aware peer UUID to that peer's pre-CCV-aware-node entry. Records pre-CCV-aware
+Sync Gateway peers detected via side-channel registries (cbgt `NODE_DEFS_KNOWN` for
+sharded import, `SGRCluster.Nodes` for inter-SG replication). Unlike `nodes`, entries
+here are written by an observing CCV-aware peer rather than by the pre-CCV-aware peer
+itself. Entries age out via the heartbeat-expiry prune on each registry write. Omitted
+when no pre-CCV-aware peers are currently recorded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+|===
+
+//end::GatewayRegistry[]
+
+
+
+// markup not found, no include::{specDir}definitions/GatewayRegistry/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/GatewayRegistry/definition-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}definitions/get___200_response/definition-before.adoc[opts=optional]
 
 
@@ -37087,6 +40396,36 @@ Indication for whether sync gateway is running in persistent config mode or lega
 {blank}
 a¦ Boolean
 
+a¦ 
+*node_uid* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Stable identifier for this Sync Gateway node, derived deterministically from host
+fingerprint.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*cluster_compat_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The minimum cluster compatibility version (`"major.minor"`) across all nodes in the
+cluster.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
 |===
 
 //end::get___200_response[]
@@ -37136,6 +40475,1063 @@ One of the following:
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/get__all_dbs_200_response/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response]
+= GetClusterInfo200Response
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::get__cluster_info_200_response[]
+
+ifdef::model-descriptions[]
+//tag::desc-get__cluster_info_200_response[]
+Cluster information returned by `/_cluster_info`. Per-node version data is exposed via
+each bucket's `registry.nodes`; aggregated cluster compatibility is available from `/_status`.
+//end::desc-get__cluster_info_200_response[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*legacy_config* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Indicates if the server is using legacy (non persistent) configuration.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+a¦ 
+*buckets* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of bucket names to bucket information.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+|===
+
+//end::get__cluster_info_200_response[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value]
+= GetClusterInfo200ResponseBucketsValue
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::get__cluster_info_200_response_buckets_value[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*registry* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-get__cluster_info_200_response_buckets_value_registry, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:get__cluster_info_200_response_buckets_value_registry[]
+
+a¦ 
+*migration_status* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-get__cluster_info_200_response_buckets_value_migration_status, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:get__cluster_info_200_response_buckets_value_migration_status[]
+
+a¦ 
+*enable_cross_cluster_versioning* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Indicates if cross-cluster versioning is enabled for this bucket.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+a¦ 
+*bootstrap_target* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Cached location of this bucket's bootstrap documents (registry, dbconfig, cbgt cfg) on
+this node. Omitted when the target has not yet been resolved on this node.
+--
+
+[%hardbreaks]
+*Values:* `"_system._mobile"`, `"_default._default"`, `"unknown"`
+{blank}
+a¦ String
+
+|===
+
+//end::get__cluster_info_200_response_buckets_value[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value_migration_status]
+= GetClusterInfo200ResponseBucketsValueMigrationStatus
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status/definition-begin.adoc[opts=optional]
+
+
+.icon:bars[fw] Composite Schema
+{blank}
+
+All of the following:
+
+* xref:Object[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status_allOf_bootstrap/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value_migration_status_allOf_bootstrap]
+= GetClusterInfo200ResponseBucketsValueMigrationStatusAllOfBootstrap
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status_allOf_bootstrap/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::get__cluster_info_200_response_buckets_value_migration_status_allOf_bootstrap[]
+
+ifdef::model-descriptions[]
+//tag::desc-get__cluster_info_200_response_buckets_value_migration_status_allOf_bootstrap[]
+Bucket-global bootstrap migration state covering `_sync:registry`, `_sync:dbconfig:*`, and
+cbgt cfg documents. `attempts` and `last_attempted_at` are observability fields written by
+every node that runs the migration loop, so operators can distinguish "no one has tried" from
+repeated failure.
+//end::desc-get__cluster_info_200_response_buckets_value_migration_status_allOf_bootstrap[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*state* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Bucket-level bootstrap state. Transitions from `pending` to `complete` only after every
+per-database entry is complete; it never reports `in_progress`.
+--
+
+[%hardbreaks]
+*Values:* `"pending"`, `"complete"`
+{blank}
+a¦ String
+
+a¦ 
+*completed_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the bootstrap migration reached the complete state.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+a¦ 
+*last_attempted_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the migration loop most recently ran on this bucket, regardless of outcome.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+a¦ 
+*attempts* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Number of times the migration loop has run on this bucket.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+|===
+
+//end::get__cluster_info_200_response_buckets_value_migration_status_allOf_bootstrap[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status_allOf_bootstrap/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status_allOf_bootstrap/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status_allOf_databases_value/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value_migration_status_allOf_databases_value]
+= GetClusterInfo200ResponseBucketsValueMigrationStatusAllOfDatabasesValue
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status_allOf_databases_value/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::get__cluster_info_200_response_buckets_value_migration_status_allOf_databases_value[]
+
+ifdef::model-descriptions[]
+//tag::desc-get__cluster_info_200_response_buckets_value_migration_status_allOf_databases_value[]
+Per-database entry in the bucket migration status document.
+//end::desc-get__cluster_info_200_response_buckets_value_migration_status_allOf_databases_value[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*state* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Per-database migration state.
+--
+
+[%hardbreaks]
+*Values:* `"pending"`, `"in_progress"`, `"complete"`
+{blank}
+a¦ String
+
+a¦ 
+*started_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the per-database migration was first observed in progress.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+a¦ 
+*completed_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the per-database migration reached the complete state.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+|===
+
+//end::get__cluster_info_200_response_buckets_value_migration_status_allOf_databases_value[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status_allOf_databases_value/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_migration_status_allOf_databases_value/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value_registry]
+= GetClusterInfo200ResponseBucketsValueRegistry
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::get__cluster_info_200_response_buckets_value_registry[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Registry version. This is not the Sync Gateway version number.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*config_groups* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of config groups, keyed by config group ID
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*sg_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Latest full Sync Gateway build version that wrote to the registry. Diagnostic-only —
+cluster compatibility / downgrade decisions key off `cluster_compat_version_hwm`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*cluster_compat_version_hwm* +
+_optional_
+a¦ 
+
+[markdown]
+--
+A Sync Gateway cluster compatibility version, represented as a `"major.minor"` string (e.g. `"4.1"`).
+
+This is the minimum version across all nodes in the cluster and is used to gate new metadata formats
+until all nodes have been upgraded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*updated_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the registry was last updated
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+a¦ 
+*created_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time the registry was created
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+a¦ 
+*nodes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of node UID to that node's version registration. Populated by Sync Gateway nodes
+that have a database loaded on this bucket; used to compute the cluster compatibility
+version. Omitted on registries written by older Sync Gateway versions that did not
+track per-node versions.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*frozen_cluster_compat_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-get__cluster_info_200_response_buckets_value_registry_frozen_cluster_compat_version, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:get__cluster_info_200_response_buckets_value_registry_frozen_cluster_compat_version[]
+
+a¦ 
+*pre_ccv_aware_nodes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of pre-CCV-aware peer UUID to that peer's pre-CCV-aware-node entry. Records pre-CCV-aware
+Sync Gateway peers detected via side-channel registries (cbgt `NODE_DEFS_KNOWN` for
+sharded import, `SGRCluster.Nodes` for inter-SG replication). Unlike `nodes`, entries
+here are written by an observing CCV-aware peer rather than by the pre-CCV-aware peer
+itself. Entries age out via the heartbeat-expiry prune on each registry write. Omitted
+when no pre-CCV-aware peers are currently recorded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+|===
+
+//end::get__cluster_info_200_response_buckets_value_registry[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value_registry_config_groups_value]
+= GetClusterInfo200ResponseBucketsValueRegistryConfigGroupsValue
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::get__cluster_info_200_response_buckets_value_registry_config_groups_value[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*databases* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of databases in this config group.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+|===
+
+//end::get__cluster_info_200_response_buckets_value_registry_config_groups_value[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value]
+= GetClusterInfo200ResponseBucketsValueRegistryConfigGroupsValueDatabasesValue
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*scopes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of scope names to registry scope information.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Revision ID for a database configuration, used for ETag validation.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*previous_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version[]
+
+a¦ 
+*metadata_id* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Metadata ID.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*uuid* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Database UUID.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+|===
+
+//end::get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version]
+= GetClusterInfo200ResponseBucketsValueRegistryConfigGroupsValueDatabasesValuePreviousVersion
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*scopes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of scope names to registry scope information.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Revision ID for a database configuration, used for ETag validation.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+|===
+
+//end::get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_scopes_value/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_scopes_value]
+= GetClusterInfo200ResponseBucketsValueRegistryConfigGroupsValueDatabasesValueScopesValue
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_scopes_value/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_scopes_value[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*collections* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of collections in this scope.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+|===
+
+//end::get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_scopes_value[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_scopes_value/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_scopes_value/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_frozen_cluster_compat_version/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value_registry_frozen_cluster_compat_version]
+= GetClusterInfo200ResponseBucketsValueRegistryFrozenClusterCompatVersion
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_frozen_cluster_compat_version/definition-begin.adoc[opts=optional]
+
+
+.icon:bars[fw] Composite Schema
+{blank}
+
+All of the following:
+
+* xref:Object[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_frozen_cluster_compat_version/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_frozen_cluster_compat_version/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_nodes_value/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value_registry_nodes_value]
+= GetClusterInfo200ResponseBucketsValueRegistryNodesValue
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_nodes_value/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::get__cluster_info_200_response_buckets_value_registry_nodes_value[]
+
+ifdef::model-descriptions[]
+//tag::desc-get__cluster_info_200_response_buckets_value_registry_nodes_value[]
+A single Sync Gateway node's version registration in a bucket registry.
+//end::desc-get__cluster_info_200_response_buckets_value_registry_nodes_value[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+A Sync Gateway cluster compatibility version, represented as a `"major.minor"` string (e.g. `"4.1"`).
+
+This is the minimum version across all nodes in the cluster and is used to gate new metadata formats
+until all nodes have been upgraded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*heartbeat_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time of the node's last heartbeat write to this registry.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+|===
+
+//end::get__cluster_info_200_response_buckets_value_registry_nodes_value[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_nodes_value/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_nodes_value/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_pre_ccv_aware_nodes_value/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#get__cluster_info_200_response_buckets_value_registry_pre_ccv_aware_nodes_value]
+= GetClusterInfo200ResponseBucketsValueRegistryPreCcvAwareNodesValue
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_pre_ccv_aware_nodes_value/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::get__cluster_info_200_response_buckets_value_registry_pre_ccv_aware_nodes_value[]
+
+ifdef::model-descriptions[]
+//tag::desc-get__cluster_info_200_response_buckets_value_registry_pre_ccv_aware_nodes_value[]
+An observation of a pre-CCV-aware Sync Gateway peer recorded by a CCV-aware peer. Written
+by the observer (not the pre-CCV-aware peer), keyed in `pre_ccv_aware_nodes` by the pre-CCV-aware peer's
+UUID. The observer collapses the peer's side-channel build version to major.minor at write
+time; when the side-channel observation didn't carry a version, a conservative
+pre-SGNode-Version fallback (4.0) is substituted. Entries below the bucket's
+`cluster_compat_version_hwm` are reported here for operator visibility but do not pull
+reported cluster_compat_version back below HWM.
+//end::desc-get__cluster_info_200_response_buckets_value_registry_pre_ccv_aware_nodes_value[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*version* +
+_required_
+a¦ 
+
+[markdown]
+--
+A Sync Gateway cluster compatibility version, represented as a `"major.minor"` string (e.g. `"4.1"`).
+
+This is the minimum version across all nodes in the cluster and is used to gate new metadata formats
+until all nodes have been upgraded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*last_observed_at* +
+_required_
+a¦ 
+
+[markdown]
+--
+Time at which the observation was last refreshed by an observer. Entries whose
+`last_observed_at` is older than the configured heartbeat expiry are pruned on the
+next registry write.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+|===
+
+//end::get__cluster_info_200_response_buckets_value_registry_pre_ccv_aware_nodes_value[]
+
+
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_pre_ccv_aware_nodes_value/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/get__cluster_info_200_response_buckets_value_registry_pre_ccv_aware_nodes_value/definition-after.adoc[opts=optional]
 
 
 
@@ -41092,6 +45488,182 @@ a¦ xref:Audit_logging_config[]
 
 
 
+// markup not found, no include::{specDir}definitions/Metadata_Migration_status/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Metadata_Migration_status]
+= Metadata-Migration-status
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Metadata_Migration_status/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::Metadata_Migration_status[]
+
+ifdef::model-descriptions[]
+//tag::desc-Metadata_Migration_status[]
+The status of a metadata migration operation, which moves a database's `_sync:`-rooted metadata from the legacy `_default._default` keyspace into the `_system._mobile` collection.
+//end::desc-Metadata_Migration_status[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*status* +
+_required_
+a¦ 
+
+[markdown]
+--
+The status of the current metadata migration operation.
+--
+
+[%hardbreaks]
+*Values:* `"running"`, `"completed"`, `"stopping"`, `"stopped"`, `"error"`
+{blank}
+a¦ String
+
+a¦ 
+*start_time* +
+_required_
+a¦ 
+
+[markdown]
+--
+The ISO-8601 date and time the metadata migration operation was started.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*last_error* +
+_required_
+a¦ 
+
+[markdown]
+--
+The last error that occurred in the metadata migration operation (if any).
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*migration_id* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The UUID given to the metadata migration operation.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*docs_processed* +
+_required_
+a¦ 
+
+[markdown]
+--
+The cumulative count of docs successfully moved (or deleted, for transient docs like heartbeats) across all passes.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+a¦ 
+*docs_failed* +
+_required_
+a¦ 
+
+[markdown]
+--
+The cumulative count of per-doc errors observed during metadata migration moves or deletes across all passes.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+a¦ 
+*docs_attempted* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The sum of `docs_processed` and `docs_failed`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+a¦ 
+*docs_out_of_scope* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The number of fallback keys classified as out-of-scope on the most recent pass.
+
+These are keys that belong to sibling databases in the same bucket, or to bucket-level docs that have their own migration logic. They are left in place rather than being moved.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+a¦ 
+*passes* +
+_required_
+a¦ 
+
+[markdown]
+--
+The total number of range-scan passes executed against the fallback collection.
+
+Most migrations complete in a single pass — additional passes are triggered when documents written under an in-flight scan were missed and need to be caught on a follow-up pass.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+|===
+
+//end::Metadata_Migration_status[]
+
+
+
+// markup not found, no include::{specDir}definitions/Metadata_Migration_status/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Metadata_Migration_status/definition-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}definitions/New_revision/definition-before.adoc[opts=optional]
 
 
@@ -41288,6 +45860,36 @@ Indication for whether sync gateway is running in persistent config mode or lega
 [%hardbreaks]
 {blank}
 a¦ Boolean
+
+a¦ 
+*node_uid* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Stable identifier for this Sync Gateway node, derived deterministically from host
+fingerprint.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*cluster_compat_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The minimum cluster compatibility version (`"major.minor"`) across all nodes in the
+cluster.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
 
 |===
 
@@ -41784,6 +46386,76 @@ a¦ Big Decimal
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/OpenID_Connect_callback_properties/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/post__cluster_compat_version_freeze_503_response/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#post__cluster_compat_version_freeze_503_response]
+= PostClusterCompatVersionFreeze503Response
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/post__cluster_compat_version_freeze_503_response/definition-begin.adoc[opts=optional]
+
+
+.icon:bars[fw] Composite Schema
+{blank}
+
+One of the following:
+
+* xref:HTTP_Error[]
+
+* xref:Cluster_Compatibility_Version_State[]
+
+
+
+// markup not found, no include::{specDir}definitions/post__cluster_compat_version_freeze_503_response/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/post__cluster_compat_version_freeze_503_response/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/post__cluster_compat_version_unfreeze_503_response/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#post__cluster_compat_version_unfreeze_503_response]
+= PostClusterCompatVersionUnfreeze503Response
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/post__cluster_compat_version_unfreeze_503_response/definition-begin.adoc[opts=optional]
+
+
+.icon:bars[fw] Composite Schema
+{blank}
+
+One of the following:
+
+* xref:Cluster_Compatibility_Version_State[]
+
+* xref:HTTP_Error[]
+
+
+
+// markup not found, no include::{specDir}definitions/post__cluster_compat_version_unfreeze_503_response/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/post__cluster_compat_version_unfreeze_503_response/definition-after.adoc[opts=optional]
 
 
 
@@ -42978,6 +47650,61 @@ a¦ String
 
 
 
+// markup not found, no include::{specDir}definitions/post_keyspace__history_compact_request/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#post_keyspace__history_compact_request]
+= PostKeyspaceHistoryCompactRequest
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/post_keyspace__history_compact_request/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::post_keyspace__history_compact_request[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*seq* +
+_required_
+a¦ 
+
+[markdown]
+--
+Channel history having end sequences earlier than this sequence will be removed from the specified document's metadata.
+--
+
+[%hardbreaks]
+*Minimum:* `1`
+{blank}
+a¦ Long (int64)
+
+|===
+
+//end::post_keyspace__history_compact_request[]
+
+
+
+// markup not found, no include::{specDir}definitions/post_keyspace__history_compact_request/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/post_keyspace__history_compact_request/definition-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}definitions/post_keyspace__purge_200_response/definition-before.adoc[opts=optional]
 
 
@@ -43053,7 +47780,7 @@ endif::collapse-models[]
 
 ifdef::model-descriptions[]
 //tag::desc-post_keyspace__request[]
-The configurable Sync Gateway properties of a document.
+A Sync Gateway document. The document body is a JSON object whose top-level fields are the application's own data; Sync Gateway metadata is inlined into the same object using reserved `_`-prefixed field names (`_id`, `_rev`, `_exp`, etc.) listed below. Any top-level field that does not start with `_` is treated as user data and stored verbatim, and field values can be any valid JSON (including nested objects and arrays).
 //end::desc-post_keyspace__request[]
 endif::model-descriptions[]
 
@@ -43082,7 +47809,25 @@ a¦
 
 [markdown]
 --
-The revision of the document.
+The ancestor Revision Tree ID of the document, used by Sync Gateway as an optimistic concurrency control (OCC) value to detect conflicts when updating an existing document; omit this field when creating a new document. The value is typically taken from the `_rev` returned by a prior `GET` of the document, or from the `ETag` response header.
+
+For single-document upserts ([PUT /{keyspace}/{docid}](#operation/put_keyspace-docid)), the `rev` query parameter and the `If-Match` request header are alternative OCC sources for the same document; for bulk upserts ([POST /{keyspace}/_bulk_docs](#operation/post_keyspace-_bulk_docs)), per-document OCC must be supplied in the doc body via this field or `_cv`. Clients may supply more than one OCC source as long as same-type values match exactly; mismatched values return HTTP 400. Precedence when multiple are present: `rev` query parameter, then `If-Match` header, then body `_cv`, then body `_rev`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*_cv* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The ancestor Current Version (CV) ID of the document, used by Sync Gateway as an optimistic concurrency control (OCC) value to detect conflicts when updating an existing document; omit this field when creating a new document. The value is typically taken from the `_cv` returned by a prior `GET` of the document, or from the `ETag` response header.
+
+Unlike the `rev` query parameter and `If-Match` header (which autodetect Revision Tree IDs vs Current Version IDs), this field must hold a CV. As with `_rev`, this can be supplied alongside other OCC sources as long as same-type values match exactly. See `_rev` for the full precedence order.
 --
 
 [%hardbreaks]
@@ -43140,6 +47885,7 @@ a¦
 
 [markdown]
 --
+Binary attachments associated with the document, keyed by attachment name. Each entry describes a single attachment and its inline base64 data. Attachments are stored separately from the document body but travel with the document during replication.
 --
 
 [%hardbreaks]
@@ -43153,6 +47899,7 @@ a¦
 
 [markdown]
 --
+A user-defined field belonging to the document body. Any JSON value is permitted. Field names beginning with `_` are reserved for Sync Gateway metadata.
 --
 
 [%hardbreaks]
@@ -43267,6 +48014,11 @@ endif::collapse-models[]
 
 //tag::post_keyspace__request__revisions[]
 
+ifdef::model-descriptions[]
+//tag::desc-post_keyspace__request__revisions[]
+Encoded revision history for the document. This field is used by legacy 1.x REST replication protocol clients and CouchDB-style API callers to transmit ancestry alongside a revision. Most upsert/create requests should omit this field and rely on `_rev` alone.
+//end::desc-post_keyspace__request__revisions[]
+endif::model-descriptions[]
 
 [cols="25,55,20",separator=¦]
 |===
@@ -43961,6 +48713,532 @@ a¦ String
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/put_keyspace__local_docid_request/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryConfigGroup/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#RegistryConfigGroup]
+= RegistryConfigGroup
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/RegistryConfigGroup/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::RegistryConfigGroup[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*databases* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of databases in this config group.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+|===
+
+//end::RegistryConfigGroup[]
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryConfigGroup/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/RegistryConfigGroup/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryDatabase/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#RegistryDatabase]
+= RegistryDatabase
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/RegistryDatabase/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::RegistryDatabase[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*scopes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of scope names to registry scope information.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Revision ID for a database configuration, used for ETag validation.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*previous_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:get__cluster_info_200_response_buckets_value_registry_config_groups_value_databases_value_previous_version[]
+
+a¦ 
+*metadata_id* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Metadata ID.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*uuid* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Database UUID.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+|===
+
+//end::RegistryDatabase[]
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryDatabase/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/RegistryDatabase/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryDatabaseVersion/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#RegistryDatabaseVersion]
+= RegistryDatabaseVersion
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/RegistryDatabaseVersion/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::RegistryDatabaseVersion[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*scopes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Map of scope names to registry scope information.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+a¦ 
+*version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Revision ID for a database configuration, used for ETag validation.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+|===
+
+//end::RegistryDatabaseVersion[]
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryDatabaseVersion/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/RegistryDatabaseVersion/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryFrozenClusterCompatVersion/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#RegistryFrozenClusterCompatVersion]
+= RegistryFrozenClusterCompatVersion
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/RegistryFrozenClusterCompatVersion/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::RegistryFrozenClusterCompatVersion[]
+
+ifdef::model-descriptions[]
+//tag::desc-RegistryFrozenClusterCompatVersion[]
+A cluster compatibility version freeze record stored in a bucket registry. Set by
+`POST /_cluster_compat_version/freeze` and cleared by
+`POST /_cluster_compat_version/unfreeze`. Cluster-wide freeze state is the aggregate of
+these records across all bucket registries.
+//end::desc-RegistryFrozenClusterCompatVersion[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*version* +
+_required_
+a¦ 
+
+[markdown]
+--
+A Sync Gateway cluster compatibility version, represented as a `"major.minor"` string (e.g. `"4.1"`).
+
+This is the minimum version across all nodes in the cluster and is used to gate new metadata formats
+until all nodes have been upgraded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*frozen_at* +
+_required_
+a¦ 
+
+[markdown]
+--
+Time at which the freeze was set.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+|===
+
+//end::RegistryFrozenClusterCompatVersion[]
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryFrozenClusterCompatVersion/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/RegistryFrozenClusterCompatVersion/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryNode/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#RegistryNode]
+= RegistryNode
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/RegistryNode/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::RegistryNode[]
+
+ifdef::model-descriptions[]
+//tag::desc-RegistryNode[]
+A single Sync Gateway node's version registration in a bucket registry.
+//end::desc-RegistryNode[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+A Sync Gateway cluster compatibility version, represented as a `"major.minor"` string (e.g. `"4.1"`).
+
+This is the minimum version across all nodes in the cluster and is used to gate new metadata formats
+until all nodes have been upgraded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*heartbeat_at* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Time of the node's last heartbeat write to this registry.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+|===
+
+//end::RegistryNode[]
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryNode/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/RegistryNode/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryPreCCVAwareNode/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#RegistryPreCCVAwareNode]
+= RegistryPreCCVAwareNode
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/RegistryPreCCVAwareNode/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::RegistryPreCCVAwareNode[]
+
+ifdef::model-descriptions[]
+//tag::desc-RegistryPreCCVAwareNode[]
+An observation of a pre-CCV-aware Sync Gateway peer recorded by a CCV-aware peer. Written
+by the observer (not the pre-CCV-aware peer), keyed in `pre_ccv_aware_nodes` by the pre-CCV-aware peer's
+UUID. The observer collapses the peer's side-channel build version to major.minor at write
+time; when the side-channel observation didn't carry a version, a conservative
+pre-SGNode-Version fallback (4.0) is substituted. Entries below the bucket's
+`cluster_compat_version_hwm` are reported here for operator visibility but do not pull
+reported cluster_compat_version back below HWM.
+//end::desc-RegistryPreCCVAwareNode[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*version* +
+_required_
+a¦ 
+
+[markdown]
+--
+A Sync Gateway cluster compatibility version, represented as a `"major.minor"` string (e.g. `"4.1"`).
+
+This is the minimum version across all nodes in the cluster and is used to gate new metadata formats
+until all nodes have been upgraded.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*last_observed_at* +
+_required_
+a¦ 
+
+[markdown]
+--
+Time at which the observation was last refreshed by an observer. Entries whose
+`last_observed_at` is older than the configured heartbeat expiry are pruned on the
+next registry write.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Date (date-time)
+
+|===
+
+//end::RegistryPreCCVAwareNode[]
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryPreCCVAwareNode/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/RegistryPreCCVAwareNode/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryScope/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#RegistryScope]
+= RegistryScope
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/RegistryScope/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::RegistryScope[]
+
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*collections* +
+_optional_
+a¦ 
+
+[markdown]
+--
+List of collections in this scope.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+ array
+
+|===
+
+//end::RegistryScope[]
+
+
+
+// markup not found, no include::{specDir}definitions/RegistryScope/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/RegistryScope/definition-after.adoc[opts=optional]
 
 
 
@@ -44814,6 +50092,34 @@ a¦
 [markdown]
 --
 The amount of docs that have been processed so far in the resync operation.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+a¦ 
+*docs_targeted* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The estimated number of documents to be procsesed by the resync operation.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer
+
+a¦ 
+*docs_errored* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The number of documents which have errored running resync.
 --
 
 [%hardbreaks]
@@ -46469,6 +51775,22 @@ This is a duration and therefore can be provided with units "h", "m", "s", "ms",
 a¦ String
 
 a¦ 
+*node_heartbeat_expiry* +
+_optional_
+a¦ 
+
+[markdown]
+--
+How long since a node's last heartbeat before its cluster compat registry entry is pruned. Minimum is 2x the configured `config_update_frequency`.
+
+This is a duration and therefore can be provided with units "h", "m", "s", "ms", "us", and "ns". For example, 5 hours, 20 minutes, and 30 seconds would be `5h20m30s`.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
 *group_id* +
 _optional_
 a¦ 
@@ -46550,6 +51872,20 @@ a¦
 [markdown]
 --
 Allow empty server CA Cert Path without attempting to use system root pool
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
+a¦ 
+*use_system_metadata_collection* +
+_optional_
+a¦ 
+
+[markdown]
+--
+If true, Sync Gateway uses the `_system._mobile` metadata collection and triggers a one-time migration of any metadata in the default collection.
 --
 
 [%hardbreaks]
@@ -47913,6 +53249,20 @@ Store database configurations in system xattrs
 {blank}
 a¦ Boolean
 
+a¦ 
+*use_gocb_fast_fail_retry* +
+_optional_
+a¦ 
+
+[markdown]
+--
+When true, errors on initial connection to Couchbase Server will fail instantaneously. Enabling this will surface authentication errors quickly, but can cause some Sync Gateway operations to shut down databases with intermittent Couchbase Server connection errors.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Boolean
+
 |===
 
 //end::Startup_config_unsupported[]
@@ -48126,6 +53476,51 @@ include::index.adoc[tag=desc-Status_1_vendor, opts=optional]
 {blank}
 a¦ xref:Status_1_vendor[]
 
+a¦ 
+*runtime* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Status_1_runtime, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Status_1_runtime[]
+
+a¦ 
+*node_uid* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Stable identifier for this Sync Gateway node, derived deterministically from host
+fingerprint.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*cluster_compat_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The minimum cluster compatibility version (`"major.minor"`) across all nodes in the
+cluster. Omitted if `api.hide_product_version=true`, or when no version has been
+computed yet (e.g. first startup before nodes have registered).
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
 |===
 
 //end::Status[]
@@ -48209,6 +53604,51 @@ include::index.adoc[tag=desc-Status_1_vendor, opts=optional]
 [%hardbreaks]
 {blank}
 a¦ xref:Status_1_vendor[]
+
+a¦ 
+*runtime* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Status_1_runtime, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Status_1_runtime[]
+
+a¦ 
+*node_uid* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Stable identifier for this Sync Gateway node, derived deterministically from host
+fingerprint.
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
+
+a¦ 
+*cluster_compat_version* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The minimum cluster compatibility version (`"major.minor"`) across all nodes in the
+cluster. Omitted if `api.hide_product_version=true`, or when no version has been
+computed yet (e.g. first startup before nodes have registered).
+--
+
+[%hardbreaks]
+{blank}
+a¦ String
 
 |===
 
@@ -48340,6 +53780,23 @@ include::index.adoc[tag=desc-Status_1_databases_value_cluster, opts=optional]
 [%hardbreaks]
 {blank}
 a¦ xref:Status_1_databases_value_cluster[]
+
+a¦ 
+*metadata_store_mode* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Classification of this database's dual metadata store. Enabled via the
+`use_system_metadata_collection` option in either the database or bootstrap
+configuration. Omitted when this database does not use a dual metadata store.
+--
+
+[%hardbreaks]
+*Values:* `"fallback_active"`, `"fallback_inactive"`
+{blank}
+a¦ String
 
 |===
 
@@ -48626,6 +54083,99 @@ a¦ xref:Replication_1[]
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/Status_1_databases_value_cluster_replication/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Status_1_runtime/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Status_1_runtime]
+= Status1Runtime
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Status_1_runtime/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::Status_1_runtime[]
+
+ifdef::model-descriptions[]
+//tag::desc-Status_1_runtime[]
+Runtime environment information for this Sync Gateway node. Includes Go runtime
+settings and container memory limits.
+//end::desc-Status_1_runtime[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*go_memlimit_bytes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The effective Go memory limit (`GOMEMLIMIT`) in bytes. This is the soft memory
+limit that the Go garbage collector targets. A value of `9223372036854775807`
+(`math.MaxInt64`) indicates no limit is set.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Long (int64)
+
+a¦ 
+*go_maxprocs* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The effective number of OS threads (`GOMAXPROCS`) that can execute Go code simultaneously.
+--
+
+[%hardbreaks]
+*Minimum:* `1`
+{blank}
+a¦ Integer
+
+a¦ 
+*cgroup_memory_limit_bytes* +
+_optional_
+a¦ 
+
+[markdown]
+--
+The cgroup memory hard limit in bytes, as reported by the container runtime
+(cgroupv2 `memory.max` or cgroupv1 `memory.limit_in_bytes`). Only present when
+running inside a cgroup with a memory limit configured.
+--
+
+[%hardbreaks]
+{blank}
+a¦ Integer (uint64)
+
+|===
+
+//end::Status_1_runtime[]
+
+
+
+// markup not found, no include::{specDir}definitions/Status_1_runtime/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Status_1_runtime/definition-after.adoc[opts=optional]
 
 
 
@@ -49926,6 +55476,124 @@ a¦ String
 
 
 
+// markup not found, no include::{specDir}definitions/UserHistory/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#UserHistory]
+= UserHistory
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/UserHistory/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::UserHistory[]
+
+ifdef::model-descriptions[]
+//tag::desc-UserHistory[]
+User channel history organized by scope and collection.
+//end::desc-UserHistory[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*channels* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Channel history organized by scope and collection.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+|===
+
+//end::UserHistory[]
+
+
+
+// markup not found, no include::{specDir}definitions/UserHistory/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/UserHistory/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/UserHistory_1/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#UserHistory_1]
+= UserHistory
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/UserHistory_1/definition-begin.adoc[opts=optional]
+
+
+.icon:brackets-curly[fw] Object
+{blank}
+
+//tag::UserHistory_1[]
+
+ifdef::model-descriptions[]
+//tag::desc-UserHistory_1[]
+User channel history organized by scope and collection.
+//end::desc-UserHistory_1[]
+endif::model-descriptions[]
+
+[cols="25,55,20",separator=¦]
+|===
+¦ Property ¦ ¦ Schema
+
+a¦ 
+*channels* +
+_optional_
+a¦ 
+
+[markdown]
+--
+Channel history organized by scope and collection.
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Map[]
+
+|===
+
+//end::UserHistory_1[]
+
+
+
+// markup not found, no include::{specDir}definitions/UserHistory_1/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/UserHistory_1/definition-after.adoc[opts=optional]
+
+
+
+
 // markup not found, no include::{specDir}definitions/User_Session_Information/definition-before.adoc[opts=optional]
 
 
@@ -50349,6 +56017,20 @@ Indicates whether database initialization is in progress.
 {blank}
 a¦ Boolean
 
+a¦ 
+*database_error* +
+_optional_
+a¦ 
+
+[markdown]
+--
+include::index.adoc[tag=desc-Verbose_inner_database_error, opts=optional]
+--
+
+[%hardbreaks]
+{blank}
+a¦ xref:Verbose_inner_database_error[]
+
 |===
 
 //end::Verbose_inner[]
@@ -50361,6 +56043,39 @@ a¦ Boolean
 :leveloffset: -1
 
 // markup not found, no include::{specDir}definitions/Verbose_inner/definition-after.adoc[opts=optional]
+
+
+
+
+// markup not found, no include::{specDir}definitions/Verbose_inner_database_error/definition-before.adoc[opts=optional]
+
+
+ifdef::collapse-models[]
+[discrete]
+endif::collapse-models[]
+[#Verbose_inner_database_error]
+= VerboseInnerDatabaseError
+
+:leveloffset: +1
+
+// markup not found, no include::{specDir}definitions/Verbose_inner_database_error/definition-begin.adoc[opts=optional]
+
+
+.icon:bars[fw] Composite Schema
+{blank}
+
+All of the following:
+
+* xref:Object[]
+
+
+
+// markup not found, no include::{specDir}definitions/Verbose_inner_database_error/definition-end.adoc[opts=optional]
+
+
+:leveloffset: -1
+
+// markup not found, no include::{specDir}definitions/Verbose_inner_database_error/definition-after.adoc[opts=optional]
 
 
 
