@@ -48,7 +48,7 @@ The resync operation runs asynchronously.
 Use {resync_api_get} to monitor the current status of a resync operation.
 
 IMPORTANT: When using nonpersistent (legacy) configuration, the resync action is carried out **only** on the node that the POST is made to.
-It is not cross-node aware.
+It's not cross-node aware.
 In a multi-node cluster, the resync must only run on 1 node.
 Starting resync on more than 1 node results in multiple instances running, with undefined system behavior.
 When using persistent configuration (default since Sync Gateway 3.0), resync operations work across all nodes automatically.
@@ -78,14 +78,14 @@ Use this method when Couchbase Server stores your Sync Gateway configuration (de
 +
 . Update the configuration file of the Sync Gateway instance.
 . Restart Sync Gateway.
-. xref:database-offline.adoc#_persistent_configuration[Take the database offline] using `PUT /{db}/_config` with `{"offline": true}` (can use Load Balancer).
+. xref:database-offline.adoc#_persistent_configuration[Take the database offline] using `POST /{db}/_config` with `{"offline": true}` (can use Load Balancer).
 +
 This updates the database configuration persisted in the bucket, and all nodes will go offline.
 . Run resync using {resync_api_post} (you can call this on any node or through Load Balancer).
 . Monitor resync status using {resync_api_get}.
 +
 The message body of the response contains the number of changes that resync made.
-. xref:database-offline.adoc#_persistent_configuration_2[Bring the database back online] using `PUT /{db}/_config` with `{"offline": false}` (can use Load Balancer).
+. xref:database-offline.adoc#_persistent_configuration_2[Bring the database back online] using `POST /{db}/_config` with `{"offline": false}` (can use Load Balancer).
 +
 This updates the database configuration persisted in the bucket, and all nodes go online.
 
