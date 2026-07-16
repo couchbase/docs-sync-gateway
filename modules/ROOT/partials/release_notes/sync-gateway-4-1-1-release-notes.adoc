@@ -3,6 +3,35 @@
 
 IMPORTANT: If you use Sync Gateway 4.1.0, upgrade to this release to receive critical fixes.
 
+Version 4.1 of Sync Gateway delivers the following features and enhancements.
+
+=== Non-Disruptive Rolling Upgrades
+
+{sgw} 4.1 introduces cluster compatibility version, enabling node-by-node upgrades without downtime, with a safe rollback path throughout the upgrade window.
+
+For more information, see xref:ROOT:cluster-compatibility-version.adoc[Cluster Compatibility Version].
+
+=== Distributed Resync
+
+{sgw} 4.1 redesigns resync to distribute work in parallel across all cluster nodes, replacing the previous single-node sequential approach.
+
+For more information, see xref:manage:resync.adoc[Resync].
+
+=== Channel History Management
+
+{sgw} 4.1 introduces Admin REST API endpoints for retrieving and pruning channel history on both user records and documents, reducing metadata bloat and unnecessary revocation messages during zero-checkpoint replications.
+
+For more information, see xref:manage:channel-history.adoc[Channel History Management].
+
+=== Metadata Isolation: Migrate to System Collection
+
+{sgw} 4.1 introduces an opt-in migration that moves {sgw} internal metadata from `_default._default` to `_system._mobile`, isolating it from user application data.
+The migration is never applied automatically at upgrade and cannot be reversed.
+
+For more information, see xref:ROOT:migrate-metadata-system-collection.adoc[Migrate Metadata to System Collection].
+
+For a full overview of new features in this release, see xref:ROOT:whatsnew.adoc[New in {release}].
+
 === Fixed Issues
 
 * https://jira.issues.couchbase.com/browse/CBG-3214[CBG-3214 -- Unhandled cbgt panic after removing database]
@@ -22,7 +51,6 @@ IMPORTANT: If you use Sync Gateway 4.1.0, upgrade to this release to receive cri
 * https://jira.issues.couchbase.com/browse/CBG-5541[CBG-5541 -- Metadata migration never reaches 'completed' state with non-metadata `_sync:` docs stored in the `_default`]
 * https://jira.issues.couchbase.com/browse/CBG-5552[CBG-5552 -- activeOnly replication can miss documents for channels over the pagination limit]
 
-
 === Enhancements
 
 * https://jira.issues.couchbase.com/browse/CBG-3848[CBG-3848 -- Distributed resync via sharding for improved throughput and HA]
@@ -38,7 +66,6 @@ IMPORTANT: If you use Sync Gateway 4.1.0, upgrade to this release to receive cri
 * https://jira.issues.couchbase.com/browse/CBG-5221[CBG-5221 -- System scoped metadata and online migration process]
 * https://jira.issues.couchbase.com/browse/CBG-5253[CBG-5253 -- REST endpoint for pruning user channel history]
 * https://jira.issues.couchbase.com/browse/CBG-5254[CBG-5254 -- REST endpoint for pruning document channel history]
-
 
 === Known Issues
 
