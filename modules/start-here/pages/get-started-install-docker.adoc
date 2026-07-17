@@ -114,12 +114,19 @@ For production deployments, enable TLS and use `couchbases://cb-server` instead.
 
 ====
 
+IMPORTANT: {sgw} requires a valid bootstrap config that points to a reachable {cbs} instance to start.
+If the config is missing, invalid, or cannot reach {cbs}, the container exits immediately after starting.
+The `couchbase/sync-gateway` image always looks for its config at the fixed path `/etc/sync_gateway/config.json` inside the container.
+This path is not configurable through an environment variable.
+You must mount your config file to this exact path, as shown in the next step, or the container has nothing to load and exits.
+
 === Run Sync Gateway
 
 Run {sgw} in a Docker container, mounting the configuration file you created.
 
 Replace `/path/to/sync-gateway-config.json` with the absolute path to the file on your local machine.
 
+[[run-sync-gateway]]
 [{snippet-header}]
 ----
 docker run -d --name sync-gateway \
@@ -130,7 +137,9 @@ docker run -d --name sync-gateway \
   /etc/sync_gateway/config.json
 ----
 
-NOTE: Port 4985 is the {sgw} Admin port. By default it is only accessible from within the container. Do not expose port 4985 to external traffic in production environments.
+NOTE: This command maps both port 4984, the {sgw} public port, and port 4985, the {sgw} Admin port, to your host machine.
+Port 4985 is the Sync Gateway Admin port. By default it is only accessible from within the container.
+Do not expose port 4985 to external traffic in production environments.
 
 
 == Verify the Connection
