@@ -3,11 +3,10 @@
 ifdef::show_edition[:page-edition: {release}]
 ifdef::prerelease[:page-status: {prerelease}]
 :page-role:
-:description: pass:q[Using _sgcollect_info_ to gather system information, diagnostics and metrics]
+:description: pass:q[Use _sgcollect_info_ to gather system information, diagnostics and metrics.]
 
 
 include::ROOT:partial$_set_page_context.adoc[]
-
 
 // BEGIN -- Page Header
 :topic-group: monitor
@@ -18,24 +17,38 @@ include::ROOT:partial$_show_page_header_block.adoc[]
 
 include::ROOT:partial$block-caveats.adoc[tags=logfilefolderuse]
 
-
 == Introduction
 
 The command line utility `sgcollect_info` provides detailed statistics for a specific Sync Gateway node.
 This tool must be run on each node individually, not on all simultaneously.
 
-`sgcollect_info` outputs the following statistics in a zip file:
+`sgcollect_info` outputs the following statistics in the zip file:
 
 . Logs
 . Configuration
 . Expvars (exported variables) that contain important stats
-. System Level OS stats
-. Golang profile output (runtime memory and cpu profiling info)
+. System-level OS stats
+. Golang profile output (runtime memory and CPU profiling info)
+
+You can trigger a collection in one of two ways:
+
+* From the command line, using the `sgcollect_info` binary on the node. See <<cli>>.
+* From the Admin REST API, without needing shell access to the node. See <<rest>>.
+
+Both methods produce the same zip file contents, described in <<zipfile-contents>>.
 
 
-== CLI Command and Parameters
+== Prerequisites
 
-To see the CLI command line parameters, run:
+* To run `sgcollect_info` from the command line, you need shell access to the Sync Gateway node and the path to the binary.
+* To trigger a collection from the REST API, you need the *Sync Gateway Dev Ops* role and network access to the node's Admin API interface (port `4985` by default).
+* To upload the collected diagnostics directly to Couchbase Support, you need a Zendesk support ticket number and, if applicable, a customer name.
+
+
+[#cli]
+== Collect Diagnostics with the CLI
+
+To see all available command line parameters, run:
 
 [source,bash]
 ----
@@ -48,10 +61,8 @@ Attempting to use the `--sync-gateway-password` option causes an error, with ins
 
 Alternatively, you can specify credentials using the `SG_USERNAME` and `SG_PASSWORD` environment variables to avoid the prompt.
 
-You can use `sgcollect_info` to collect and save information locally, or to collect and upload the information to Couchbase -- see: <<ex-collect>>.
-
 [#ex-collect]
-.Using sgcollect_info
+.Using sgcollect_info from the CLI
 =====
 
 [{tabs}]
@@ -69,12 +80,13 @@ Collect and Save Locally::
 ----
 
 When prompted, enter the password.
+
+This saves the zip file to `/tmp/sgcollect_info.zip` on the node. It does not upload anything.
 --
 
 Collect and Upload to Couchbase::
 +
 --
-
 Collect Sync Gateway diagnostics and upload them to Couchbase Support:
 
 [source,bash]
@@ -90,29 +102,138 @@ Collect Sync Gateway diagnostics and upload them to Couchbase Support:
 ----
 
 When prompted, enter the password.
+
+This saves the zip file to `/tmp/sgcollect_info.zip` on the node, redacts the logs at the `partial` level, and uploads the redacted zip file to `uploads.couchbase.com` under customer `Acme` and ticket `123`.
 --
 ====
 =====
 
-
-== REST Endpoint
-
-You can also run `sgcollect_info` from the Admin REST API using the xref:rest-api:rest_api_admin.adoc#tag/Server/operation/post__sgcollect_info[_sgcollect_info] endpoint.
+See <<log-redaction>> for what the `--log-redaction-level` and `--log-redaction-salt` options do.
 
 
+[#rest]
+== Collect Diagnostics with the REST API
+
+The Admin REST API exposes three operations on the `_sgcollect_info` endpoint: start a collection, check its status, and cancel it.
+Use this method when you don't have shell access to the node, for example in a containerized deployment.
+
+Each request body parameter below has the same effect as its CLI equivalent from <<cli>>.
+
+[cols="1,1,2"]
+|===
+|REST parameter |CLI equivalent |Description
+
+|`redact_level`
+|`--log-redaction-level`
+|Redaction level applied to the collected logs. One of `partial` or `none`. Defaults to `partial`.
+
+|`redact_salt`
+|`--log-redaction-salt`
+|Salt used when hashing redacted data. Defaults to a random UUID.
+
+|`output_dir`
+|the local output path argument
+|Directory on the node where the zip file is written. Defaults to the path set in the node's `logging.log_file_path` startup config.
+
+|`upload`
+|(implied by `--upload-host`)
+|Set to `true` to upload the collected zip file to Couchbase Support. Requires `customer` to also be set.
+
+|`upload_host`
+|`--upload-host`
+|Host to upload the logs to. Defaults to `https://uploads.couchbase.com`.
+
+|`upload_proxy`
+|(none)
+|Proxy to use while uploading the logs.
+
+|`customer`
+|`--customer`
+|Customer name to associate with the upload.
+
+|`ticket`
+|`--ticket`
+|Zendesk ticket number (1-7 characters) to associate with the upload.
+|===
+
+.Starting a collection over REST
+=====
+Start a collection, redact the logs at the `partial` level, and upload the zip file to Couchbase Support:
+
+[source,bash]
+----
+curl -X POST \
+  https://127.0.0.1:4985/_sgcollect_info \
+  --user Admin \
+  --header "Content-Type: application/json" \
+  --data '{
+    "redact_level": "partial",
+    "upload": true,
+    "upload_host": "uploads.couchbase.com",
+    "customer": "Acme",
+    "ticket": "123"
+  }'
+----
+
+When prompted, enter the password for the `Admin` user.
+
+Sync Gateway starts the collection in the background and returns immediately:
+
+[source,json]
+----
+{"status": "started"}
+----
+=====
+
+.Checking collection status
+=====
+A collection can take several minutes. Poll the same endpoint with `GET` to check whether it has finished:
+
+[source,bash]
+----
+curl --user Admin https://127.0.0.1:4985/_sgcollect_info
+----
+
+The response reports `running` while the collection is in progress, and `stopped` once it completes:
+
+[source,json]
+----
+{"status": "stopped"}
+----
+=====
+
+.Cancelling a running collection
+=====
+To stop a collection that is already running:
+
+[source,bash]
+----
+curl -X DELETE --user Admin https://127.0.0.1:4985/_sgcollect_info
+----
+
+[source,json]
+----
+{"status": "cancelled"}
+----
+=====
+
+TIP: For the full request and response schema, see the xref:rest-api:rest_api_admin.adoc#tag/Server/operation/post__sgcollect_info[Admin REST API reference] for `_sgcollect_info`.
+
+
+[#zipfile-contents]
 == Zipfile Contents
 
-The tool creates the following log files in the output file.
+Both the CLI and the REST API produce the same log files in the output zip file.
 
 [cols="1,2"]
 |===
 |Log file |Description
 
 |`sync_gateway_access.log`
-|The http access log for sync gateway (i.e which GETs and PUTs it has received and from which IPs)
+|The HTTP access log for Sync Gateway (which GETs and PUTs it received, and from which IPs)
 
 |`sg_accel_access.log`
-|The http access log for sg_accel (i.e which GETs and PUTs it has received and from which IPs)
+|The HTTP access log for sg_accel (which GETs and PUTs it received, and from which IPs)
 
 |`sg_accel_error.log`
 |The error log (all logging sent to stderr by sg_accel) for the sg_accel process
@@ -121,10 +242,10 @@ The tool creates the following log files in the output file.
 |The error log (all logging sent to stderr by sync_gateway) for the sync_gateway process
 
 |`server_status.log`
-|The output of \http://localhost:4895 for the running sync gateway
+|The output of \http://localhost:4895 for the running Sync Gateway node
 
 |`db_db_name_status.log`
-|The output of \http://localhost:4895/db_name for the running sync gateway
+|The output of \http://localhost:4895/db_name for the running Sync Gateway node
 
 |`sync_gateway.json`
 |The on-disk configuration file used by sync_gateway when it was launched
@@ -133,20 +254,25 @@ The tool creates the following log files in the output file.
 |The on-disk configuration file used by sg_accel when it was launched
 
 |`running_server_config.log`
-|The configuration used by sync gateway as it is running (may not match the on-disk config as it can be changed on-the-fly)
+|The configuration used by Sync Gateway while running (may not match the on-disk config, since it can be changed on the fly)
 
 |`running_db_db_name_config.log`
-|The config used by sync gateway for the database specified by db_name
+|The config used by Sync Gateway for the database specified by db_name
 
 |`expvars_json.log`
-|The expvars (global exposed variables - see https://www.mikeperham.com/2014/12/17/expvar-metrics-for-golang/ for the running sync gateway instance)
+|The expvars (global exported variables) for the running Sync Gateway instance. See https://www.mikeperham.com/2014/12/17/expvar-metrics-for-golang/ for background on expvars.
 
 |`sgcollect_info_options.log`
-|The command line arguments passed to sgcollect_info for this particular output
+|The command line arguments, or REST request body, used to trigger this collection
 
 |`sync_gateway.log`
-|OS-level System Stats
+|OS-level system stats
 
+// TODO(review): expvars_json.log is listed twice in the current live page, once here in
+// its original wording. This looks like a duplicate row describing the same file, but it has
+// not been confirmed with engineering. Restored as-is pending that confirmation; remove this
+// comment and the duplicate row once verified, or replace with the correct distinct file if
+// one was actually intended.
 |`expvars_json.log`
 |Exported Variables (expvars) from Sync Gateway which show runtime stats
 
@@ -157,39 +283,42 @@ The tool creates the following log files in the output file.
 |Heap pprof profile output
 
 |`profile.pdf/raw/txt`
-|CPU profile pprof profile output
+|CPU pprof profile output
 
 |`syslog.tar.gz`
-|System level logs like /var/log/dmesg on Linux
+|System-level logs, such as `/var/log/dmesg` on Linux
 
 |`sync_gateway`
 |The Sync Gateway binary executable
 
 |`pprof_http_*.log`
-|The pprof output that collects directly via an http client rather than using go tool, in case Go is not installed
+|pprof output collected directly over HTTP rather than through the `go tool`, for nodes where Go is not installed
 |===
 
+[#file-concatenation]
+=== Log File Concatenation
 
-=== File Concatenation
+`sgcollect_info` uses the xref:{sgw-pg-logging}#continuous-logging[continuous logging] feature to collect the four leveled log files: `sg_error.log`, `sg_warn.log`, `sg_info.log`, and `sg_debug.log`.
 
-SGCollect Info has been updated to use the xref:{sgw-pg-logging}#continuous-logging[continuous logging] feature introduced in 2.1, and collects the four leveled files (*sg_error.log*, *sg_warn.log*, *sg_info.log* and *sg_debug.log*).
+Sync Gateway rotates and compresses these log files. When you run `sgcollect_info`, it decompresses the rotated logs and concatenates them back into a single file per level.
 
-These new log files are rotated and compressed by Sync Gateway, so `sgcollect_info` decompresses these rotated logs, and concatenates them back into a single file upon collection.
-
-For example, if you have *sg_debug.log*, and *sg_debug-2018-04-23T16-57-13.218.log.gz* and then run `sgcollect_info` as normal, both of these files get put into a *sg_debug.log* file inside the zip output folder.
+For example, if the node has both `sg_debug.log` and `sg_debug-2018-04-23T16-57-13.218.log.gz`, `sgcollect_info` combines them into a single `sg_debug.log` file inside the output zip.
 
 
+[#log-redaction]
 == Log Redaction
 
-SGCollect Info now supports log redaction post-processing.
-In order to utilize this, Sync Gateway needs to be run with the `logging.redaction_level` property set to "partial".
+`sgcollect_info` supports redacting sensitive data from the collected logs, whether you trigger it from the CLI or the REST API.
 
-Two new command line options have been added to `sgcollect_info`:
+To use redaction, Sync Gateway must be running with `logging.redaction_level` set to `partial`.
 
-* `--log-redaction-level=REDACT_LEVEL`: redaction level for the logs collected, `none` and `partial` supported. Defaults to `none`.
-+
-When `--log-redaction-level` is set to partial, two zip files are produced, and tagged contents in the redacted one should be hashed in the same way as `cbcollect_info`:
-+
+Redaction accepts two settings:
+
+* *Level* (`--log-redaction-level` on the CLI, `redact_level` over REST): `none` or `partial`. Defaults to `partial` over REST and `none` on the CLI.
+* *Salt* (`--log-redaction-salt` on the CLI, `redact_salt` over REST): the value used to hash tagged data. Defaults to a random UUID.
+
+When redaction is set to `partial`, the tool produces two zip files, and hashes the tagged contents in the redacted one the same way `cbcollect_info` does:
+
 [source,bash]
 ----
 $ ./sgcollect_info --log-redaction-level=partial sgout.zip
@@ -198,7 +327,12 @@ Zipfile built: sgout-redacted.zip
 Zipfile built: sgout.zip
 ----
 
-* `--log-redaction-salt=SALT_VALUE`: salt used in the hashing of tagged data when enabling redaction. Defaults to a random uuid.
+
+== Next Steps
+
+* xref:rest-api:rest_api_admin.adoc#tag/Server/operation/post__sgcollect_info[Admin REST API reference for _sgcollect_info]
+* xref:{sgw-pg-logging}[Configure logging] to set `logging.redaction_level` before collecting diagnostics
+* When contacting Couchbase Support, attach the zip file this tool produces to your Zendesk ticket
 
 
 // BEGIN -- Page Footer
