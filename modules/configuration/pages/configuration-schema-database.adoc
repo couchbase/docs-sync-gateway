@@ -24,8 +24,72 @@ include::ROOT:partial$block-caveats.adoc[tags="legacy-config-equivalents"]
 From {sgw-te} 3.0 you can use the Admin REST API to provision persistent configuration changes.
 This content introduces the {rest-api-admin--xref--database-management--put-db} and {rest-api-admin--xref--database-configuration--post-db-config} endpoints for convenience -- see {rest-api-admin--xref--database-configuration} for a full description of the endpoints available.
 
-NOTE: You can define 1 custom scope per database with up to 1000 custom collections.
-If you don't specify a custom scope and collection, any documents you create will be saved in the default scope and collection.
+[#lbl-buckets-scopes-collections]
+== Understanding Buckets, Scopes, and Collections
+
+{svr}, {sgw}, and Couchbase Lite all organize data using the same three-level hierarchy: bucket, scope, and collection.
+A collection holds documents.
+A scope groups related collections.
+A bucket holds all the scopes for a dataset.
+
+<<tbl-bucket-scope-collection>> maps the terms across all three.
+
+.Bucket, scope, and collection mapping across {svr}, {sgw}, and Couchbase Lite
+[#tbl-bucket-scope-collection,cols="1,2,2,2", options="header"]
+|===
+
+|Level
+|{svr}
+|{sgw} database config
+|Couchbase Lite
+
+|Top container
+|A bucket, created and managed on the {svr} cluster.
+|The `bucket` property names one existing {svr} bucket. Each {sgw} database maps to exactly one {svr} bucket.
+|A database, created locally on the mobile or edge device.
+
+|Namespace
+|A scope, created within a bucket.
+|A key under the `scopes` object in the database config.
+|A scope, created within a Couchbase Lite database.
+
+|Data container
+|A collection, created within a scope.
+|A key under `scopes.<scope-name>.collections` in the database config.
+|A collection, created within a Couchbase Lite scope.
+
+|===
+
+=== Defaults
+
+If you don't specify a custom scope and collection, any documents you create save in the default scope and collection.
+
+=== Name matching across tiers
+
+Scope and collection names must match exactly, character for character, across all three tiers.
+For example, a Couchbase Lite replicator configured to sync the `airline` collection in the `inventory` scope only succeeds against a {sgw} database that defines an `airline` collection inside an `inventory` scope in its `scopes` config.
+
+The scope and collection must already exist on the {svr} bucket before you reference them in the {sgw} database config.
+{sgw} does not create scopes or collections on {svr}; you must create them there first.
+
+If a mismatch exists at any tier, replication does not start and Couchbase Lite logs an error.
+
+=== The system collection
+
+{sgw} uses a reserved system collection, `_system._mobile`, to store its internal metadata separately from user application data.
+This collection is owned by {sgw} and is not a user-configurable scope or collection.
+
+From {sgw} 4.1, you can opt in to migrating {sgw} internal metadata from the default collection (`_default._default`) to `_system._mobile`.
+This isolates {sgw} system documents from your application data, prevents metadata from appearing in the Capella UI alongside user documents, and reduces the risk of metadata being processed by eventing functions or {sqlpp} queries.
+
+See xref:ROOT:migrate-metadata-system-collection.adoc[Migrate Metadata to System Collection] for details.
+
+=== Scope and collection limits
+
+You can define 1 custom scope per database with up to 1000 custom collections.
+This limit reflects current {svr} indexing capacity rather than an independently configurable {sgw} setting: {sgw} typically creates around 5 indexes per collection to support mobile replication, and indexing capacity is the constraint that governs how many collections mobile workloads can use.
+
+For the full set of configuration options, including default-scope and default-collection variants, worked JSON examples, and sync/import filter functions, see xref:configuration:scopes-and-collections-config.adoc[Scopes and Collections Configuration for Sync Gateway].
 
 [#lbl-create-db]
 == Create a new Sync Gateway database
