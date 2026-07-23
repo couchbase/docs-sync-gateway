@@ -32,6 +32,76 @@ TIP: See: {compatibility--xref} for version compatibility information.
 
 Sync Gateway supports scopes and collections ({server-collections-default--xref}, {server-collections-named--xref} ).
 
+== Overview
+
+{svr}, {sgw}, and Couchbase Lite all use the same bucket, scope, and collection hierarchy, but each tier supports a different subset of that model's capabilities.
+The sections below cover where {sgw} and Couchbase Lite diverge from {svr}'s own scopes and collections behavior.
+
+== Configuration Model
+
+On {svr}, a bucket can hold many scopes, and each scope can hold many collections, with no restriction tying any particular client or service to just one of them.
+
+A {sgw} database is more constrained: it maps to exactly one scope.
+A {sgw} database cannot span multiple scopes, and multiple {sgw} databases can point to the same scope only if their sets of collections don't overlap.
+
+Once set, the scope associated with a {sgw} database is immutable.
+Changing it requires deleting and recreating the database configuration.
+Collections are mutable: they can be added to or removed from a {sgw} database's scope as needed.
+
+== Creation and Lifecycle
+
+{svr} supports full lifecycle management of scopes and collections through its Web Console, CLI, REST API, SQL++, and SDKs.
+You can create and drop collections freely, including the default collection, though not the default scope.
+
+Neither {sgw} nor Couchbase Lite auto-creates a scope or collection as a side effect of sync.
+A scope or collection must already exist on the {svr} bucket before a {sgw} database config can reference it; see xref:configuration:configuration-schema-database.adoc[Database Configuration].
+
+Couchbase Lite restricts scope and collection lifecycle further than {svr} does.
+It has no API to create a scope directly: a scope is created implicitly the first time you create a collection inside it.
+Neither the default scope nor the default collection can ever be dropped on Couchbase Lite.
+{svr} allows dropping a default collection, though not the default scope.
+Couchbase Lite allows dropping neither.
+
+== Practical Limits
+
+{svr} currently supports up to 1000 scopes and up to 1000 collections per cluster.
+
+{sgw} targets the same ceiling for a database's custom scope, up to 1000 custom collections, but this isn't an independently chosen number.
+It reflects current {svr} indexing capacity: {sgw} typically creates around 5 indexes per mobile-enabled collection, and indexing capacity, not the collection count itself, is the practical constraint.
+See xref:configuration:configuration-schema-database.adoc[Database Configuration] for the full explanation.
+
+== Access Control and RBAC
+
+{svr}'s own RBAC system can grant roles down to the collection level.
+{sgw} users and roles are a separate system with no relationship to {svr}'s RBAC.
+{sgw}'s own users, roles, and channels govern access to replication data through the Public API, while {svr} RBAC credentials authenticate access to the Admin and Metrics REST API.
+A channel, and the access it grants, is always scoped to a single collection, but that's enforced through {sgw}'s own channel model rather than through {svr} RBAC.
+
+== REST API Addressing
+
+{svr} addresses scopes and collections directly in the request path or query, for example through SQL++'s `bucket.scope.collection` keyspace syntax.
+{sgw}'s Admin and Public REST APIs still address everything through the `/\{db}/` path used before scopes and collections existed.
+Scope and collection-specific settings, like a collection's sync function or import filter, are expressed as nested keys inside the database config JSON body rather than as path segments.
+
+== Collection-Level Expiration (TTL)
+
+Do not set collection-level TTL (`maxTTL` on a collection) on a {svr} bucket used by {sgw}.
+{sgw} stores its own internal system documents, including those with `_sync` prefixes, inside application collections, and a collection-level TTL can expire those system documents along with your application data.
+If that happens, {sgw} may malfunction or stop operating correctly.
+
+To get TTL-like behavior at the collection level without risking {sgw}'s system documents, use a per-collection sync function to set expiration on your application documents instead.
+Document-level expiration, set on individual documents, remains fully supported.
+
+This is part of a wider bucket-level and collection-level TTL restriction; see xref:server-compatibility:server-compatibility-buckets.adoc#time-to-live-ttl[Time To Live (TTL)] on the Buckets compatibility page for the full guidance, including the bucket-level `maxTTL` requirement.
+
+== Replication Behavior
+
+Unlike {svr}'s Cross Data Center Replication (XDCR), which can create missing collections on the target, {sgw} to Couchbase Lite replication and Inter-Sync Gateway Replication never auto-create a missing scope or collection on either side.
+A mismatch results in an error rather than an automatic fix.
+
+Collection remapping differs by replication type.
+Inter-Sync Gateway Replication supports explicit collection remapping through the `collections_local` and `collections_remote` properties, letting you replicate a local collection to a differently named collection on the remote.
+Couchbase Lite to {sgw} replication has no equivalent: collection names must match exactly between the two.
 
 
 // BEGIN -- Page Footer
