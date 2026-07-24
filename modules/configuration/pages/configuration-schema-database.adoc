@@ -62,7 +62,7 @@ A bucket holds all the scopes for a dataset.
 
 === Defaults
 
-If you don't specify a custom scope and collection, any documents you create get saved in the default scope and collection.
+If you don't specify a custom scope and collection in your database configuration, the database will use the default scope and collection.
 
 === Name matching across tiers
 
@@ -76,18 +76,20 @@ If a mismatch exists at any tier, replication does not start and Couchbase Lite 
 
 === The system collection
 
-{sgw} uses a reserved system collection, `_system._mobile`, to store its internal metadata separately from user application data.
+From {sgw} 4.1, you can opt in to using a reserved system collection, `_system._mobile`, to store {sgw} internal metadata separately from user application data.
 This collection is owned by {sgw} and is not a user-configurable scope or collection.
 
-From {sgw} 4.1, you can opt in to migrating {sgw} internal metadata from the default collection (`_default._default`) to `_system._mobile`.
+Opting in migrates {sgw} internal metadata from the default collection (`_default._default`) to `_system._mobile`.
 This isolates {sgw} system documents from your application data, prevents metadata from appearing in the Capella UI alongside user documents, and reduces the risk of metadata being processed by eventing functions or {sqlpp} queries.
 
 See xref:ROOT:migrate-metadata-system-collection.adoc[Migrate Metadata to System Collection] for details.
 
 === Scope and collection limits
 
-You can define 1 custom scope per database with up to 1000 custom collections.
-This limit reflects current {svr} indexing capacity rather than an independently configurable {sgw} setting: {sgw} typically creates around 5 indexes per collection to support mobile replication, and indexing capacity is the constraint that governs how many collections mobile workloads can use.
+You can define:
+
+* 1 custom scope per database
+* 1000 custom collections across the cluster
 
 For the full set of configuration options, including default-scope and default-collection variants, worked JSON examples, and sync/import filter functions, see xref:configuration:scopes-and-collections-config.adoc[Scopes and Collections Configuration for Sync Gateway].
 
