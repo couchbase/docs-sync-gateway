@@ -96,6 +96,54 @@ As a result, documents can represent complex data structures in a readily parsab
 These attachments provide a means to store large media files or any other non-textual data.
 Couchbase Lite supports attachments of unlimited size, although the Sync Gateway imposes a 20MB limit for attachments synced to it.
 
+[#special-characters]
+=== Special Characters
+
+Sync Gateway automatically escapes certain characters in any string property
+name or property value within a document body, including values nested
+inside objects or arrays. This behavior is uncommon and only affects
+documents that contain these specific characters.
+
+Sync Gateway escapes the characters as follows:
+
+* `<` becomes `\u003c`
+* `>` becomes `\u003e`
+* `&` becomes `\u0026`
+
+.Special character escaping example
+====
+Sync Gateway stores this input:
+
+[source,json]
+----
+{
+  "notes": "A&B <value>"
+}
+----
+
+as:
+
+[source,json]
+----
+{
+  "notes": "A\u0026B \u003cvalue\u003e"
+}
+----
+====
+
+Where it applies::
+This rule applies to writes performed through:
++
+* Couchbase Lite SDKs
+* Sync Gateway REST APIs
+* Couchbase Server SDKs when {sgw--xref}{sync-with-couchbase-server--page}[shared bucket access] is enabled.
+
+When you read a document back, decode the complete JSON document body with a
+JSON deserializer to unescape these sequences, or match the escaped
+sequences directly when you look up a specific property through a
+Couchbase Lite Document API.
+
+
 == Document Attributes
 Each _Document_ has the following attributes:
 
