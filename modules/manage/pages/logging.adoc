@@ -1,22 +1,3 @@
-
-// BEGIN -- PAGE -- logging.adoc
-// BEGIN PAGE DEFINITION
-//  LOCATION modules/ROOT/pages/
-//  PURPOSE:
-//    This is a standard content presentations page.
-//    Its name/title identify the content/topic
-//  PARAMETERS:
-//    None
-//  INCLUSION USAGE --
-//    This module uses attributes from:
-//    - /modules/ROOT/pages/_partials/_define_page_index.adoc -- xref page links
-//
-//    This module uses these inclusions:
-//    - /modules/ROOT/pages/_partials/_set_page_context.adoc -- std attribute environment
-//    - /modules/ROOT/pages/_partials/_show_page_header_block.adoc --  std text block for page header content
-//    - /modules/ROOT/pages/_partials/block-related-content-deploy.adoc --  std text block for page footer content
-//  INCLUSION USAGE
-// END PAGE DEFINITION
 = Logging
 :page-aliases: ROOT:advance/logging.adoc, ROOT:logging.adoc
 ifdef::show_edition[:page-edition: {release}]
@@ -384,17 +365,18 @@ The log files output from continuous logging are intended *solely* for the use o
 
 TIP: If you require special log handling, for example for centralized logging, then use the <<lbl-log-redirect>> feature to create a log file for this purpose from the console output stream.
 
-Sync Gateway produces four separate log files, split by log level.
-Each log file has its own guaranteed retention period - as shown in <<tbl-contlogoutputs>>
+
+Sync Gateway produces six separate log files, split by log level.
+Each log file has its own guaranteed retention period -- as shown in <<tbl-contlogoutputs>>
 
 You can collect the log files, for analysis by Couchbase Support when diagnosing Sync Gateway issues, using {sgcollect-info--xref}.
 
-.Continuos Logging - Log File Outputs
+.Continuous Logging - Log File Outputs
 [#tbl-contlogoutputs,cols="^1,4,2,^1,^1,^1"]
 |===
-h|Log File
 h|Level
 h|Description
+h|Log File
 h|Default enabled
 h|Default max_age
 h|Minimum max_age
@@ -426,9 +408,26 @@ h|Minimum max_age
 |`false`
 |2 Days
 |1 Day
+
+|TRACE
+|Extremely verbose diagnostic output, used for deep troubleshooting
+|`sg_trace.log`
+|`false`
+|2 Days
+|1 Day
+
+|STATS
+|Periodic snapshot of Sync Gateway's internal runtime statistics
+|`sg_stats.log`
+|`true`
+|6 Days
+|3 Days
 |===
 
 TIP: Each log level and its parameters are defined using the {bootstrap-schema--xref--logging-console-log-level} property.
+
+NOTE: The `stats` log records a snapshot of Sync Gateway's internal statistics at a fixed interval, rather than logging discrete events like the other levels. That interval is controlled separately, by the `unsupported.stats_log_frequency` property (default `1m`), and is independent of the `max_age` and `max_size` rotation settings shown above.
+ 
 
 [#lbl-logrotate]
 === Log File Rotation
