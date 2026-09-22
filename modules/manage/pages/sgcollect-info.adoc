@@ -40,9 +40,10 @@ Both methods produce the same zip file contents, described in <<zipfile-contents
 
 == Prerequisites
 
-* To run `sgcollect_info` from the command line, you need shell access to the Sync Gateway node and the path to the binary.
-* To trigger a collection from the REST API, you need the *Sync Gateway Dev Ops* role and network access to the node's Admin API interface (port `4985` by default).
-* To upload the collected diagnostics directly to Couchbase Support, you need a Zendesk support ticket number and, if applicable, a customer name.
+* You need the *Sync Gateway Dev Ops* role. Both the CLI and the REST API use it to authenticate against the node's Admin API, so it applies whichever method you use.
+* To run `sgcollect_info` from the command line, you also need shell access to the Sync Gateway node and the path to the binary.
+* To trigger a collection from the REST API without shell access, you need network access to the node's Admin API interface (port `4985` by default).
+* To upload the collected diagnostics directly to Couchbase Support, you need a customer name. A Zendesk support ticket number is optional.
 
 
 [#cli]
@@ -61,7 +62,6 @@ Attempting to use the `--sync-gateway-password` option causes an error, with ins
 
 Alternatively, you can specify credentials using the `SG_USERNAME` and `SG_PASSWORD` environment variables to avoid the prompt.
 
-[#ex-collect]
 .Using sgcollect_info from the CLI
 =====
 
@@ -98,12 +98,15 @@ Collect Sync Gateway diagnostics and upload them to Couchbase Support:
   --upload-host=uploads.couchbase.com \
   --customer=Acme \
   --ticket=123 \
+  --keep-zip \
   /tmp/sgcollect_info.zip
 ----
 
 When prompted, enter the password.
 
-This saves the zip file to `/tmp/sgcollect_info.zip` on the node, redacts the logs at the `partial` level, and uploads the redacted zip file to `uploads.couchbase.com` under customer `Acme` and ticket `123`.
+This redacts the logs at the `partial` level and uploads the redacted zip file to `uploads.couchbase.com` under customer `Acme` and ticket `123`.
+By default, Sync Gateway deletes the local zip file once the upload succeeds.
+The `--keep-zip` flag in the command above keeps `/tmp/sgcollect_info.zip` on the node after the upload completes.
 --
 ====
 =====
@@ -143,6 +146,14 @@ Each request body parameter below has the same effect as its CLI equivalent from
 |`--upload-host`
 |Host to upload the logs to. Defaults to `https://uploads.couchbase.com`.
 
+|`upload_proxy`
+|(none)
+|Proxy to use while uploading the logs.
+
+|`keep_zip`
+|`--keep-zip`
+|Set to `true` to keep the local zip file on the node after a successful upload. By default, Sync Gateway deletes it once the upload completes.
+
 |`customer`
 |`--customer`
 |Customer name to associate with the upload.
@@ -159,12 +170,13 @@ Start a collection, redact the logs at the `partial` level, and upload the zip f
 [source,bash]
 ----
 curl -X POST \
-  http://127.0.0.1:4985/_sgcollect_info \
+  https://127.0.0.1:4985/_sgcollect_info \
   --user Admin \
   --header "Content-Type: application/json" \
   --data '{
     "redact_level": "partial",
     "upload": true,
+    "upload_host": "uploads.couchbase.com",
     "customer": "Acme",
     "ticket": "123"
   }'
@@ -218,79 +230,85 @@ TIP: For the full request and response schema, see the xref:rest-api:rest_api_ad
 [#zipfile-contents]
 == Zipfile Contents
 
-Both the CLI and the REST API produce the same log files in the output zip file.
+Both the CLI and the REST API produce the same files in the output zip file.
+
+=== Sync Gateway Logs
 
 [cols="1,2"]
 |===
-|Log file |Description
+|File |Description
 
-|`sync_gateway_access.log`
-|The HTTP access log for Sync Gateway (which GETs and PUTs it received, and from which IPs)
+|`sg_error.log`, `sg_warn.log`, `sg_info.log`, `sg_debug.log`, `sg_trace.log`, `sg_stats.log`
+|The continuous logging files, one per level. Which levels contain data depends on the node's logging configuration.
 
-|`sg_accel_access.log`
-|The HTTP access log for sg_accel (which GETs and PUTs it received, and from which IPs)
+|`sg_<level>-<timestamp>.log.gz`
+|Rotated and compressed versions of the files above. Each rotated file is collected separately and keeps its own name.
 
-|`sg_accel_error.log`
-|The error log (all logging sent to stderr by sg_accel) for the sg_accel process
+|`sg_stack_trace.log`
+|Goroutine stack traces
+|===
 
-|`sync_gateway_error.log`
-|The error log (all logging sent to stderr by sync_gateway) for the sync_gateway process
+=== Configuration and Runtime State
 
-|`server_status.log`
-|The output of \http://localhost:4895 for the running Sync Gateway node
+[cols="1,2"]
+|===
+|File |Description
 
-|`db_db_name_status.log`
-|The output of \http://localhost:4895/db_name for the running Sync Gateway node
-
-|`sync_gateway.json`
-|The on-disk configuration file used by sync_gateway when it was launched
-
-|`sg_accel.json`
-|The on-disk configuration file used by sg_accel when it was launched
-
-|`running_server_config.log`
-|The configuration used by Sync Gateway while running (may not match the on-disk config, since it can be changed on the fly)
-
-|`running_db_db_name_config.log`
-|The config used by Sync Gateway for the database specified by db_name
-
-|`expvars_json.log`
-|The expvars (global exported variables) for the running Sync Gateway instance. See https://www.mikeperham.com/2014/12/17/expvar-metrics-for-golang/ for background on expvars.
-
-|`sgcollect_info_options.log`
-|The command line arguments, or REST request body, used to trigger this collection
+|`<bootstrap config>.json`
+|The on-disk configuration file the node was started with, under its own name, for example `sgw-config.json`. Passwords and keys are removed.
 
 |`sync_gateway.log`
-|OS-level system stats
+|OS-level system stats, and the server configuration, the runtime configuration, each database configuration, the server status and the cluster information.
 
-|`expvars_json.log`
-|Exported Variables (expvars) from Sync Gateway which show runtime stats
+|`expvars.json`
+|Exported variables (expvars) from the running node, which show runtime stats.
 
-|`goroutine.pdf/raw/txt`
-|Goroutine pprof profile output
+|`sgcollect_info_options.log`
+|The command line arguments, or the REST request body, used to start this collection.
+|===
 
-|`heap.pdf/raw/txt`
-|Heap pprof profile output
+=== Profiles
 
-|`profile.pdf/raw/txt`
-|CPU pprof profile output
+[cols="1,2"]
+|===
+|File |Description
 
-|`syslog.tar.gz`
-|System-level logs, such as `/var/log/dmesg` on Linux
+|`pprof_profile.pb.gz`
+|CPU profile
+
+|`pprof_heap.pb.gz`
+|Heap profile
+
+|`pprof_goroutine.pb.gz`
+|Goroutine profile
+
+|`pprof_block.pb.gz`
+|Block profile
+
+|`pprof_mutex.pb.gz`
+|Mutex profile
 
 |`sync_gateway`
-|The Sync Gateway binary executable
+|The Sync Gateway binary. Collected when `sgcollect_info` can find it, and needed to read the profiles.
+|===
 
-|`pprof_http_*.log`
-|pprof output collected directly over HTTP rather than through the `go tool`, for nodes where Go is not installed
+=== Operating System
+
+[cols="1,2"]
+|===
+|File |Description
+
+|`syslog.tar.gz`
+|System logs
+
+|`systemd_journal.gz`
+|systemd journal
 |===
 
 [#file-concatenation]
 === Log File Concatenation
 
-`sgcollect_info` uses the xref:{sgw-pg-logging}#continuous-logging[continuous logging] feature to collect the four leveled log files: `sg_error.log`, `sg_warn.log`, `sg_info.log`, and `sg_debug.log`.
-
-Sync Gateway rotates and compresses these log files. When you run `sgcollect_info`, it decompresses the rotated logs and concatenates them back into a single file per level.
+`sgcollect_info` uses the xref:{sgw-pg-logging}#continuous-logging[continuous logging] feature to collect the six leveled log files: `sg_error.log`, `sg_warn.log`, `sg_info.log`, `sg_debug.log`, `sg_trace.log`, and `sg_stats.log`.
 
 These new log files are rotated and compressed by Sync Gateway.
 When you run `sgcollect_info`, rotated log files are preserved as separate compressed files rather than being concatenated into the main log file.
