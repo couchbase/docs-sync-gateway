@@ -2,7 +2,7 @@
 ifdef::show_edition[:page-edition: {release}]
 ifdef::prerelease[:page-status: {prerelease}]
 :page-role:
-:description: pass:q[Deploy Sync Gateway using Docker to securely sync enterprise data from cloud to edge.]
+:Description: pass:q[Deploy _Sync Gateway_ using Docker; securely sync enterprise data from cloud to edge.]
 :page-type: procedural
 
 
@@ -12,16 +12,18 @@ include::ROOT:partial$_set_page_context.adoc[]
 // BEGIN -- Page Attributes
 :xref-pfx: {sgw--xref}:
 :xref-sgw-bmk-logging-console: xref:{sgw-pg-logging}#lbl-console-logs[Console Logs]
-:cbs-docker-tag: enterprise-8.0.0
 // END -- Page Attributes
 
 
 // BEGIN -- Page Heading
 :topic-group: Start Here!
-:param-abstract: pass:a,q[This page offers an alternative to the *Install* and *Configure* steps in the Start Here! topic group, and it deploys _{sgw}_ and _{cbs}_ in Docker containers.]
+:param-abstract: pass:q[This is an alternative to the *Install* and *Configure* steps in the _Start Here!_ topic group. It deploys _{sgw}_ and _{cbs}_ using Docker containers.]
 
 include::ROOT:partial$_show_page_header_block.adoc[]
 // END -- Page Heading
+
+.Preparatory Steps
+NOTE: Make sure you have read and acted-upon the information in {get-started-prepare--xref} before proceeding.
 
 :param-page: {page-relative-src-path}
 include::ROOT:partial$topic-group-get-started.adoc[]
@@ -29,19 +31,18 @@ include::ROOT:partial$topic-group-get-started.adoc[]
 
 == Before You Begin
 
-Before you begin, make sure that:
+Make sure you have:
 
-* Docker runs on your machine.
-See the https://docs.docker.com/get-docker/[Docker installation guide, window=_blank].
-* You have read the requirements in {get-started-prepare--xref}.
-You complete the Couchbase Server configuration steps from that page after you start the {cbs} container.
+* Docker installed on your machine.
+See the https://docs.docker.com/get-docker/[Docker installation guide, window=_blank] for instructions.
+* The bucket name and RBAC credentials from {get-started-prepare--xref}.
 
 
 == Deploy Couchbase Server
 
 === Create a Docker Network
 
-Create a Docker bridge network so that the {cbs-te} and {sgw-te} containers can communicate.
+Create a Docker bridge network so that {cbs-te} and {sgw-te} containers can communicate.
 
 [{snippet-header}]
 ----
@@ -58,33 +59,27 @@ docker run -d --name cb-server \
   --network couchbase \
   -p 8091-8097:8091-8097 \
   -p 11210-11211:11210-11211 \
-  couchbase/server:{cbs-docker-tag}
+  couchbase/server
 ----
-
-TIP: The command pins the image to a specific version.
-To use a different version, first verify that {sgw} supports it in the xref:get-started-prepare.adoc#lbl-req-compat[Compatibility Requirements].
 
 === Configure Couchbase Server
 
-When {cbs} is running, open the Admin Console at `+http://localhost:8091+` and complete these steps from {get-started-prepare--xref}:
+Once {cbs} is running, open the Admin UI at `+http://localhost:8091+` and complete the setup described in {get-started-prepare--xref}, including:
 
-. Create a cluster.
-. Create a bucket.
-. Create an RBAC user with the Sync Gateway role (`mobile_sync_gateway`) for the bucket.
+* Creating a cluster
+* Creating a bucket
+* Creating an RBAC user for {sgw}
 
-NOTE: Record the bucket name and the RBAC user credentials.
-You need them in the next step.
+NOTE: Note the bucket name and RBAC credentials. You will need them in the next step.
 
 
 == Deploy Sync Gateway
-
-To deploy {sgw}, create a configuration file, then run the {sgw} container.
 
 === Create a Configuration File
 
 Create a configuration file named `sync-gateway-config.json` on your local machine.
 
-Replace `<rbac-username>` and `<rbac-password>` with the credentials of the RBAC user that you created in {cbs}.
+Replace `<rbac-username>` and `<rbac-password>` with the credentials you set up in {cbs}.
 
 [#sample-cfg]
 .Sync Gateway Bootstrap Config for Docker
@@ -99,9 +94,6 @@ Replace `<rbac-username>` and `<rbac-password>` with the credentials of the RBAC
     "password": "<rbac-password>",
     "use_tls_server": false // <.>
   },
-  "api": {
-    "admin_interface": ":4985" // <.>
-  },
   "logging": {
     "console": {
       "enabled": true,
@@ -115,19 +107,16 @@ Replace `<rbac-username>` and `<rbac-password>` with the credentials of the RBAC
 <.> Use the {cbs} container name `cb-server` as the hostname.
 Docker resolves this name within the `couchbase` network.
 
-<.> Use the credentials of the RBAC user with the Sync Gateway role (`mobile_sync_gateway`).
+<.> Use the RBAC credentials you created when you configured {cbs}.
 
-<.> This configuration disables TLS for local development.
+<.> TLS is disabled for local development.
 For production deployments, enable TLS and use `couchbases://cb-server` instead.
-
-<.> {sgw} binds the Admin REST API to `127.0.0.1` by default, which makes it unreachable from outside the container.
-This setting binds the Admin REST API to all interfaces inside the container, so that the host can reach it through the port mapping in the next step.
 
 ====
 
 === Run Sync Gateway
 
-Run {sgw} in a Docker container and mount the configuration file that you created.
+Run {sgw} in a Docker container, mounting the configuration file you created.
 
 Replace `/path/to/sync-gateway-config.json` with the absolute path to the file on your local machine.
 
@@ -135,25 +124,18 @@ Replace `/path/to/sync-gateway-config.json` with the absolute path to the file o
 ----
 docker run -d --name sync-gateway \
   --network couchbase \
-  -p 4984:4984 \
-  -p 127.0.0.1:4985:4985 \
+  -p 4984-4985:4984-4985 \
   -v /path/to/sync-gateway-config.json:/etc/sync_gateway/config.json \
-  couchbase/sync-gateway:{version-full}-enterprise \
+  couchbase/sync-gateway \
   /etc/sync_gateway/config.json
 ----
 
-WARNING: Port 4985 serves the {sgw} Admin REST API.
-The `127.0.0.1:4985:4985` mapping publishes the Admin port to your local machine only.
-Do not expose port 4985 to external traffic in production environments.
-
-NOTE: The Admin REST API requires authentication by default.
-To create a database, which the next steps require, use the credentials of a user with the Full Admin role, such as the administrator that you created during cluster setup.
-The Sync Gateway role (`mobile_sync_gateway`) cannot create a database.
+NOTE: Port 4985 is the {sgw} Admin port. By default it is only accessible from within the container. Do not expose port 4985 to external traffic in production environments.
 
 
 == Verify the Connection
 
-. Open the {sgw} public port in your browser:
+. Point your browser to the {sgw} public port:
 +
 [{snippet-header}]
 ----
@@ -167,12 +149,10 @@ http://localhost:4984
 {"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":"{version}"},"version":"Couchbase {sgw}/{version-full} EE"}
 ----
 +
-If you have issues, see the {xref-sgw-bmk-logging-console} for more information.
+If there are issues, select the {xref-sgw-bmk-logging-console} for more information.
 
 
 == Manage Your Containers
-
-Use these commands to stop, start, and update your {cbs} and {sgw} containers.
 
 === Stop Containers
 
@@ -192,12 +172,12 @@ docker start cb-server
 docker start sync-gateway
 ----
 
-NOTE: If {cbs} stops for an extended period, {sgw} loses the connection.
-Restart {sgw} after you restart {cbs}.
+NOTE: If {cbs} is stopped for an extended period, {sgw} loses the connection.
+Restart {sgw} after restarting {cbs}.
 
 === Update the Sync Gateway Configuration
 
-To update the {sgw} configuration, stop and remove the container, then run it again with the updated configuration file.
+To update the {sgw} configuration, stop and remove the container, then re-run it with the updated configuration file.
 
 [{snippet-header}]
 ----
@@ -210,15 +190,13 @@ Then repeat <<run-sync-gateway>>.
 
 == Next Steps
 
-Now that {sgw} runs in Docker, continue to {get-started-explore--xref}.
-There, you add a database configuration, create users and run a Create-Read-Update-Delete (CRUD) cycle that confirms sync works end to end.
+Now that you have {sgw} running in Docker, continue to {get-started-explore--xref} to add a database configuration, create users, and run a CRUD cycle to confirm sync is working end-to-end.
 
 From there, you can explore more complex scenarios:
 
-* Learn more about the {sgw} {configuration-schema-bootstrap--xref}.
-* Learn how to {sync-with-couchbase-server--xref}.
-* Implement access controls.
-See {users--xref}, {roles--xref}, and the {sync-function--xref}.
+* Learn more about {sgw}'s {configuration-schema-bootstrap--xref}
+* Learn how to {sync-with-couchbase-server--xref}
+* Implement access controls -- see: {users--xref}, {roles--xref}, and the {sync-function--xref}
 
 
 // BEGIN -- Page Footer
