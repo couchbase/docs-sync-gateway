@@ -2,7 +2,7 @@
 ifdef::show_edition[:page-edition: {release}]
 ifdef::prerelease[:page-status: {prerelease}]
 :page-role:
-:description: pass:q[Deploy _Sync Gateway_ using Docker; securely sync enterprise data from cloud to edge.]
+:description: pass:q[Deploy Sync Gateway using Docker to securely sync enterprise data from cloud to edge.]
 :page-type: procedural
 
 
@@ -18,7 +18,7 @@ include::ROOT:partial$_set_page_context.adoc[]
 
 // BEGIN -- Page Heading
 :topic-group: Start Here!
-:param-abstract: pass:a,q[This page offers an alternative to the *Install* and *Configure* steps in the _Start Here!_ topic group. It deploys _{sgw}_ and _{cbs}_ in Docker containers.]
+:param-abstract: pass:a,q[This page offers an alternative to the *Install* and *Configure* steps in the Start Here! topic group, and it deploys _{sgw}_ and _{cbs}_ in Docker containers.]
 
 include::ROOT:partial$_show_page_header_block.adoc[]
 // END -- Page Heading
@@ -62,7 +62,7 @@ docker run -d --name cb-server \
 ----
 
 TIP: The command pins the image to a specific version.
-To use a different version, first check that {sgw} supports it in the xref:get-started-prepare.adoc#lbl-req-compat[Compatibility Requirements].
+To use a different version, first verify that {sgw} supports it in the xref:get-started-prepare.adoc#lbl-req-compat[Compatibility Requirements].
 
 === Configure Couchbase Server
 
@@ -70,13 +70,15 @@ When {cbs} is running, open the Admin Console at `+http://localhost:8091+` and c
 
 . Create a cluster.
 . Create a bucket.
-. Create an RBAC user with the _Sync Gateway_ role (`mobile_sync_gateway`) for the bucket.
+. Create an RBAC user with the Sync Gateway role (`mobile_sync_gateway`) for the bucket.
 
 NOTE: Record the bucket name and the RBAC user credentials.
 You need them in the next step.
 
 
 == Deploy Sync Gateway
+
+To deploy {sgw}, create a configuration file, then run the {sgw} container.
 
 === Create a Configuration File
 
@@ -113,7 +115,7 @@ Replace `<rbac-username>` and `<rbac-password>` with the credentials of the RBAC
 <.> Use the {cbs} container name `cb-server` as the hostname.
 Docker resolves this name within the `couchbase` network.
 
-<.> Use the credentials of the RBAC user with the _Sync Gateway_ role (`mobile_sync_gateway`).
+<.> Use the credentials of the RBAC user with the Sync Gateway role (`mobile_sync_gateway`).
 
 <.> This configuration disables TLS for local development.
 For production deployments, enable TLS and use `couchbases://cb-server` instead.
@@ -145,8 +147,8 @@ The `127.0.0.1:4985:4985` mapping publishes the Admin port to your local machine
 Do not expose port 4985 to external traffic in production environments.
 
 NOTE: The Admin REST API requires authentication by default.
-To create a database, which the next steps require, use the credentials of a user with the _Full Admin_ role, such as the administrator that you created during cluster setup.
-The _Sync Gateway_ role (`mobile_sync_gateway`) cannot create a database.
+To create a database, which the next steps require, use the credentials of a user with the Full Admin role, such as the administrator that you created during cluster setup.
+The Sync Gateway role (`mobile_sync_gateway`) cannot create a database.
 
 
 == Verify the Connection
@@ -165,10 +167,12 @@ http://localhost:4984
 {"couchdb":"Welcome","vendor":{"name":"Couchbase Sync Gateway","version":"{version}"},"version":"Couchbase {sgw}/{version-full} EE"}
 ----
 +
-If you have issues, check the {xref-sgw-bmk-logging-console} for more information.
+If you have issues, see the {xref-sgw-bmk-logging-console} for more information.
 
 
 == Manage Your Containers
+
+Use these commands to stop, start, and update your {cbs} and {sgw} containers.
 
 === Stop Containers
 
@@ -206,7 +210,8 @@ Then repeat <<run-sync-gateway>>.
 
 == Next Steps
 
-Now that {sgw} runs in Docker, continue to {get-started-explore--xref} to add a database configuration, create users, and run a CRUD cycle that confirms sync works end to end.
+Now that {sgw} runs in Docker, continue to {get-started-explore--xref}.
+There, you add a database configuration, create users and run a Create-Read-Update-Delete (CRUD) cycle that confirms sync works end to end.
 
 From there, you can explore more complex scenarios:
 
