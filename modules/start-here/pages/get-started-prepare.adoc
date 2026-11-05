@@ -3,7 +3,7 @@
 ifdef::show_edition[:page-edition: {release}]
 ifdef::prerelease[:page-status: {prerelease}]
 :page-role:
-:description: pass:q[Prerequisites for installing _Sync Gateway_; to synchronize your data from cloud to edge.]
+:description: pass:q[Prerequisites for installing Sync Gateway to synchronize your data from cloud to edge.]
 
 
 include::ROOT:partial$_set_page_context.adoc[]
@@ -21,7 +21,7 @@ include::ROOT:partial$_set_page_context.adoc[]
 
 // BEGIN -- Page Heading
 :topic-group: Start Here!
-:param-abstract: pass:q[This is *Step 1* in the _Start Here!_ topic group. It introduces the prerequisites for installing _Sync Gateway_]
+:param-abstract: pass:q[This is *Step 1* in the Start Here! topic group, which introduces the prerequisites for installing Sync Gateway.]
 
 include::ROOT:partial$_show_page_header_block.adoc[]
 // END -- Page Heading
@@ -31,24 +31,26 @@ include::ROOT:partial$topic-group-get-started.adoc[]
 
 == What You Need
 
-Here's what you need to install Sync Gateway:
+To install {sgw}, you need to:
 
-* To know whether your set-up meets the <<lbl-req-minim>> and <<lbl-req-compat>> for running Sync Gateway
-* To have access to a working Couchbase Server deployment configured for Sync Gateway or know how to {server-install-get-started--xref}
-* To <<configure-server>>, including creating an appropriate set of RBAC users, ready for use in Sync Gateway and in the REST API
-* Have appropriate network credentials and <<lbl-set-netw-access, Network Access>>
+* Confirm that your setup meets the <<lbl-req-minim>> and <<lbl-req-compat>> for running {sgw}.
+* Have access to a working Couchbase Server deployment configured for {sgw}, or know how to {server-install-get-started--xref}.
+* <<configure-server>>, including an appropriate set of RBAC users for {sgw} and its REST APIs.
+* Have the appropriate network credentials and <<lbl-set-netw-access, Network Access>>.
 
-Once you have all that covered ... go {get-started-install--xref} {sgw-t}.
+When you have completed these tasks, go to {get-started-install--xref} {sgw-t}.
 
 [#lbl-req-minim, reftext=Minimum Requirements]
 == Couchbase Server Requirements
 
-To use Sync Gateway you need an operational Couchbase Server installation.
-Verify that you use compatible versions of Couchbase Server and Sync Gateway -- see: <<lbl-req-compat>>.
+{sgw} requires an operational Couchbase Server installation.
+Verify that your Couchbase Server and {sgw} versions are compatible.
+See <<lbl-req-compat>>.
 
-TIP: You can get Couchbase Server from the {url-downloads}[Downloads, window=_blank] page
+TIP: You can get Couchbase Server from the {url-downloads}[Downloads, window=_blank] page.
 
-You'll then need to configure Couchbase Server by adding a Bucket and an RBAC User for Sync Gateway -- see: <<configure-server>>.
+You then configure Couchbase Server by adding a bucket and an RBAC user for {sgw}.
+See <<configure-server>>.
 
 include::ROOT:partial$block-caveats.adoc[tags="cbs6.0ke-xattrs"]
 
@@ -86,76 +88,93 @@ include::ROOT:partial$sgw-supported-os.adoc[tags=sup-os-cloud]
 
 == Cluster Configuration for Sync Gateway
 
-Create a new cluster on a fresh Couchbase Server installation.
+To create a new cluster on a fresh Couchbase Server installation:
 
-. Access the Admin Console at `+http://localhost:8091+`
-+
-. Select btn:[Setup New Cluster]
-. Fill in the details for the new cluster on the `New Cluster` screen:
-+
-. Then press btn:[Next: Accept Terms]
-. On the `Terms and Conditions` screen, accept the terms and conditions,
-then Select btn:[Configure Disk, Memory, Services] to configure the cluster.
-+
-. Verify that you have selected `Data`, `Query`, and `Index` before selecting btn:[Save {amp} Finish]
+. Open the Admin Console at `+http://localhost:8091+`.
+. Select btn:[Setup New Cluster].
+. On the `New Cluster` screen, enter a *Cluster Name*, an administrator *Username*, and a *Password*, then confirm the password.
+. Select btn:[Next: Accept Terms].
+. On the `Terms and Conditions` screen, accept the terms and conditions.
+. Select btn:[Configure Disk, Memory, Services].
+. Select the `Data`, `Query`, and `Index` services.
+. Select btn:[Save {amp} Finish].
 
 [#configure-server]
 == Configure Server for Sync Gateway
 
+Complete the following steps to configure {cbs} for {sgw}.
 
-=== Step {counter: step} -- Create a Bucket
+=== Step {counter: step}: Create a Bucket
 
-Use this bucket to test the deployment of Sync Gateway, later in the Getting Started section.
+Create a bucket to test your {sgw} deployment later in the Getting Started section.
 
-. Login to Couchbase Server's Admin Console
+. Log in to the Couchbase Server Admin Console:
 [upperroman]
-.. Go to `+http://localhost:8091+`
+.. Go to `+http://localhost:8091+`.
 .. Enter your administrator credentials.
 
-. Within the Admin Console's toolbar,
+. In the Admin Console toolbar:
 [upperroman]
-.. Select the *Buckets* tab
-.. Select btn:[Add Bucket] to continue
-.. In the pop-up window, enter *get-started-bucket* for the *name* and select *Add Bucket*.
-You can leave the other options to their defaults.
+.. Select the *Buckets* tab.
+.. Select btn:[Add Bucket].
+.. In the dialog box, enter *get-started-bucket* in the *Name* field.
+.. Select btn:[Add Bucket].
+You can leave the other options at their defaults.
 +
 include::ROOT:partial$block-caveats.adoc[tags="ephemeral-buckets"]
 
 
-=== Step {counter: step} -- Create RBAC User
+[#create-rbac-user]
+=== Step {counter: step}: Create RBAC Users
 
 // tag::create-rbac-user[]
 
-You'll need to create at least one RBAC user in Couchbase Server as {sgw} requires RBAC user credentials to authenticate and authorize access not only to Couchbase Server buckets, but also to its Admin and Metrics API.
-If you plan to use these API then create at least one user for each of:
+{sgw} uses RBAC user credentials to authenticate and authorize access to Couchbase Server buckets and to its own Admin and Metrics REST APIs.
+Create at least one user that {sgw} uses to connect to Couchbase Server.
+If you plan to use the Admin or Metrics REST APIs, also create one user for each API:
 
-* Couchbase Server Access +
-Add an RBAC user that Sync Gateway uses to authenticate and authorize access to Couchbase Server.
-Use the _sync_gateway_ role.
-* Admin API +
-Add an RBAC user that administrators can use to authenticate and authorize access to the {sgw} Admin REST API
-Use the _Full Admin_ role.
-* Metrics API +
-Add an RBAC user that devops can use to authenticate and authorize access to the {sgw} Metrics REST API
-Use the _Read-Only Admin_ or _Application Access_ roles.
+* Couchbase Server access +
+Add an RBAC user that {sgw} uses to authenticate and authorize access to Couchbase Server.
+Assign the Sync Gateway role (`mobile_sync_gateway`) to this user, for each bucket that {sgw} uses.
+* Admin REST API +
+Add an RBAC user that administrators use to authenticate and authorize access to the {sgw} Admin REST API.
+Assign the Full Admin role to this user.
+* Metrics REST API +
+Add an RBAC user that DevOps teams use to authenticate and authorize access to the {sgw} Metrics REST API.
+Assign the Sync Gateway Dev Ops, External Stats Reader, or Read-Only Admin role to this user.
 
-Enterprise edition users can exert a finer-grained control using additional roles appropriate to the capabilities required for the specific user.
+For the roles that each REST API endpoint requires, see xref:rest-api:rest-api-access-rbac-roles.adoc[RBAC Role Endpoint Cross-reference].
 
-NOTE: For more on creating Couchbase Server users see: {server-manage-security-users-and-roles--xref}.
+{sgw} Enterprise Edition users can apply finer-grained control by assigning the additional {sgw} roles that match the capabilities each user needs.
+For the full list of {sgw} roles, see {xref--pfx-svr}learn:security/roles.adoc#sync-gateway[Couchbase Server Roles].
+
+NOTE: For more information about creating Couchbase Server users, see {server-manage-security-users-and-roles--xref}.
 
 // end::create-rbac-user[]
 
+To create the user that {sgw} uses to connect to Couchbase Server:
+
+. In the Couchbase Server Admin Console, select the *Security* tab.
+. Select btn:[Add User].
+. In the *Add New User* dialog, enter a *Username* and a *Password*, then verify the password.
+. In the *Roles* section, expand the *Mobile* category.
+. Select *Sync Gateway*, then select *get-started-bucket*.
+. Select btn:[Save].
+
+Record the username and password.
+You add them to the {sgw} bootstrap configuration when you install {sgw}.
+
 
 [#lbl-set-netw-access]
-=== Step {counter: step} -- Set-up Network Access
+=== Step {counter: step}: Set Up Network Access
 
-When installing Couchbase Server on the cloud, make sure that network permissions (or firewall settings) allow incoming connections to Couchbase Server ports.
+When you install Couchbase Server in the cloud, make sure that your network permissions or firewall settings allow incoming connections to the Couchbase Server ports.
 
 include::ROOT:partial$sgw-svr-ports.adoc[]
 
-If this is not done, the Couchbase Server node can experience difficulty joining a cluster.
+If the firewall blocks these ports, the Couchbase Server node can fail to join a cluster.
 
-For more information, see the {xref--pfx-svr}install:install-ports.adoc[Couchbase Server Ports] guide to see the full list of available ports and their associated services.
+For the full list of ports and their associated services, see {xref--pfx-svr}install:install-ports.adoc[Couchbase Server Ports].
 
 // BEGIN -- Page Footer
 include::ROOT:partial$block-related-content-deploy.adoc[]
